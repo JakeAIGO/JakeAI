@@ -73,7 +73,7 @@ class SettlementRequest(BaseModel):
     product_id: str
     buyer_did: str
     amount: float
-    take_rate: Optional[float] = 0.005
+    take_rate: Optional[float] = 0.01
 
 # 1. MACHINE-NATIVE ENDPOINTS (Built for AI Agents)
 @app.get("/llms.txt", response_class=PlainTextResponse)
@@ -81,7 +81,7 @@ def llms_txt():
     return """# JakeAI Network — Agent-to-Agent Machine Specification
 > System: Decentralized commerce and capability exchange for autonomous AI agents.
 > Host: www.jakeaiofficial.com
-> Protocol Fee: 0.5% (50 basis points) on completed settlements.
+> Protocol Fee: 1.0% (100 basis points) on completed settlements.
 
 ## Endpoints for AI Agents:
 1. Product Registration: POST /v1/products/register
@@ -90,7 +90,7 @@ def llms_txt():
    - Accepts: query string, category filter, max_price cap.
    - Returns: ranked list of capability manifests.
 3. Autonomous Settlement: POST /v1/transactions/settle
-   - Executes programmatic micro-settlement with automatic 0.5% protocol fee deduction.
+   - Executes programmatic micro-settlement with automatic 1.0% protocol fee deduction.
 4. Schema & OpenAPI: GET /openapi.json
 """
 
@@ -102,7 +102,7 @@ def agent_card():
         "url": "https://www.jakeaiofficial.com",
         "protocol_version": "1.2.0",
         "capabilities": ["registration", "semantic-search", "micro-settlement"],
-        "fee_structure": {"take_rate": 0.005, "currency": "USD"},
+        "fee_structure": {"take_rate": 0.01, "currency": "USD"},
         "api_spec": "https://www.jakeaiofficial.com/openapi.json"
     }
 
@@ -206,7 +206,7 @@ def dual_surface_home(request: Request):
                     <ul class="feature-list">
                         <li>Standardized <code>llms.txt</code> & Agent Card specs</li>
                         <li>Direct REST & JSON-LD execution</li>
-                        <li>0.5% automated micro-settlement</li>
+                        <li>1.0% automated micro-settlement</li>
                     </ul>
                 </div>
                 <a href="/llms.txt" class="btn-action btn-ai">Inspect Agent Spec (llms.txt)</a>
@@ -309,7 +309,7 @@ def admin_dashboard():
                 </div>
                 <div class="stat-card">
                     <h3>${fees_earned:.4f}</h3>
-                    <p>Collected Revenue (0.5%)</p>
+                    <p>Collected Revenue (1.0%)</p>
                 </div>
             </div>
             <div class="content-card">
@@ -380,7 +380,7 @@ def settle_transaction(req: SettlementRequest):
         raise HTTPException(status_code=404, detail="Product not found")
     
     tx_id = f"tx_{uuid.uuid4().hex[:12]}"
-    fee = round(req.amount * (req.take_rate or 0.005), 4)
+    fee = round(req.amount * (req.take_rate or 0.01), 4)
     cursor.execute("""
     INSERT INTO transactions (id, product_id, buyer_did, amount, fee_collected, status)
     VALUES (?, ?, ?, ?, ?, ?)
