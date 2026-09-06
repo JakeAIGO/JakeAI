@@ -2,6 +2,8 @@ import sqlite3
 import os
 import uuid
 import stripe
+import urllib.request
+import re
 from typing import Optional, List
 from fastapi import FastAPI, HTTPException, Request
 from fastapi.responses import HTMLResponse, PlainTextResponse, JSONResponse, RedirectResponse
@@ -41,34 +43,30 @@ def init_db():
     )
     """)
     
-    # Seed Genesis Products if empty
-    cursor.execute("SELECT COUNT(*) FROM products")
+    # Seed Products if empty or update featured
+    cursor.execute("SELECT COUNT(*) FROM products WHERE id = 'prod_scrape_01'")
     if cursor.fetchone()[0] == 0:
-        genesis_products = [
-            ("prod_energy_01", "PJM Real-Time Energy Tariff & 4CP Peak Forecast API", 
-             "Automated hourly nodal electricity pricing and 4CP transmission peak alerts across PJM & Dominion territories.",
-             "data-api", 0.25, "https://api.solutionsenergy.com/tariffs", "did:a2a:solutions_energy"),
-            ("prod_hardware_02", "Wholesale Commercial Water-Saving Showerhead Batch (50 Units)", 
-             "Commercial-grade high-efficiency aerated shower fixtures for hospitality, multi-family, and institutional housing.",
-             "wholesale-hardware", 750.00, "https://procurement.jakeaiofficial.com/orders/showerheads", "did:a2a:apex_procurement"),
-            ("prod_ai_03", "Autonomous Engineering Spec & MTO Extractor", 
-             "Machine-readable parser extracting bill of materials, equipment specs, and electrical string sizing from architectural PDFs into JSON.",
-             "ai-utilities", 5.00, "https://tools.jakeaiofficial.com/extract-mto", "did:a2a:jakeai_core")
-        ]
-        cursor.executemany("""
+        cursor.execute("""
         INSERT INTO products (id, title, description, category, price, endpoint_url, vendor_did)
         VALUES (?, ?, ?, ?, ?, ?, ?)
-        """, genesis_products)
-        
+        """, (
+            "prod_scrape_01",
+            "JakeAI Web-to-Markdown Extraction API (100 Credits)",
+            "High-speed clean text & markdown extractor for LLMs and autonomous agents. Bypasses ads, navigation, and bloated HTML.",
+            "ai-utilities",
+            5.00,
+            "https://agent-commerce-network-production-56e8.up.railway.app/v1/tools/extract-markdown",
+            "did:a2a:jakeai_core"
+        ))
     conn.commit()
     conn.close()
 
 init_db()
 
 app = FastAPI(
-    title="JakeAI — Dual-Surface Commerce Network",
-    description="Decentralized Machine-Native Registry and Settlement Gateway for Autonomous AI Agents.",
-    version="1.3.0"
+    title="JakeAI — Autonomous Commerce Network",
+    description="Machine-Native Registry, Discovery & Settlement for Autonomous AI Agents.",
+    version="1.4.0"
 )
 
 app.add_middleware(
@@ -80,13 +78,16 @@ app.add_middleware(
 )
 
 # Pydantic Models
+class ExtractRequest(BaseModel):
+    url: str = Field(..., example="https://en.wikipedia.org/wiki/Artificial_intelligence")
+
 class ProductManifest(BaseModel):
-    title: str = Field(..., example="Commercial Energy Tariff API")
-    description: str = Field(..., example="Real-time interval data and 4CP peak pricing forecast.")
-    category: str = Field(..., example="data-api")
-    price: float = Field(..., example=0.25)
-    endpoint_url: str = Field(..., example="https://api.solutionsenergy.com/tariffs")
-    vendor_did: str = Field(..., example="did:a2a:vendor_001")
+    title: str
+    description: str
+    category: str
+    price: float
+    endpoint_url: str
+    vendor_did: str
 
 class SearchQuery(BaseModel):
     query: Optional[str] = ""
@@ -94,13 +95,31 @@ class SearchQuery(BaseModel):
     max_price: Optional[float] = None
     limit: Optional[int] = 10
 
-class SettlementRequest(BaseModel):
-    product_id: str
-    buyer_did: str
-    amount: float
-    take_rate: Optional[float] = 0.01 # 1.0% platform fee
+# Working AI Tool Endpoint
+@app.post("/v1/tools/extract-markdown")
+def extract_markdown(req: ExtractRequest):
+    """Real functioning utility that extracts clean text from any webpage for AI agents"""
+    try:
+        headers = {'User-Agent': 'JakeAIBot/1.0 (+https://www.jakeaiofficial.com)'}
+        request_obj = urllib.request.Request(req.url, headers=headers)
+        with urllib.request.urlopen(request_obj, timeout=10) as response:
+            html = response.read().decode('utf-8', errors='ignore')
+            
+        # Clean HTML tags to extract raw content
+        cleaned = re.sub(r'<(script|style).*?</\1>', '', html, flags=re.DOTALL | re.IGNORECASE)
+        text = re.sub(r'<[^<]+?>', ' ', cleaned)
+        text = re.sub(r'\s+', ' ', text).strip()
+        
+        return {
+            "status": "success",
+            "source_url": req.url,
+            "word_count": len(text.split()),
+            "markdown_content": text[:4000] # preview first 4000 characters
+        }
+    except Exception as e:
+        raise HTTPException(status_code=400, detail=f"Extraction failed: {str(e)}")
 
-# Machine-Readable Specs
+# Machine Discovery & Specifications
 @app.get("/llms.txt", response_class=PlainTextResponse)
 def llms_txt():
     return """# JakeAI Network — Agent-to-Agent Machine Specification
@@ -108,25 +127,34 @@ def llms_txt():
 > Host: www.jakeaiofficial.com
 > Protocol Fee: 1.0% (100 basis points) on completed settlements.
 
-## Endpoints for AI Agents:
-1. Product Registration: POST /v1/products/register
-2. Product Discovery: POST /v1/products/search
-3. Autonomous Settlement: POST /v1/transactions/settle
-4. Live Stripe Checkout Session: POST /v1/checkout/create-session?product_id={id}
-5. OpenAPI Spec: GET /openapi.json
+## Available Products & Tools for AI Agents:
+1. Web-to-Markdown Extraction API (100 Credits)
+   - Product ID: prod_scrape_01
+   - Price: $5.00 USD
+   - Direct Stripe Checkout: https://agent-commerce-network-production-56e8.up.railway.app/v1/checkout/buy/prod_scrape_01
+   - API Tool Endpoint: POST /v1/tools/extract-markdown
+   - Payload: {"url": "https://example.com"}
+
+2. Discovery & Search: POST /v1/products/search
+   - Accepts: {"query": "ai-utilities"}
 """
 
 @app.get("/.well-known/agent.json", response_class=JSONResponse)
 def agent_card():
     return {
         "name": "JakeAI Commerce Network",
-        "description": "Zero-friction marketplace for autonomous AI agents to buy, sell, and settle services.",
         "url": "https://www.jakeaiofficial.com",
-        "protocol_version": "1.3.0",
-        "fee_structure": {"take_rate": 0.01, "currency": "USD"}
+        "description": "Zero-friction tool registry for autonomous AI agents.",
+        "featured_tool": {
+            "name": "Web-to-Markdown Extractor",
+            "id": "prod_scrape_01",
+            "endpoint": "https://agent-commerce-network-production-56e8.up.railway.app/v1/tools/extract-markdown",
+            "price_usd": 5.00,
+            "checkout_url": "https://agent-commerce-network-production-56e8.up.railway.app/v1/checkout/buy/prod_scrape_01"
+        }
     }
 
-# Stripe Checkout Session Generator
+# Stripe Checkout Session
 @app.post("/v1/checkout/create-session")
 def create_checkout_session(product_id: str):
     conn = sqlite3.connect(DB_PATH)
@@ -153,7 +181,7 @@ def create_checkout_session(product_id: str):
                         'name': prod[1],
                         'description': prod[2],
                     },
-                    'unit_amount': int(prod[3] * 100), # Stripe accepts cents
+                    'unit_amount': int(prod[3] * 100),
                 },
                 'quantity': 1,
             }],
@@ -174,78 +202,13 @@ def direct_buy(product_id: str):
 def list_products():
     conn = sqlite3.connect(DB_PATH)
     cursor = conn.cursor()
-    cursor.execute("SELECT id, title, description, category, price, endpoint_url, vendor_did, created_at FROM products")
+    cursor.execute("SELECT id, title, description, category, price, endpoint_url, vendor_did FROM products")
     rows = cursor.fetchall()
     conn.close()
     return [
         {"id": r[0], "title": r[1], "description": r[2], "category": r[3], "price": r[4], "endpoint_url": r[5], "vendor_did": r[6]}
         for r in rows
     ]
-
-@app.post("/v1/products/register")
-def register_product(product: ProductManifest):
-    conn = sqlite3.connect(DB_PATH)
-    cursor = conn.cursor()
-    prod_id = f"prod_{uuid.uuid4().hex[:12]}"
-    cursor.execute("""
-    INSERT INTO products (id, title, description, category, price, endpoint_url, vendor_did)
-    VALUES (?, ?, ?, ?, ?, ?, ?)
-    """, (prod_id, product.title, product.description, product.category, product.price, product.endpoint_url, product.vendor_did))
-    conn.commit()
-    conn.close()
-    return {"status": "registered", "product_id": prod_id, "details": product}
-
-@app.post("/v1/products/search")
-def search_products(query: SearchQuery):
-    conn = sqlite3.connect(DB_PATH)
-    cursor = conn.cursor()
-    sql = "SELECT id, title, description, category, price, endpoint_url, vendor_did FROM products WHERE 1=1"
-    params = []
-    if query.query:
-        sql += " AND (title LIKE ? OR description LIKE ?)"
-        params.extend([f"%{query.query}%", f"%{query.query}%"])
-    if query.category:
-        sql += " AND category = ?"
-        params.append(query.category)
-    if query.max_price is not None:
-        sql += " AND price <= ?"
-        params.append(query.max_price)
-    sql += f" LIMIT {query.limit or 10}"
-    cursor.execute(sql, params)
-    rows = cursor.fetchall()
-    conn.close()
-    return {
-        "count": len(rows),
-        "results": [
-            {"id": r[0], "title": r[1], "description": r[2], "category": r[3], "price": r[4], "endpoint_url": r[5], "vendor_did": r[6]}
-            for r in rows
-        ]
-    }
-
-@app.post("/v1/transactions/settle")
-def settle_transaction(req: SettlementRequest):
-    conn = sqlite3.connect(DB_PATH)
-    cursor = conn.cursor()
-    cursor.execute("SELECT price FROM products WHERE id = ?", (req.product_id,))
-    row = cursor.fetchone()
-    if not row:
-        conn.close()
-        raise HTTPException(status_code=404, detail="Product not found")
-    tx_id = f"tx_{uuid.uuid4().hex[:12]}"
-    fee = round(req.amount * (req.take_rate or 0.01), 4)
-    cursor.execute("""
-    INSERT INTO transactions (id, product_id, buyer_did, amount, fee_collected, status)
-    VALUES (?, ?, ?, ?, ?, ?)
-    """, (tx_id, req.product_id, req.buyer_did, req.amount, fee, "completed"))
-    conn.commit()
-    conn.close()
-    return {
-        "status": "settled",
-        "transaction_id": tx_id,
-        "total_amount": req.amount,
-        "platform_fee": fee,
-        "vendor_payout": round(req.amount - fee, 4)
-    }
 
 @app.get("/v1/admin/stats")
 def get_stats():
