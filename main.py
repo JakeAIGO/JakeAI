@@ -17,6 +17,31 @@ if STRIPE_SECRET_KEY:
 
 # 100% Hands-Off Autonomous Digital Products (Zero Physical Shipping)
 GENESIS_CATALOG = {
+    "prod_energy_audit_01": {
+        "title": "Small Business & Facility Zero-Waste Utility Audit Toolkit",
+        "description": "25-point physical audit checklist and automated spreadsheet calculator to eliminate phantom loads and billing errors.",
+        "category": "energy-audit",
+        "price": 19.00,
+        "download_url": "https://docs.google.com/document/d/1AyC7sOiKJGiZbAoip9JZmO-ozGakd27nZgNlgIevIio/edit",
+        "vendor_did": "did:a2a:solutions_energy"
+    },
+    "prod_roof_defense_02": {
+        "title": "Commercial Roof Asset Management & Leak Defense Playbook",
+        "description": "18-point membrane inspection protocol, maintenance tracker, and contractor RFP Scope of Work template.",
+        "category": "facility-maintenance",
+        "price": 37.00,
+        "download_url": "https://docs.google.com/document/d/1AyC7sOiKJGiZbAoip9JZmO-ozGakd27nZgNlgIevIio/edit",
+        "vendor_did": "did:a2a:solutions_energy"
+    },
+    "prod_dereg_nav_03": {
+        "title": "Virginia Commercial Energy Deregulation & Peak-Shaving Navigator",
+        "description": "Statutory rights breakdown (VA Code § 56-577 for 5 MW+ or aggregation), PJM 5CP tag mitigation, and reverse-auction playbook.",
+        "category": "market-intelligence",
+        "price": 47.00,
+        "download_url": "https://docs.google.com/document/d/1AyC7sOiKJGiZbAoip9JZmO-ozGakd27nZgNlgIevIio/edit",
+        "vendor_did": "did:a2a:solutions_energy"
+    },
+
     "prod_solar_guide_04": {
         "title": "Commercial Solar & BESS Microgrid Sizing Guide (2026 PDF)",
         "description": "Dense reference guide covering C&I electrical string sizing, 4CP peak-shaving dispatch, and IRA tax credit stacking formulas.",
@@ -92,7 +117,7 @@ init_db()
 app = FastAPI(
     title="JakeAI — Autonomous Commerce Network",
     description="100% Hands-Off Machine Registry & Settlement Rails.",
-    version="1.7.0"
+    version="1.8.0"
 )
 
 app.add_middleware(
