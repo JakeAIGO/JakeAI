@@ -23,7 +23,7 @@ GENESIS_CATALOG = {
         "category": "energy-audit",
         "price": 19.00,
         "download_url": "https://docs.google.com/document/d/1AyC7sOiKJGiZbAoip9JZmO-ozGakd27nZgNlgIevIio/edit",
-        "vendor_did": "did:a2a:solutions_energy"
+        "vendor_did": "did:a2a:autonex_network"
     },
     "prod_roof_defense_02": {
         "title": "Commercial Roof Asset Management & Leak Defense Playbook",
@@ -31,7 +31,7 @@ GENESIS_CATALOG = {
         "category": "facility-maintenance",
         "price": 37.00,
         "download_url": "https://docs.google.com/document/d/1AyC7sOiKJGiZbAoip9JZmO-ozGakd27nZgNlgIevIio/edit",
-        "vendor_did": "did:a2a:solutions_energy"
+        "vendor_did": "did:a2a:autonex_network"
     },
     "prod_dereg_nav_03": {
         "title": "Virginia Commercial Energy Deregulation & Peak-Shaving Navigator",
@@ -39,7 +39,7 @@ GENESIS_CATALOG = {
         "category": "market-intelligence",
         "price": 47.00,
         "download_url": "https://docs.google.com/document/d/1AyC7sOiKJGiZbAoip9JZmO-ozGakd27nZgNlgIevIio/edit",
-        "vendor_did": "did:a2a:solutions_energy"
+        "vendor_did": "did:a2a:autonex_network"
     },
 
     "prod_solar_guide_04": {
@@ -48,23 +48,23 @@ GENESIS_CATALOG = {
         "category": "digital-guide",
         "price": 3.00,
         "download_url": "https://drive.google.com/file/d/1xFpazazGdH2_LGSkvuWgMmR5jhPnq7pv/view?usp=drivesdk",
-        "vendor_did": "did:a2a:solutions_energy"
+        "vendor_did": "did:a2a:autonex_network"
     },
     "prod_scrape_01": {
-        "title": "JakeAI Web-to-Markdown Extraction API (100 Credits)",
+        "title": "Autonex Web-to-Markdown Extraction API (100 Credits)",
         "description": "High-speed clean text & markdown extractor for LLMs and autonomous agents. Zero human interaction, instant digital delivery.",
         "category": "ai-utilities",
         "price": 5.00,
         "download_url": "https://agent-commerce-network-production-56e8.up.railway.app/v1/tools/extract-markdown",
-        "vendor_did": "did:a2a:jakeai_core"
+        "vendor_did": "did:a2a:autonex_core"
     },
     "prod_energy_01": {
-        "title": "PJM Real-Time Energy Tariff & 4CP Peak Forecast API",
+        "title": "PJM Real-Time Energy Tariff & 4CP Peak Forecast API (10-Query Pack)",
         "description": "Automated nodal electricity price queries and 4CP transmission peak alerts across PJM & Dominion territories.",
         "category": "data-api",
-        "price": 0.25,
-        "download_url": "https://api.solutionsenergy.com/tariffs",
-        "vendor_did": "did:a2a:solutions_energy"
+        "price": 2.50,
+        "download_url": "https://api.jakeaiofficial.com/tariffs",
+        "vendor_did": "did:a2a:autonex_network"
     },
     "prod_ai_03": {
         "title": "Autonomous Architectural Spec & MTO Extractor",
@@ -72,7 +72,7 @@ GENESIS_CATALOG = {
         "category": "ai-utilities",
         "price": 5.00,
         "download_url": "https://tools.jakeaiofficial.com/extract-mto",
-        "vendor_did": "did:a2a:jakeai_core"
+        "vendor_did": "did:a2a:autonex_core"
     }
 }
 
@@ -115,9 +115,9 @@ def init_db():
 init_db()
 
 app = FastAPI(
-    title="JakeAI — Autonomous Commerce Network",
+    title="Autonex — Autonomous Commerce Network",
     description="100% Hands-Off Machine Registry & Settlement Rails.",
-    version="1.8.0"
+    version="2.0.0"
 )
 
 app.add_middleware(
@@ -134,7 +134,7 @@ class ExtractRequest(BaseModel):
 @app.post("/v1/tools/extract-markdown")
 def extract_markdown(req: ExtractRequest):
     try:
-        headers = {'User-Agent': 'JakeAIBot/1.0 (+https://www.jakeaiofficial.com)'}
+        headers = {'User-Agent': 'AutonexBot/2.0 (+https://www.jakeaiofficial.com)'}
         request_obj = urllib.request.Request(req.url, headers=headers)
         with urllib.request.urlopen(request_obj, timeout=10) as response:
             html = response.read().decode('utf-8', errors='ignore')
@@ -191,4 +191,4 @@ def list_products():
 
 @app.get("/health")
 def health():
-    return {"status": "healthy", "service": "JakeAI"}
+    return {"status": "healthy", "service": "Autonex"}
