@@ -170,105 +170,46 @@ app.add_middleware(
     allow_headers=["*"],
 )
 
-# Standardized Error Handler for Autonomous Agents
-@app.exception_handler(HTTPException)
-async def http_exception_handler(request: Request, exc: HTTPException):
-    return JSONResponse(
-        status_code=exc.status_code,
-        content={
-            "error": {
-                "status_code": exc.status_code,
-                "message": exc.detail,
-                "domain": "https://www.jakeaiofficial.com",
-                "support_email": "support@jakeaiofficial.com"
-            }
-        }
-    )
+# Support both /api/v1/... and /v1/... paths identically
+@app.middleware("http")
+async def rewrite_api_prefix(request: Request, call_next):
+    if request.scope.get("path", "").startswith("/api/v1"):
+        request.scope["path"] = request.scope["path"][4:]
+    response = await call_next(request)
+    return response
 
-# Pydantic Input Models
-class ExtractRequest(BaseModel):
-    url: str = Field(..., example="https://en.wikipedia.org/wiki/Artificial_intelligence")
+BASE_DIR = os.path.dirname(__file__)
 
-class IRACalculatorRequest(BaseModel):
-    system_cost: float = Field(..., example=500000.0, description="Gross Turnkey EPC Cost in USD")
-    system_kw_dc: float = Field(..., example=400.0, description="System DC Nameplate Rating in kW")
-    is_energy_community: bool = Field(False, description="Whether location qualifies for Energy Community +10% adder")
-    is_domestic_content: bool = Field(False, description="Whether equipment qualifies for 100% US steel + domestic adder")
+def read_html_file(filename: str) -> str:
+    for candidate in [os.path.join(BASE_DIR, filename), os.path.join(BASE_DIR, "static", filename)]:
+        if os.path.exists(candidate):
+            with open(candidate, "r", encoding="utf-8") as f:
+                return f.read()
+    return f"<h1>{filename} not found</h1>"
 
-class TariffNormalizeRequest(BaseModel):
-    utility: str = Field(..., example="Dominion_VA")
-    rate_class: str = Field(..., example="GS-3")
-    peak_demand_kw: float = Field(..., example=450.0)
-    monthly_consumption_kwh: float = Field(..., example=180000.0)
+@app.get("/", response_class=HTMLResponse)
+def serve_home():
+    return read_html_file("index.html")
 
-class MultiModelAuditRequest(BaseModel):
-    content: str = Field(..., max_length=15000, description="Proposal text, code, schema, or product manifest to audit")
-    domain: Optional[str] = Field(None, description="Associated website or platform domain")
+@app.get("/terms.html", response_class=HTMLResponse)
+@app.get("/terms", response_class=HTMLResponse)
+def serve_terms_html():
+    return read_html_file("terms.html")
 
-class AgentAuditRequest(BaseModel):
-    domain: str = Field(..., example="github.com")
+@app.get("/privacy.html", response_class=HTMLResponse)
+@app.get("/privacy", response_class=HTMLResponse)
+def serve_privacy_html():
+    return read_html_file("privacy.html")
 
-class SettlementRequest(BaseModel):
-    product_id: str
-    buyer_did: str
-    amount: float
-    take_rate: Optional[float] = 0.01
+@app.get("/refunds.html", response_class=HTMLResponse)
+@app.get("/refunds", response_class=HTMLResponse)
+def serve_refunds_html():
+    return read_html_file("refunds.html")
 
-# --- WORKING AI PRODUCT ENDPOINTS ---
-
-@app.post("/v1/solar/ira-calculator")
-def calculate_ira(req: IRACalculatorRequest):
-    """Calculates Section 48 Base ITC and Adders under IRA rules"""
-    base_rate = 0.30
-    bonus_energy = 0.10 if req.is_energy_community else 0.0
-    bonus_domestic = 0.10 if req.is_domestic_content else 0.0
-    total_itc_rate = base_rate + bonus_energy + bonus_domestic
-    
-    base_credit = round(req.system_cost * base_rate, 2)
-    energy_adder = round(req.system_cost * bonus_energy, 2)
-    domestic_adder = round(req.system_cost * bonus_domestic, 2)
-    total_tax_credit = round(req.system_cost * total_itc_rate, 2)
-    net_capital_cost = round(req.system_cost - total_tax_credit, 2)
-    
-    return {
-        "status": "success",
-        "system_cost": req.system_cost,
-        "effective_itc_percentage": f"{int(total_itc_rate * 100)}%",
-        "breakdown": {
-            "section_48_base_itc_30pct": base_credit,
-            "energy_community_adder_10pct": energy_adder,
-            "domestic_content_adder_10pct": domestic_adder,
-            "total_federal_elective_pay_credit": total_tax_credit
-        },
-        "net_capital_outlay_post_incentive": net_capital_cost,
-        "citation": "Inflation Reduction Act § 48 / 48E Direct Pay"
-    }
-
-@app.post("/v1/energy/tariff-normalize")
-def normalize_tariff(req: TariffNormalizeRequest):
-    """Normalizes utility tariffs into structured machine objects"""
-    volumetric_energy_rate = 0.0785 # avg generation/fuel $0.0785/kWh
-    distribution_demand_rate = 14.50 # $14.50/kW peak demand
-    transmission_rate = 5.20 # $5.20/kW
-    
-    energy_charge = round(req.monthly_consumption_kwh * volumetric_energy_rate, 2)
-    demand_charge = round(req.peak_demand_kw * distribution_demand_rate, 2)
-    transmission_charge = round(req.peak_demand_kw * transmission_rate, 2)
-    total_estimated_monthly = round(energy_charge + demand_charge + transmission_charge, 2)
-    blended_cents_per_kwh = round((total_estimated_monthly / req.monthly_consumption_kwh) * 100, 2)
-    
-    return {
-        "utility": req.utility,
-        "rate_class": req.rate_class,
-        "billing_breakdown": {
-            "volumetric_energy_charge_usd": energy_charge,
-            "distribution_demand_charge_usd": demand_charge,
-            "transmission_charge_usd": transmission_charge,
-            "total_monthly_spend_usd": total_estimated_monthly
-        },
-        "effective_blended_rate_cents_per_kwh": blended_cents_per_kwh,
-        "4cp_transmission_exposure_risk": "HIGH" if req.peak_demand_kw > 300 else "MODERATE"
-    }
+@app.get("/admin", response_class=HTMLResponse)
+@app.get("/admin.html", response_class=HTMLResponse)
+def serve_admin_html():
+    return read_html_file("admin.html")
 
 @app.get("/v1/energy/tariff/pjm")
 def get_tariff_data():
