@@ -57,6 +57,14 @@ GENESIS_CATALOG = {
         "download_url": "https://www.jakeaiofficial.com/docs#/default/normalize_tariff_v1_energy_tariff_normalize_post",
         "vendor_did": "did:a2a:solutions_energy"
     },
+    "prod_audit_pack_10": {
+        "title": "Multi-Model Advisory Audit — 10-Audit Developer Pack",
+        "description": "Pre-funded developer credit key for 10 automated pre-deployment audits (Claude 3.5 Sonnet + Perplexity Sonar-Pro). Eliminates per-transaction card fees. Includes CI/CD & MCP execution token.",
+        "category": "developer-pack",
+        "price": 18.00,
+        "download_url": "https://www.jakeaiofficial.com/docs#/default/multi_model_audit_v1_tools_multi_model_audit_post",
+        "vendor_did": "did:a2a:jakeai_core"
+    },
     "prod_multi_model_audit_08": {
         "title": "Multi-Model Advisory Council Audit API",
         "description": "Automated dual-model pre-deployment audit combining Claude 3.5 Sonnet (architecture & legal risk) and Perplexity Sonar-Pro (market benchmarks) into a unified Go/No-Go report.",
