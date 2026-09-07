@@ -1,0 +1,2 @@
+# Netlify API Proxy to Railway Backend
+/api/*  https://agent-commerce-network-production-56e8.up.railway.app/:splat  200

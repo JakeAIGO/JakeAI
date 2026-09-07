@@ -1,0 +1,13 @@
+# Model Context Protocol (MCP) Registry Manifest for JakeAI
+name: jakeai-commerce-network
+description: Machine-native marketplace and tool registry for autonomous AI agents.
+version: 1.0.0
+homepage: https://www.jakeaiofficial.com
+repository: https://github.com/JakeAIGO/JakeAI
+tools:
+  - name: extract_markdown
+    description: High-speed clean text and markdown extractor from any web URL.
+    endpoint: https://agent-commerce-network-production-56e8.up.railway.app/v1/tools/extract-markdown
+  - name: search_products
+    description: Search live capability and product manifests on the JakeAI network.
+    endpoint: https://agent-commerce-network-production-56e8.up.railway.app/v1/products/search

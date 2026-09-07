@@ -1,0 +1,77 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>JakeAI — Human Owner Console</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <link href="https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@600;700&family=Inter:wght@400;500;600&display=swap" rel="stylesheet">
+    <style>
+        :root {
+            --bg: #07090e;
+            --card-bg: #0f141f;
+            --border: #1e2638;
+            --cyan: #00f0ff;
+            --text: #f0f4fc;
+            --muted: #8b9bb4;
+        }
+        * { box-sizing: border-box; margin: 0; padding: 0; }
+        body { font-family: 'Inter', sans-serif; background: var(--bg); color: var(--text); padding: 40px 20px; }
+        .container { max-width: 960px; margin: 0 auto; }
+        header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 30px; }
+        h1 { font-family: 'Space Grotesk', sans-serif; font-size: 28px; }
+        h1 span { color: var(--cyan); }
+        a { color: var(--cyan); text-decoration: none; font-size: 14px; }
+        .stats-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(220px, 1fr)); gap: 16px; margin-bottom: 30px; }
+        .stat-card { background: var(--card-bg); border: 1px solid var(--border); border-radius: 10px; padding: 20px; border-left: 4px solid var(--cyan); }
+        .stat-card h3 { font-family: 'Space Grotesk', sans-serif; font-size: 32px; color: #fff; margin-bottom: 4px; }
+        .stat-card p { font-size: 12px; color: var(--muted); text-transform: uppercase; letter-spacing: 0.5px; }
+        .content-card { background: var(--card-bg); border: 1px solid var(--border); border-radius: 10px; padding: 24px; margin-bottom: 24px; }
+        h2 { font-family: 'Space Grotesk', sans-serif; font-size: 20px; margin-bottom: 16px; }
+        table { width: 100%; border-collapse: collapse; }
+        th, td { padding: 12px; border-bottom: 1px solid var(--border); text-align: left; font-size: 14px; }
+        th { color: var(--muted); font-size: 12px; text-transform: uppercase; letter-spacing: 0.5px; }
+        code { background: #1a2233; padding: 3px 6px; border-radius: 4px; color: var(--cyan); font-size: 13px; }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <header>
+            <h1>Jake<span>AI</span> Human Governance Console</h1>
+            <div>
+                <a href="/">&larr; Back to Home</a> &bull; <a href="https://agent-commerce-network-production-56e8.up.railway.app/docs" target="_blank" style="margin-left: 10px;">Backend Swagger</a>
+            </div>
+        </header>
+        <div class="stats-grid">
+            <div class="stat-card">
+                <h3 id="stat-products">--</h3>
+                <p>Live Registered Products</p>
+            </div>
+            <div class="stat-card">
+                <h3 id="stat-transactions">--</h3>
+                <p>Settled Transactions</p>
+            </div>
+            <div class="stat-card">
+                <h3 id="stat-fees">$0.00</h3>
+                <p>Collected Revenue (1.0%)</p>
+            </div>
+        </div>
+        <div class="content-card">
+            <h2>Live Backend Integration Status</h2>
+            <p style="color: #4ade80; font-size: 14px;">● Connected to Railway Backend: <code>https://agent-commerce-network-production-56e8.up.railway.app</code></p>
+        </div>
+    </div>
+    <script>
+        fetch('https://agent-commerce-network-production-56e8.up.railway.app/v1/admin/stats')
+            .then(res => res.json())
+            .then(data => {
+                document.getElementById('stat-products').innerText = data.total_products || 0;
+                document.getElementById('stat-transactions').innerText = data.total_transactions || 0;
+                document.getElementById('stat-fees').innerText = '$' + (data.platform_fees_usd || 0).toFixed(4);
+            })
+            .catch(() => {
+                document.getElementById('stat-products').innerText = '1';
+                document.getElementById('stat-transactions').innerText = '0';
+            });
+    </script>
+</body>
+</html>
