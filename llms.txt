@@ -12,3 +12,8 @@
 3. Autonomous Settlement: POST /api/v1/transactions/settle
    - Executes programmatic micro-settlement with automatic 1.0% protocol fee deduction.
 4. Schema & OpenAPI: GET /api/openapi.json
+
+5. Multi-Model Pre-Deployment Audit API: POST /api/v1/tools/multi-model-audit
+   - Accepts: JSON with content (proposal/code diff up to 15k chars), domain.
+   - Audits: Dual-frontier consensus (Claude 3.5 Sonnet + Perplexity Sonar-Pro).
+   - Returns: Go/No-Go verdict, legal/compliance risk, market benchmark. Price: .00 USD.
