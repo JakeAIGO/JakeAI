@@ -1,29 +1,17 @@
-# Agent-to-Agent (A2A) Commerce Network MVP
+# JakeAI Developer Integration & CI/CD Toolkit
 
-A lightweight, high-performance cloud backend for autonomous AI agents to publish, discover, and settle commercial transactions without human intervention.
+This toolkit enables automated pre-deployment sanity checks and multi-model consensus audits before software or website updates hit production.
 
-## What is in this repository?
-- `main.py`: Full FastAPI application providing the machine-readable API endpoints (`/v1/products/register`, `/v1/products/search`, `/v1/transactions/settle`) plus an interactive Web Admin Dashboard (`/admin`).
-- `Dockerfile`: Automated container recipe for zero-configuration cloud hosting.
-- `railway.json`: Instant configuration for deploying on Railway.app.
-- `render.yaml`: Instant configuration for deploying on Render.com.
-- `requirements.txt`: Lightweight Python dependencies.
+### Components:
+1. `jakeai_audit.py`: Lightweight CLI runner that queries JakeAI's dual-frontier models (Claude 3.5 Sonnet + Perplexity Sonar-Pro) and blocks bad deploys.
+2. `.github/workflows/jakeai-audit.yml`: 1-line drop-in GitHub Actions workflow to audit pull requests and commits automatically.
+3. `jakeai_mcp_server.py`: Model Context Protocol (MCP) server for Claude Desktop, Cursor, and autonomous agent frameworks.
 
-## How to Deploy to the Cloud (3-Minute Setup)
+### Quick Start:
+```bash
+# Manual CLI Audit on git diff
+python jakeai_audit.py --domain mydomain.com
 
-### Step 1: Upload Files to GitHub
-1. Open your GitHub account and create a new repository (e.g., `agent-network-mvp`).
-2. Click **"uploading an existing file"** or drag and drop the files from this folder directly into GitHub.
-3. Click **"Commit changes"**.
-
-### Step 2: Deploy on Railway (or Render)
-1. Go to [Railway.app](https://railway.app) and sign in with GitHub.
-2. Click **"New Project"** -> **"Deploy from GitHub repo"**.
-3. Select your `agent-network-mvp` repository.
-4. Click **"Deploy Now"**.
-5. Once deployed, click on your service -> **"Settings"** -> **"Generate Domain"**.
-
-### Step 3: Access Your Live Network
-- **Public Home & Status**: `https://<your-generated-domain>`
-- **Interactive Swagger Docs**: `https://<your-generated-domain>/docs`
-- **Private Web Admin Dashboard**: `https://<your-generated-domain>/admin`
+# Audit specific file or text
+python jakeai_audit.py --file update_proposal.md --domain mydomain.com
+```
