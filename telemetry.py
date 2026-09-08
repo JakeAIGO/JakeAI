@@ -26,11 +26,14 @@ class SearchRequest(BaseModel):
     query: str
 
 def log_unmet_query(query: str, ip: str, ua: str, count: int):
-    with sqlite3.connect(DB_PATH) as conn:
-        conn.execute(
-            "INSERT INTO unmet_queries (query_text, client_ip, user_agent, timestamp, matched_count) VALUES (?, ?, ?, ?, ?)",
-            (query, ip, ua, datetime.now(timezone.utc), count)
-        )
+    try:
+        with sqlite3.connect(DB_PATH) as conn:
+            conn.execute(
+                "INSERT INTO unmet_queries (query_text, client_ip, user_agent, timestamp, matched_count) VALUES (?, ?, ?, ?, ?)",
+                (query, ip, ua, datetime.now(timezone.utc), count)
+            )
+    except Exception:
+        pass
 
 @router.post("/search")
 async def search_products(request: SearchRequest, fastapi_req: Request, background_tasks: BackgroundTasks):

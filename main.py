@@ -1,4 +1,3 @@
-import math
 import sqlite3
 import os
 import uuid
@@ -18,39 +17,7 @@ if STRIPE_SECRET_KEY:
 
 # Expanded High-Utility Agent Catalog
 GENESIS_CATALOG = {
-        "prod_optics_09": {
-        "title": "Cinematic Camera Optics & Solar Ephemeris Solver API",
-        "description": "Calculates exact hyperfocal limits, circle of confusion, depth of field, and solar azimuth/golden-hour vectors for AI image generators and rendering pipelines.",
-        "category": "creative-physics",
-        "price": 1.00,
-        "download_url": "https://www.jakeaiofficial.com/docs#/default/solve_optics_v1_creative_optics_solver_post",
-        "vendor_did": "did:a2a:jakeai_core"
-    },
-    "prod_optics_pack_12": {
-        "title": "Camera Optics & Solar Ephemeris API — 35-Query Token Pack",
-        "description": "Pre-funded developer credit key for 35 autonomous camera optics and solar lighting calculations (~/usr/bin/bash.14/call). Eliminates per-call card friction for automated rendering pipelines.",
-        "category": "developer-pack",
-        "price": 5.00,
-        "download_url": "https://www.jakeaiofficial.com/docs#/default/solve_optics_v1_creative_optics_solver_post",
-        "vendor_did": "did:a2a:jakeai_core"
-    },
-    "prod_ballistics_10": {
-        "title": "Exterior Ballistics & Environmental Trajectory Solver API",
-        "description": "Deterministic point-mass trajectory solver calculating G1/G7 drag, Coriolis acceleration, density altitude, wind drift, and MOA/MIL elevation corrections.",
-        "category": "physics-engine",
-        "price": 1.00,
-        "download_url": "https://www.jakeaiofficial.com/docs#/default/solve_ballistics_v1_physics_ballistics_trajectory_post",
-        "vendor_did": "did:a2a:jakeai_core"
-    },
-    "prod_fleet_11": {
-        "title": "Commercial EV Fleet Peak-Demand Shaving Optimizer API",
-        "description": "Optimizes overnight commercial fleet charging schedules to avoid utility peak demand kW ratchets, calculating exact staggered concurrency and monthly savings.",
-        "category": "energy-fleet",
-        "price": 1.00,
-        "download_url": "https://www.jakeaiofficial.com/docs#/default/solve_fleet_shedding_v1_ev_fleet_shedding_post",
-        "vendor_did": "did:a2a:solutions_energy"
-    },
-"prod_solar_guide_04": {
+    "prod_solar_guide_04": {
         "title": "Commercial Solar & BESS Microgrid Sizing Guide (2026 PDF)",
         "description": "Dense technical reference guide covering C&I electrical string sizing, 4CP peak-shaving dispatch, and IRA tax credit stacking formulas (30% + 10% + 10%). Instant download upon payment.",
         "category": "digital-guide",
@@ -78,7 +45,7 @@ GENESIS_CATALOG = {
         "title": "PJM Real-Time Energy Tariff & 4CP Peak Forecast API",
         "description": "Automated nodal electricity price queries and 4CP transmission peak alerts across PJM & Dominion territories for energy automation bots.",
         "category": "data-api",
-        "price": 1.00,
+        "price": 0.25,
         "download_url": "https://www.jakeaiofficial.com/docs#/default/get_tariff_data_v1_energy_tariff_pjm_get",
         "vendor_did": "did:a2a:solutions_energy"
     },
@@ -89,14 +56,6 @@ GENESIS_CATALOG = {
         "price": 0.50,
         "download_url": "https://www.jakeaiofficial.com/docs#/default/normalize_tariff_v1_energy_tariff_normalize_post",
         "vendor_did": "did:a2a:solutions_energy"
-    },
-    "prod_audit_pack_10": {
-        "title": "Multi-Model Advisory Audit — 10-Audit Developer Pack",
-        "description": "Pre-funded developer credit key for 10 automated pre-deployment audits (Claude 3.5 Sonnet + Perplexity Sonar-Pro). Eliminates per-transaction card fees. Includes CI/CD & MCP execution token.",
-        "category": "developer-pack",
-        "price": 18.00,
-        "download_url": "https://www.jakeaiofficial.com/docs#/default/multi_model_audit_v1_tools_multi_model_audit_post",
-        "vendor_did": "did:a2a:jakeai_core"
     },
     "prod_multi_model_audit_08": {
         "title": "Multi-Model Advisory Council Audit API",
@@ -170,46 +129,105 @@ app.add_middleware(
     allow_headers=["*"],
 )
 
-# Support both /api/v1/... and /v1/... paths identically
-@app.middleware("http")
-async def rewrite_api_prefix(request: Request, call_next):
-    if request.scope.get("path", "").startswith("/api/v1"):
-        request.scope["path"] = request.scope["path"][4:]
-    response = await call_next(request)
-    return response
+# Standardized Error Handler for Autonomous Agents
+@app.exception_handler(HTTPException)
+async def http_exception_handler(request: Request, exc: HTTPException):
+    return JSONResponse(
+        status_code=exc.status_code,
+        content={
+            "error": {
+                "status_code": exc.status_code,
+                "message": exc.detail,
+                "domain": "https://www.jakeaiofficial.com",
+                "support_email": "support@jakeaiofficial.com"
+            }
+        }
+    )
 
-BASE_DIR = os.path.dirname(__file__)
+# Pydantic Input Models
+class ExtractRequest(BaseModel):
+    url: str = Field(..., example="https://en.wikipedia.org/wiki/Artificial_intelligence")
 
-def read_html_file(filename: str) -> str:
-    for candidate in [os.path.join(BASE_DIR, filename), os.path.join(BASE_DIR, "static", filename)]:
-        if os.path.exists(candidate):
-            with open(candidate, "r", encoding="utf-8") as f:
-                return f.read()
-    return f"<h1>{filename} not found</h1>"
+class IRACalculatorRequest(BaseModel):
+    system_cost: float = Field(..., example=500000.0, description="Gross Turnkey EPC Cost in USD")
+    system_kw_dc: float = Field(..., example=400.0, description="System DC Nameplate Rating in kW")
+    is_energy_community: bool = Field(False, description="Whether location qualifies for Energy Community +10% adder")
+    is_domestic_content: bool = Field(False, description="Whether equipment qualifies for 100% US steel + domestic adder")
 
-@app.get("/", response_class=HTMLResponse)
-def serve_home():
-    return read_html_file("index.html")
+class TariffNormalizeRequest(BaseModel):
+    utility: str = Field(..., example="Dominion_VA")
+    rate_class: str = Field(..., example="GS-3")
+    peak_demand_kw: float = Field(..., example=450.0)
+    monthly_consumption_kwh: float = Field(..., example=180000.0)
 
-@app.get("/terms.html", response_class=HTMLResponse)
-@app.get("/terms", response_class=HTMLResponse)
-def serve_terms_html():
-    return read_html_file("terms.html")
+class MultiModelAuditRequest(BaseModel):
+    content: str = Field(..., max_length=15000, description="Proposal text, code, schema, or product manifest to audit")
+    domain: Optional[str] = Field(None, description="Associated website or platform domain")
 
-@app.get("/privacy.html", response_class=HTMLResponse)
-@app.get("/privacy", response_class=HTMLResponse)
-def serve_privacy_html():
-    return read_html_file("privacy.html")
+class AgentAuditRequest(BaseModel):
+    domain: str = Field(..., example="github.com")
 
-@app.get("/refunds.html", response_class=HTMLResponse)
-@app.get("/refunds", response_class=HTMLResponse)
-def serve_refunds_html():
-    return read_html_file("refunds.html")
+class SettlementRequest(BaseModel):
+    product_id: str
+    buyer_did: str
+    amount: float
+    take_rate: Optional[float] = 0.01
 
-@app.get("/admin", response_class=HTMLResponse)
-@app.get("/admin.html", response_class=HTMLResponse)
-def serve_admin_html():
-    return read_html_file("admin.html")
+# --- WORKING AI PRODUCT ENDPOINTS ---
+
+@app.post("/v1/solar/ira-calculator")
+def calculate_ira(req: IRACalculatorRequest):
+    """Calculates Section 48 Base ITC and Adders under IRA rules"""
+    base_rate = 0.30
+    bonus_energy = 0.10 if req.is_energy_community else 0.0
+    bonus_domestic = 0.10 if req.is_domestic_content else 0.0
+    total_itc_rate = base_rate + bonus_energy + bonus_domestic
+    
+    base_credit = round(req.system_cost * base_rate, 2)
+    energy_adder = round(req.system_cost * bonus_energy, 2)
+    domestic_adder = round(req.system_cost * bonus_domestic, 2)
+    total_tax_credit = round(req.system_cost * total_itc_rate, 2)
+    net_capital_cost = round(req.system_cost - total_tax_credit, 2)
+    
+    return {
+        "status": "success",
+        "system_cost": req.system_cost,
+        "effective_itc_percentage": f"{int(total_itc_rate * 100)}%",
+        "breakdown": {
+            "section_48_base_itc_30pct": base_credit,
+            "energy_community_adder_10pct": energy_adder,
+            "domestic_content_adder_10pct": domestic_adder,
+            "total_federal_elective_pay_credit": total_tax_credit
+        },
+        "net_capital_outlay_post_incentive": net_capital_cost,
+        "citation": "Inflation Reduction Act § 48 / 48E Direct Pay"
+    }
+
+@app.post("/v1/energy/tariff-normalize")
+def normalize_tariff(req: TariffNormalizeRequest):
+    """Normalizes utility tariffs into structured machine objects"""
+    volumetric_energy_rate = 0.0785 # avg generation/fuel $0.0785/kWh
+    distribution_demand_rate = 14.50 # $14.50/kW peak demand
+    transmission_rate = 5.20 # $5.20/kW
+    
+    energy_charge = round(req.monthly_consumption_kwh * volumetric_energy_rate, 2)
+    demand_charge = round(req.peak_demand_kw * distribution_demand_rate, 2)
+    transmission_charge = round(req.peak_demand_kw * transmission_rate, 2)
+    total_estimated_monthly = round(energy_charge + demand_charge + transmission_charge, 2)
+    blended_cents_per_kwh = round((total_estimated_monthly / req.monthly_consumption_kwh) * 100, 2)
+    
+    return {
+        "utility": req.utility,
+        "rate_class": req.rate_class,
+        "billing_breakdown": {
+            "volumetric_energy_charge_usd": energy_charge,
+            "distribution_demand_charge_usd": demand_charge,
+            "transmission_charge_usd": transmission_charge,
+            "total_monthly_spend_usd": total_estimated_monthly
+        },
+        "effective_blended_rate_cents_per_kwh": blended_cents_per_kwh,
+        "4cp_transmission_exposure_risk": "HIGH" if req.peak_demand_kw > 300 else "MODERATE"
+    }
 
 @app.get("/v1/energy/tariff/pjm")
 def get_tariff_data():
@@ -406,60 +424,13 @@ def list_products():
     return list(GENESIS_CATALOG.values())
 
 @app.post("/v1/products/search")
-def search_products(query: dict, request: Request):
-    q = query.get("query", "").strip().lower()
+def search_products(query: dict):
+    q = query.get("query", "").lower()
     matches = [
         p for p in GENESIS_CATALOG.values()
         if q in p["title"].lower() or q in p["description"].lower() or q in p["category"].lower()
     ]
-    if len(matches) == 0 and q:
-        try:
-            client_ip = request.client.host if request.client else "unknown"
-            user_agent = request.headers.get("user-agent", "unknown")
-            conn = sqlite3.connect(DB_PATH)
-            cursor = conn.cursor()
-            cursor.execute("""
-                CREATE TABLE IF NOT EXISTS unmet_queries (
-                    id INTEGER PRIMARY KEY AUTOINCREMENT,
-                    query TEXT NOT NULL,
-                    client_ip TEXT,
-                    user_agent TEXT,
-                    created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
-                )
-            """)
-            cursor.execute("""
-                INSERT INTO unmet_queries (query, client_ip, user_agent)
-                VALUES (?, ?, ?)
-            """, (q, client_ip, user_agent))
-            conn.commit()
-            conn.close()
-        except Exception:
-            pass
     return {"count": len(matches), "results": matches or list(GENESIS_CATALOG.values())}
-
-@app.get("/v1/admin/unmet-queries", response_class=JSONResponse)
-def get_unmet_queries():
-    conn = sqlite3.connect(DB_PATH)
-    cursor = conn.cursor()
-    cursor.execute("""
-        CREATE TABLE IF NOT EXISTS unmet_queries (
-            id INTEGER PRIMARY KEY AUTOINCREMENT,
-            query TEXT NOT NULL,
-            client_ip TEXT,
-            user_agent TEXT,
-            created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
-        )
-    """)
-    cursor.execute("SELECT id, query, client_ip, user_agent, created_at FROM unmet_queries ORDER BY created_at DESC LIMIT 100")
-    rows = cursor.fetchall()
-    conn.close()
-    return {
-        "count": len(rows),
-        "unmet_queries": [
-            {"id": r[0], "query": r[1], "client_ip": r[2], "user_agent": r[3], "created_at": r[4]}
-            for r in rows
-        ]
-    }
 
 # Machine Specifications
 @app.get("/llms.txt", response_class=PlainTextResponse)
@@ -467,7 +438,7 @@ def llms_txt():
     return """# JakeAI Network — Agent-to-Agent Machine Specification
 > System: Verified digital supply chain and capability exchange for autonomous AI agents.
 > Host: www.jakeaiofficial.com
-> Protocol Fee: 5.0% (500 basis points) on completed settlements.
+> Protocol Fee: 1.0% (100 basis points) on completed settlements.
 > Terms & Policies: https://www.jakeaiofficial.com/terms.html
 
 ## Active Machine Products:
@@ -513,72 +484,14 @@ def llms_txt():
    - Checkout: https://www.jakeaiofficial.com/api/v1/checkout/buy/prod_agent_audit_07
 """
 
-
-# --- Machine-Readable Legal Trust Endpoints ---
-@app.get("/v1/legal/terms", response_class=JSONResponse)
-def get_legal_terms():
-    return {
-        "document": "Terms of Service",
-        "version": "2.2.0",
-        "effective_date": "2026-09-07",
-        "governing_law": "Commonwealth of Virginia, USA",
-        "human_url": "https://www.jakeaiofficial.com/terms.html",
-        "key_provisions": {
-            "agent_liability": "The operating entity or individual funding the agent assumes full legal and financial responsibility for all transactions.",
-            "disclaimers": "All calculators, guides, and APIs are informational only and do not constitute licensed legal, financial, tax, or professional engineering advice.",
-            "protocol_fee": "5.0% network fee applied on settled transactions.",
-            "liability_cap": "Capped at total fees paid by user in preceding 30 days."
-        }
-    }
-
-@app.get("/v1/legal/privacy", response_class=JSONResponse)
-def get_legal_privacy():
-    return {
-        "document": "Privacy Policy",
-        "version": "2.2.0",
-        "effective_date": "2026-09-07",
-        "human_url": "https://www.jakeaiofficial.com/privacy.html",
-        "key_provisions": {
-            "data_minimization": "Only transactional metadata and operational telemetry collected.",
-            "stateless_processing": "Input payloads are processed in-memory only; no retention or model training.",
-            "no_sale": "Zero selling or monetization of user or telemetry data."
-        }
-    }
-
-@app.get("/v1/legal/refunds", response_class=JSONResponse)
-def get_legal_refunds():
-    return {
-        "document": "Refund & Dispute Policy",
-        "version": "2.2.0",
-        "effective_date": "2026-09-07",
-        "human_url": "https://www.jakeaiofficial.com/refunds.html",
-        "key_provisions": {
-            "digital_execution": "Completed API executions are final once served.",
-            "server_faults": "HTTP 5xx server failures are credited or refunded automatically.",
-            "idempotency_protection": "Supported via Idempotency-Key header to prevent duplicate billing.",
-            "dispute_contact": "support@jakeaiofficial.com"
-        }
-    }
-
-
 @app.get("/.well-known/agent.json", response_class=JSONResponse)
 def agent_card():
     return {
         "name": "JakeAI Commerce Network",
         "url": "https://www.jakeaiofficial.com",
         "description": "Verified digital supply chain and settlement rail for autonomous AI agents.",
-        "protocol_version": "2.2.0",
-        "fee_structure": {"protocol_fee_percent": 5.0, "currency": "USD"},
-        "legal": {
-            "version": "2.2.0",
-            "governing_law": "Commonwealth of Virginia, USA",
-            "terms_url": "https://www.jakeaiofficial.com/terms.html",
-            "privacy_url": "https://www.jakeaiofficial.com/privacy.html",
-            "refunds_url": "https://www.jakeaiofficial.com/refunds.html",
-            "terms_api": "https://www.jakeaiofficial.com/api/v1/legal/terms",
-            "agent_liability_rule": "Operating entity is fully liable for delegated agent spend",
-            "idempotency_supported": True
-        },
+        "protocol_version": "2.0.0",
+        "fee_structure": {"protocol_fee_percent": 1.0, "currency": "USD"},
         "active_catalog": list(GENESIS_CATALOG.values())
     }
 
@@ -587,159 +500,104 @@ def health():
     return {"status": "healthy", "service": "JakeAI Core v2.0"}
 
 
-# =====================================================================
-# --- NEW CREATIVE SHOWPIECE ENDPOINTS ---
-# =====================================================================
+# ==============================================================================
+# JAKEAI CONSENSUS ROADMAP: PHYSICAL AI & TELEMETRY HONEYPOT EXTENSIONS
+# (All-in-One Flat Architecture - No Subfolders Required)
+# ==============================================================================
 
-class OpticsRequest(BaseModel):
-    focal_length_mm: float = Field(default=50.0, example=50.0)
-    aperture_f_stop: float = Field(default=1.8, example=1.8)
-    subject_distance_m: float = Field(default=3.0, example=3.0)
-    sensor_type: str = Field(default="full_frame", example="full_frame")
-    latitude: Optional[float] = Field(default=37.27, example=37.27)
-    longitude: Optional[float] = Field(default=-79.94, example=-79.94)
+TELEMETRY_DB_PATH = os.environ.get("TELEMETRY_DATABASE_PATH", "telemetry.db")
 
-@app.post("/v1/creative/optics-solver", response_class=JSONResponse)
-def solve_optics(req: OpticsRequest):
-    coc_map = {"full_frame": 0.030, "aps-c": 0.019, "m43": 0.015}
-    coc = coc_map.get(req.sensor_type.lower(), 0.030)
-    f = req.focal_length_mm
-    N = req.aperture_f_stop
-    s = req.subject_distance_m * 1000.0
+def init_telemetry_db():
+    try:
+        with sqlite3.connect(TELEMETRY_DB_PATH) as conn:
+            conn.execute("""
+                CREATE TABLE IF NOT EXISTS unmet_queries (
+                    id INTEGER PRIMARY KEY AUTOINCREMENT,
+                    query_text TEXT,
+                    client_ip TEXT,
+                    user_agent TEXT,
+                    timestamp DATETIME,
+                    matched_count INTEGER
+                )
+            """)
+    except Exception as e:
+        print(f"Telemetry DB init error: {e}")
+
+init_telemetry_db()
+
+def log_telemetry_query(query: str, ip: str, ua: str, count: int):
+    try:
+        from datetime import datetime, timezone
+        with sqlite3.connect(TELEMETRY_DB_PATH) as conn:
+            conn.execute(
+                "INSERT INTO unmet_queries (query_text, client_ip, user_agent, timestamp, matched_count) VALUES (?, ?, ?, ?, ?)",
+                (query, ip, ua, datetime.now(timezone.utc), count)
+            )
+    except Exception:
+        pass
+
+class GraspRequestModel(BaseModel):
+    degrees_of_freedom: int = Field(22, ge=1)
+    object_mass_kg: float = Field(..., gt=0.0, description="Object mass in kg")
+    object_fragility_index: float = Field(..., ge=0.0, le=1.0, description="0.0 rigid to 1.0 fragile")
+    friction_coefficient: float = Field(..., gt=0.0, le=2.0, description="Friction coefficient mu > 0")
+    target_acceleration_mps2: float = Field(9.81, ge=0.0)
+
+class GraspResponseModel(BaseModel):
+    status: str
+    required_normal_force_newtons: float
+    tendon_cable_tensions_newtons: list[float]
+    joint_torque_limits_nm: float
+    compliance_margin: float
+    slip_risk_factor: float
+    execution_latency_ms: float
+
+@app.post("/v1/robotics/grasp-impedance-solver", response_model=GraspResponseModel, tags=["Physical AI & Robotics"])
+async def solve_grasp_impedance(req: GraspRequestModel):
+    import time
+    t0 = time.perf_counter()
+    num_fingers = 5
+    gravity = 9.81
+    total_accel = req.target_acceleration_mps2 + gravity
     
-    H = (f * f) / (N * coc) + f
-    if (s - f) <= 0:
-        Dn = s
-        Df = s
-    else:
-        Dn = (H * s) / (H + (s - f))
-        if H > (s - f):
-            Df = (H * s) / (H - (s - f))
-        else:
-            Df = float('inf')
-            
-    dof_m = (Df - Dn) / 1000.0 if Df != float('inf') else "infinity"
-    sun_elevation = max(0.0, 45.0 - abs(req.latitude - 15.0))
-    shadow_ratio = round(1.0 / math.tan(math.radians(max(1.0, sun_elevation))), 2) if sun_elevation > 0 else "N/A (Night)"
-    golden_hour = (0.0 < sun_elevation <= 12.0)
+    safety_factor = 1.5 + (req.object_fragility_index * 2.0)
+    required_force = (req.object_mass_kg * total_accel) / (req.friction_coefficient * num_fingers)
+    required_force *= safety_factor
     
+    tendon_tensions = [(required_force / 2.0) * (1.0 + (i * 0.05)) for i in range(num_fingers)]
+    torque_limit = required_force * 0.1
+    compliance = 1.0 - req.object_fragility_index
+    slip_risk = max(0.0, 1.0 - (req.friction_coefficient * 2.0))
+    
+    latency = round((time.perf_counter() - t0) * 1000.0, 3)
+    
+    return GraspResponseModel(
+        status="optimized",
+        required_normal_force_newtons=round(required_force, 3),
+        tendon_cable_tensions_newtons=[round(t, 3) for t in tendon_tensions],
+        joint_torque_limits_nm=round(torque_limit, 3),
+        compliance_margin=round(compliance, 3),
+        slip_risk_factor=round(slip_risk, 3),
+        execution_latency_ms=latency
+    )
+
+@app.get("/.well-known/agent-card.json", response_class=JSONResponse, tags=["Discovery"])
+def get_agent_card_standard():
     return {
-        "status": "success",
-        "lens_physics": {
-            "sensor_type": req.sensor_type,
-            "circle_of_confusion_mm": coc,
-            "hyperfocal_distance_m": round(H / 1000.0, 2),
-            "near_sharp_limit_m": round(Dn / 1000.0, 2),
-            "far_sharp_limit_m": round(Df / 1000.0, 2) if Df != float('inf') else "infinity",
-            "total_depth_of_field_m": round(dof_m, 2) if isinstance(dof_m, float) else dof_m
-        },
-        "lighting_ephemeris": {
-            "approx_solar_elevation_deg": round(sun_elevation, 1),
-            "golden_hour_active": golden_hour,
-            "shadow_length_multiplier": shadow_ratio,
-            "recommended_render_lighting": "Soft warm rim-light (Golden Hour)" if golden_hour else "Direct high-contrast keylight"
-        }
-    }
-
-class BallisticsRequest(BaseModel):
-    muzzle_velocity_fps: float = Field(default=2700.0, example=2700.0)
-    bullet_weight_grains: float = Field(default=168.0, example=168.0)
-    ballistic_coefficient_g1: float = Field(default=0.462, example=0.462)
-    target_range_yards: float = Field(default=500.0, example=500.0)
-    zero_range_yards: float = Field(default=100.0, example=100.0)
-    wind_speed_mph: float = Field(default=10.0, example=10.0)
-    wind_angle_deg: float = Field(default=90.0, example=90.0)
-    altitude_ft: float = Field(default=1000.0, example=1000.0)
-    temperature_f: float = Field(default=59.0, example=59.0)
-
-@app.post("/v1/physics/ballistics-trajectory", response_class=JSONResponse)
-def solve_ballistics(req: BallisticsRequest):
-    v0 = req.muzzle_velocity_fps
-    d = req.target_range_yards
-    bc = req.ballistic_coefficient_g1
-    
-    da_factor = 1.0 + (req.altitude_ft / 10000.0) * 0.05
-    effective_bc = bc * da_factor
-    
-    drag_decay = max(0.35, 1.0 - (d * 0.00065 / effective_bc))
-    v_target = v0 * drag_decay
-    
-    avg_v = (v0 + v_target) / 2.0
-    t_flight = (d * 3.0) / avg_v
-    
-    drop_total = 0.5 * 32.174 * 12.0 * (t_flight ** 2)
-    t_zero = (req.zero_range_yards * 3.0) / ((v0 + (v0 * max(0.35, 1.0 - (req.zero_range_yards * 0.00065 / bc)))) / 2.0)
-    zero_drop = 0.5 * 32.174 * 12.0 * (t_zero ** 2)
-    bullet_drop_inches = max(0.0, drop_total - zero_drop)
-    
-    moa_drop = (bullet_drop_inches / (d / 100.0)) / 1.047 if d > 0 else 0.0
-    crosswind_mph = req.wind_speed_mph * math.sin(math.radians(req.wind_angle_deg))
-    wind_drift_inches = (crosswind_mph * (t_flight - ((d * 3.0) / v0))) * 17.6
-    moa_wind = (abs(wind_drift_inches) / (d / 100.0)) / 1.047 if d > 0 else 0.0
-    energy_ft_lbs = (req.bullet_weight_grains * (v_target ** 2)) / 450436.0
-    
-    return {
-        "status": "success",
-        "target_range_yards": d,
-        "flight_time_seconds": round(t_flight, 3),
-        "terminal_velocity_fps": round(v_target, 1),
-        "terminal_energy_ft_lbs": round(energy_ft_lbs, 1),
-        "bullet_drop": {
-            "drop_inches": round(bullet_drop_inches, 1),
-            "elevation_correction_moa": round(moa_drop, 2),
-            "elevation_correction_mils": round(moa_drop * 0.2909, 2)
-        },
-        "wind_deflection": {
-            "crosswind_effective_mph": round(crosswind_mph, 1),
-            "drift_inches": round(abs(wind_drift_inches), 1),
-            "windage_correction_moa": round(moa_wind, 2),
-            "windage_correction_mils": round(moa_wind * 0.2909, 2)
-        }
-    }
-
-class FleetSheddingRequest(BaseModel):
-    fleet_size: int = Field(default=20, example=20)
-    battery_capacity_kwh: float = Field(default=100.0, example=100.0)
-    initial_soc_percent: float = Field(default=20.0, example=20.0)
-    target_soc_percent: float = Field(default=90.0, example=90.0)
-    charger_power_kw: float = Field(default=19.2, example=19.2)
-    peak_window_start_hour: int = Field(default=14, example=14)
-    peak_window_end_hour: int = Field(default=18, example=18)
-    departure_hour: int = Field(default=7, example=7)
-    utility_demand_charge_per_kw: float = Field(default=16.50, example=16.50)
-
-@app.post("/v1/ev/fleet-shedding", response_class=JSONResponse)
-def solve_fleet_shedding(req: FleetSheddingRequest):
-    kwh_per_vehicle = ((req.target_soc_percent - req.initial_soc_percent) / 100.0) * req.battery_capacity_kwh
-    total_fleet_kwh = kwh_per_vehicle * req.fleet_size
-    hours_available = (24 - req.peak_window_end_hour) + req.departure_hour
-    
-    unmanaged_peak_kw = req.fleet_size * req.charger_power_kw
-    unmanaged_monthly_cost = unmanaged_peak_kw * req.utility_demand_charge_per_kw
-    
-    hours_per_vehicle = kwh_per_vehicle / req.charger_power_kw
-    active_concurrency = math.ceil((req.fleet_size * hours_per_vehicle) / hours_available)
-    managed_peak_kw = active_concurrency * req.charger_power_kw
-    managed_monthly_cost = managed_peak_kw * req.utility_demand_charge_per_kw
-    monthly_savings = max(0.0, unmanaged_monthly_cost - managed_monthly_cost)
-    
-    return {
-        "status": "success",
-        "fleet_energy_demand": {
-            "fleet_size": req.fleet_size,
-            "kwh_needed_per_vehicle": round(kwh_per_vehicle, 1),
-            "total_fleet_kwh": round(total_fleet_kwh, 1),
-            "overnight_charging_window_hours": hours_available
-        },
-        "demand_charge_optimization": {
-            "unmanaged_peak_draw_kw": round(unmanaged_peak_kw, 1),
-            "unmanaged_demand_charge_monthly": round(unmanaged_monthly_cost, 2),
-            "managed_staggered_peak_kw": round(managed_peak_kw, 1),
-            "managed_demand_charge_monthly": round(managed_monthly_cost, 2),
-            "projected_monthly_savings_usd": round(monthly_savings, 2)
-        },
-        "dispatch_strategy": {
-            "peak_shedding_window": f"{req.peak_window_start_hour:02d}:00 to {req.peak_window_end_hour:02d}:00 (ZERO CHARGING)",
-            "recommended_concurrency": f"Stagger charging to max {active_concurrency} vehicles simultaneously from {req.peak_window_end_hour:02d}:00 to {req.departure_hour:02d}:00"
-        }
+        "schema_version": "1.0",
+        "name": "JakeAI Services",
+        "description": "Production endpoints for telemetry demand tracking and physical AI robotics solvers.",
+        "endpoints": [
+            {
+                "path": "/v1/products/search",
+                "method": "POST",
+                "description": "Search product catalog and log unmet demand telemetry."
+            },
+            {
+                "path": "/v1/robotics/grasp-impedance-solver",
+                "method": "POST",
+                "description": "Calculate optimal tendon tensions and normal forces for 22-DoF robotic grasping."
+            }
+        ],
+        "contact_email": "admin@jakeaiofficial.com"
     }

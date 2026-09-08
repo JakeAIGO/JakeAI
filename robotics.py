@@ -1,6 +1,6 @@
+import time
 from fastapi import APIRouter
 from pydantic import BaseModel, Field
-import time
 
 router = APIRouter(prefix="/v1/robotics", tags=["robotics"])
 
