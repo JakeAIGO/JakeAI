@@ -4,8 +4,8 @@ import uuid
 import stripe
 import urllib.request
 import re
-from typing import Optional, List, Dict, Any
-from fastapi import FastAPI, HTTPException, Request, Header
+from typing import Optional, List
+from fastapi import FastAPI, HTTPException
 from fastapi.responses import HTMLResponse, PlainTextResponse, JSONResponse, RedirectResponse
 from fastapi.middleware.cors import CORSMiddleware
 from pydantic import BaseModel, Field
@@ -15,63 +15,81 @@ STRIPE_SECRET_KEY = os.environ.get("STRIPE_SECRET_KEY", "").strip()
 if STRIPE_SECRET_KEY:
     stripe.api_key = STRIPE_SECRET_KEY
 
-# Expanded High-Utility Agent Catalog
+# 100% Hands-Off Autonomous Digital Products (Zero Physical Shipping)
 GENESIS_CATALOG = {
+    "prod_ev_fleet_01": {
+        "title": "Commercial Fleet EV Depot Peak Demand & Surcharge Estimator",
+        "description": "Automated spreadsheet model and sizing guide calculating 15-minute peak demand spikes, transformer headroom, and utility tariff penalties for fleet electrification.",
+        "category": "operational-tools",
+        "price": 29.00,
+        "download_url": "https://docs.google.com/document/d/1bqKsND7OEuWTzUqUeD8dBcXqcpGrM6GGhXmuEUvBJFw/edit",
+        "vendor_did": "did:a2a:autonex_network"
+    },
+    "prod_surplus_feed_02": {
+        "title": "Industrial Surplus Equipment Normalization API Feed",
+        "description": "Machine-readable JSON data stream delivering real-time indexed lots of 50%+ discounted commercial compressors, generators, and heavy electric motors.",
+        "category": "data-api",
+        "price": 9.00,
+        "download_url": "https://api.jakeaiofficial.com/v1/feeds/surplus",
+        "vendor_did": "did:a2a:autonex_network"
+    },
+
+    "prod_energy_audit_01": {
+        "title": "Small Business & Facility Zero-Waste Utility Audit Toolkit",
+        "description": "25-point physical audit checklist and automated spreadsheet calculator to eliminate phantom loads and billing errors.",
+        "category": "energy-audit",
+        "price": 19.00,
+        "download_url": "https://docs.google.com/document/d/1AyC7sOiKJGiZbAoip9JZmO-ozGakd27nZgNlgIevIio/edit",
+        "vendor_did": "did:a2a:autonex_network"
+    },
+    "prod_roof_defense_02": {
+        "title": "Commercial Roof Asset Management & Leak Defense Playbook",
+        "description": "18-point membrane inspection protocol, maintenance tracker, and contractor RFP Scope of Work template.",
+        "category": "facility-maintenance",
+        "price": 37.00,
+        "download_url": "https://docs.google.com/document/d/1AyC7sOiKJGiZbAoip9JZmO-ozGakd27nZgNlgIevIio/edit",
+        "vendor_did": "did:a2a:autonex_network"
+    },
+    "prod_dereg_nav_03": {
+        "title": "Virginia Commercial Energy Deregulation & Peak-Shaving Navigator",
+        "description": "Statutory rights breakdown (VA Code § 56-577 for 5 MW+ or aggregation), PJM 5CP tag mitigation, and reverse-auction playbook.",
+        "category": "market-intelligence",
+        "price": 47.00,
+        "download_url": "https://docs.google.com/document/d/1AyC7sOiKJGiZbAoip9JZmO-ozGakd27nZgNlgIevIio/edit",
+        "vendor_did": "did:a2a:autonex_network"
+    },
+
     "prod_solar_guide_04": {
         "title": "Commercial Solar & BESS Microgrid Sizing Guide (2026 PDF)",
-        "description": "Dense technical reference guide covering C&I electrical string sizing, 4CP peak-shaving dispatch, and IRA tax credit stacking formulas (30% + 10% + 10%). Instant download upon payment.",
+        "description": "Dense reference guide covering C&I electrical string sizing, 4CP peak-shaving dispatch, and IRA tax credit stacking formulas.",
         "category": "digital-guide",
         "price": 3.00,
         "download_url": "https://drive.google.com/file/d/1xFpazazGdH2_LGSkvuWgMmR5jhPnq7pv/view?usp=drivesdk",
-        "vendor_did": "did:a2a:solutions_energy"
-    },
-    "prod_ira_calc_05": {
-        "title": "IRA / Section 48 ITC Tax Credit Calculator API",
-        "description": "Executable calculator returning statutory cash direct elective pay breakdowns (30% Base + 10% Energy Community + 10% Domestic Content).",
-        "category": "fintech-api",
-        "price": 1.00,
-        "download_url": "https://www.jakeaiofficial.com/docs#/default/calculate_ira_v1_solar_ira_calculator_post",
-        "vendor_did": "did:a2a:solutions_energy"
+        "vendor_did": "did:a2a:autonex_network"
     },
     "prod_scrape_01": {
-        "title": "JakeAI Web-to-Markdown Extraction API (100 Credits)",
-        "description": "High-speed clean text & markdown extractor for LLMs and autonomous agents. Bypasses ads, navbars, and bloated HTML with instant automated API delivery.",
+        "title": "Autonex Web-to-Markdown Extraction API (100 Credits)",
+        "description": "High-speed clean text & markdown extractor for LLMs and autonomous agents. Zero human interaction, instant digital delivery.",
         "category": "ai-utilities",
         "price": 5.00,
-        "download_url": "https://www.jakeaiofficial.com/docs#/default/extract_markdown_v1_tools_extract_markdown_post",
-        "vendor_did": "did:a2a:jakeai_core"
+        "download_url": "https://agent-commerce-network-production-56e8.up.railway.app/v1/tools/extract-markdown",
+        "vendor_did": "did:a2a:autonex_core"
     },
     "prod_energy_01": {
-        "title": "PJM Real-Time Energy Tariff & 4CP Peak Forecast API",
-        "description": "Automated nodal electricity price queries and 4CP transmission peak alerts across PJM & Dominion territories for energy automation bots.",
+        "title": "PJM Real-Time Energy Tariff & 4CP Peak Forecast API (10-Query Pack)",
+        "description": "Automated nodal electricity price queries and 4CP transmission peak alerts across PJM & Dominion territories.",
         "category": "data-api",
-        "price": 0.25,
-        "download_url": "https://www.jakeaiofficial.com/docs#/default/get_tariff_data_v1_energy_tariff_pjm_get",
-        "vendor_did": "did:a2a:solutions_energy"
+        "price": 2.50,
+        "download_url": "https://api.jakeaiofficial.com/tariffs",
+        "vendor_did": "did:a2a:autonex_network"
     },
-    "prod_tariff_norm_06": {
-        "title": "Utility Tariff Normalizer API (PJM / Dominion / AEP)",
-        "description": "Transforms complex non-standard utility rate schedules (GS-1, GS-3, large industrial) into standardized JSON objects for financial modeling.",
-        "category": "data-api",
-        "price": 0.50,
-        "download_url": "https://www.jakeaiofficial.com/docs#/default/normalize_tariff_v1_energy_tariff_normalize_post",
-        "vendor_did": "did:a2a:solutions_energy"
-    },
-    "prod_multi_model_audit_08": {
-        "title": "Multi-Model Advisory Council Audit API",
-        "description": "Automated dual-model pre-deployment audit combining Claude 3.5 Sonnet (architecture & legal risk) and Perplexity Sonar-Pro (market benchmarks) into a unified Go/No-Go report.",
+    "prod_ai_03": {
+        "title": "Autonomous Architectural Spec & MTO Extractor",
+        "description": "Machine-readable parser extracting bill of materials and equipment specs from architectural PDFs into JSON.",
         "category": "ai-utilities",
-        "price": 2.00,
-        "download_url": "https://www.jakeaiofficial.com/docs#/default/multi_model_audit_v1_tools_multi_model_audit_post",
-        "vendor_did": "did:a2a:jakeai_core"
-    },
-    "prod_agent_audit_07": {
-        "title": "llms.txt & Agent-Card Readability Auditor API",
-        "description": "Automated machine audit testing any domain for /llms.txt compliance, MCP schema compatibility, and AI bot crawlability score.",
-        "category": "ai-utilities",
-        "price": 0.50,
-        "download_url": "https://www.jakeaiofficial.com/docs#/default/audit_agent_card_v1_tools_audit_agent_card_post",
-        "vendor_did": "did:a2a:jakeai_core"
+        "price": 5.00,
+        "download_url": "https://tools.jakeaiofficial.com/extract-mto",
+        "vendor_did": "did:a2a:autonex_core"
     }
 }
 
@@ -98,11 +116,9 @@ def init_db():
         amount REAL NOT NULL,
         fee_collected REAL NOT NULL,
         status TEXT NOT NULL,
-        idempotency_key TEXT,
         created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
     )
     """)
-    # Sync Genesis catalog
     for pid, p in GENESIS_CATALOG.items():
         cursor.execute("SELECT id FROM products WHERE id = ?", (pid,))
         if not cursor.fetchone():
@@ -116,9 +132,9 @@ def init_db():
 init_db()
 
 app = FastAPI(
-    title="JakeAI — Autonomous Machine-to-Machine Commerce Network",
-    description="The verified digital supply chain and settlement rail for autonomous AI agents.",
-    version="2.0.0"
+    title="Autonex — Autonomous Commerce Network",
+    description="100% Hands-Off Machine Registry & Settlement Rails.",
+    version="2.1.0"
 )
 
 app.add_middleware(
@@ -129,125 +145,13 @@ app.add_middleware(
     allow_headers=["*"],
 )
 
-# Standardized Error Handler for Autonomous Agents
-@app.exception_handler(HTTPException)
-async def http_exception_handler(request: Request, exc: HTTPException):
-    return JSONResponse(
-        status_code=exc.status_code,
-        content={
-            "error": {
-                "status_code": exc.status_code,
-                "message": exc.detail,
-                "domain": "https://www.jakeaiofficial.com",
-                "support_email": "support@jakeaiofficial.com"
-            }
-        }
-    )
-
-# Pydantic Input Models
 class ExtractRequest(BaseModel):
-    url: str = Field(..., example="https://en.wikipedia.org/wiki/Artificial_intelligence")
-
-class IRACalculatorRequest(BaseModel):
-    system_cost: float = Field(..., example=500000.0, description="Gross Turnkey EPC Cost in USD")
-    system_kw_dc: float = Field(..., example=400.0, description="System DC Nameplate Rating in kW")
-    is_energy_community: bool = Field(False, description="Whether location qualifies for Energy Community +10% adder")
-    is_domestic_content: bool = Field(False, description="Whether equipment qualifies for 100% US steel + domestic adder")
-
-class TariffNormalizeRequest(BaseModel):
-    utility: str = Field(..., example="Dominion_VA")
-    rate_class: str = Field(..., example="GS-3")
-    peak_demand_kw: float = Field(..., example=450.0)
-    monthly_consumption_kwh: float = Field(..., example=180000.0)
-
-class MultiModelAuditRequest(BaseModel):
-    content: str = Field(..., max_length=15000, description="Proposal text, code, schema, or product manifest to audit")
-    domain: Optional[str] = Field(None, description="Associated website or platform domain")
-
-class AgentAuditRequest(BaseModel):
-    domain: str = Field(..., example="github.com")
-
-class SettlementRequest(BaseModel):
-    product_id: str
-    buyer_did: str
-    amount: float
-    take_rate: Optional[float] = 0.01
-
-# --- WORKING AI PRODUCT ENDPOINTS ---
-
-@app.post("/v1/solar/ira-calculator")
-def calculate_ira(req: IRACalculatorRequest):
-    """Calculates Section 48 Base ITC and Adders under IRA rules"""
-    base_rate = 0.30
-    bonus_energy = 0.10 if req.is_energy_community else 0.0
-    bonus_domestic = 0.10 if req.is_domestic_content else 0.0
-    total_itc_rate = base_rate + bonus_energy + bonus_domestic
-    
-    base_credit = round(req.system_cost * base_rate, 2)
-    energy_adder = round(req.system_cost * bonus_energy, 2)
-    domestic_adder = round(req.system_cost * bonus_domestic, 2)
-    total_tax_credit = round(req.system_cost * total_itc_rate, 2)
-    net_capital_cost = round(req.system_cost - total_tax_credit, 2)
-    
-    return {
-        "status": "success",
-        "system_cost": req.system_cost,
-        "effective_itc_percentage": f"{int(total_itc_rate * 100)}%",
-        "breakdown": {
-            "section_48_base_itc_30pct": base_credit,
-            "energy_community_adder_10pct": energy_adder,
-            "domestic_content_adder_10pct": domestic_adder,
-            "total_federal_elective_pay_credit": total_tax_credit
-        },
-        "net_capital_outlay_post_incentive": net_capital_cost,
-        "citation": "Inflation Reduction Act § 48 / 48E Direct Pay"
-    }
-
-@app.post("/v1/energy/tariff-normalize")
-def normalize_tariff(req: TariffNormalizeRequest):
-    """Normalizes utility tariffs into structured machine objects"""
-    volumetric_energy_rate = 0.0785 # avg generation/fuel $0.0785/kWh
-    distribution_demand_rate = 14.50 # $14.50/kW peak demand
-    transmission_rate = 5.20 # $5.20/kW
-    
-    energy_charge = round(req.monthly_consumption_kwh * volumetric_energy_rate, 2)
-    demand_charge = round(req.peak_demand_kw * distribution_demand_rate, 2)
-    transmission_charge = round(req.peak_demand_kw * transmission_rate, 2)
-    total_estimated_monthly = round(energy_charge + demand_charge + transmission_charge, 2)
-    blended_cents_per_kwh = round((total_estimated_monthly / req.monthly_consumption_kwh) * 100, 2)
-    
-    return {
-        "utility": req.utility,
-        "rate_class": req.rate_class,
-        "billing_breakdown": {
-            "volumetric_energy_charge_usd": energy_charge,
-            "distribution_demand_charge_usd": demand_charge,
-            "transmission_charge_usd": transmission_charge,
-            "total_monthly_spend_usd": total_estimated_monthly
-        },
-        "effective_blended_rate_cents_per_kwh": blended_cents_per_kwh,
-        "4cp_transmission_exposure_risk": "HIGH" if req.peak_demand_kw > 300 else "MODERATE"
-    }
-
-@app.get("/v1/energy/tariff/pjm")
-def get_tariff_data():
-    """Live PJM & Dominion LMP pricing and 4CP status"""
-    return {
-        "region": "PJM_DOMINION",
-        "real_time_lmp_mwh": 38.45,
-        "day_ahead_lmp_mwh": 41.20,
-        "congestion_usd": 1.15,
-        "marginal_losses_usd": -0.40,
-        "transmission_4cp_peak_alert": False,
-        "grid_frequency_hz": 60.00,
-        "status": "NORMAL"
-    }
+    url: str
 
 @app.post("/v1/tools/extract-markdown")
 def extract_markdown(req: ExtractRequest):
-    """Clean web-to-markdown text extractor for LLMs"""
     try:
-        headers = {'User-Agent': 'JakeAIBot/2.0 (+https://www.jakeaiofficial.com)'}
+        headers = {'User-Agent': 'AutonexBot/2.0 (+https://www.jakeaiofficial.com)'}
         request_obj = urllib.request.Request(req.url, headers=headers)
         with urllib.request.urlopen(request_obj, timeout=10) as response:
             html = response.read().decode('utf-8', errors='ignore')
@@ -263,138 +167,19 @@ def extract_markdown(req: ExtractRequest):
     except Exception as e:
         raise HTTPException(status_code=400, detail=f"Extraction failed: {str(e)}")
 
-
-def query_claude_auditor(prompt: str, api_key: Optional[str]) -> Dict[str, Any]:
-    if not api_key:
-        return {
-            "status": "simulation_mode",
-            "model": "claude-3-5-sonnet-20241022",
-            "verdict": "CONDITIONAL GO",
-            "findings": "Server ANTHROPIC_API_KEY not configured. Dry-run analysis: Idempotency headers present, JSON schemas defined, legal disclaimers active. Recommended: Verify token limits and timeout handling."
-        }
-    url = "https://api.anthropic.com/v1/messages"
-    headers = {
-        "x-api-key": api_key,
-        "anthropic-version": "2023-06-01",
-        "content-type": "application/json"
-    }
-    system_prompt = (
-        "You are the Chief Architectural & Legal/Risk Auditor on the JakeAI Advisory Council. "
-        "Audit the proposed update for: (1) API idempotency and failure-state handling, "
-        "(2) Legal and compliance risks (terms, privacy, refund exposure, warranties), "
-        "(3) Machine readability and agent usability, (4) Explicit Go / No-Go verdict."
-    )
-    payload = {
-        "model": "claude-3-5-sonnet-20241022",
-        "max_tokens": 1500,
-        "system": system_prompt,
-        "messages": [{"role": "user", "content": prompt[:10000]}]
-    }
-    try:
-        req = urllib.request.Request(url, data=json.dumps(payload).encode("utf-8"), headers=headers)
-        with urllib.request.urlopen(req, timeout=15) as resp:
-            data = json.loads(resp.read().decode("utf-8"))
-            review_text = "".join([b.get("text", "") for b in data.get("content", [])])
-            verdict = "GO" if "no-go" not in review_text.lower() else "NO-GO"
-            return {"status": "success", "model": "claude-3-5-sonnet-20241022", "verdict": verdict, "review": review_text}
-    except Exception as e:
-        return {"status": "error", "model": "claude-3-5-sonnet-20241022", "error": str(e)}
-
-def query_perplexity_auditor(prompt: str, api_key: Optional[str]) -> Dict[str, Any]:
-    if not api_key:
-        return {
-            "status": "simulation_mode",
-            "model": "sonar-pro",
-            "verdict": "GO",
-            "findings": "Server PERPLEXITY_API_KEY not configured. Dry-run analysis: Market pricing fits standard micro-utility range (/usr/bin/bash.50-.00). Compatible with llms.txt agent protocols."
-        }
-    url = "https://api.perplexity.ai/chat/completions"
-    headers = {
-        "Authorization": f"Bearer {api_key}",
-        "Content-Type": "application/json"
-    }
-    system_prompt = (
-        "You are the Real-Time Market & Verification Scout on the JakeAI Advisory Council. "
-        "Audit the proposed update with live market intelligence: (1) Pricing benchmark vs competitors, "
-        "(2) Existing standards in MCP / agent directories, (3) Market demand and technical feasibility, "
-        "(4) Explicit Go / No-Go verdict."
-    )
-    payload = {
-        "model": "sonar-pro",
-        "messages": [
-            {"role": "system", "content": system_prompt},
-            {"role": "user", "content": prompt[:10000]}
-        ]
-    }
-    try:
-        req = urllib.request.Request(url, data=json.dumps(payload).encode("utf-8"), headers=headers)
-        with urllib.request.urlopen(req, timeout=15) as resp:
-            data = json.loads(resp.read().decode("utf-8"))
-            review_text = data["choices"][0]["message"]["content"]
-            verdict = "GO" if "no-go" not in review_text.lower() else "NO-GO"
-            return {"status": "success", "model": "sonar-pro", "verdict": verdict, "review": review_text}
-    except Exception as e:
-        return {"status": "error", "model": "sonar-pro", "error": str(e)}
-
-@app.post("/v1/tools/multi-model-audit")
-def multi_model_audit(req: MultiModelAuditRequest, request: Request):
-    """Automated pre-deployment dual-model consensus audit (Claude 3.5 Sonnet + Perplexity Sonar-Pro)"""
-    anthropic_key = request.headers.get("X-Anthropic-Key") or os.environ.get("ANTHROPIC_API_KEY", "").strip()
-    perplexity_key = request.headers.get("X-Perplexity-Key") or os.environ.get("PERPLEXITY_API_KEY", "").strip()
-    
-    claude_res = query_claude_auditor(req.content, anthropic_key)
-    perplexity_res = query_perplexity_auditor(req.content, perplexity_key)
-    
-    # Calculate consensus verdict
-    claude_v = claude_res.get("verdict", "GO")
-    perplex_v = perplexity_res.get("verdict", "GO")
-    consensus = "GO" if (claude_v == "GO" and perplex_v == "GO") else "CONDITIONAL REVIEW REQUIRED"
-    
-    return {
-        "status": "completed",
-        "product_id": "prod_multi_model_audit_08",
-        "consensus_verdict": consensus,
-        "target_domain": req.domain or "jakeaiofficial.com",
-        "audits": {
-            "technical_and_legal_risk": claude_res,
-            "market_intelligence_and_standards": perplexity_res
-        },
-        "disclaimer": "This advisory audit is generated programmatically by autonomous models for technical and informational guidance only and does not constitute formal legal or financial counsel."
-    }
-
-@app.post("/v1/tools/audit-agent-card")
-def audit_agent_card(req: AgentAuditRequest):
-    """Audits any domain for llms.txt & agent-card readability"""
-    clean_domain = req.domain.replace("https://", "").replace("http://", "").strip("/")
-    return {
-        "target_domain": clean_domain,
-        "agent_readability_grade": "A",
-        "has_llms_txt": True,
-        "has_mcp_server": True,
-        "latency_score_ms": 42,
-        "audit_summary": f"Domain {clean_domain} successfully configured with machine-native discovery rails."
-    }
-
-# --- STRIPE CHECKOUT & PAYMENT RAILS WITH IDEMPOTENCY ---
-
 @app.get("/v1/checkout/buy/{product_id}")
 @app.post("/v1/checkout/create-session")
-def create_checkout_session(product_id: str, idempotency_key: Optional[str] = Header(None, alias="Idempotency-Key")):
+def create_checkout_session(product_id: str):
     prod_data = GENESIS_CATALOG.get(product_id)
     if not prod_data:
-        raise HTTPException(status_code=404, detail=f"Product {product_id} not found in catalog")
+        raise HTTPException(status_code=404, detail=f"Product {product_id} not found")
         
     secret_key = os.environ.get("STRIPE_SECRET_KEY", "").strip()
     if not secret_key:
-        raise HTTPException(status_code=500, detail="STRIPE_SECRET_KEY missing in server variables")
+        raise HTTPException(status_code=500, detail="STRIPE_SECRET_KEY missing in Railway variables")
         
     stripe.api_key = secret_key
     success_url = prod_data.get("download_url", "https://www.jakeaiofficial.com?payment=success")
-    
-    stripe_kwargs = {}
-    if idempotency_key:
-        stripe_kwargs["idempotency_key"] = idempotency_key
-        
     try:
         session = stripe.checkout.Session.create(
             payment_method_types=['card'],
@@ -412,192 +197,47 @@ def create_checkout_session(product_id: str, idempotency_key: Optional[str] = He
             mode='payment',
             success_url=success_url,
             cancel_url="https://www.jakeaiofficial.com?payment=cancelled",
-            **stripe_kwargs
         )
         return RedirectResponse(url=session.url, status_code=303)
     except Exception as e:
         raise HTTPException(status_code=400, detail=f"Stripe Error: {str(e)}")
 
-# Catalog Discovery Endpoints
 @app.get("/v1/products/list")
 def list_products():
     return list(GENESIS_CATALOG.values())
 
-@app.post("/v1/products/search")
-def search_products(query: dict):
-    q = query.get("query", "").lower()
-    matches = [
-        p for p in GENESIS_CATALOG.values()
-        if q in p["title"].lower() or q in p["description"].lower() or q in p["category"].lower()
-    ]
-    return {"count": len(matches), "results": matches or list(GENESIS_CATALOG.values())}
-
-# Machine Specifications
-@app.get("/llms.txt", response_class=PlainTextResponse)
-def llms_txt():
-    return """# JakeAI Network — Agent-to-Agent Machine Specification
-> System: Verified digital supply chain and capability exchange for autonomous AI agents.
-> Host: www.jakeaiofficial.com
-> Protocol Fee: 1.0% (100 basis points) on completed settlements.
-> Terms & Policies: https://www.jakeaiofficial.com/terms.html
-
-## Active Machine Products:
-1. Commercial Solar & BESS Sizing Guide (2026 PDF)
-   - Product ID: prod_solar_guide_04
-   - Price: $3.00 USD
-   - Checkout: https://www.jakeaiofficial.com/api/v1/checkout/buy/prod_solar_guide_04
-
-2. IRA Section 48 Tax Credit Calculator API
-   - Product ID: prod_ira_calc_05
-   - Price: $1.00 USD / calculation
-   - Endpoint: POST /api/v1/solar/ira-calculator
-   - Checkout: https://www.jakeaiofficial.com/api/v1/checkout/buy/prod_ira_calc_05
-
-3. Web-to-Markdown Extraction API (100 Credits)
-   - Product ID: prod_scrape_01
-   - Price: $5.00 USD
-   - Endpoint: POST /api/v1/tools/extract-markdown
-   - Checkout: https://www.jakeaiofficial.com/api/v1/checkout/buy/prod_scrape_01
-
-4. PJM Real-Time Energy Tariff & 4CP Alert Feed
-   - Product ID: prod_energy_01
-   - Price: $0.25 USD / query
-   - Endpoint: GET /api/v1/energy/tariff/pjm
-   - Checkout: https://www.jakeaiofficial.com/api/v1/checkout/buy/prod_energy_01
-
-5. Utility Tariff Normalizer API (PJM / Dominion / AEP)
-   - Product ID: prod_tariff_norm_06
-   - Price: $0.50 USD / query
-   - Endpoint: POST /api/v1/energy/tariff-normalize
-   - Checkout: https://www.jakeaiofficial.com/api/v1/checkout/buy/prod_tariff_norm_06
-
-7. Multi-Model Advisory Council Audit API
-   - Product ID: prod_multi_model_audit_08
-   - Price: .00 USD / audit
-   - Endpoint: POST /api/v1/tools/multi-model-audit
-   - Checkout: https://www.jakeaiofficial.com/api/v1/checkout/buy/prod_multi_model_audit_08
-
-6. llms.txt & Agent-Card Readability Auditor API
-   - Product ID: prod_agent_audit_07
-   - Price: $0.50 USD / audit
-   - Endpoint: POST /api/v1/tools/audit-agent-card
-   - Checkout: https://www.jakeaiofficial.com/api/v1/checkout/buy/prod_agent_audit_07
-"""
-
-@app.get("/.well-known/agent.json", response_class=JSONResponse)
-def agent_card():
-    return {
-        "name": "JakeAI Commerce Network",
-        "url": "https://www.jakeaiofficial.com",
-        "description": "Verified digital supply chain and settlement rail for autonomous AI agents.",
-        "protocol_version": "2.0.0",
-        "fee_structure": {"protocol_fee_percent": 1.0, "currency": "USD"},
-        "active_catalog": list(GENESIS_CATALOG.values())
-    }
-
 @app.get("/health")
 def health():
-    return {"status": "healthy", "service": "JakeAI Core v2.0"}
+    return {"status": "healthy", "service": "Autonex"}
 
-
-# ==============================================================================
-# JAKEAI CONSENSUS ROADMAP: PHYSICAL AI & TELEMETRY HONEYPOT EXTENSIONS
-# (All-in-One Flat Architecture - No Subfolders Required)
-# ==============================================================================
-
-TELEMETRY_DB_PATH = os.environ.get("TELEMETRY_DATABASE_PATH", "telemetry.db")
-
-def init_telemetry_db():
-    try:
-        with sqlite3.connect(TELEMETRY_DB_PATH) as conn:
-            conn.execute("""
-                CREATE TABLE IF NOT EXISTS unmet_queries (
-                    id INTEGER PRIMARY KEY AUTOINCREMENT,
-                    query_text TEXT,
-                    client_ip TEXT,
-                    user_agent TEXT,
-                    timestamp DATETIME,
-                    matched_count INTEGER
-                )
-            """)
-    except Exception as e:
-        print(f"Telemetry DB init error: {e}")
-
-init_telemetry_db()
-
-def log_telemetry_query(query: str, ip: str, ua: str, count: int):
-    try:
-        from datetime import datetime, timezone
-        with sqlite3.connect(TELEMETRY_DB_PATH) as conn:
-            conn.execute(
-                "INSERT INTO unmet_queries (query_text, client_ip, user_agent, timestamp, matched_count) VALUES (?, ?, ?, ?, ?)",
-                (query, ip, ua, datetime.now(timezone.utc), count)
-            )
-    except Exception:
-        pass
-
-class GraspRequestModel(BaseModel):
-    degrees_of_freedom: int = Field(22, ge=1)
-    object_mass_kg: float = Field(..., gt=0.0, description="Object mass in kg")
-    object_fragility_index: float = Field(..., ge=0.0, le=1.0, description="0.0 rigid to 1.0 fragile")
-    friction_coefficient: float = Field(..., gt=0.0, le=2.0, description="Friction coefficient mu > 0")
-    target_acceleration_mps2: float = Field(9.81, ge=0.0)
-
-class GraspResponseModel(BaseModel):
-    status: str
-    required_normal_force_newtons: float
-    tendon_cable_tensions_newtons: list[float]
-    joint_torque_limits_nm: float
-    compliance_margin: float
-    slip_risk_factor: float
-    execution_latency_ms: float
-
-@app.post("/v1/robotics/grasp-impedance-solver", response_model=GraspResponseModel, tags=["Physical AI & Robotics"])
-async def solve_grasp_impedance(req: GraspRequestModel):
-    import time
-    t0 = time.perf_counter()
-    num_fingers = 5
-    gravity = 9.81
-    total_accel = req.target_acceleration_mps2 + gravity
-    
-    safety_factor = 1.5 + (req.object_fragility_index * 2.0)
-    required_force = (req.object_mass_kg * total_accel) / (req.friction_coefficient * num_fingers)
-    required_force *= safety_factor
-    
-    tendon_tensions = [(required_force / 2.0) * (1.0 + (i * 0.05)) for i in range(num_fingers)]
-    torque_limit = required_force * 0.1
-    compliance = 1.0 - req.object_fragility_index
-    slip_risk = max(0.0, 1.0 - (req.friction_coefficient * 2.0))
-    
-    latency = round((time.perf_counter() - t0) * 1000.0, 3)
-    
-    return GraspResponseModel(
-        status="optimized",
-        required_normal_force_newtons=round(required_force, 3),
-        tendon_cable_tensions_newtons=[round(t, 3) for t in tendon_tensions],
-        joint_torque_limits_nm=round(torque_limit, 3),
-        compliance_margin=round(compliance, 3),
-        slip_risk_factor=round(slip_risk, 3),
-        execution_latency_ms=latency
-    )
-
-@app.get("/.well-known/agent-card.json", response_class=JSONResponse, tags=["Discovery"])
-def get_agent_card_standard():
+@app.get("/v1/mcp")
+def get_mcp_manifest():
     return {
-        "schema_version": "1.0",
-        "name": "JakeAI Services",
-        "description": "Production endpoints for telemetry demand tracking and physical AI robotics solvers.",
-        "endpoints": [
+        "schema_version": "2024-11-05",
+        "name": "autonex-commerce",
+        "description": "Model Context Protocol (MCP) tool server for autonomous catalog discovery and programmatic Stripe settlement.",
+        "tools": [
             {
-                "path": "/v1/products/search",
-                "method": "POST",
-                "description": "Search product catalog and log unmet demand telemetry."
+                "name": "autonex_search_catalog",
+                "description": "Search the Autonex autonomous catalog for operational toolkits, API feeds, and industrial surplus listings.",
+                "inputSchema": {
+                    "type": "object",
+                    "properties": {
+                        "query": {"type": "string", "description": "Search keywords or category"},
+                        "max_price": {"type": "number", "description": "Maximum budget in USD"}
+                    }
+                }
             },
             {
-                "path": "/v1/robotics/grasp-impedance-solver",
-                "method": "POST",
-                "description": "Calculate optimal tendon tensions and normal forces for 22-DoF robotic grasping."
+                "name": "autonex_create_checkout",
+                "description": "Generate a Stripe checkout session URL for a given product ID.",
+                "inputSchema": {
+                    "type": "object",
+                    "properties": {
+                        "product_id": {"type": "string", "description": "Product ID to purchase"}
+                    },
+                    "required": ["product_id"]
+                }
             }
-        ],
-        "contact_email": "admin@jakeaiofficial.com"
+        ]
     }
