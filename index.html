@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Autonex — The Dual-Surface Agent Marketplace</title>
+    <title>JakeAI — The Verified Digital Supply Chain for AI Agents</title>
     <link href="https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@500;700&family=Inter:wght@300;400;500;600&display=swap" rel="stylesheet">
     <style>
         :root {
@@ -18,19 +18,25 @@
         }
         * { box-sizing: border-box; margin: 0; padding: 0; }
         body { font-family: 'Inter', sans-serif; background: var(--bg); color: var(--text); line-height: 1.6; }
-        header { padding: 20px 40px; display: flex; justify-content: space-between; align-items: center; border-bottom: 1px solid var(--border); }
+        header { padding: 14px 20px; display: flex; justify-content: space-between; align-items: center; border-bottom: 1px solid var(--border); flex-wrap: wrap; gap: 12px; }
+        @media (max-width: 600px) {
+            header { padding: 12px 16px; }
+            .nav-links { display: flex; flex-wrap: wrap; gap: 10px; align-items: center; }
+            .nav-links a { margin-left: 0 !important; font-size: 13px; }
+            .hero h1 { font-size: 26px; }
+        }
         .logo { font-family: 'Space Grotesk', sans-serif; font-size: 24px; font-weight: 700; color: #fff; text-decoration: none; }
         .logo span { color: var(--cyan); }
         .nav-links a { color: var(--muted); text-decoration: none; margin-left: 20px; font-size: 14px; font-weight: 500; }
         .nav-links a:hover { color: var(--cyan); }
-        .btn-admin { background: linear-gradient(135deg, var(--cyan), var(--violet)); color: #000 !important; font-weight: 600; padding: 8px 16px; border-radius: 6px; }
+        .btn-cta { background: linear-gradient(135deg, var(--cyan), #0099ff); color: #000 !important; font-weight: 600; padding: 8px 16px; border-radius: 6px; }
         
         .hero { max-width: 960px; margin: 50px auto 30px; text-align: center; padding: 0 20px; }
-        .badge { display: inline-block; background: rgba(0, 240, 255, 0.1); color: var(--cyan); border: 1px solid rgba(0, 240, 255, 0.3); padding: 5px 14px; border-radius: 50px; font-size: 12px; font-weight: 600; margin-bottom: 20px; }
-        h1 { font-family: 'Space Grotesk', sans-serif; font-size: 46px; line-height: 1.2; margin-bottom: 20px; }
-        .hero p { font-size: 18px; color: var(--muted); max-width: 720px; margin: 0 auto 30px; }
+        .badge { display: inline-block; background: rgba(0, 240, 255, 0.1); color: var(--cyan); border: 1px solid rgba(0, 240, 255, 0.3); padding: 5px 14px; border-radius: 50px; font-size: 12px; font-weight: 600; margin-bottom: 20px; letter-spacing: 0.5px; }
+        h1 { font-family: 'Space Grotesk', sans-serif; font-size: 46px; line-height: 1.2; margin-bottom: 16px; }
+        .hero p { font-size: 18px; color: var(--muted); max-width: 760px; margin: 0 auto 30px; }
 
-        .metrics-bar { max-width: 960px; margin: 30px auto; display: flex; background: var(--card); border: 1px solid var(--border); border-radius: 12px; overflow: hidden; }
+        .metrics-bar { max-width: 1040px; margin: 30px auto; display: flex; background: var(--card); border: 1px solid var(--border); border-radius: 12px; overflow: hidden; }
         .metric { flex: 1; padding: 20px; text-align: center; border-right: 1px solid var(--border); }
         .metric:last-child { border-right: none; }
         .metric-val { font-family: 'Space Grotesk', sans-serif; font-size: 28px; font-weight: 700; color: var(--cyan); }
@@ -39,7 +45,7 @@
         .section-wrap { max-width: 1040px; margin: 50px auto; padding: 0 20px; }
         .section-header { display: flex; justify-content: space-between; align-items: flex-end; margin-bottom: 24px; }
         .section-header h2 { font-family: 'Space Grotesk', sans-serif; font-size: 28px; }
-        .catalog-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(300px, 1fr)); gap: 20px; }
+        .catalog-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(310px, 1fr)); gap: 20px; }
         .product-card { background: var(--card); border: 1px solid var(--border); border-radius: 12px; padding: 24px; display: flex; flex-direction: column; justify-content: space-between; }
         .product-badge { font-size: 11px; font-weight: 700; text-transform: uppercase; color: var(--cyan); letter-spacing: 0.5px; margin-bottom: 8px; }
         .product-title { font-family: 'Space Grotesk', sans-serif; font-size: 18px; font-weight: 700; margin-bottom: 10px; color: #fff; }
@@ -50,12 +56,12 @@
         .btn-buy:hover { transform: translateY(-2px); }
 
         .dual-grid { max-width: 1040px; margin: 50px auto; display: grid; grid-template-columns: 1fr 1fr; gap: 24px; padding: 0 20px; }
-        .surface-card { background: var(--card); border: 1px solid var(--border); border-radius: 12px; padding: 32px; }
+        .surface-card { background: var(--card); border: 1px solid var(--border); border-radius: 12px; padding: 32px; display: flex; flex-direction: column; justify-content: space-between; }
         .surface-card.ai { border-top: 4px solid var(--cyan); }
-        .surface-card.human { border-top: 4px solid var(--violet); }
+        .surface-card.dev { border-top: 4px solid var(--violet); }
         .surface-tag { font-size: 12px; font-weight: 700; text-transform: uppercase; letter-spacing: 1px; margin-bottom: 12px; }
         .surface-card.ai .surface-tag { color: var(--cyan); }
-        .surface-card.human .surface-tag { color: var(--violet); }
+        .surface-card.dev .surface-tag { color: var(--violet); }
         .surface-card h2 { font-family: 'Space Grotesk', sans-serif; font-size: 24px; margin-bottom: 12px; color: #fff; }
         .surface-card p { font-size: 14px; color: var(--muted); margin-bottom: 20px; }
         .code-box { background: #070a10; border: 1px solid var(--border); border-radius: 8px; padding: 14px; font-family: monospace; font-size: 12px; color: var(--cyan); margin-bottom: 20px; overflow-x: auto; }
@@ -64,32 +70,34 @@
         .feature-list li::before { content: "✓"; color: var(--cyan); font-weight: bold; }
         .btn-action { display: inline-block; text-align: center; padding: 12px 20px; border-radius: 8px; font-size: 14px; font-weight: 600; text-decoration: none; }
         .btn-ai { background: #131d2e; color: var(--cyan); border: 1px solid rgba(0, 240, 255, 0.4); }
-        .btn-human { background: linear-gradient(135deg, var(--cyan), var(--violet)); color: #000; font-weight: bold; }
+        .btn-dev { background: linear-gradient(135deg, var(--cyan), var(--violet)); color: #000; font-weight: bold; }
 
         footer { text-align: center; margin: 80px 0 40px; color: #4b5563; font-size: 13px; }
+        footer a { color: var(--muted); text-decoration: none; margin: 0 10px; }
+        footer a:hover { color: var(--cyan); }
         @media(max-width: 768px) { .dual-grid { grid-template-columns: 1fr; } .metrics-bar { flex-direction: column; } .metric { border-right: none; border-bottom: 1px solid var(--border); } }
     </style>
 </head>
 <body>
     <header>
-        <a href="/" class="logo">Auto<span>nex</span></a>
+        <a href="/" class="logo">Jake<span>AI</span></a>
         <div class="nav-links">
-            <a href="/llms.txt">llms.txt (AI Spec)</a>
-            <a href="https://agent-commerce-network-production-56e8.up.railway.app/docs" target="_blank">API Docs</a>
-            <a href="/admin.html" class="btn-admin">Human Console</a>
+            <a href="/llms.txt">llms.txt</a>
+            <a href="https://agent-commerce-network-production-56e8.up.railway.app/docs" target="_blank">Swagger API</a>
+            <a href="#catalog" class="btn-cta">Browse Tools</a>
         </div>
     </header>
 
     <section class="hero">
-        <div class="badge">GENESIS LAUNCHPAD &bull; 100% AUTONOMOUS</div>
-        <h1>Autonomous Digital Commerce for AI Agents</h1>
-        <p>A machine-native discovery & settlement network where AI agents buy, sell, and execute software tools, guides, and data feeds at a 1.0% protocol fee.</p>
+        <div class="badge">VERIFIED DIGITAL SUPPLY CHAIN FOR AI</div>
+        <h1>Autonomous Machine-to-Machine Commerce</h1>
+        <p>Give your AI agent approved vendors, a spending limit, and a task. Jake handles discovery, purchase, delivery, and a complete transaction record at a 1.0% protocol fee.</p>
     </section>
 
-    <!-- Benchmarks Bar -->
+    <!-- Industry Benchmarks -->
     <div class="metrics-bar">
         <div class="metric">
-            <div class="metric-val">1.0% vs 15%</div>
+            <div class="metric-val">1.0% vs 15%–30%</div>
             <div class="metric-label">Fee vs Traditional Stores</div>
         </div>
         <div class="metric">
@@ -101,16 +109,16 @@
             <div class="metric-label">Stripe Automated Payouts</div>
         </div>
         <div class="metric">
-            <div class="metric-val">Genesis</div>
+            <div class="metric-val">Verified</div>
             <div class="metric-label">Registry Node Status</div>
         </div>
     </div>
 
-    <!-- 100% Hands-Off Autonomous Digital Products ONLY -->
-    <section class="section-wrap">
+    <!-- Active Digital Products Section -->
+    <section class="section-wrap" id="catalog">
         <div class="section-header">
             <div>
-                <h2>Genesis Digital Catalog</h2>
+                <h2>Verified Capability Catalog</h2>
                 <p style="color: var(--muted); font-size: 14px;">Instant digital delivery with zero human interaction.</p>
             </div>
             <span style="font-size: 12px; color: var(--green); font-weight: 600;">● Live on Stripe</span>
@@ -135,7 +143,7 @@
                 <div>
                     <div class="product-badge">PHYSICAL AI &bull; KINEMATICS</div>
                     <div class="product-title">Video-to-Action Kinematic Trajectory Extractor (10-Min Pack)</div>
-                    <div class="product-desc">Parses demonstration video frames and converts human motion into normalized 3D Cartesian waypoints and joint angle sequences for robot execution.</div>
+                    <div class="product-desc">Parses demonstration video frames and converts human motion into normalized 3D Cartesian waypoints and joint angle sequences for robot training.</div>
                 </div>
                 <div class="product-footer">
                     <div class="product-price">$7.50 <span style="font-size: 12px; color: var(--muted); font-weight: normal;">/ 10 mins</span></div>
@@ -148,7 +156,7 @@
                 <div>
                     <div class="product-badge">ROBOTICS &bull; ISO / OSHA COMPLIANCE</div>
                     <div class="product-title">ISO/OSHA Dynamic Workspace Safety Bounding Engine (100-Call Pack)</div>
-                    <div class="product-desc">Real-time deterministic boundary validator calculating velocity caps, kinetic impact limits, and emergency stop envelopes for robots operating alongside humans.</div>
+                    <div class="product-desc">Real-time deterministic boundary validator calculating velocity caps, kinetic impact limits, and emergency stop envelopes for cobots.</div>
                 </div>
                 <div class="product-footer">
                     <div class="product-price">$5.00 <span style="font-size: 12px; color: var(--muted); font-weight: normal;">/ 100 calls</span></div>
@@ -156,49 +164,10 @@
                 </div>
             </div>
 
-            <!-- Hardware: Rare Earth Free Motor Solver -->
+            <!-- Operational: EV Fleet Peak Demand -->
             <div class="product-card">
                 <div>
-                    <div class="product-badge">HARDWARE &bull; MOTOR ENGINEERING</div>
-                    <div class="product-title">Rare-Earth-Free Motor Electromagnetic & Thermal Solver (5-Solve Pack)</div>
-                    <div class="product-desc">Computes Halbach array magnetic flux densities, hairpin stator slot fill factors, and thermal limits for non-rare-earth high-RPM traction motors.</div>
-                </div>
-                <div class="product-footer">
-                    <div class="product-price">$6.25 <span style="font-size: 12px; color: var(--muted); font-weight: normal;">/ 5 solves</span></div>
-                    <a href="https://agent-commerce-network-production-56e8.up.railway.app/v1/checkout/buy/prod_motor_flux_04" target="_blank" class="btn-buy">Buy for $6.25</a>
-                </div>
-            </div>
-
-            <!-- Fleet: Robotaxi Dispatch Optimizer -->
-            <div class="product-card">
-                <div>
-                    <div class="product-badge">FLEET AI &bull; AUTONOMOUS DISPATCH</div>
-                    <div class="product-title">Robotaxi Fleet & Inductive Dispatch Optimizer (10-Batch Pack)</div>
-                    <div class="product-desc">Route scheduling, wireless inductive charging stops, and battery longevity optimization based on real-time grid LMP pricing and passenger demand.</div>
-                </div>
-                <div class="product-footer">
-                    <div class="product-price">$5.00 <span style="font-size: 12px; color: var(--muted); font-weight: normal;">/ 10 batches</span></div>
-                    <a href="https://agent-commerce-network-production-56e8.up.railway.app/v1/checkout/buy/prod_cybercab_dispatch_05" target="_blank" class="btn-buy">Buy for $5.00</a>
-                </div>
-            </div>
-
-            <!-- Manufacturing: Assembly Cell Auditor -->
-            <div class="product-card">
-                <div>
-                    <div class="product-badge">MANUFACTURING &bull; SUB-10s TELEMETRY</div>
-                    <div class="product-title">Sub-10-Second Assembly Cell Telemetry Auditor (25-Batch Pack)</div>
-                    <div class="product-desc">Ingests assembly line robotic sensor telemetry to detect micro-stutters, tooling wear, and cycle-time drift in high-speed manufacturing environments.</div>
-                </div>
-                <div class="product-footer">
-                    <div class="product-price">$5.00 <span style="font-size: 12px; color: var(--muted); font-weight: normal;">/ 25 batches</span></div>
-                    <a href="https://agent-commerce-network-production-56e8.up.railway.app/v1/checkout/buy/prod_assembly_auditor_06" target="_blank" class="btn-buy">Buy for $5.00</a>
-                </div>
-            </div>
-
-            <!-- Product: EV Fleet Peak Demand Model -->
-            <div class="product-card">
-                <div>
-                    <div class="product-badge">OPERATIONAL TOOLS &bull; SPREADSHEET & GUIDE</div>
+                    <div class="product-badge">OPERATIONAL TOOLS &bull; FLEET MODEL</div>
                     <div class="product-title">Commercial Fleet EV Depot Peak Demand & Surcharge Estimator</div>
                     <div class="product-desc">Automated sizing model calculating 15-minute peak demand spikes, transformer headroom, and utility tariff penalties for fleet electrification. Instant download.</div>
                 </div>
@@ -208,24 +177,11 @@
                 </div>
             </div>
 
-            <!-- Product: Industrial Surplus API Feed -->
-            <div class="product-card">
-                <div>
-                    <div class="product-badge">DATA API &bull; MACHINE STREAM</div>
-                    <div class="product-title">Industrial Surplus Equipment Normalization API Feed</div>
-                    <div class="product-desc">Machine-readable JSON data stream delivering real-time indexed lots of 50%+ discounted commercial compressors, generators, and heavy electric motors.</div>
-                </div>
-                <div class="product-footer">
-                    <div class="product-price">$9.00 <span style="font-size: 12px; color: var(--muted); font-weight: normal;">access token</span></div>
-                    <a href="https://agent-commerce-network-production-56e8.up.railway.app/v1/checkout/buy/prod_surplus_feed_02" target="_blank" class="btn-buy">Buy for $9.00</a>
-                </div>
-            </div>
-
-            <!-- Product: Utility Audit Toolkit -->
+            <!-- Operational: Utility Audit Toolkit -->
             <div class="product-card">
                 <div>
                     <div class="product-badge">OPERATIONAL AUDIT &bull; CHECKLIST & SHEET</div>
-                    <div class="product-title">Small Business & Facility Zero-Waste Utility Audit Toolkit</div>
+                    <div class="product-title">Small Business & Facility 'Zero-Waste' Utility Audit Toolkit</div>
                     <div class="product-desc">25-point physical facility walkthrough checklist and automated monthly utility savings calculator to uncover phantom loads and billing errors. Instant digital access.</div>
                 </div>
                 <div class="product-footer">
@@ -234,7 +190,7 @@
                 </div>
             </div>
 
-            <!-- Product: Roof Asset Management Playbook -->
+            <!-- Operational: Roof Asset Management Playbook -->
             <div class="product-card">
                 <div>
                     <div class="product-badge">FACILITY OPERATIONS &bull; GUIDE & RFP TEMPLATE</div>
@@ -247,88 +203,156 @@
                 </div>
             </div>
 
-            <!-- Product: Virginia Energy Deregulation Navigator -->
+            <!-- Product 1: Cinematic Camera Optics & Solar Ephemeris API (Single) -->
             <div class="product-card">
                 <div>
-                    <div class="product-badge">MARKET INTELLIGENCE &bull; STATUTORY PLAYBOOK</div>
-                    <div class="product-title">Virginia Commercial Energy Deregulation & Peak-Shaving Navigator</div>
-                    <div class="product-desc">Statutory rights breakdown (VA Code § 56-577 for 5 MW+ and non-residential aggregation), PJM 5CP tag mitigation guide, and reverse-auction wholesale manual.</div>
+                    <div class="product-badge" style="color: #00f0ff; border-color: #00f0ff;">CREATIVE PHYSICS &bull; CAMERA OPTICS</div>
+                    <div class="product-title">Cinematic Camera Optics & Solar Ephemeris Solver API</div>
+                    <div class="product-desc">Calculates exact hyperfocal limits, circle of confusion, depth of field, and solar azimuth/golden-hour vectors for AI image generators and rendering pipelines.</div>
                 </div>
                 <div class="product-footer">
-                    <div class="product-price">$47.00 <span style="font-size: 12px; color: var(--muted); font-weight: normal;">instant download</span></div>
-                    <a href="https://agent-commerce-network-production-56e8.up.railway.app/v1/checkout/buy/prod_dereg_nav_03" target="_blank" class="btn-buy">Buy for $47.00</a>
+                    <div class="product-price">$1.00 <span style="font-size: 12px; color: var(--muted); font-weight: normal;">/ single query</span></div>
+                    <a href="/api/v1/checkout/buy/prod_optics_09" target="_blank" class="btn-buy">Buy for $1.00</a>
                 </div>
             </div>
 
-            <!-- Product 1: The $3 Solar Guide -->
+            <!-- Product 2: Camera Optics 35-Query Developer Bundle -->
             <div class="product-card">
                 <div>
-                    <div class="product-badge">FEATURED DIGITAL GUIDE &bull; PDF</div>
-                    <div class="product-title">Commercial Solar & BESS Microgrid Sizing Guide (2026 PDF)</div>
-                    <div class="product-desc">Authoritative reference guide covering C&I DC/AC loading ratios, 4CP peak-shaving dispatch, and IRA tax credit stacking formulas (30% + 10% + 10%). Instant PDF download upon checkout.</div>
+                    <div class="product-badge" style="color: #00ff88; border-color: #00ff88;">DEVELOPER PACK &bull; 60% SAVINGS</div>
+                    <div class="product-title">Camera Optics API — 35-Query Developer Key</div>
+                    <div class="product-desc">Pre-funded credit key for 35 autonomous camera optics & solar lighting queries (~$0.14/call). Eliminates per-call card friction for automated rendering pipelines.</div>
                 </div>
                 <div class="product-footer">
-                    <div class="product-price">$3.00 <span style="font-size: 12px; color: var(--muted); font-weight: normal;">instant download</span></div>
-                    <a href="https://agent-commerce-network-production-56e8.up.railway.app/v1/checkout/buy/prod_solar_guide_04" target="_blank" class="btn-buy">Buy for $3.00</a>
+                    <div class="product-price">$5.00 <span style="font-size: 12px; color: var(--muted); font-weight: normal;">/ 35 queries</span></div>
+                    <a href="/api/v1/checkout/buy/prod_optics_pack_12" target="_blank" class="btn-buy">Buy for $5.00</a>
                 </div>
             </div>
 
-            <!-- Product 2: The Scrape API -->
+            <!-- Product 3: Exterior Ballistics Trajectory API -->
             <div class="product-card">
                 <div>
-                    <div class="product-badge">AI DEVELOPER TOOL &bull; SCRAPING</div>
-                    <div class="product-title">Autonex Web-to-Markdown Extraction API (100 Credits)</div>
-                    <div class="product-desc">High-speed clean text & markdown extractor for LLMs and autonomous bots. Bypasses ads, navbars, and bloated HTML with instant automated API key delivery.</div>
+                    <div class="product-badge" style="color: #ff3366; border-color: #ff3366;">PHYSICS ENGINE &bull; BALLISTICS</div>
+                    <div class="product-title">Exterior Ballistics & Environmental Trajectory Solver API</div>
+                    <div class="product-desc">Deterministic point-mass trajectory solver calculating G1/G7 drag, Coriolis acceleration, density altitude, wind drift, and MOA/MIL elevation corrections.</div>
+                </div>
+                <div class="product-footer">
+                    <div class="product-price">$1.00 <span style="font-size: 12px; color: var(--muted); font-weight: normal;">/ calculation</span></div>
+                    <a href="/api/v1/checkout/buy/prod_ballistics_10" target="_blank" class="btn-buy">Buy for $1.00</a>
+                </div>
+            </div>
+
+            <!-- Product 4: EV Fleet Peak-Demand Shaving Optimizer API -->
+            <div class="product-card">
+                <div>
+                    <div class="product-badge" style="color: #ffaa00; border-color: #ffaa00;">ENERGY FLEET &bull; 4CP PEAK SHAVE</div>
+                    <div class="product-title">Commercial EV Fleet Peak-Demand Shaving Optimizer API</div>
+                    <div class="product-desc">Optimizes overnight commercial fleet charging schedules to avoid utility peak demand kW ratchets, calculating exact staggered concurrency and monthly savings.</div>
+                </div>
+                <div class="product-footer">
+                    <div class="product-price">$1.00 <span style="font-size: 12px; color: var(--muted); font-weight: normal;">/ execution</span></div>
+                    <a href="/api/v1/checkout/buy/prod_fleet_11" target="_blank" class="btn-buy">Buy for $1.00</a>
+                </div>
+            </div>
+
+            <!-- Product 5: IRA Tax Calculator API -->
+            <div class="product-card">
+                <div>
+                    <div class="product-badge">FINTECH API &bull; IRA § 48</div>
+                    <div class="product-title">Section 48 IRA Tax Credit Stacking Calculator API</div>
+                    <div class="product-desc">Executable calculator returning statutory cash direct elective pay breakdowns (30% Base + 10% Energy Community + 10% Domestic Content).</div>
+                </div>
+                <div class="product-footer">
+                    <div class="product-price">$1.00 <span style="font-size: 12px; color: var(--muted); font-weight: normal;">/ calculation</span></div>
+                    <a href="/api/v1/checkout/buy/prod_ira_calc_05" target="_blank" class="btn-buy">Buy for $1.00</a>
+                </div>
+            </div>
+
+            <!-- Product 6: Web-to-Markdown Scrape API -->
+            <div class="product-card">
+                <div>
+                    <div class="product-badge">AI DEVELOPER TOOL &bull; CONTEXT</div>
+                    <div class="product-title">JakeAI Web-to-Markdown Extraction API (100 Credits)</div>
+                    <div class="product-desc">High-speed clean text & markdown extractor for LLMs and autonomous bots. Bypasses ads, navbars, and bloated HTML with instant automated delivery.</div>
                 </div>
                 <div class="product-footer">
                     <div class="product-price">$5.00 <span style="font-size: 12px; color: var(--muted); font-weight: normal;">/ 100 calls</span></div>
-                    <a href="https://agent-commerce-network-production-56e8.up.railway.app/v1/checkout/buy/prod_scrape_01" target="_blank" class="btn-buy">Buy for $5.00</a>
+                    <a href="/api/v1/checkout/buy/prod_scrape_01" target="_blank" class="btn-buy">Buy for $5.00</a>
                 </div>
             </div>
 
-            <!-- Product 3: Energy Tariff API -->
+            <!-- Product 7: Multi-Model Advisory Audit API -->
             <div class="product-card">
                 <div>
-                    <div class="product-badge">DATA API &bull; ENERGY</div>
-                    <div class="product-title">PJM Real-Time Energy Tariff & 4CP Peak Forecast API (10-Query Pack)</div>
-                    <div class="product-desc">Automated nodal electricity price queries and 4CP transmission peak alerts across PJM & Dominion territories for energy automation bots.</div>
+                    <div class="product-badge">AI AUDIT &bull; FRONTIER CONSENSUS</div>
+                    <div class="product-title">Multi-Model Advisory Council Audit API</div>
+                    <div class="product-desc">Dual-model pre-deployment audit combining Claude 3.5 Sonnet (architecture & legal risk) and Perplexity Sonar-Pro (live market intelligence) into a unified Go/No-Go report.</div>
                 </div>
                 <div class="product-footer">
-                    <div class="product-price">$2.50 <span style="font-size: 12px; color: var(--muted); font-weight: normal;">/ 10 queries</span></div>
-                    <a href="https://agent-commerce-network-production-56e8.up.railway.app/v1/checkout/buy/prod_energy_01" target="_blank" class="btn-buy">Buy for $2.50</a>
+                    <div class="product-price">$2.00 <span style="font-size: 12px; color: var(--muted); font-weight: normal;">/ audit</span></div>
+                    <a href="/api/v1/checkout/buy/prod_multi_model_audit_08" target="_blank" class="btn-buy">Buy for $2.00</a>
+                </div>
+            </div>
+
+            <!-- Product 8: Utility Tariff Normalizer API -->
+            <div class="product-card">
+                <div>
+                    <div class="product-badge">DATA API &bull; UTILITY NORMALIZER</div>
+                    <div class="product-title">Utility Tariff Normalizer API (PJM / Dominion / AEP)</div>
+                    <div class="product-desc">Transforms complex non-standard utility rate schedules (GS-1, GS-3, large industrial) into standardized JSON objects for financial modeling.</div>
+                </div>
+                <div class="product-footer">
+                    <div class="product-price">$1.00 <span style="font-size: 12px; color: var(--muted); font-weight: normal;">/ query</span></div>
+                    <a href="/api/v1/checkout/buy/prod_tariff_norm_06" target="_blank" class="btn-buy">Buy for $1.00</a>
                 </div>
             </div>
         </div>
     </section>
 
+    <!-- Two-Part Architecture: Machine Protocol vs Developer Onboarding -->
     <div class="dual-grid">
         <div class="surface-card ai">
-            <div class="surface-tag">For Autonomous AI</div>
-            <h2>Machine Protocol Layer</h2>
-            <p>Bots query and transact directly via JSON-LD without human UI or captchas.</p>
-            <div class="code-box">
-                curl -X POST https://www.jakeaiofficial.com/api/v1/products/search \<br>
-                &nbsp;&nbsp;-H "Content-Type: application/json" \<br>
-                &nbsp;&nbsp;-d '{"query": "solar guide"}'
+            <div>
+                <div class="surface-tag">For Autonomous AI Agents</div>
+                <h2>Machine Protocol Layer</h2>
+                <p>Bots query and transact directly via JSON-LD without human UI, captchas, or browser emulation.</p>
+                <div class="code-box">
+                    curl -X POST https://www.jakeaiofficial.com/api/v1/products/search \<br>
+                    &nbsp;&nbsp;-H "Content-Type: application/json" \<br>
+                    &nbsp;&nbsp;-d '{"query": "energy"}'
+                </div>
+                <ul class="feature-list">
+                    <li>Standardized <code>llms.txt</code> & Agent Card specs</li>
+                    <li>Direct REST & JSON-LD execution</li>
+                    <li>5.0% automated protocol settlement</li>
+                </ul>
             </div>
             <a href="/llms.txt" class="btn-action btn-ai">Inspect llms.txt Spec</a>
         </div>
 
-        <div class="surface-card human">
-            <div class="surface-tag">For Humans & Creators</div>
-            <h2>Governance & Earnings Console</h2>
-            <p>Monitor transaction settlement volume and 1.0% platform fee earnings in real time.</p>
-            <ul class="feature-list">
-                <li>Automated Stripe direct deposit payouts</li>
-                <li>Full machine audit log</li>
-                <li>Instant digital fulfillment</li>
-            </ul>
-            <a href="/admin.html" class="btn-action btn-human">Open Governance Console</a>
+        <div class="surface-card dev">
+            <div>
+                <div class="surface-tag">For Developers & Vendors</div>
+                <h2>List Your Tool or API</h2>
+                <p>Connect your custom software services, APIs, or datasets to the global agent network and monetize machine traffic.</p>
+                <ul class="feature-list">
+                    <li>5.0% flat protocol fee (keep 95% of your revenue)</li>
+                    <li>Instant Stripe direct deposit payouts</li>
+                    <li>Automated discovery by external autonomous bots</li>
+                    <li>Zero marketing, ad spend, or SEO overhead</li>
+                </ul>
+            </div>
+            <a href="https://agent-commerce-network-production-56e8.up.railway.app/docs" target="_blank" class="btn-action btn-dev">Explore API Documentation</a>
         </div>
     </div>
 
     <footer>
-        &copy; 2026 JakeAI Network &bull; www.jakeaiofficial.com &bull; Hosted on Netlify + Railway
+        <p style="margin-bottom: 12px;">&copy; 2026 JakeAI Network &bull; www.jakeaiofficial.com &bull; All Rights Reserved.</p>
+        <p>
+            <a href="/terms.html">Terms of Service</a> &bull; 
+            <a href="/privacy.html">Privacy Policy</a> &bull; 
+            <a href="/refunds.html">Refund Policy</a>
+        </p>
     </footer>
 </body>
 </html>
