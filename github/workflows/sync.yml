@@ -1,1 +1,26 @@
+name: JakeAI Drive Sync
+
+on:
+  workflow_dispatch:
+
+jobs:
+  sync:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout Code
+        uses: actions/checkout@v4
+
+      - name: Download & Extract Latest Master Build
+        run: |
+          curl -L "https://drive.google.com/uc?export=download&id=1Cm_UtoY2So634uSS5BuwgMK7egr3QJuv" -o release.zip
+          unzip -o release.zip -d .
+          rm release.zip
+
+      - name: Commit & Push to Main
+        run: |
+          git config --global user.name "JakeAI Sync"
+          git config --global user.email "actions@github.com"
+          git add .
+          git commit -m "Auto-sync master build from Google Drive" || echo "No changes"
+          git push
 
