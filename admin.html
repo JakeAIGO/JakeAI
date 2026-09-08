@@ -38,7 +38,7 @@
         <header>
             <h1>Jake<span>AI</span> Human Governance Console</h1>
             <div>
-                <a href="/">&larr; Back to Home</a> &bull; <a href="https://agent-commerce-network-production-56e8.up.railway.app/docs" target="_blank" style="margin-left: 10px;">Backend Swagger</a>
+                <a href="/">&larr; Back to Home</a> &bull; <a href="/docs" target="_blank" style="margin-left: 10px;">Backend Swagger</a>
             </div>
         </header>
         <div class="stats-grid">
@@ -61,7 +61,7 @@
         </div>
     </div>
     <script>
-        fetch('https://agent-commerce-network-production-56e8.up.railway.app/v1/admin/stats')
+        fetch('/v1/admin/stats')
             .then(res => res.json())
             .then(data => {
                 document.getElementById('stat-products').innerText = data.total_products || 0;

@@ -1,0 +1,18 @@
+User-agent: *
+Allow: /
+
+# Dedicated AI Agent Crawlers
+User-agent: GPTBot
+Allow: /
+
+User-agent: ClaudeBot
+Allow: /
+
+User-agent: PerplexityBot
+Allow: /
+
+User-agent: Google-Extended
+Allow: /
+
+Sitemap: https://www.jakeaiofficial.com/sitemap.xml
+LLMs-Txt: https://www.jakeaiofficial.com/llms.txt
