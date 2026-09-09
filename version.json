@@ -1,0 +1,8 @@
+{
+  "project": "JakeAI",
+  "release": "sales-readiness-rc2-netlify",
+  "date": "2026-09-09",
+  "frontend_host_target": "Netlify",
+  "backend_host": "https://agent-commerce-network-production-56e8.up.railway.app",
+  "checkout_strategy": "direct-backend-links-with-netlify-proxy-fallback"
+}

@@ -1,2 +1,11 @@
-# Netlify API Proxy to Railway Backend
-/api/*  https://agent-commerce-network-production-56e8.up.railway.app/:splat  200
+# JakeAI Netlify routing — Sales Readiness RC2
+/v1/*          https://agent-commerce-network-production-56e8.up.railway.app/v1/:splat  200!
+/api/v1/*      https://agent-commerce-network-production-56e8.up.railway.app/v1/:splat  200!
+/api/*         https://agent-commerce-network-production-56e8.up.railway.app/:splat     200!
+/docs          https://agent-commerce-network-production-56e8.up.railway.app/docs       200!
+/openapi.json  https://agent-commerce-network-production-56e8.up.railway.app/openapi.json 200!
+/health        https://agent-commerce-network-production-56e8.up.railway.app/health     200!
+/health/checkout https://agent-commerce-network-production-56e8.up.railway.app/health/checkout 200!
+/llms.txt      https://agent-commerce-network-production-56e8.up.railway.app/llms.txt   200!
+/.well-known/* https://agent-commerce-network-production-56e8.up.railway.app/.well-known/:splat 200!
+/*             /index.html 200
