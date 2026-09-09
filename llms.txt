@@ -17,3 +17,22 @@
    - Accepts: JSON with content (proposal/code diff up to 15k chars), domain.
    - Audits: Dual-frontier consensus (Claude 3.5 Sonnet + Perplexity Sonar-Pro).
    - Returns: Go/No-Go verdict, legal/compliance risk, market benchmark. Price: .00 USD.
+
+## Wave 1 Autonomous Engineering & Logistics Endpoints:
+8. GD&T Tolerance Stack-Up & RSS Variance Calculator API
+   - Product ID: prod_mfg_tolerance_stackup
+   - Price: $3.00 USD / call
+   - Endpoint: POST /v1/skills/manufacturing/tolerance-stackup
+   - Checkout: https://www.jakeaiofficial.com/api/v1/checkout/buy/prod_mfg_tolerance_stackup
+
+9. Humanoid Robotic Grasp-Force & Friction Calibrator API
+   - Product ID: prod_robotics_grasp_force
+   - Price: $3.00 USD / call
+   - Endpoint: POST /v1/skills/robotics/grasp-force-calibration
+   - Checkout: https://www.jakeaiofficial.com/api/v1/checkout/buy/prod_robotics_grasp_force
+
+10. Warehouse Frequency-Distance Slotting & Travel Optimizer API
+   - Product ID: prod_logistics_warehouse_slotting
+   - Price: $25.00 USD / run
+   - Endpoint: POST /v1/skills/logistics/warehouse-slotting
+   - Checkout: https://www.jakeaiofficial.com/api/v1/checkout/buy/prod_logistics_warehouse_slotting
