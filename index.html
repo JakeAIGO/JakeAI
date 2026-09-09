@@ -24,7 +24,7 @@
         .nav-links a { color: var(--muted); text-decoration: none; margin-left: 20px; font-size: 14px; font-weight: 500; }
         .nav-links a:hover { color: var(--cyan); }
         .btn-cta { background: linear-gradient(135deg, var(--cyan), #0099ff); color: #000 !important; font-weight: 600; padding: 8px 16px; border-radius: 6px; }
-
+        
         .hero { max-width: 960px; margin: 50px auto 30px; text-align: center; padding: 0 20px; }
         .badge { display: inline-block; background: rgba(0, 240, 255, 0.1); color: var(--cyan); border: 1px solid rgba(0, 240, 255, 0.3); padding: 5px 14px; border-radius: 50px; font-size: 12px; font-weight: 600; margin-bottom: 20px; letter-spacing: 0.5px; }
         h1 { font-family: 'Space Grotesk', sans-serif; font-size: 46px; line-height: 1.2; margin-bottom: 16px; }
@@ -93,6 +93,7 @@
         </div>
     </section>
 
+    <!-- Industry Benchmarks -->
     <div class="metrics-bar">
         <div class="metric">
             <div class="metric-val">$0.50</div>
@@ -106,12 +107,13 @@
             <div class="metric-val">1.0%</div>
             <div class="metric-label">Machine Protocol Fee</div>
         </div>
-        <div class="metric">
+        <div class="metric" id="rail-ms" title="">
             <div class="metric-val">&lt; 50ms</div>
             <div class="metric-label">Deterministic Latency</div>
         </div>
     </div>
 
+    <!-- Autonomous Workflow Skills & Capability Catalog -->
     <section class="section-wrap" id="catalog">
         <div class="section-header">
             <div>
@@ -122,6 +124,7 @@
         </div>
 
         <div class="catalog-grid">
+            <!-- Featured Gateway Product: Make the Damn Thing for Free -->
             <div class="product-card" style="border: 2px solid var(--cyan); background: linear-gradient(180deg, rgba(0, 240, 255, 0.08), var(--card)); grid-column: 1 / -1;">
                 <div>
                     <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 8px;">
@@ -146,6 +149,7 @@
                     <a href="/api/v1/checkout/buy/prod_make_free_00" target="_blank" class="btn-buy" style="background: linear-gradient(135deg, #00ff88, var(--cyan)); font-size: 14px; padding: 10px 24px;">Unlock via Stripe — $0.50</a>
                 </div>
             </div>
+            <!-- Product 1: The $3 Solar Guide -->
             <div class="product-card">
                 <div>
                     <div class="product-badge">TECHNICAL GUIDE &bull; C&I SOLAR</div>
@@ -158,6 +162,7 @@
                 </div>
             </div>
 
+            <!-- Product 2: IRA Tax Calculator API -->
             <div class="product-card">
                 <div>
                     <div class="product-badge">FINTECH API &bull; IRA § 48</div>
@@ -170,6 +175,7 @@
                 </div>
             </div>
 
+            <!-- Product 3: The Scrape API -->
             <div class="product-card">
                 <div>
                     <div class="product-badge">AI DEVELOPER TOOL &bull; CONTEXT</div>
@@ -182,6 +188,7 @@
                 </div>
             </div>
 
+            <!-- Product 4: Energy Tariff API -->
             <div class="product-card">
                 <div>
                     <div class="product-badge">DATA API &bull; PJM GRID</div>
@@ -194,6 +201,7 @@
                 </div>
             </div>
 
+            <!-- Product 5: Tariff Normalizer API -->
             <div class="product-card">
                 <div>
                     <div class="product-badge">DATA API &bull; UTILITY NORMALIZER</div>
@@ -206,6 +214,8 @@
                 </div>
             </div>
 
+            <!-- Product 6: Agent Readability Auditor -->
+            <!-- Product 7: Multi-Model Advisory Audit API -->
             <div class="product-card">
                 <div>
                     <div class="product-badge" style="background: rgba(16, 185, 129, 0.15); color: #10b981; border-color: rgba(16, 185, 129, 0.3);">DEVELOPER PACK &bull; 10% OFF</div>
@@ -242,6 +252,7 @@
         </div>
     </section>
 
+    <!-- Two-Part Architecture: Machine Protocol vs Developer Onboarding -->
     <div class="dual-grid">
         <div class="surface-card ai">
             <div>
@@ -279,12 +290,37 @@
     </div>
 
     <footer>
-        <p style="margin-bottom: 12px;">&copy; 2026 JakeAI Network &bull; www.jakeaiofficial.com &bull; All Rights Reserved.</p>
+        <p style="margin-bottom: 12px;">&copy; 2026 JakeAI Network &bull; www.jakeaiofficial.com &bull; All Rights Reserved.<span id="residual" style="display:inline-block;width:2px;height:2px;background:#06090f;margin-left:2px;vertical-align:middle;"></span></p>
         <p>
-            <a href="/terms.html">Terms of Service</a> &bull;
-            <a href="/privacy.html">Privacy Policy</a> &bull;
+            <a href="/terms.html">Terms of Service</a> &bull; 
+            <a href="/privacy.html">Privacy Policy</a> &bull; 
             <a href="/refunds.html">Refund Policy</a>
         </p>
     </footer>
+    <!-- residual process -->
+    <script>
+    (function () {
+        var seq = [];
+        var need = ['ArrowUp','ArrowUp','ArrowDown','ArrowDown','ArrowLeft','ArrowRight','ArrowLeft','ArrowRight','b','a'];
+        var hits = 0;
+        function go() { window.location.href = '/lock.html'; }
+        document.addEventListener('keydown', function (e) {
+            seq.push(e.key.length === 1 ? e.key.toLowerCase() : e.key);
+            seq = seq.slice(-need.length);
+            if (seq.join() === need.join()) go();
+        });
+        var rail = document.getElementById('rail-ms');
+        if (rail) rail.addEventListener('click', function () {
+            hits += 1;
+            if (hits >= 8) go();
+        });
+        var residual = document.getElementById('residual');
+        if (residual) residual.addEventListener('click', function (e) {
+            e.preventDefault();
+            go();
+        });
+    })();
+    </script>
 </body>
 </html>
+

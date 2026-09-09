@@ -1,0 +1,68 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title></title>
+    <style>
+        html, body { margin:0; padding:0; background:#000; overflow:hidden; height:100%; cursor:none; }
+        #hold { position:fixed; inset:0; background:#000; z-index:3; }
+        #rush {
+            position:fixed; inset:0; display:flex; align-items:center; justify-content:center;
+            transform: scale(0.08); opacity:0; filter: brightness(0.2);
+            transition: none;
+        }
+        #rush.go {
+            transform: scale(3.4);
+            opacity:1;
+            filter: brightness(1.15) contrast(1.25);
+            transition: transform 380ms cubic-bezier(.15,0,.2,1), opacity 80ms linear, filter 200ms linear;
+        }
+        #rush img { width:100vw; height:100vh; object-fit:cover; }
+        #after {
+            position:fixed; inset:0; display:none; align-items:flex-end; justify-content:center;
+            padding: 0 20px 40px; z-index:4; font-family: Inter, sans-serif;
+        }
+        #after.show { display:flex; }
+        #after a { color:#333; font-size:11px; text-decoration:none; letter-spacing:0.2em; }
+    </style>
+</head>
+<body>
+    <div id="hold"></div>
+    <div id="rush"><img src="/lock.jpg" alt=""></div>
+    <div id="after"><a href="/">return</a></div>
+    <script>
+        function scream() {
+            try {
+                const ctx = new (window.AudioContext || window.webkitAudioContext)();
+                const o = ctx.createOscillator();
+                const g = ctx.createGain();
+                const f = ctx.createBiquadFilter();
+                o.type = 'sawtooth';
+                o.frequency.setValueAtTime(140, ctx.currentTime);
+                o.frequency.exponentialRampToValueAtTime(780, ctx.currentTime + 0.18);
+                o.frequency.exponentialRampToValueAtTime(90, ctx.currentTime + 0.7);
+                f.type = 'bandpass';
+                f.frequency.value = 900;
+                g.gain.setValueAtTime(0.0001, ctx.currentTime);
+                g.gain.exponentialRampToValueAtTime(0.35, ctx.currentTime + 0.04);
+                g.gain.exponentialRampToValueAtTime(0.0001, ctx.currentTime + 0.85);
+                o.connect(f); f.connect(g); g.connect(ctx.destination);
+                o.start(); o.stop(ctx.currentTime + 0.9);
+            } catch (e) {}
+        }
+        function fire() {
+            document.getElementById('hold').style.display = 'none';
+            requestAnimationFrame(() => {
+                document.getElementById('rush').classList.add('go');
+                scream();
+            });
+            setTimeout(() => document.getElementById('after').classList.add('show'), 1400);
+        }
+        window.addEventListener('pointerdown', function once() {
+            fire();
+        }, { once: true });
+        setTimeout(fire, 1600);
+    </script>
+</body>
+</html>
