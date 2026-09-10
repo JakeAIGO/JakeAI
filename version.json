@@ -1,7 +1,8 @@
 {
   "project": "JakeAI",
-  "release": "sales-readiness-rc2-netlify",
+  "release": "v2.3-security-commerce-audit",
   "date": "2026-09-09",
+  "version": "2.3.0",
   "frontend_host_target": "Netlify",
   "backend_host": "https://agent-commerce-network-production-56e8.up.railway.app",
   "checkout_strategy": "direct-backend-links-with-netlify-proxy-fallback"

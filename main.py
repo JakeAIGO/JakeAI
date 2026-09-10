@@ -2,11 +2,15 @@ import sqlite3
 import time
 import os
 import uuid
+import json
 import stripe
 import urllib.request
 import re
+import ipaddress
+import socket
 from typing import Optional, List, Dict, Any
-from fastapi import FastAPI, HTTPException, Request, Header, BackgroundTasks
+from urllib.parse import urlparse
+from fastapi import FastAPI, HTTPException, Request, Header, BackgroundTasks, Query
 from fastapi.responses import HTMLResponse, PlainTextResponse, JSONResponse, RedirectResponse
 from fastapi.middleware.cors import CORSMiddleware
 from pydantic import BaseModel, Field
@@ -16,31 +20,40 @@ STRIPE_SECRET_KEY = os.environ.get("STRIPE_SECRET_KEY", "").strip()
 if STRIPE_SECRET_KEY:
     stripe.api_key = STRIPE_SECRET_KEY
 
+# Configurable CORS origins — never wildcard with credentials
+ALLOWED_ORIGINS = [o.strip() for o in os.environ.get("ALLOWED_ORIGINS", "https://www.jakeaiofficial.com,https://jakeaiofficial.com").split(",") if o.strip()]
+
+# Categories that require entitlement/metering before they can be sold
+API_CREDIT_CATEGORIES = {"ai-utilities", "data-api", "developer-pack", "fintech-api", "robotics-api"}
+
 # Expanded High-Utility Agent Catalog
 GENESIS_CATALOG = {
     "prod_grasp_solver_09": {
         "title": "22-DoF Tendon Grasp & Impedance Solver API",
-        "description": "Deterministic physics calculation for 5-fingered, 22-DoF robotic hands. Solves normal force, tendon tension distribution, joint torque limits, compliance margin, and slip risk with sub-10ms execution.",
+        "description": "Deterministic physics calculation for 5-fingered, 22-DoF robotic hands. Solves normal force, tendon tension distribution, joint torque limits, compliance margin, and slip risk.",
         "category": "robotics-api",
         "price": 0.10,
         "download_url": "https://www.jakeaiofficial.com/docs#/default/solve_grasp_v1_robotics_grasp_impedance_solver_post",
-        "vendor_did": "did:a2a:jakeai_core"
+        "vendor_did": "did:a2a:jakeai_core",
+        "requires_metering": True
     },
     "prod_make_free_00": {
         "title": "Make the Damn Thing for Free™ (Zero-Budget Production Orchestrator)",
-        "description": "Flagship gateway Autonomous Workflow Skill. Tell it what you want to make. Starting budget: $0. Find a way. Decomposes goals into micro-tasks, routes to cheapest capable resources, locks successful outputs, and escalates only when necessary. Features Case Study #001: GRIDWORKS.",
+        "description": "Flagship gateway Autonomous Workflow Skill. Tell it what you want to make. Starting budget: $0. Find a way. Decomposes goals into micro-tasks, routes to cheapest capable resources, locks successful outputs, and escalates only when necessary.",
         "category": "autonomous-workflow-skills",
         "price": 0.00,
         "download_url": "https://docs.google.com/document/d/14Ayw4pxjnYy5MddTGdLSZEeQGKJGU3CRSmW7384Lfhk/edit?usp=sharing",
-        "vendor_did": "did:a2a:jakeai_core"
+        "vendor_did": "did:a2a:jakeai_core",
+        "requires_metering": False
     },
     "prod_solar_guide_04": {
         "title": "Commercial Solar & BESS Microgrid Sizing Guide (2026 PDF)",
-        "description": "Dense technical reference guide covering C&I electrical string sizing, 4CP peak-shaving dispatch, and IRA tax credit stacking formulas (30% + 10% + 10%). Instant download upon payment.",
+        "description": "Dense technical reference guide covering C&I electrical string sizing, 4CP peak-shaving dispatch, and IRA tax credit stacking formulas (30% + 10% + 10%).",
         "category": "digital-guide",
         "price": 3.00,
         "download_url": "https://drive.google.com/file/d/1xFpazazGdH2_LGSkvuWgMmR5jhPnq7pv/view?usp=drivesdk",
-        "vendor_did": "did:a2a:solutions_energy"
+        "vendor_did": "did:a2a:solutions_energy",
+        "requires_metering": False
     },
     "prod_ira_calc_05": {
         "title": "IRA / Section 48 ITC Tax Credit Calculator API",
@@ -48,23 +61,26 @@ GENESIS_CATALOG = {
         "category": "fintech-api",
         "price": 1.00,
         "download_url": "https://www.jakeaiofficial.com/docs#/default/calculate_ira_v1_solar_ira_calculator_post",
-        "vendor_did": "did:a2a:solutions_energy"
+        "vendor_did": "did:a2a:solutions_energy",
+        "requires_metering": True
     },
     "prod_scrape_01": {
         "title": "JakeAI Web-to-Markdown Extraction API (100 Credits)",
-        "description": "High-speed clean text & markdown extractor for LLMs and autonomous agents. Bypasses ads, navbars, and bloated HTML with instant automated API delivery.",
+        "description": "High-speed clean text & markdown extractor for LLMs and autonomous agents. Bypasses ads, navbars, and bloated HTML.",
         "category": "ai-utilities",
         "price": 5.00,
         "download_url": "https://www.jakeaiofficial.com/docs#/default/extract_markdown_v1_tools_extract_markdown_post",
-        "vendor_did": "did:a2a:jakeai_core"
+        "vendor_did": "did:a2a:jakeai_core",
+        "requires_metering": True
     },
     "prod_energy_01": {
         "title": "PJM Real-Time Energy Tariff & 4CP Peak Forecast API",
-        "description": "Automated nodal electricity price queries and 4CP transmission peak alerts across PJM & Dominion territories for energy automation bots.",
+        "description": "Nodal electricity price queries and 4CP transmission peak alerts across PJM & Dominion territories for energy automation bots. Values are demonstration data, not live grid pricing.",
         "category": "data-api",
         "price": 0.25,
         "download_url": "https://www.jakeaiofficial.com/docs#/default/get_tariff_data_v1_energy_tariff_pjm_get",
-        "vendor_did": "did:a2a:solutions_energy"
+        "vendor_did": "did:a2a:solutions_energy",
+        "requires_metering": True
     },
     "prod_tariff_norm_06": {
         "title": "Utility Tariff Normalizer API (PJM / Dominion / AEP)",
@@ -72,15 +88,17 @@ GENESIS_CATALOG = {
         "category": "data-api",
         "price": 0.50,
         "download_url": "https://www.jakeaiofficial.com/docs#/default/normalize_tariff_v1_energy_tariff_normalize_post",
-        "vendor_did": "did:a2a:solutions_energy"
+        "vendor_did": "did:a2a:solutions_energy",
+        "requires_metering": True
     },
     "prod_audit_pack_10": {
         "title": "Multi-Model Advisory Audit — 10-Audit Developer Pack",
-        "description": "Pre-funded developer credit key for 10 automated pre-deployment audits (Claude 3.5 Sonnet + Perplexity Sonar-Pro). Eliminates per-transaction card fees. Includes CI/CD & MCP execution token.",
+        "description": "Pre-funded developer credit key for 10 automated pre-deployment audits (Claude 3.5 Sonnet + Perplexity Sonar-Pro). Includes CI/CD & MCP execution token.",
         "category": "developer-pack",
         "price": 18.00,
         "download_url": "https://www.jakeaiofficial.com/docs#/default/multi_model_audit_v1_tools_multi_model_audit_post",
-        "vendor_did": "did:a2a:jakeai_core"
+        "vendor_did": "did:a2a:jakeai_core",
+        "requires_metering": True
     },
     "prod_multi_model_audit_08": {
         "title": "Multi-Model Advisory Council Audit API",
@@ -88,7 +106,8 @@ GENESIS_CATALOG = {
         "category": "ai-utilities",
         "price": 2.00,
         "download_url": "https://www.jakeaiofficial.com/docs#/default/multi_model_audit_v1_tools_multi_model_audit_post",
-        "vendor_did": "did:a2a:jakeai_core"
+        "vendor_did": "did:a2a:jakeai_core",
+        "requires_metering": True
     },
     "prod_agent_audit_07": {
         "title": "llms.txt & Agent-Card Readability Auditor API",
@@ -96,9 +115,21 @@ GENESIS_CATALOG = {
         "category": "ai-utilities",
         "price": 0.50,
         "download_url": "https://www.jakeaiofficial.com/docs#/default/audit_agent_card_v1_tools_audit_agent_card_post",
-        "vendor_did": "did:a2a:jakeai_core"
+        "vendor_did": "did:a2a:jakeai_core",
+        "requires_metering": True
+    },
+    "prod_game_qa_autopilot_01": {
+        "title": "Game QA Autopilot v1.0",
+        "description": "Deterministic QA workflow skill for game studios: requirement decomposition, test matrix generation, edge-case coverage, evidence-gated PASS/FAIL, reproducible bug reports, severity/confidence separation, regression queue, and release-readiness reports. Supports Unity, Unreal, Godot, and custom engines. Human release authority by default.",
+        "category": "autonomous-workflow-skills",
+        "price": 9.99,
+        "download_url": os.environ.get("GAME_QA_DELIVERY_URL", ""),
+        "vendor_did": "did:a2a:jakeai_core",
+        "requires_metering": False,
+        "checkout_enabled": bool(os.environ.get("GAME_QA_DELIVERY_URL", "").strip())
     }
 }
+
 
 def init_db():
     conn = sqlite3.connect(DB_PATH)
@@ -152,16 +183,16 @@ init_db()
 
 app = FastAPI(
     title="JakeAI — Autonomous Machine-to-Machine Commerce Network",
-    description="The verified digital supply chain and settlement rail for autonomous AI agents.",
-    version="2.0.0"
+    description="Digital supply chain and capability exchange for autonomous AI agents.",
+    version="2.3.0"
 )
 
 app.add_middleware(
     CORSMiddleware,
-    allow_origins=["*"],
-    allow_credentials=True,
-    allow_methods=["*"],
-    allow_headers=["*"],
+    allow_origins=ALLOWED_ORIGINS,
+    allow_credentials=False,
+    allow_methods=["GET", "POST"],
+    allow_headers=["Content-Type", "Authorization", "Idempotency-Key"],
 )
 
 # Standardized Error Handler for Autonomous Agents
@@ -178,6 +209,72 @@ async def http_exception_handler(request: Request, exc: HTTPException):
             }
         }
     )
+
+
+# --- SECURITY HELPERS ---
+
+def public_product_view(p: dict, product_id: str = None) -> dict:
+    """Return a sanitized public view of a product, stripping private delivery URLs."""
+    view = {
+        "id": product_id,
+        "title": p["title"],
+        "description": p["description"],
+        "category": p["category"],
+        "price": p["price"],
+        "vendor_did": p["vendor_did"],
+    }
+    # Never expose download_url in public catalog responses
+    return view
+
+
+def is_product_checkout_enabled(product_id: str) -> bool:
+    """Check whether a product's checkout should be enabled."""
+    p = GENESIS_CATALOG.get(product_id)
+    if not p:
+        return False
+    # API-credit products fail closed until entitlement/metering exists
+    if p.get("requires_metering", False) or p["category"] in API_CREDIT_CATEGORIES:
+        return False
+    # Products with explicit checkout_enabled flag
+    if "checkout_enabled" in p:
+        return p["checkout_enabled"]
+    # Products without a configured delivery URL fail closed
+    delivery_url = p.get("download_url", "").strip()
+    if not delivery_url:
+        return False
+    return True
+
+
+def is_safe_url(url_str: str) -> bool:
+    """SSRF protection: reject non-public network targets."""
+    try:
+        parsed = urlparse(url_str)
+        if parsed.scheme not in ("http", "https"):
+            return False
+        hostname = parsed.hostname
+        if not hostname:
+            return False
+        # Resolve and check IP
+        try:
+            ip = ipaddress.ip_address(hostname)
+        except ValueError:
+            # Hostname is a domain — resolve it
+            try:
+                ips = socket.getaddrinfo(hostname, None)
+                for family, type_, proto, canonname, sockaddr in ips:
+                    ip = ipaddress.ip_address(sockaddr[0])
+                    if ip.is_private or ip.is_loopback or ip.is_link_local or ip.is_reserved:
+                        return False
+            except socket.gaierror:
+                return False
+            return True
+        # Direct IP address
+        if ip.is_private or ip.is_loopback or ip.is_link_local or ip.is_reserved:
+            return False
+        return True
+    except Exception:
+        return False
+
 
 # Pydantic Input Models
 class ExtractRequest(BaseModel):
@@ -261,12 +358,13 @@ def normalize_tariff(req: TariffNormalizeRequest):
             "total_monthly_spend_usd": total_estimated_monthly
         },
         "effective_blended_rate_cents_per_kwh": blended_cents_per_kwh,
-        "4cp_transmission_exposure_risk": "HIGH" if req.peak_demand_kw > 300 else "MODERATE"
+        "4cp_transmission_exposure_risk": "HIGH" if req.peak_demand_kw > 300 else "MODERATE",
+        "data_note": "Rate constants are illustrative demonstration values, not live tariff data."
     }
 
 @app.get("/v1/energy/tariff/pjm")
 def get_tariff_data():
-    """Live PJM & Dominion LMP pricing and 4CP status"""
+    """PJM & Dominion LMP pricing and 4CP status — demonstration data, not live grid pricing"""
     return {
         "region": "PJM_DOMINION",
         "real_time_lmp_mwh": 38.45,
@@ -275,14 +373,18 @@ def get_tariff_data():
         "marginal_losses_usd": -0.40,
         "transmission_4cp_peak_alert": False,
         "grid_frequency_hz": 60.00,
-        "status": "NORMAL"
+        "status": "NORMAL",
+        "data_disclaimer": "DEMONSTRATION DATA — not live grid pricing. Values are static placeholders for development and testing."
     }
 
 @app.post("/v1/tools/extract-markdown")
 def extract_markdown(req: ExtractRequest):
     """Clean web-to-markdown text extractor for LLMs"""
+    # SSRF protection
+    if not is_safe_url(req.url):
+        raise HTTPException(status_code=400, detail="URL rejected: target is not a publicly accessible resource.")
     try:
-        headers = {'User-Agent': 'JakeAIBot/2.0 (+https://www.jakeaiofficial.com)'}
+        headers = {'User-Agent': 'JakeAIBot/2.3 (+https://www.jakeaiofficial.com)'}
         request_obj = urllib.request.Request(req.url, headers=headers)
         with urllib.request.urlopen(request_obj, timeout=10) as response:
             html = response.read().decode('utf-8', errors='ignore')
@@ -304,8 +406,8 @@ def query_claude_auditor(prompt: str, api_key: Optional[str]) -> Dict[str, Any]:
         return {
             "status": "simulation_mode",
             "model": "claude-3-5-sonnet-20241022",
-            "verdict": "CONDITIONAL GO",
-            "findings": "Server ANTHROPIC_API_KEY not configured. Dry-run analysis: Idempotency headers present, JSON schemas defined, legal disclaimers active. Recommended: Verify token limits and timeout handling."
+            "verdict": "NOT_RUN",
+            "findings": "Server ANTHROPIC_API_KEY not configured. Audit not executed. REVIEW REQUIRED."
         }
     url = "https://api.anthropic.com/v1/messages"
     headers = {
@@ -340,8 +442,8 @@ def query_perplexity_auditor(prompt: str, api_key: Optional[str]) -> Dict[str, A
         return {
             "status": "simulation_mode",
             "model": "sonar-pro",
-            "verdict": "GO",
-            "findings": "Server PERPLEXITY_API_KEY not configured. Dry-run analysis: Market pricing fits standard micro-utility range (/usr/bin/bash.50-.00). Compatible with llms.txt agent protocols."
+            "verdict": "NOT_RUN",
+            "findings": "Server PERPLEXITY_API_KEY not configured. Audit not executed. REVIEW REQUIRED."
         }
     url = "https://api.perplexity.ai/chat/completions"
     headers = {
@@ -381,9 +483,14 @@ def multi_model_audit(req: MultiModelAuditRequest, request: Request):
     perplexity_res = query_perplexity_auditor(req.content, perplexity_key)
     
     # Calculate consensus verdict
-    claude_v = claude_res.get("verdict", "GO")
-    perplex_v = perplexity_res.get("verdict", "GO")
-    consensus = "GO" if (claude_v == "GO" and perplex_v == "GO") else "CONDITIONAL REVIEW REQUIRED"
+    claude_v = claude_res.get("verdict", "NOT_RUN")
+    perplex_v = perplexity_res.get("verdict", "NOT_RUN")
+    if claude_v == "GO" and perplex_v == "GO":
+        consensus = "GO"
+    elif claude_v == "NOT_RUN" or perplex_v == "NOT_RUN":
+        consensus = "REVIEW REQUIRED — one or more models not configured"
+    else:
+        consensus = "CONDITIONAL REVIEW REQUIRED"
     
     return {
         "status": "completed",
@@ -401,13 +508,36 @@ def multi_model_audit(req: MultiModelAuditRequest, request: Request):
 def audit_agent_card(req: AgentAuditRequest):
     """Audits any domain for llms.txt & agent-card readability"""
     clean_domain = req.domain.replace("https://", "").replace("http://", "").strip("/")
+    # Attempt actual checks rather than returning hardcoded pass results
+    has_llms_txt = False
+    has_agent_card = False
+    try:
+        llms_url = f"https://{clean_domain}/llms.txt"
+        if is_safe_url(llms_url):
+            test_req = urllib.request.Request(llms_url, headers={'User-Agent': 'JakeAIBot/2.3'})
+            with urllib.request.urlopen(test_req, timeout=5) as resp:
+                if resp.status == 200:
+                    has_llms_txt = True
+    except Exception:
+        pass
+    try:
+        card_url = f"https://{clean_domain}/.well-known/agent.json"
+        if is_safe_url(card_url):
+            test_req = urllib.request.Request(card_url, headers={'User-Agent': 'JakeAIBot/2.3'})
+            with urllib.request.urlopen(test_req, timeout=5) as resp:
+                if resp.status == 200:
+                    has_agent_card = True
+    except Exception:
+        pass
+    
+    grade = "A" if (has_llms_txt and has_agent_card) else ("B" if (has_llms_txt or has_agent_card) else "F")
+    
     return {
         "target_domain": clean_domain,
-        "agent_readability_grade": "A",
-        "has_llms_txt": True,
-        "has_mcp_server": True,
-        "latency_score_ms": 42,
-        "audit_summary": f"Domain {clean_domain} successfully configured with machine-native discovery rails."
+        "agent_readability_grade": grade,
+        "has_llms_txt": has_llms_txt,
+        "has_mcp_server": "NOT_CHECKED",
+        "audit_summary": f"Domain {clean_domain}: llms.txt={'found' if has_llms_txt else 'not found'}, agent.json={'found' if has_agent_card else 'not found'}."
     }
 
 # --- STRIPE CHECKOUT & PAYMENT RAILS WITH IDEMPOTENCY ---
@@ -418,18 +548,28 @@ def create_checkout_session(product_id: str, idempotency_key: Optional[str] = He
     prod_data = GENESIS_CATALOG.get(product_id)
     if not prod_data:
         raise HTTPException(status_code=404, detail=f"Product {product_id} not found in catalog")
+    
+    # Fail closed for products that should not be chargeable
+    if not is_product_checkout_enabled(product_id):
+        raise HTTPException(
+            status_code=503,
+            detail=f"Checkout for {product_id} is not available. This product requires configuration before it can be purchased."
+        )
         
     secret_key = os.environ.get("STRIPE_SECRET_KEY", "").strip()
     if not secret_key:
         raise HTTPException(status_code=500, detail="STRIPE_SECRET_KEY missing in server variables")
         
     stripe.api_key = secret_key
-    success_url = prod_data.get("download_url", "https://www.jakeaiofficial.com?payment=success")
     
     # Free Gateway SKU: frictionless 1-click delivery, bypass Stripe minimums
     if prod_data.get("price", 0) <= 0 or product_id == "prod_make_free_00":
-        return RedirectResponse(url=success_url, status_code=303)
+        return RedirectResponse(url=prod_data.get("download_url", "https://www.jakeaiofficial.com"), status_code=303)
 
+    # Use a verification callback URL instead of direct delivery URL
+    # After payment, user hits /v1/checkout/verify which checks Stripe payment status before delivering
+    success_url = f"https://agent-commerce-network-production-56e8.up.railway.app/v1/checkout/verify?product_id={product_id}&session_id={{CHECKOUT_SESSION_ID}}"
+    
     stripe_kwargs = {}
     if idempotency_key:
         stripe_kwargs["idempotency_key"] = idempotency_key
@@ -457,10 +597,41 @@ def create_checkout_session(product_id: str, idempotency_key: Optional[str] = He
     except Exception as e:
         raise HTTPException(status_code=400, detail=f"Stripe Error: {str(e)}")
 
+
+@app.get("/v1/checkout/verify")
+def verify_checkout(product_id: str, session_id: str = Query(...)):
+    """Verify Stripe payment status before delivering paid content."""
+    prod_data = GENESIS_CATALOG.get(product_id)
+    if not prod_data:
+        raise HTTPException(status_code=404, detail=f"Product {product_id} not found in catalog")
+    
+    secret_key = os.environ.get("STRIPE_SECRET_KEY", "").strip()
+    if not secret_key:
+        raise HTTPException(status_code=500, detail="STRIPE_SECRET_KEY missing in server variables")
+    
+    stripe.api_key = secret_key
+    
+    try:
+        session = stripe.checkout.Session.retrieve(session_id)
+    except Exception as e:
+        raise HTTPException(status_code=400, detail=f"Failed to retrieve checkout session: {str(e)}")
+    
+    if session.payment_status != "paid":
+        raise HTTPException(status_code=402, detail="Payment not completed. Delivery withheld.")
+    
+    # Payment verified — redirect to private delivery URL
+    delivery_url = prod_data.get("download_url", "").strip()
+    if not delivery_url:
+        raise HTTPException(status_code=503, detail="Delivery URL not configured for this product.")
+    
+    return RedirectResponse(url=delivery_url, status_code=303)
+
+
 # Catalog Discovery Endpoints
 @app.get("/v1/products/list")
 def list_products():
-    return list(GENESIS_CATALOG.values())
+    """Public catalog — excludes private download_url values."""
+    return [public_product_view(p, pid) for pid, p in GENESIS_CATALOG.items()]
 
 
 # --- TELEMETRY HONEYPOT & ROBOTICS ENDPOINTS ---
@@ -529,7 +700,7 @@ async def search_products(request: Request, background_tasks: BackgroundTasks, q
         body = query_payload or {}
     q = str(body.get("query", "")).lower().strip()
     matches = [
-        p for p in GENESIS_CATALOG.values()
+        (pid, p) for pid, p in GENESIS_CATALOG.items()
         if q and (q in p["title"].lower() or q in p["description"].lower() or q in p["category"].lower())
     ]
     client_ip = request.client.host if request.client else "unknown"
@@ -538,75 +709,50 @@ async def search_products(request: Request, background_tasks: BackgroundTasks, q
     # Background honeypot logging for market telemetry
     background_tasks.add_task(log_unmet_query, q, client_ip, ua, len(matches))
     
+    # Return sanitized public views — never expose download_url
+    results = [public_product_view(p, pid) for pid, p in matches] if matches else [public_product_view(p, pid) for pid, p in GENESIS_CATALOG.items()]
+    
     return {
         "status": "success" if matches else "no_matches_logged_to_telemetry",
-        "count": len(matches),
-        "results": matches or list(GENESIS_CATALOG.values())
+        "count": len(results),
+        "results": results
     }
 
 # Machine Specifications
 @app.get("/llms.txt", response_class=PlainTextResponse)
 def llms_txt():
-    return """# JakeAI Network — Agent-to-Agent Machine Specification
-> System: Verified digital supply chain and capability exchange for autonomous AI agents.
-> Host: www.jakeaiofficial.com
-> Protocol Fee: 1.0% (100 basis points) on completed settlements.
-> Terms & Policies: https://www.jakeaiofficial.com/terms.html
-
-## Active Machine Products:
-1. Commercial Solar & BESS Sizing Guide (2026 PDF)
-   - Product ID: prod_solar_guide_04
-   - Price: $3.00 USD
-   - Checkout: https://www.jakeaiofficial.com/api/v1/checkout/buy/prod_solar_guide_04
-
-2. IRA Section 48 Tax Credit Calculator API
-   - Product ID: prod_ira_calc_05
-   - Price: $1.00 USD / calculation
-   - Endpoint: POST /api/v1/solar/ira-calculator
-   - Checkout: https://www.jakeaiofficial.com/api/v1/checkout/buy/prod_ira_calc_05
-
-3. Web-to-Markdown Extraction API (100 Credits)
-   - Product ID: prod_scrape_01
-   - Price: $5.00 USD
-   - Endpoint: POST /api/v1/tools/extract-markdown
-   - Checkout: https://www.jakeaiofficial.com/api/v1/checkout/buy/prod_scrape_01
-
-4. PJM Real-Time Energy Tariff & 4CP Alert Feed
-   - Product ID: prod_energy_01
-   - Price: $0.25 USD / query
-   - Endpoint: GET /api/v1/energy/tariff/pjm
-   - Checkout: https://www.jakeaiofficial.com/api/v1/checkout/buy/prod_energy_01
-
-5. Utility Tariff Normalizer API (PJM / Dominion / AEP)
-   - Product ID: prod_tariff_norm_06
-   - Price: $0.50 USD / query
-   - Endpoint: POST /api/v1/energy/tariff-normalize
-   - Checkout: https://www.jakeaiofficial.com/api/v1/checkout/buy/prod_tariff_norm_06
-
-7. Multi-Model Advisory Council Audit API
-   - Product ID: prod_multi_model_audit_08
-   - Price: .00 USD / audit
-   - Endpoint: POST /api/v1/tools/multi-model-audit
-   - Checkout: https://www.jakeaiofficial.com/api/v1/checkout/buy/prod_multi_model_audit_08
-
-6. llms.txt & Agent-Card Readability Auditor API
-   - Product ID: prod_agent_audit_07
-   - Price: $0.50 USD / audit
-   - Endpoint: POST /api/v1/tools/audit-agent-card
-   - Checkout: https://www.jakeaiofficial.com/api/v1/checkout/buy/prod_agent_audit_07
-"""
+    """Machine-readable catalog specification — excludes private delivery URLs."""
+    lines = [
+        "# JakeAI Network — Agent-to-Agent Machine Specification",
+        "> System: Digital supply chain and capability exchange for autonomous AI agents.",
+        "> Host: www.jakeaiofficial.com",
+        "> Protocol Fee: 1.0% on completed settlements.",
+        "> Terms & Policies: https://www.jakeaiofficial.com/terms.html",
+        "",
+        "## Catalog Products:",
+    ]
+    for pid, p in GENESIS_CATALOG.items():
+        checkout_enabled = is_product_checkout_enabled(pid)
+        status = "available" if checkout_enabled else "checkout_disabled"
+        lines.extend([
+            f"- {p['title']}",
+            f"  - Product ID: {pid}",
+            f"  - Price: ${p['price']:.2f} USD",
+            f"  - Status: {status}",
+        ])
+    return "\n".join(lines)
 
 @app.get("/.well-known/agent.json", response_class=JSONResponse)
 def agent_card():
     return {
         "name": "JakeAI Commerce Network",
         "url": "https://www.jakeaiofficial.com",
-        "description": "Verified digital supply chain and settlement rail for autonomous AI agents.",
-        "protocol_version": "2.0.0",
+        "description": "Digital supply chain and capability exchange for autonomous AI agents.",
+        "protocol_version": "2.3.0",
         "fee_structure": {"protocol_fee_percent": 1.0, "currency": "USD"},
-        "active_catalog": list(GENESIS_CATALOG.values())
+        "active_catalog": [public_product_view(p, pid) for pid, p in GENESIS_CATALOG.items()]
     }
 
 @app.get("/health")
 def health():
-    return {"status": "healthy", "service": "JakeAI Core v2.0"}
+    return {"status": "healthy", "service": "JakeAI Core v2.3"}
