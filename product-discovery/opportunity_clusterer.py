@@ -4,15 +4,10 @@ JakeAI Opportunity Clusterer Regression Test
 Confirms that:
 1. Closely related signals cluster together.
 2. Unrelated promoted opportunities remain separate.
-3. Broad terms such as capacity, automation, or infrastructure
-   do not collapse unrelated industries into one opportunity.
+3. Broad terms do not collapse unrelated industries into one opportunity.
 """
 
-from opportunity_clusterer import (
-    connected_components,
-    related,
-    synthesize,
-)
+from opportunity_clusterer import connected_components, related, synthesize
 
 
 def signal(signal_id, title, industry, terms, score=80):
