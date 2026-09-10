@@ -16,6 +16,10 @@ jobs:
         with:
           python-version: '3.12'
 
+      - name: Run Opportunity Clusterer Regression Guardrail
+        run: |
+          python product-discovery/test_opportunity_clusterer.py
+
       - name: Scan Live Public News
         run: |
           python product-discovery/news_ingestor.py 40
@@ -113,7 +117,7 @@ jobs:
             echo "No qualified cluster reached Product Discovery."
           fi
 
-      - name: Summarize Test 10 Results
+      - name: Summarize Test 12 Results
         run: |
           python - <<'PY'
           import json
@@ -163,7 +167,7 @@ jobs:
                   )
 
           print("=" * 72)
-          print("JAKEAI AUTONOMOUS OPPORTUNITY PIPELINE — TEST 10")
+          print("JAKEAI AUTONOMOUS OPPORTUNITY PIPELINE — TEST 12")
           print("=" * 72)
 
           print()
@@ -295,9 +299,9 @@ jobs:
           print()
           print("PIPELINE")
           print(
-              "LIVE SIGNALS -> RADAR -> ENRICHMENT -> "
-              "RE-SCORE -> CLUSTERING -> DISCOVERY INPUT -> "
-              "PRODUCT DISCOVERY -> CANDIDATE"
+              "REGRESSION GUARDRAIL -> LIVE SIGNALS -> RADAR -> "
+              "ENRICHMENT -> RE-SCORE -> CLUSTERING -> "
+              "DISCOVERY INPUT -> PRODUCT DISCOVERY -> CANDIDATE"
           )
 
           print("=" * 72)
