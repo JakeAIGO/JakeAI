@@ -1,0 +1,28 @@
+name: JakeAI Product Discovery Test
+
+on:
+  workflow_dispatch:
+
+jobs:
+  run-discovery:
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout Repository
+        uses: actions/checkout@v4
+
+      - name: Set Up Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: '3.12'
+
+      - name: Run Product Discovery Engine
+        run: |
+          python product-discovery/discovery_engine.py \
+            product-discovery/signals/signal-001-grid-site-selection.json
+
+      - name: Upload Candidate Output
+        uses: actions/upload-artifact@v4
+        with:
+          name: product-discovery-candidate-001
+          path: product-discovery/candidates/
