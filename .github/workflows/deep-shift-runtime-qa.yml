@@ -33,7 +33,17 @@ jobs:
             exit 1
           fi
 
-      - name: Run deterministic smoke tests with strict log gate
+      - name: Compile production gameplay scripts
+        shell: bash
+        run: |
+          set -o pipefail
+          godot --headless --path deep-shift-ci --scene res://scenes/CompileCheck.tscn 2>&1 | tee compile.log
+          if grep -E "SCRIPT ERROR|ERROR:" compile.log; then
+            exit 1
+          fi
+          grep -q "DEEP_SHIFT_GAMEPLAY_COMPILE_GATE: PASS" compile.log
+
+      - name: Run deterministic smoke and occupancy tests
         shell: bash
         run: |
           set -o pipefail
@@ -43,7 +53,7 @@ jobs:
           fi
           grep -q "DEEP_SHIFT_SMOKE_TEST: PASS" smoke.log
 
-      - name: Run 250-expedition autonomous simulation
+      - name: Run 250-expedition autonomous balance gate
         shell: bash
         run: |
           set -o pipefail
@@ -52,3 +62,4 @@ jobs:
             exit 1
           fi
           grep -q "DEEP_SHIFT_PLAYTEST_REPORT" playtest.log
+          grep -q "DEEP_SHIFT_BALANCE_GATE: PASS" playtest.log
