@@ -1,0 +1,41 @@
+name: JakeAI Multi-Model Council
+on:
+  workflow_dispatch:
+    inputs:
+      package_path:
+        description: Repository path to review package
+        required: true
+        default: product-discovery/validation/aerospace-supply-bottleneck-validation.md
+permissions:
+  contents: read
+jobs:
+  council:
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.12'
+      - name: Run council provenance gate
+        env:
+          OPENAI_API_KEY: ${{ secrets.OPENAI_API_KEY }}
+          ANTHROPIC_API_KEY: ${{ secrets.ANTHROPIC_API_KEY }}
+          GEMINI_API_KEY: ${{ secrets.GEMINI_API_KEY }}
+          PERPLEXITY_API_KEY: ${{ secrets.PERPLEXITY_API_KEY }}
+          XAI_API_KEY: ${{ secrets.XAI_API_KEY }}
+        run: python product-discovery/multimodel_council.py "${{ inputs.package_path }}"
+      - uses: actions/upload-artifact@v4
+        with:
+          name: multimodel-council-report
+          path: product-discovery/run-output/council-latest.json
+          retention-days: 30
+      - name: Enforce no fabricated council
+        run: |
+          python - <<'PY'
+          import json
+          p='product-discovery/run-output/council-latest.json'
+          r=json.load(open(p))
+          assert all(not v.get('participated') for v in r['members'].values()), 'Participation requires completed provider adapter and captured response'
+          print('Council provenance gate passed; no external model participation is being falsely claimed.')
+          PY
