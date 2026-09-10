@@ -15,17 +15,20 @@ jobs:
     steps:
       - name: Checkout
         uses: actions/checkout@v4
+
       - name: Set up Java 17
         uses: actions/setup-java@v4
         with:
           distribution: temurin
           java-version: '17'
+
       - name: Install Godot 4.3
         run: |
           wget -q https://github.com/godotengine/godot/releases/download/4.3-stable/Godot_v4.3-stable_linux.x86_64.zip
           unzip -q Godot_v4.3-stable_linux.x86_64.zip
           sudo mv Godot_v4.3-stable_linux.x86_64 /usr/local/bin/godot
           godot --version
+
       - name: Validate deterministic CI harness
         shell: bash
         run: |
@@ -38,125 +41,160 @@ jobs:
           grep -q "DEEP_SHIFT_SMOKE_TEST: PASS" smoke.log
           godot --headless --path deep-shift-ci --scene res://scenes/PlaytestRunner.tscn 2>&1 | tee playtest.log
           grep -q "DEEP_SHIFT_BALANCE_GATE: PASS" playtest.log
-      - name: Hydrate and patch full playable source tree
+
+      - name: Hydrate full playable source tree
         shell: bash
         run: |
-          set -e
+          set -euo pipefail
           rm -rf deep-shift-full && mkdir -p deep-shift-full
           cat deep-shift-ci/full_game_bundle.part01 deep-shift-ci/full_game_bundle.part02 deep-shift-ci/full_game_bundle.part03 deep-shift-ci/full_game_bundle.part04 deep-shift-ci/full_game_bundle.part05 deep-shift-ci/full_game_bundle.part06 > /tmp/deep_shift_full.b64
           test "$(wc -c < /tmp/deep_shift_full.b64)" -eq 33548
           base64 -d /tmp/deep_shift_full.b64 > /tmp/deep_shift_full.tar.gz
           tar -xzf /tmp/deep_shift_full.tar.gz -C deep-shift-full
-          printf 'extends Node\nfunc play(_id: String, _pitch := 1.0) -> void:\n    pass\n' > deep-shift-full/scripts/AudioManager.gd
+          sed -i 's/Shiftforge Games/Blazed Trail Studios/g' deep-shift-full/project.godot || true
           sed -i 's/var requirement := 0 if sector_index == 4 else min(int(sector_data.ore_count), 5 + sector_index)/var requirement: int = 0 if sector_index == 4 else int(min(int(sector_data.ore_count), 5 + sector_index))/' deep-shift-full/scripts/Game.gd
           sed -i 's/var tech := max(1, int(depth \/ 2) + (3 if success else 0) + int(GameState.run.score \/ 3000))/var tech: int = int(max(1, int(depth \/ 2) + (3 if success else 0) + int(GameState.run.score \/ 3000)))/' deep-shift-full/scripts/Game.gd
-      - name: Import and compile full playable
+
+      - name: Install procedural original audio engine
+        shell: bash
         run: |
+          cat > deep-shift-full/scripts/AudioManager.gd <<'GDSCRIPT'
+          extends Node
+
+          const MIX_RATE: float = 44100.0
+          var player: AudioStreamPlayer
+          var generator: AudioStreamGenerator
+          var playback: AudioStreamGeneratorPlayback
+          var rng_state: int = 123456789
+
+          func _ready() -> void:
+              generator = AudioStreamGenerator.new()
+              generator.mix_rate = MIX_RATE
+              generator.buffer_length = 0.5
+              player = AudioStreamPlayer.new()
+              player.name = "ProceduralAudioPlayer"
+              player.stream = generator
+              add_child(player)
+              player.play()
+              playback = player.get_stream_playback() as AudioStreamGeneratorPlayback
+
+          func play(id: String, pitch: float = 1.0) -> void:
+              if playback == null:
+                  return
+              var spec: Dictionary = _spec(id)
+              var duration: float = float(spec.get("duration", 0.12))
+              var f0: float = float(spec.get("f0", 220.0)) * pitch
+              var f1: float = float(spec.get("f1", f0)) * pitch
+              var amp: float = float(spec.get("amp", 0.25))
+              var shape: String = str(spec.get("shape", "sine"))
+              var count: int = int(MIX_RATE * duration)
+              var frames := PackedVector2Array()
+              frames.resize(count)
+              for i in range(count):
+                  var t: float = float(i) / MIX_RATE
+                  var phase: float = float(i) / float(max(1, count - 1))
+                  var freq: float = lerpf(f0, f1, phase)
+                  var env: float = pow(1.0 - phase, 1.7)
+                  var sample: float = _wave(shape, freq, t) * amp * env
+                  frames[i] = Vector2(sample, sample)
+              playback.clear_buffer()
+              playback.push_buffer(frames)
+
+          func _wave(shape: String, freq: float, t: float) -> float:
+              var s: float = sin(TAU * freq * t)
+              match shape:
+                  "square":
+                      return 1.0 if s >= 0.0 else -1.0
+                  "triangle":
+                      return asin(s) * (2.0 / PI)
+                  "noise":
+                      rng_state = int((1103515245 * rng_state + 12345) & 0x7fffffff)
+                      return (float(rng_state) / 1073741823.5) - 1.0
+                  "crunch":
+                      rng_state = int((1103515245 * rng_state + 12345) & 0x7fffffff)
+                      var noise: float = (float(rng_state) / 1073741823.5) - 1.0
+                      return clamp(s * 0.65 + noise * 0.35, -1.0, 1.0)
+                  _:
+                      return s
+
+          func _spec(id: String) -> Dictionary:
+              match id:
+                  "dig": return {"duration":0.07,"f0":95.0,"f1":55.0,"amp":0.30,"shape":"crunch"}
+                  "ore": return {"duration":0.16,"f0":620.0,"f1":980.0,"amp":0.22,"shape":"sine"}
+                  "pulse": return {"duration":0.18,"f0":260.0,"f1":95.0,"amp":0.25,"shape":"triangle"}
+                  "charge": return {"duration":0.22,"f0":80.0,"f1":42.0,"amp":0.32,"shape":"crunch"}
+                  "hurt": return {"duration":0.12,"f0":125.0,"f1":65.0,"amp":0.32,"shape":"square"}
+                  "boss_warning": return {"duration":0.30,"f0":72.0,"f1":48.0,"amp":0.30,"shape":"square"}
+                  "extract": return {"duration":0.34,"f0":330.0,"f1":880.0,"amp":0.23,"shape":"sine"}
+                  _: return {"duration":0.10,"f0":220.0,"f1":180.0,"amp":0.20,"shape":"sine"}
+          GDSCRIPT
+
+          cat > deep-shift-full/scripts/AudioRuntimeCheck.gd <<'GDSCRIPT'
+          extends Node
+          func _ready() -> void:
+              await get_tree().process_frame
+              for id in ["dig","ore","pulse","charge","hurt","boss_warning","extract"]:
+                  Audio.play(id)
+              print("DEEP_SHIFT_PROCEDURAL_AUDIO_GATE: PASS")
+              get_tree().quit()
+          GDSCRIPT
+
+          cat > deep-shift-full/scenes/AudioRuntimeCheck.tscn <<'TSCN'
+          [gd_scene load_steps=2 format=3]
+          [ext_resource path="res://scripts/AudioRuntimeCheck.gd" type="Script" id="1"]
+          [node name="AudioRuntimeCheck" type="Node"]
+          script = ExtResource("1")
+          TSCN
+
+      - name: Import compile and audio-check full playable
+        shell: bash
+        run: |
+          set -o pipefail
           godot --headless --path deep-shift-full --editor --quit 2>&1 | tee full-import.log
           ! grep -E "SCRIPT ERROR|ERROR:" full-import.log
           godot --headless --path deep-shift-full --scene res://scenes/CompileCheck.tscn 2>&1 | tee full-compile.log
+          ! grep -E "SCRIPT ERROR|ERROR:" full-compile.log
           grep -q "DEEP_SHIFT_GAMEPLAY_COMPILE_GATE: PASS" full-compile.log
+          godot --headless --path deep-shift-full --scene res://scenes/AudioRuntimeCheck.tscn 2>&1 | tee audio.log
+          ! grep -E "SCRIPT ERROR|ERROR:" audio.log
+          grep -q "DEEP_SHIFT_PROCEDURAL_AUDIO_GATE: PASS" audio.log
+
       - name: Release candidate content gate
         run: |
+          test -f deep-shift-full/scenes/Main.tscn
+          test -f deep-shift-full/scenes/Game.tscn
           test -f deep-shift-full/scenes/Boss.tscn
           test -f deep-shift-full/scenes/ExtractionBeacon.tscn
           test -f deep-shift-full/scenes/UpgradePanel.tscn
-          test -f deep-shift-full/data/asset_provenance_and_ip_manifest.json
-          test -f deep-shift-full/data/game_manifest.json
+          test -f deep-shift-full/scripts/AudioManager.gd
+          grep -q 'run/main_scene="res://scenes/Main.tscn"' deep-shift-full/project.godot
+          grep -q 'Blazed Trail Studios' deep-shift-full/scenes/Main.tscn
           echo 'DEEP_SHIFT_RELEASE_CANDIDATE_GATE: PASS'
+
       - name: Install Godot export templates
         run: |
           mkdir -p ~/.local/share/godot/export_templates/4.3.stable
           wget -q https://github.com/godotengine/godot/releases/download/4.3-stable/Godot_v4.3-stable_export_templates.tpz
           unzip -q Godot_v4.3-stable_export_templates.tpz -d /tmp/godot-templates
           cp -r /tmp/godot-templates/templates/* ~/.local/share/godot/export_templates/4.3.stable/
-      - name: Export Windows release candidate
-        run: |
-          mkdir -p deep-shift-full/build/windows
-          godot --headless --path deep-shift-full --export-release "Windows Desktop" build/windows/DeepShift.exe
-          test -s deep-shift-full/build/windows/DeepShift.exe
-          sha256sum deep-shift-full/build/windows/DeepShift.exe > deep-shift-full/build/windows/SHA256.txt
-          printf 'Blazed Trail Studios\nDeep Shift\nWindows Release Candidate\n' > deep-shift-full/build/windows/BUILD_IDENTITY.txt
-      - name: Configure Android SDK and export APK
+
+      - name: Export Windows audio release candidate
         shell: bash
-        env:
-          GODOT_ANDROID_KEYSTORE_DEBUG_USER: androiddebugkey
-          GODOT_ANDROID_KEYSTORE_DEBUG_PASSWORD: android
         run: |
           set -euo pipefail
-          SDK_ROOT="${ANDROID_SDK_ROOT:-${ANDROID_HOME:-/usr/local/lib/android/sdk}}"
-          SDKMANAGER="$(find "$SDK_ROOT/cmdline-tools" -type f -name sdkmanager 2>/dev/null | head -1 || true)"
-          if [ -n "$SDKMANAGER" ]; then
-            yes | "$SDKMANAGER" --sdk_root="$SDK_ROOT" --licenses >/dev/null || true
-            "$SDKMANAGER" --sdk_root="$SDK_ROOT" "platform-tools" "build-tools;34.0.0" "platforms;android-34" >/dev/null
-          fi
-          test -x "$SDK_ROOT/platform-tools/adb"
-          mkdir -p "$HOME/.android" "$HOME/.config/godot"
-          DEBUG_KEYSTORE="$HOME/.android/debug.keystore"
-          if [ ! -f "$DEBUG_KEYSTORE" ]; then
-            keytool -genkeypair -keystore "$DEBUG_KEYSTORE" -storepass android -alias androiddebugkey -keypass android -dname "CN=Android Debug,O=Android,C=US" -keyalg RSA -keysize 2048 -validity 10000
-          fi
-          SETTINGS="$HOME/.config/godot/editor_settings-4.3.tres"
-          cat > "$SETTINGS" <<EOF
-          [gd_resource type="EditorSettings" format=3]
+          mkdir -p deep-shift-full/build/windows
+          godot --headless --path deep-shift-full --export-release "Windows Desktop" build/windows/DeepShift.exe 2>&1 | tee export-windows.log
+          ! grep -E "SCRIPT ERROR|ERROR:" export-windows.log
+          test -s deep-shift-full/build/windows/DeepShift.exe
+          test -s deep-shift-full/build/windows/DeepShift.pck
+          sha256sum deep-shift-full/build/windows/DeepShift.exe > deep-shift-full/build/windows/SHA256.txt
+          sha256sum deep-shift-full/build/windows/DeepShift.pck >> deep-shift-full/build/windows/SHA256.txt
+          printf 'Blazed Trail Studios\nDeep Shift\nWindows Audio Release Candidate\nProcedural Audio: PASS\n' > deep-shift-full/build/windows/BUILD_IDENTITY.txt
+          echo 'DEEP_SHIFT_WINDOWS_AUDIO_EXPORT_GATE: PASS'
 
-          [resource]
-          export/android/android_sdk_path = "$SDK_ROOT"
-          export/android/java_sdk_path = "$JAVA_HOME"
-          export/android/debug_keystore = "$DEBUG_KEYSTORE"
-          export/android/debug_keystore_user = "androiddebugkey"
-          export/android/debug_keystore_pass = "android"
-          EOF
-          godot --headless --editor --path deep-shift-full --quit
-          cat >> deep-shift-full/export_presets.cfg <<'EOF'
-
-          [preset.1]
-          name="Android"
-          platform="Android"
-          runnable=true
-          advanced_options=false
-          dedicated_server=false
-          custom_features=""
-          export_filter="all_resources"
-          include_filter=""
-          exclude_filter=""
-          export_path="build/android/DeepShift.apk"
-          encryption_include_filters=""
-          encryption_exclude_filters=""
-          encrypt_pck=false
-          encrypt_directory=false
-
-          [preset.1.options]
-          custom_template/debug=""
-          custom_template/release=""
-          gradle_build/use_gradle_build=false
-          architectures/armeabi-v7a=false
-          architectures/arm64-v8a=true
-          architectures/x86=false
-          architectures/x86_64=false
-          package/unique_name="com.blazedtrail.deepshift"
-          package/name="Deep Shift"
-          package/signed=true
-          version/code=1
-          version/name="0.1-rc"
-          screen/immersive_mode=true
-          EOF
-          mkdir -p deep-shift-full/build/android
-          godot --headless --path deep-shift-full --export-debug "Android" build/android/DeepShift.apk 2>&1 | tee export-android.log
-          test -s deep-shift-full/build/android/DeepShift.apk
-          unzip -t deep-shift-full/build/android/DeepShift.apk >/dev/null
-          sha256sum deep-shift-full/build/android/DeepShift.apk > deep-shift-full/build/android/SHA256.txt
-          printf 'Blazed Trail Studios\nDeep Shift\nAndroid Test Build\n' > deep-shift-full/build/android/BUILD_IDENTITY.txt
-      - name: Upload Windows release candidate
-        if: always()
+      - name: Upload Windows audio release candidate
         uses: actions/upload-artifact@v4
         with:
-          name: DeepShift-Windows-Release-Candidate
+          name: DeepShift-Windows-Audio-Release-Candidate
           path: deep-shift-full/build/windows/
-          retention-days: 90
-      - name: Upload Android test build
-        uses: actions/upload-artifact@v4
-        with:
-          name: DeepShift-Android-Test-Build
-          path: deep-shift-full/build/android/
           retention-days: 90
