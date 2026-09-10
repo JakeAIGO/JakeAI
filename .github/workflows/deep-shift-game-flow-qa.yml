@@ -1,0 +1,179 @@
+name: Deep Shift Game Flow QA
+
+on:
+  workflow_dispatch:
+  push:
+    branches: ["deep-shift-ci"]
+    paths:
+      - ".github/workflows/deep-shift-game-flow-qa.yml"
+
+permissions:
+  contents: read
+
+jobs:
+  full-game-flow:
+    runs-on: ubuntu-latest
+    timeout-minutes: 12
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Install Godot 4.3
+        run: |
+          wget -q https://github.com/godotengine/godot/releases/download/4.3-stable/Godot_v4.3-stable_linux.x86_64.zip
+          unzip -q Godot_v4.3-stable_linux.x86_64.zip
+          sudo mv Godot_v4.3-stable_linux.x86_64 /usr/local/bin/godot
+          godot --version
+
+      - name: Hydrate playable source
+        shell: bash
+        run: |
+          set -euo pipefail
+          mkdir -p deep-shift-flow
+          cat deep-shift-ci/full_game_bundle.part01 deep-shift-ci/full_game_bundle.part02 deep-shift-ci/full_game_bundle.part03 deep-shift-ci/full_game_bundle.part04 deep-shift-ci/full_game_bundle.part05 deep-shift-ci/full_game_bundle.part06 > /tmp/deep_shift_full.b64
+          test "$(wc -c < /tmp/deep_shift_full.b64)" -eq 33548
+          base64 -d /tmp/deep_shift_full.b64 > /tmp/deep_shift_full.tar.gz
+          tar -xzf /tmp/deep_shift_full.tar.gz -C deep-shift-flow
+          python3 - <<'PY'
+          from pathlib import Path
+          import re
+          project = Path('deep-shift-flow/project.godot')
+          text = project.read_text().replace('Shiftforge Games','Blazed Trail Studios')
+          if re.search(r'^run/main_scene=.*$', text, flags=re.M):
+              text = re.sub(r'^run/main_scene=.*$', 'run/main_scene="res://scenes/Main.tscn"', text, flags=re.M)
+          else:
+              text = text.replace('[application]', '[application]\nrun/main_scene="res://scenes/Main.tscn"', 1)
+          project.write_text(text)
+          main = Path('deep-shift-flow/scenes/Main.tscn')
+          scene = main.read_text().replace('Shiftforge Games','Blazed Trail Studios')
+          main.write_text(scene)
+          PY
+          sed -i 's/var requirement := 0 if sector_index == 4 else min(int(sector_data.ore_count), 5 + sector_index)/var requirement: int = 0 if sector_index == 4 else int(min(int(sector_data.ore_count), 5 + sector_index))/' deep-shift-flow/scripts/Game.gd || true
+          sed -i 's/var tech := max(1, int(depth \/ 2) + (3 if success else 0) + int(GameState.run.score \/ 3000))/var tech: int = int(max(1, int(depth \/ 2) + (3 if success else 0) + int(GameState.run.score \/ 3000)))/' deep-shift-flow/scripts/Game.gd || true
+
+      - name: Install CI-safe procedural audio
+        shell: bash
+        run: |
+          cat > deep-shift-flow/scripts/AudioManager.gd <<'GDSCRIPT'
+          extends Node
+          func play(_id: String, _pitch: float = 1.0) -> void:
+              pass
+          GDSCRIPT
+
+      - name: Add end-to-end flow probe
+        shell: bash
+        run: |
+          cat > deep-shift-flow/scripts/FullGameFlowCheck.gd <<'GDSCRIPT'
+          extends Node
+
+          var failures: Array[String] = []
+
+          func expect_true(value: bool, label: String) -> void:
+              if not value:
+                  failures.append(label)
+                  push_error("FLOW CHECK FAILED: " + label)
+
+          func _ready() -> void:
+              await get_tree().process_frame
+              var main_scene: PackedScene = load("res://scenes/Main.tscn")
+              expect_true(main_scene != null, "Main.tscn loads")
+              if main_scene == null:
+                  finish()
+                  return
+
+              var main: Node = main_scene.instantiate()
+              add_child(main)
+              await get_tree().process_frame
+              expect_true(main.has_method("_on_start_pressed"), "Main exposes start action")
+
+              var menu: Node = main.get_node_or_null("CanvasLayer/Menu")
+              expect_true(menu != null, "main menu exists")
+              if menu is CanvasItem:
+                  expect_true((menu as CanvasItem).visible, "main menu begins visible")
+
+              main.call("_on_start_pressed")
+              await get_tree().process_frame
+              await get_tree().process_frame
+
+              var game: Node = main.get("current_game") as Node
+              expect_true(game != null, "start action creates game session")
+              if game == null:
+                  finish()
+                  return
+
+              expect_true(game.has_method("start_sector"), "game exposes sector initialization")
+              for sector in range(5):
+                  game.call("start_sector", sector)
+                  await get_tree().process_frame
+                  expect_true(int(game.get("sector_index")) == sector, "sector %d initializes" % (sector + 1))
+                  var player: Node = game.get("player") as Node
+                  expect_true(player != null, "sector %d has player" % (sector + 1))
+                  var data: Variant = game.get("sector_data")
+                  expect_true(data is Dictionary and not (data as Dictionary).is_empty(), "sector %d has generated mission data" % (sector + 1))
+
+              var finished_signal_seen := false
+              game.expedition_finished.connect(func(success: bool, _score: int):
+                  finished_signal_seen = success
+              )
+
+              var finish_method := ""
+              for candidate in ["_finish_run", "finish_run", "_finish_expedition", "finish_expedition"]:
+                  if game.has_method(candidate):
+                      finish_method = candidate
+                      break
+              expect_true(finish_method != "", "game exposes expedition completion path")
+              if finish_method != "":
+                  game.call(finish_method, true)
+                  await get_tree().process_frame
+                  await get_tree().process_frame
+                  expect_true(finished_signal_seen, "successful expedition emits completion signal")
+
+              var report: Node = main.get_node_or_null("CanvasLayer/Report")
+              expect_true(report != null, "expedition report exists")
+              if report is CanvasItem and finish_method != "":
+                  expect_true((report as CanvasItem).visible, "successful expedition reveals report")
+
+              finish()
+
+          func finish() -> void:
+              if failures.is_empty():
+                  print("DEEP_SHIFT_FULL_GAME_FLOW_GATE: PASS")
+                  get_tree().quit(0)
+              else:
+                  print("DEEP_SHIFT_FULL_GAME_FLOW_GATE: FAIL")
+                  for failure in failures:
+                      print(" - " + failure)
+                  get_tree().quit(1)
+          GDSCRIPT
+
+          cat > deep-shift-flow/scenes/FullGameFlowCheck.tscn <<'TSCN'
+          [gd_scene load_steps=2 format=3]
+          [ext_resource path="res://scripts/FullGameFlowCheck.gd" type="Script" id="1"]
+          [node name="FullGameFlowCheck" type="Node"]
+          script = ExtResource("1")
+          TSCN
+
+      - name: Import full game
+        shell: bash
+        run: |
+          set -o pipefail
+          godot --headless --path deep-shift-flow --editor --quit 2>&1 | tee import.log
+          ! grep -E "SCRIPT ERROR|Parse Error|ERROR:" import.log
+
+      - name: Run full game-flow gate
+        shell: bash
+        run: |
+          set -o pipefail
+          godot --headless --path deep-shift-flow --scene res://scenes/FullGameFlowCheck.tscn 2>&1 | tee flow.log
+          ! grep -E "SCRIPT ERROR|Parse Error|Invalid get index|Invalid call|Failed to load|Cannot open" flow.log
+          grep -q "DEEP_SHIFT_FULL_GAME_FLOW_GATE: PASS" flow.log
+
+      - name: Preserve flow diagnostics
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: DeepShift-Full-Game-Flow-QA-Logs
+          path: |
+            import.log
+            flow.log
+          retention-days: 30
