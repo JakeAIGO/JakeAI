@@ -1,0 +1,166 @@
+name: Deep Shift Pass 15 Real Single-Thread Web
+on:
+  push:
+    branches: ["deep-shift-ci"]
+    paths:
+      - ".github/workflows/deep-shift-pass15-real-singlethread-web.yml"
+permissions:
+  contents: read
+jobs:
+  web:
+    runs-on: ubuntu-latest
+    timeout-minutes: 20
+    steps:
+      - uses: actions/checkout@v4
+      - name: Install Godot
+        run: |
+          wget -q https://github.com/godotengine/godot/releases/download/4.3-stable/Godot_v4.3-stable_linux.x86_64.zip
+          unzip -q Godot_v4.3-stable_linux.x86_64.zip
+          sudo mv Godot_v4.3-stable_linux.x86_64 /usr/local/bin/godot
+          command -v google-chrome
+      - name: Hydrate production source
+        shell: bash
+        run: |
+          set -euo pipefail
+          rm -rf deep-shift-mobile deep-shift-hardened deep-shift-playtest deep-shift-visual
+          mkdir deep-shift-mobile
+          cat deep-shift-ci/full_game_bundle.part01 deep-shift-ci/full_game_bundle.part02 deep-shift-ci/full_game_bundle.part03 deep-shift-ci/full_game_bundle.part04 deep-shift-ci/full_game_bundle.part05 deep-shift-ci/full_game_bundle.part06 > /tmp/full.b64
+          base64 -d /tmp/full.b64 > /tmp/full.tar.gz
+          tar -xzf /tmp/full.tar.gz -C deep-shift-mobile
+          sed -i 's/var requirement := 0 if sector_index == 4 else min(int(sector_data.ore_count), 5 + sector_index)/var requirement: int = 0 if sector_index == 4 else int(min(int(sector_data.ore_count), 5 + sector_index))/' deep-shift-mobile/scripts/Game.gd || true
+          sed -i 's/var tech := max(1, int(depth \/ 2) + (3 if success else 0) + int(GameState.run.score \/ 3000))/var tech: int = int(max(1, int(depth \/ 2) + (3 if success else 0) + int(GameState.run.score \/ 3000)))/' deep-shift-mobile/scripts/Game.gd || true
+          cp -a deep-shift-mobile deep-shift-hardened
+          python3 deep-shift-ci/apply_pass10_hardening.py
+          rm -rf deep-shift-mobile && mv deep-shift-hardened deep-shift-playtest
+          python3 deep-shift-ci/apply_pass11_polish.py
+          mv deep-shift-playtest deep-shift-visual
+          python3 deep-shift-ci/apply_pass12_visuals.py
+          python3 deep-shift-ci/apply_pass12_hotfix.py
+          python3 deep-shift-ci/apply_pass12_audio_hotfix.py
+          mv deep-shift-visual deep-shift-mobile
+          python3 deep-shift-ci/apply_pass13_mobile_web.py
+      - name: Force Compatibility renderer
+        shell: bash
+        run: |
+          python3 - <<'PY'
+          from pathlib import Path
+          import re
+          p=Path('deep-shift-mobile/project.godot')
+          s=p.read_text()
+          s=re.sub(r'^renderer/rendering_method=.*\n?', '', s, flags=re.M)
+          s=re.sub(r'^renderer/rendering_method\.mobile=.*\n?', '', s, flags=re.M)
+          if '[rendering]' in s:
+              s=s.replace('[rendering]', '[rendering]\n\nrenderer/rendering_method="gl_compatibility"\nrenderer/rendering_method.mobile="gl_compatibility"',1)
+          else:
+              s+='\n[rendering]\n\nrenderer/rendering_method="gl_compatibility"\nrenderer/rendering_method.mobile="gl_compatibility"\n'
+          p.write_text(s)
+          PY
+      - name: Write complete official-style Web preset
+        shell: bash
+        run: |
+          cat > deep-shift-mobile/export_presets.cfg <<'EOF'
+          [preset.0]
+          name="Web"
+          platform="Web"
+          runnable=true
+          advanced_options=false
+          dedicated_server=false
+          custom_features=""
+          export_filter="all_resources"
+          include_filter=""
+          exclude_filter=""
+          export_path="build/web/index.html"
+          encryption_include_filters=""
+          encryption_exclude_filters=""
+          encrypt_pck=false
+          encrypt_directory=false
+          script_export_mode=2
+
+          [preset.0.options]
+          custom_template/debug=""
+          custom_template/release=""
+          variant/extensions_support=false
+          variant/thread_support=false
+          vram_texture_compression/for_desktop=true
+          vram_texture_compression/for_mobile=true
+          html/export_icon=true
+          html/custom_html_shell=""
+          html/head_include="<meta name='apple-mobile-web-app-capable' content='yes'><meta name='viewport' content='width=device-width,initial-scale=1,maximum-scale=1,user-scalable=no'>"
+          html/canvas_resize_policy=2
+          html/focus_canvas_on_start=true
+          html/experimental_virtual_keyboard=true
+          progressive_web_app/enabled=false
+          progressive_web_app/ensure_cross_origin_isolation_headers=false
+          progressive_web_app/offline_page=""
+          progressive_web_app/display=0
+          progressive_web_app/orientation=1
+          progressive_web_app/icon_144x144=""
+          progressive_web_app/icon_180x180=""
+          progressive_web_app/icon_512x512=""
+          progressive_web_app/background_color=Color(0, 0, 0, 1)
+          EOF
+      - name: Install real official Web templates
+        shell: bash
+        run: |
+          set -euo pipefail
+          mkdir -p ~/.local/share/godot/export_templates/4.3.stable
+          wget -q https://github.com/godotengine/godot/releases/download/4.3-stable/Godot_v4.3-stable_export_templates.tpz
+          unzip -q Godot_v4.3-stable_export_templates.tpz -d /tmp/godot-templates
+          echo '--- archive web templates ---'
+          find /tmp/godot-templates -type f -name 'web*.zip' -printf '%f %s\n' | sort
+          REAL=$(find /tmp/godot-templates -type f -name 'web_nothreads_release.zip' | head -1)
+          test -n "$REAL"
+          cp -r /tmp/godot-templates/templates/* ~/.local/share/godot/export_templates/4.3.stable/
+          test -s ~/.local/share/godot/export_templates/4.3.stable/web_nothreads_release.zip
+          test -s ~/.local/share/godot/export_templates/4.3.stable/web_nothreads_debug.zip
+          echo 'DEEP_SHIFT_REAL_SINGLETHREAD_TEMPLATE_GATE: PASS'
+      - name: Compile project
+        shell: bash
+        run: |
+          set -o pipefail
+          godot --headless --rendering-method gl_compatibility --path deep-shift-mobile --editor --quit 2>&1 | tee pass15-import.log
+          ! grep -E "SCRIPT ERROR|Parse Error|ERROR:" pass15-import.log
+      - name: Export real single-thread Web build
+        shell: bash
+        run: |
+          set -o pipefail
+          mkdir -p deep-shift-mobile/build/web
+          godot --verbose --headless --rendering-method gl_compatibility --path deep-shift-mobile --export-release "Web" build/web/index.html 2>&1 | tee pass15-export.log
+          test ${PIPESTATUS[0]} -eq 0
+          test -s deep-shift-mobile/build/web/index.html
+          test -s deep-shift-mobile/build/web/index.wasm
+          test -s deep-shift-mobile/build/web/index.pck
+          echo 'DEEP_SHIFT_PASS15_WEB_EXPORT_GATE: PASS'
+      - name: Browser runtime test
+        shell: bash
+        run: |
+          set -euo pipefail
+          cd deep-shift-mobile/build/web
+          python3 -m http.server 8080 >/tmp/http.log 2>&1 & SERVER=$!
+          sleep 2
+          google-chrome --headless=new --no-sandbox --disable-gpu --enable-logging=stderr --window-size=1280,720 --virtual-time-budget=15000 --screenshot=/tmp/deep-shift-pass15.png http://127.0.0.1:8080/index.html >/tmp/chrome.log 2>&1 || true
+          kill $SERVER || true
+          test -s /tmp/deep-shift-pass15.png
+          if grep -Eqi "Uncaught|RuntimeError|CompileError|LinkError|SharedArrayBuffer.*not defined|Failed to fetch" /tmp/chrome.log; then
+            cat /tmp/chrome.log
+            exit 1
+          fi
+          echo 'DEEP_SHIFT_PASS15_BROWSER_RUNTIME_GATE: PASS'
+      - name: Upload fixed Web build
+        uses: actions/upload-artifact@v4
+        with:
+          name: DeepShift-Pass15-iPhone-Web-Fixed
+          path: deep-shift-mobile/build/web/
+          retention-days: 30
+      - name: Upload QA evidence
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: DeepShift-Pass15-Web-QA
+          path: |
+            /tmp/deep-shift-pass15.png
+            /tmp/chrome.log
+            /tmp/http.log
+            pass15-import.log
+            pass15-export.log
+          retention-days: 30
