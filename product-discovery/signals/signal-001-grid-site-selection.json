@@ -1,0 +1,45 @@
+{
+  "title": "Utility Grid Site Planning Workflow",
+  "problem": "Utilities and infrastructure planners may need to combine grid demand, siting constraints, zoning, local priorities, and simulation outputs when evaluating locations for new power infrastructure. This can involve repetitive multi-source analysis and decision preparation.",
+  "industry": "Energy and Utilities",
+  "target_buyer": "Electric utilities, energy infrastructure planners, engineering firms, municipal energy offices, and project developers",
+  "evidence": [
+    "A public engineering article described a new ORNL algorithm for identifying urban power project sites using 24-hour grid simulations while weighing grid needs, zoning, and local priorities.",
+    "The underlying workflow suggests recurring planning friction around gathering, reconciling, and evaluating multiple siting factors before infrastructure decisions are made."
+  ],
+  "source_urls": [
+    "https://interestingengineering.com/energy/new-algorithm-maps-urban-power-sites"
+  ],
+  "existing_alternatives": "Utility planning tools, GIS systems, grid simulation software, consulting services, and specialized siting platforms already exist. The current signal does not establish that JakeAI has a superior optimization algorithm.",
+  "identified_gap": "Potential workflow gap: automate the collection, normalization, comparison, documentation, and preliminary ranking of siting inputs before expert engineering review, rather than attempting to replace advanced grid simulation or utility planning software.",
+  "proposed_skill": "Energy Infrastructure Site Intelligence Orchestrator",
+  "workflow_description": "Collect approved planning inputs, organize grid and siting requirements, gather zoning and public-policy constraints from permitted sources, normalize the information, identify missing inputs, compare candidate locations using user-defined criteria, produce a traceable preliminary ranking, and generate an expert-review packet. The workflow must not claim to perform regulated engineering analysis unless the required models and licensed expertise are actually present.",
+  "required_capabilities": [
+    "Data ingestion",
+    "GIS-compatible data handling",
+    "Document and policy parsing",
+    "Constraint comparison",
+    "Scoring and ranking",
+    "Source traceability",
+    "Human review workflow"
+  ],
+  "feasibility_notes": "A limited decision-support workflow appears technically feasible using existing data-processing and document-analysis capabilities. Reproducing ORNL's algorithm or performing authoritative grid engineering is outside the scope of this candidate.",
+  "estimated_prototype_cost": 0,
+  "estimated_operating_cost": 0,
+  "pain_urgency": 16,
+  "evidence_strength": 10,
+  "buyer_clarity": 13,
+  "repeatability": 8,
+  "workflow_feasibility": 11,
+  "competitive_gap": 6,
+  "economic_value": 8,
+  "jakeai_fit": 4,
+  "risks": [
+    "Engineering and infrastructure decisions can be safety-critical",
+    "Public-source data may be incomplete or outdated",
+    "Zoning and regulatory information varies by jurisdiction",
+    "The workflow must not be marketed as replacing licensed engineering review",
+    "The underlying ORNL research and implementation must not be copied"
+  ],
+  "validation_experiment": "Interview or obtain public evidence from utility planners, engineering firms, or infrastructure developers to determine whether preliminary siting-data aggregation and comparison is a recurring pain point. Then prototype a narrow workflow using only public or user-supplied data and test whether it reduces preparation time without making engineering decisions."
+}
