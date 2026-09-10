@@ -85,7 +85,7 @@ jobs:
         run: |
           set -o pipefail
           mkdir -p deep-shift-full/build
-          godot --headless --path deep-shift-full --export-release "Windows Desktop" deep-shift-full/build/DeepShift.exe 2>&1 | tee export.log
+          godot --headless --path deep-shift-full --export-release "Windows Desktop" build/DeepShift.exe 2>&1 | tee export.log
           ! grep -E "SCRIPT ERROR|ERROR:" export.log
           test -s deep-shift-full/build/DeepShift.exe
           file deep-shift-full/build/DeepShift.exe
