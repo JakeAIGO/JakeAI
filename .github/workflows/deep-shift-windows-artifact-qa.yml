@@ -2,6 +2,10 @@ name: Deep Shift Windows Artifact QA
 
 on:
   workflow_dispatch:
+  push:
+    branches: ["deep-shift-ci"]
+    paths:
+      - ".github/workflows/deep-shift-windows-artifact-qa.yml"
   workflow_run:
     workflows: ["Deep Shift Runtime QA"]
     types: [completed]
@@ -12,7 +16,7 @@ permissions:
 
 jobs:
   windows-artifact-launch:
-    if: github.event_name == 'workflow_dispatch' || github.event.workflow_run.conclusion == 'success'
+    if: github.event_name != 'workflow_run' || github.event.workflow_run.conclusion == 'success'
     runs-on: ubuntu-latest
     timeout-minutes: 15
     steps:
