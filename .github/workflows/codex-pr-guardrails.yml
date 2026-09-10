@@ -22,7 +22,9 @@ jobs:
           python-version: '3.12'
 
       - name: Install Dependencies
-        run: python -m pip install -r requirements.txt
+        run: |
+          python -m pip install -r requirements.txt
+          python -m pip install pytest
 
       - name: Compile Python Sources
         run: |
@@ -31,6 +33,9 @@ jobs:
 
       - name: Run Opportunity Clusterer Regression Test
         run: python product-discovery/test_opportunity_clusterer.py
+
+      - name: Run Public Claim Consistency Tests
+        run: python -m pytest -q tests/test_claim_consistency.py
 
       - name: Validate Machine-Readable JSON
         run: |
