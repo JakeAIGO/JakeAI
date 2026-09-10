@@ -67,11 +67,15 @@ jobs:
           extends Node
 
           var failures: Array[String] = []
+          var finished_signal_seen: bool = false
 
           func expect_true(value: bool, label: String) -> void:
               if not value:
                   failures.append(label)
                   push_error("FLOW CHECK FAILED: " + label)
+
+          func _on_expedition_finished(success: bool, _score: int) -> void:
+              finished_signal_seen = success
 
           func _ready() -> void:
               await get_tree().process_frame
@@ -111,10 +115,7 @@ jobs:
                   var data: Variant = game.get("sector_data")
                   expect_true(data is Dictionary and not (data as Dictionary).is_empty(), "sector %d has generated mission data" % (sector + 1))
 
-              var finished_signal_seen := false
-              game.expedition_finished.connect(func(success: bool, _score: int):
-                  finished_signal_seen = success
-              )
+              game.expedition_finished.connect(_on_expedition_finished)
 
               var finish_method := ""
               for candidate in ["_finish_run", "finish_run", "_finish_expedition", "finish_expedition"]:
