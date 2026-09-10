@@ -1,0 +1,271 @@
+name: Deep Shift Pass 10 Promotion
+
+on:
+  workflow_dispatch:
+  push:
+    branches: ["deep-shift-ci"]
+    paths:
+      - "deep-shift-ci/apply_pass10_hardening.py"
+      - ".github/workflows/deep-shift-pass10-promotion.yml"
+
+permissions:
+  contents: read
+
+jobs:
+  harden-test-export:
+    runs-on: ubuntu-latest
+    timeout-minutes: 20
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Install Godot 4.3
+        run: |
+          wget -q https://github.com/godotengine/godot/releases/download/4.3-stable/Godot_v4.3-stable_linux.x86_64.zip
+          unzip -q Godot_v4.3-stable_linux.x86_64.zip
+          sudo mv Godot_v4.3-stable_linux.x86_64 /usr/local/bin/godot
+          godot --version
+
+      - name: Hydrate verified playable source
+        shell: bash
+        run: |
+          set -euo pipefail
+          rm -rf deep-shift-hardened && mkdir deep-shift-hardened
+          cat deep-shift-ci/full_game_bundle.part01 deep-shift-ci/full_game_bundle.part02 deep-shift-ci/full_game_bundle.part03 deep-shift-ci/full_game_bundle.part04 deep-shift-ci/full_game_bundle.part05 deep-shift-ci/full_game_bundle.part06 > /tmp/full.b64
+          base64 -d /tmp/full.b64 > /tmp/full.tar.gz
+          tar -xzf /tmp/full.tar.gz -C deep-shift-hardened
+          sed -i 's/var requirement := 0 if sector_index == 4 else min(int(sector_data.ore_count), 5 + sector_index)/var requirement: int = 0 if sector_index == 4 else int(min(int(sector_data.ore_count), 5 + sector_index))/' deep-shift-hardened/scripts/Game.gd || true
+          sed -i 's/var tech := max(1, int(depth \/ 2) + (3 if success else 0) + int(GameState.run.score \/ 3000))/var tech: int = int(max(1, int(depth \/ 2) + (3 if success else 0) + int(GameState.run.score \/ 3000)))/' deep-shift-hardened/scripts/Game.gd || true
+          python3 deep-shift-ci/apply_pass10_hardening.py
+
+      - name: Install procedural original audio
+        shell: bash
+        run: |
+          cat > deep-shift-hardened/scripts/AudioManager.gd <<'GDSCRIPT'
+          extends Node
+          const MIX_RATE: float = 44100.0
+          var player: AudioStreamPlayer
+          var generator: AudioStreamGenerator
+          var playback: AudioStreamGeneratorPlayback
+          var rng_state: int = 123456789
+          func _ready() -> void:
+              generator = AudioStreamGenerator.new()
+              generator.mix_rate = MIX_RATE
+              generator.buffer_length = 0.5
+              player = AudioStreamPlayer.new()
+              player.stream = generator
+              add_child(player)
+              player.play()
+              playback = player.get_stream_playback() as AudioStreamGeneratorPlayback
+          func play(id: String, pitch: float = 1.0) -> void:
+              if playback == null: return
+              var spec := _spec(id)
+              var duration: float = float(spec.get("duration", 0.12))
+              var f0: float = float(spec.get("f0", 220.0)) * pitch
+              var f1: float = float(spec.get("f1", f0)) * pitch
+              var amp: float = float(spec.get("amp", 0.25))
+              var shape: String = str(spec.get("shape", "sine"))
+              var count: int = int(MIX_RATE * duration)
+              var frames := PackedVector2Array(); frames.resize(count)
+              for i in range(count):
+                  var t := float(i) / MIX_RATE
+                  var phase := float(i) / float(max(1, count - 1))
+                  var freq := lerpf(f0, f1, phase)
+                  var env := pow(1.0 - phase, 1.7)
+                  var sample := _wave(shape, freq, t) * amp * env
+                  frames[i] = Vector2(sample, sample)
+              playback.clear_buffer(); playback.push_buffer(frames)
+          func _wave(shape: String, freq: float, t: float) -> float:
+              var s := sin(TAU * freq * t)
+              match shape:
+                  "square": return 1.0 if s >= 0.0 else -1.0
+                  "triangle": return asin(s) * (2.0 / PI)
+                  "crunch":
+                      rng_state = int((1103515245 * rng_state + 12345) & 0x7fffffff)
+                      var n := (float(rng_state) / 1073741823.5) - 1.0
+                      return clamp(s * 0.65 + n * 0.35, -1.0, 1.0)
+                  _: return s
+          func _spec(id: String) -> Dictionary:
+              match id:
+                  "dig": return {"duration":0.07,"f0":95.0,"f1":55.0,"amp":0.30,"shape":"crunch"}
+                  "ore": return {"duration":0.16,"f0":620.0,"f1":980.0,"amp":0.22,"shape":"sine"}
+                  "pulse": return {"duration":0.18,"f0":260.0,"f1":95.0,"amp":0.25,"shape":"triangle"}
+                  "charge": return {"duration":0.22,"f0":80.0,"f1":42.0,"amp":0.32,"shape":"crunch"}
+                  "hurt": return {"duration":0.12,"f0":125.0,"f1":65.0,"amp":0.32,"shape":"square"}
+                  "boss_warning": return {"duration":0.30,"f0":72.0,"f1":48.0,"amp":0.30,"shape":"square"}
+                  "extract": return {"duration":0.34,"f0":330.0,"f1":880.0,"amp":0.23,"shape":"sine"}
+                  _: return {"duration":0.10,"f0":220.0,"f1":180.0,"amp":0.20,"shape":"sine"}
+          GDSCRIPT
+
+      - name: Add Pass 10 interaction probe
+        shell: bash
+        run: |
+          cat > deep-shift-hardened/scripts/Pass10Check.gd <<'GDSCRIPT'
+          extends Node
+          var failures: Array[String] = []
+          var expedition_seen := false
+          var expedition_success := false
+          func check(v: bool, label: String) -> void:
+              if not v:
+                  failures.append(label)
+                  push_error("PASS10 FAILED: " + label)
+          func _on_finished(success: bool, _score: int) -> void:
+              expedition_seen = true
+              expedition_success = success
+          func _ready() -> void:
+              await get_tree().process_frame
+              GameState.reset_run()
+              var packed: PackedScene = load("res://scenes/Game.tscn")
+              check(packed != null, "Game scene loads")
+              if packed == null: finish(); return
+              var game: Node = packed.instantiate()
+              add_child(game)
+              game.expedition_finished.connect(_on_finished)
+              await get_tree().process_frame
+              await get_tree().process_frame
+              var player: Node = game.get("player") as Node
+              check(player != null, "player exists")
+              if player == null: finish(); return
+
+              player.energy = 0
+              GameState.run.energy = 0
+              player.call("_physics_process", 0.5)
+              player.call("_physics_process", 0.5)
+              check(int(player.energy) >= 1, "zero energy emergency recharge prevents soft-lock")
+
+              player.armor = 2
+              player.damage_cooldown = 0.0
+              player.take_damage(1)
+              player.take_damage(1)
+              check(int(player.armor) == 1, "damage invulnerability window prevents double-hit burst")
+
+              var enemies := get_tree().get_nodes_in_group("enemy")
+              check(not enemies.is_empty(), "enemy exists for contact test")
+              if not enemies.is_empty():
+                  var enemy: Node2D = enemies[0]
+                  player.armor = 2
+                  player.damage_cooldown = 0.0
+                  enemy.global_position = player.global_position
+                  enemy.contact_timer = 0.0
+                  enemy.call("_physics_process", 0.01)
+                  check(int(player.armor) == 1, "enemy contact causes damage")
+
+              game.ore_collected = int(min(int(game.sector_data.ore_count), 5))
+              game.call("_complete_sector")
+              check(bool(game.waiting_for_upgrade), "sector completion enters upgrade state")
+              check(not player.is_physics_processing(), "player physics freezes during upgrade choice")
+
+              var gen: Node = game.get_node("SectorGenerator")
+              gen.set_seed(24681357)
+              GameState.run.sector = 1
+              var a: Array[Dictionary] = gen.draft_upgrades(3)
+              gen.set_seed(24681357)
+              GameState.run.sector = 1
+              var b: Array[Dictionary] = gen.draft_upgrades(3)
+              check([a[0].id,a[1].id,a[2].id] == [b[0].id,b[1].id,b[2].id], "upgrade draft is deterministic for same seed")
+
+              var pause_has_start := false
+              for event in InputMap.action_get_events("pause"):
+                  if event is InputEventJoypadButton and event.button_index == 6:
+                      pause_has_start = true
+              check(pause_has_start, "controller Start button maps to pause")
+
+              game.call("start_sector", 4)
+              await get_tree().process_frame
+              expedition_seen = false
+              expedition_success = false
+              game.call("request_extract")
+              await get_tree().process_frame
+              check(not expedition_seen, "final extraction stays locked while Core Warden lives")
+
+              var boss: Node = game.get_node_or_null("World/Entities/CoreWarden")
+              check(boss != null, "Core Warden node exists")
+              if boss != null:
+                  var entities: Node = game.get_node("World/Entities")
+                  var before := entities.get_child_count()
+                  boss.call("_spawn_hazard_ring")
+                  await get_tree().process_frame
+                  var after := entities.get_child_count()
+                  check(after >= before + 6, "Core Warden hazard ring spawns six hazards")
+                  var terrain: Node = game.get_node("World/TerrainManager")
+                  for i in range(before, after):
+                      var h: Node2D = entities.get_child(i)
+                      if h is Area2D:
+                          check(not terrain.is_solid_world(h.global_position), "boss hazard spawns in opened terrain")
+                  while is_instance_valid(boss):
+                      boss.take_damage(2)
+                      await get_tree().process_frame
+                  check(not bool(game.boss_alive), "Core Warden defeat clears boss lock")
+
+              expedition_seen = false
+              expedition_success = false
+              game.call("request_extract")
+              await get_tree().process_frame
+              check(expedition_seen and expedition_success, "final extraction succeeds after boss defeat")
+              finish()
+          func finish() -> void:
+              if failures.is_empty():
+                  print("DEEP_SHIFT_PASS10_HARDENING_GATE: PASS")
+                  get_tree().quit(0)
+              else:
+                  print("DEEP_SHIFT_PASS10_HARDENING_GATE: FAIL")
+                  for f in failures: print(" - " + f)
+                  get_tree().quit(1)
+          GDSCRIPT
+          cat > deep-shift-hardened/scenes/Pass10Check.tscn <<'TSCN'
+          [gd_scene load_steps=2 format=3]
+          [ext_resource path="res://scripts/Pass10Check.gd" type="Script" id="1"]
+          [node name="Pass10Check" type="Node"]
+          script = ExtResource("1")
+          TSCN
+
+      - name: Import and compile hardened game
+        shell: bash
+        run: |
+          set -o pipefail
+          godot --headless --path deep-shift-hardened --editor --quit 2>&1 | tee pass10-import.log
+          ! grep -E "SCRIPT ERROR|Parse Error|ERROR:" pass10-import.log
+
+      - name: Run Pass 10 hardening gate
+        shell: bash
+        run: |
+          set -o pipefail
+          timeout 45s godot --headless --path deep-shift-hardened --scene res://scenes/Pass10Check.tscn 2>&1 | tee pass10.log
+          ! grep -E "SCRIPT ERROR|Parse Error|Invalid get index|Invalid call|Failed to load|Cannot open" pass10.log
+          grep -q "DEEP_SHIFT_PASS10_HARDENING_GATE: PASS" pass10.log
+
+      - name: Install Windows export templates
+        run: |
+          mkdir -p ~/.local/share/godot/export_templates/4.3.stable
+          wget -q https://github.com/godotengine/godot/releases/download/4.3-stable/Godot_v4.3-stable_export_templates.tpz
+          unzip -q Godot_v4.3-stable_export_templates.tpz -d /tmp/godot-templates
+          cp -r /tmp/godot-templates/templates/* ~/.local/share/godot/export_templates/4.3.stable/
+
+      - name: Export hardened Windows candidate
+        shell: bash
+        run: |
+          set -euo pipefail
+          mkdir -p deep-shift-hardened/build/windows
+          godot --headless --path deep-shift-hardened --export-release "Windows Desktop" build/windows/DeepShift.exe 2>&1 | tee pass10-export.log
+          test -s deep-shift-hardened/build/windows/DeepShift.exe
+          sha256sum deep-shift-hardened/build/windows/DeepShift.exe > deep-shift-hardened/build/windows/SHA256.txt
+          printf 'Blazed Trail Studios\nDeep Shift\nPass 10 Hardened Windows Candidate\nHardening Gate: PASS\n' > deep-shift-hardened/build/windows/BUILD_IDENTITY.txt
+          echo 'DEEP_SHIFT_PASS10_WINDOWS_EXPORT_GATE: PASS'
+
+      - name: Upload hardened Windows candidate
+        uses: actions/upload-artifact@v4
+        with:
+          name: DeepShift-Windows-Pass10-Hardened
+          path: deep-shift-hardened/build/windows/
+          retention-days: 30
+
+      - name: Preserve QA logs
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: DeepShift-Pass10-QA-Logs
+          path: |
+            pass10-import.log
+            pass10.log
+            pass10-export.log
+          retention-days: 30
