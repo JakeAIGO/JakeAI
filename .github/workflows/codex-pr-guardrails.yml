@@ -51,12 +51,15 @@ jobs:
 
           main = Path("main.py").read_text(encoding="utf-8")
           validation = Path(".github/workflows/product-validation.yml").read_text(encoding="utf-8")
+          redirects = Path("_redirects").read_text(encoding="utf-8")
 
           required_main_markers = [
               "allow_credentials=False",
               "def is_product_checkout_enabled",
               "if p.get(\"requires_metering\", False)",
               "def is_safe_url",
+              '@app.get("/llms.txt"',
+              '@app.get("/.well-known/agent.json"',
           ]
 
           required_validation_markers = [
@@ -66,13 +69,20 @@ jobs:
               '"human_approval_required": True',
           ]
 
+          required_redirect_markers = [
+              "/llms.txt  https://agent-commerce-network-production-56e8.up.railway.app/llms.txt  200!",
+              "/.well-known/agent.json  https://agent-commerce-network-production-56e8.up.railway.app/.well-known/agent.json  200!",
+              "/api/*  https://agent-commerce-network-production-56e8.up.railway.app/:splat  200",
+          ]
+
           missing = [m for m in required_main_markers if m not in main]
           missing += [m for m in required_validation_markers if m not in validation]
+          missing += [m for m in required_redirect_markers if m not in redirects]
 
           if missing:
-              raise SystemExit("Safety invariant missing: " + ", ".join(missing))
+              raise SystemExit("Safety/truth invariant missing: " + ", ".join(missing))
 
-          print("Core fail-closed and human-approval invariants present.")
+          print("Core fail-closed, human-approval, and machine-surface routing invariants present.")
           PY
 
       - name: Report Guardrail Status
