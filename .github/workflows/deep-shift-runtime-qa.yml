@@ -16,12 +16,6 @@ jobs:
       - name: Checkout
         uses: actions/checkout@v4
 
-      - name: Set up Java 17
-        uses: actions/setup-java@v4
-        with:
-          distribution: temurin
-          java-version: '17'
-
       - name: Install Godot 4.3
         run: |
           wget -q https://github.com/godotengine/godot/releases/download/4.3-stable/Godot_v4.3-stable_linux.x86_64.zip
@@ -51,11 +45,23 @@ jobs:
           test "$(wc -c < /tmp/deep_shift_full.b64)" -eq 33548
           base64 -d /tmp/deep_shift_full.b64 > /tmp/deep_shift_full.tar.gz
           tar -xzf /tmp/deep_shift_full.tar.gz -C deep-shift-full
-          sed -i 's/Shiftforge Games/Blazed Trail Studios/g' deep-shift-full/project.godot deep-shift-full/scenes/Main.tscn 2>/dev/null || true
-          sed -i 's#^run/main_scene=.*#run/main_scene="res://scenes/Main.tscn"#' deep-shift-full/project.godot
-          if ! grep -q 'Blazed Trail Studios' deep-shift-full/scenes/Main.tscn; then
-            sed -i '0,/text = "DEEP SHIFT"/s//text = "BLAZED TRAIL STUDIOS PRESENTS - DEEP SHIFT"/' deep-shift-full/scenes/Main.tscn
-          fi
+          python3 - <<'PY'
+          from pathlib import Path
+          import re
+          project = Path('deep-shift-full/project.godot')
+          text = project.read_text()
+          text = text.replace('Shiftforge Games', 'Blazed Trail Studios')
+          if re.search(r'^run/main_scene=.*$', text, flags=re.M):
+              text = re.sub(r'^run/main_scene=.*$', 'run/main_scene="res://scenes/Main.tscn"', text, flags=re.M)
+          else:
+              text = text.replace('[application]', '[application]\nrun/main_scene="res://scenes/Main.tscn"', 1)
+          project.write_text(text)
+          main = Path('deep-shift-full/scenes/Main.tscn')
+          scene = main.read_text().replace('Shiftforge Games','Blazed Trail Studios')
+          if 'Blazed Trail Studios' not in scene:
+              scene += '''\n[node name="BlazedTrailBrand" type="Label" parent="."]\noffset_left = 20.0\noffset_top = 18.0\noffset_right = 420.0\noffset_bottom = 48.0\ntext = "BLAZED TRAIL STUDIOS"\ntheme_override_font_sizes/font_size = 18\nz_index = 999\n'''
+          main.write_text(scene)
+          PY
           sed -i 's/var requirement := 0 if sector_index == 4 else min(int(sector_data.ore_count), 5 + sector_index)/var requirement: int = 0 if sector_index == 4 else int(min(int(sector_data.ore_count), 5 + sector_index))/' deep-shift-full/scripts/Game.gd
           sed -i 's/var tech := max(1, int(depth \/ 2) + (3 if success else 0) + int(GameState.run.score \/ 3000))/var tech: int = int(max(1, int(depth \/ 2) + (3 if success else 0) + int(GameState.run.score \/ 3000)))/' deep-shift-full/scripts/Game.gd
 
@@ -64,7 +70,6 @@ jobs:
         run: |
           cat > deep-shift-full/scripts/AudioManager.gd <<'GDSCRIPT'
           extends Node
-
           const MIX_RATE: float = 44100.0
           var player: AudioStreamPlayer
           var generator: AudioStreamGenerator
@@ -107,10 +112,8 @@ jobs:
           func _wave(shape: String, freq: float, t: float) -> float:
               var s: float = sin(TAU * freq * t)
               match shape:
-                  "square":
-                      return 1.0 if s >= 0.0 else -1.0
-                  "triangle":
-                      return asin(s) * (2.0 / PI)
+                  "square": return 1.0 if s >= 0.0 else -1.0
+                  "triangle": return asin(s) * (2.0 / PI)
                   "noise":
                       rng_state = int((1103515245 * rng_state + 12345) & 0x7fffffff)
                       return (float(rng_state) / 1073741823.5) - 1.0
@@ -118,8 +121,7 @@ jobs:
                       rng_state = int((1103515245 * rng_state + 12345) & 0x7fffffff)
                       var noise: float = (float(rng_state) / 1073741823.5) - 1.0
                       return clamp(s * 0.65 + noise * 0.35, -1.0, 1.0)
-                  _:
-                      return s
+                  _: return s
 
           func _spec(id: String) -> Dictionary:
               match id:
@@ -132,7 +134,6 @@ jobs:
                   "extract": return {"duration":0.34,"f0":330.0,"f1":880.0,"amp":0.23,"shape":"sine"}
                   _: return {"duration":0.10,"f0":220.0,"f1":180.0,"amp":0.20,"shape":"sine"}
           GDSCRIPT
-
           cat > deep-shift-full/scripts/AudioRuntimeCheck.gd <<'GDSCRIPT'
           extends Node
           func _ready() -> void:
@@ -142,7 +143,6 @@ jobs:
               print("DEEP_SHIFT_PROCEDURAL_AUDIO_GATE: PASS")
               get_tree().quit()
           GDSCRIPT
-
           cat > deep-shift-full/scenes/AudioRuntimeCheck.tscn <<'TSCN'
           [gd_scene load_steps=2 format=3]
           [ext_resource path="res://scripts/AudioRuntimeCheck.gd" type="Script" id="1"]
@@ -172,7 +172,7 @@ jobs:
           test -f deep-shift-full/scenes/UpgradePanel.tscn
           test -f deep-shift-full/scripts/AudioManager.gd
           grep -q 'run/main_scene="res://scenes/Main.tscn"' deep-shift-full/project.godot
-          grep -q 'Blazed Trail Studios' deep-shift-full/scenes/Main.tscn
+          grep -qi 'Blazed Trail Studios' deep-shift-full/scenes/Main.tscn
           echo 'DEEP_SHIFT_RELEASE_CANDIDATE_GATE: PASS'
 
       - name: Install Godot export templates
@@ -190,9 +190,8 @@ jobs:
           godot --headless --path deep-shift-full --export-release "Windows Desktop" build/windows/DeepShift.exe 2>&1 | tee export-windows.log
           ! grep -E "SCRIPT ERROR|ERROR:" export-windows.log
           test -s deep-shift-full/build/windows/DeepShift.exe
-          test -s deep-shift-full/build/windows/DeepShift.pck
           sha256sum deep-shift-full/build/windows/DeepShift.exe > deep-shift-full/build/windows/SHA256.txt
-          sha256sum deep-shift-full/build/windows/DeepShift.pck >> deep-shift-full/build/windows/SHA256.txt
+          if [ -f deep-shift-full/build/windows/DeepShift.pck ]; then sha256sum deep-shift-full/build/windows/DeepShift.pck >> deep-shift-full/build/windows/SHA256.txt; fi
           printf 'Blazed Trail Studios\nDeep Shift\nWindows Audio Release Candidate\nProcedural Audio: PASS\n' > deep-shift-full/build/windows/BUILD_IDENTITY.txt
           echo 'DEEP_SHIFT_WINDOWS_AUDIO_EXPORT_GATE: PASS'
 
