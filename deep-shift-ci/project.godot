@@ -1,5 +1,6 @@
 [application]
-config/name="Deep Shift CI Harness"
+config/name="Deep Shift"
+config/description="Deep Shift by Shiftforge Games"
 run/main_scene="res://scenes/SmokeTest.tscn"
 
 [autoload]
