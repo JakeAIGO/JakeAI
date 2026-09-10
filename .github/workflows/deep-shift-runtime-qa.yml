@@ -73,6 +73,19 @@ jobs:
           ! grep -E "SCRIPT ERROR|ERROR:" full-compile.log
           grep -q "DEEP_SHIFT_GAMEPLAY_COMPILE_GATE: PASS" full-compile.log
 
+      - name: Release candidate content gate
+        shell: bash
+        run: |
+          set -e
+          test -f deep-shift-full/scenes/Boss.tscn
+          test -f deep-shift-full/scenes/ExtractionBeacon.tscn
+          test -f deep-shift-full/scenes/UpgradePanel.tscn
+          test -f deep-shift-full/data/asset_provenance_and_ip_manifest.json
+          test -f deep-shift-full/data/game_manifest.json
+          grep -q 'BLAZED TRAIL STUDIOS PRESENTS' deep-shift-full/scenes/Main.tscn
+          grep -q 'run/main_scene="res://scenes/Main.tscn"' deep-shift-full/project.godot
+          printf 'DEEP_SHIFT_RELEASE_CANDIDATE_GATE: PASS\n'
+
       - name: Install Godot export templates
         run: |
           mkdir -p ~/.local/share/godot/export_templates/4.3.stable
@@ -90,11 +103,11 @@ jobs:
           test -s deep-shift-full/build/DeepShift.exe
           file deep-shift-full/build/DeepShift.exe
           sha256sum deep-shift-full/build/DeepShift.exe | tee deep-shift-full/build/SHA256.txt
-          printf 'Blazed Trail Studios\nDeep Shift\nPlayable Promotion Build\n' > deep-shift-full/build/BUILD_IDENTITY.txt
+          printf 'Blazed Trail Studios\nDeep Shift\nRelease Candidate Build\n' > deep-shift-full/build/BUILD_IDENTITY.txt
 
-      - name: Upload playable Windows build
+      - name: Upload Windows release candidate
         uses: actions/upload-artifact@v4
         with:
-          name: DeepShift-Windows-Playable-Promotion
+          name: DeepShift-Windows-Release-Candidate
           path: deep-shift-full/build/
           retention-days: 90
