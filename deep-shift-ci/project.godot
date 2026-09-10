@@ -4,6 +4,8 @@ run/main_scene="res://scenes/SmokeTest.tscn"
 
 [autoload]
 GameState="*res://scripts/GameState.gd"
+Audio="*res://scripts/AudioStub.gd"
+Telemetry="*res://scripts/TelemetryStub.gd"
 
 [display]
 window/size/viewport_width=1280
