@@ -45,7 +45,7 @@ jobs:
         run: |
           cat >> deep-shift-mobile/export_presets.cfg <<'EOF'
 
-          [preset.9]
+          [preset.1]
           name="Web"
           platform="Web"
           runnable=true
@@ -57,7 +57,7 @@ jobs:
           export_path="build/web/index.html"
           script_export_mode=2
 
-          [preset.9.options]
+          [preset.1.options]
           custom_template/debug=""
           custom_template/release=""
           variant/extensions_support=false
