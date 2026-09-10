@@ -1,0 +1,130 @@
+name: Deep Shift Pass 14 Browser Runtime QA v2
+on:
+  push:
+    branches: ["deep-shift-ci"]
+    paths:
+      - ".github/workflows/deep-shift-pass14-browser-runtime-qa-v2.yml"
+permissions:
+  contents: read
+jobs:
+  browser-runtime:
+    runs-on: ubuntu-latest
+    timeout-minutes: 20
+    steps:
+      - uses: actions/checkout@v4
+      - name: Detect browser and install Godot
+        shell: bash
+        run: |
+          set -euo pipefail
+          command -v google-chrome || command -v chromium || command -v chromium-browser
+          wget -q https://github.com/godotengine/godot/releases/download/4.3-stable/Godot_v4.3-stable_linux.x86_64.zip
+          unzip -q Godot_v4.3-stable_linux.x86_64.zip
+          sudo mv Godot_v4.3-stable_linux.x86_64 /usr/local/bin/godot
+      - name: Hydrate full mobile visual game
+        shell: bash
+        run: |
+          set -euo pipefail
+          rm -rf deep-shift-mobile deep-shift-hardened deep-shift-playtest deep-shift-visual
+          mkdir deep-shift-mobile
+          cat deep-shift-ci/full_game_bundle.part01 deep-shift-ci/full_game_bundle.part02 deep-shift-ci/full_game_bundle.part03 deep-shift-ci/full_game_bundle.part04 deep-shift-ci/full_game_bundle.part05 deep-shift-ci/full_game_bundle.part06 > /tmp/full.b64
+          base64 -d /tmp/full.b64 > /tmp/full.tar.gz
+          tar -xzf /tmp/full.tar.gz -C deep-shift-mobile
+          sed -i 's/var requirement := 0 if sector_index == 4 else min(int(sector_data.ore_count), 5 + sector_index)/var requirement: int = 0 if sector_index == 4 else int(min(int(sector_data.ore_count), 5 + sector_index))/' deep-shift-mobile/scripts/Game.gd || true
+          sed -i 's/var tech := max(1, int(depth \/ 2) + (3 if success else 0) + int(GameState.run.score \/ 3000))/var tech: int = int(max(1, int(depth \/ 2) + (3 if success else 0) + int(GameState.run.score \/ 3000)))/' deep-shift-mobile/scripts/Game.gd || true
+          cp -a deep-shift-mobile deep-shift-hardened
+          python3 deep-shift-ci/apply_pass10_hardening.py
+          rm -rf deep-shift-mobile && mv deep-shift-hardened deep-shift-playtest
+          python3 deep-shift-ci/apply_pass11_polish.py
+          mv deep-shift-playtest deep-shift-visual
+          python3 deep-shift-ci/apply_pass12_visuals.py
+          python3 deep-shift-ci/apply_pass12_hotfix.py
+          python3 deep-shift-ci/apply_pass12_audio_hotfix.py
+          mv deep-shift-visual deep-shift-mobile
+          python3 deep-shift-ci/apply_pass13_mobile_web.py
+      - name: Configure Web export
+        shell: bash
+        run: |
+          python3 - <<'PY'
+          from pathlib import Path
+          import re
+          p=Path('deep-shift-mobile/project.godot')
+          s=p.read_text()
+          s=re.sub(r'^renderer/rendering_method=.*\n?', '', s, flags=re.M)
+          s=re.sub(r'^renderer/rendering_method\.mobile=.*\n?', '', s, flags=re.M)
+          if '[rendering]' in s:
+              s=s.replace('[rendering]', '[rendering]\n\nrenderer/rendering_method="gl_compatibility"\nrenderer/rendering_method.mobile="gl_compatibility"',1)
+          else:
+              s+='\n[rendering]\n\nrenderer/rendering_method="gl_compatibility"\nrenderer/rendering_method.mobile="gl_compatibility"\n'
+          p.write_text(s)
+          PY
+          cat > deep-shift-mobile/export_presets.cfg <<'EOF'
+          [preset.0]
+          name="Web"
+          platform="Web"
+          runnable=true
+          dedicated_server=false
+          custom_features=""
+          export_filter="all_resources"
+          include_filter=""
+          exclude_filter=""
+          export_path="build/web/index.html"
+          script_export_mode=2
+          [preset.0.options]
+          custom_template/debug=""
+          custom_template/release=""
+          variant/extensions_support=false
+          variant/thread_support=false
+          vram_texture_compression/for_desktop=false
+          vram_texture_compression/for_mobile=true
+          html/export_icon=false
+          html/custom_html_shell=""
+          html/head_include="<meta name='viewport' content='width=device-width,initial-scale=1,maximum-scale=1,user-scalable=no'>"
+          html/canvas_resize_policy=2
+          html/focus_canvas_on_start=true
+          html/experimental_virtual_keyboard=true
+          progressive_web_app/enabled=false
+          progressive_web_app/ensure_cross_origin_isolation_headers=false
+          EOF
+      - name: Compile and export
+        shell: bash
+        run: |
+          set -euo pipefail
+          godot --headless --rendering-method gl_compatibility --path deep-shift-mobile --editor --quit 2>&1 | tee pass14-v2-import.log
+          ! grep -E "SCRIPT ERROR|Parse Error|ERROR:" pass14-v2-import.log
+          mkdir -p ~/.local/share/godot/export_templates/4.3.stable
+          wget -q https://github.com/godotengine/godot/releases/download/4.3-stable/Godot_v4.3-stable_export_templates.tpz
+          unzip -q Godot_v4.3-stable_export_templates.tpz -d /tmp/godot-templates
+          cp -r /tmp/godot-templates/templates/* ~/.local/share/godot/export_templates/4.3.stable/
+          cd ~/.local/share/godot/export_templates/4.3.stable
+          if [ ! -f web_nothreads_release.zip ] && [ -f web_release.zip ]; then cp web_release.zip web_nothreads_release.zip; fi
+          if [ ! -f web_nothreads_debug.zip ] && [ -f web_debug.zip ]; then cp web_debug.zip web_nothreads_debug.zip; fi
+          cd - >/dev/null
+          mkdir -p deep-shift-mobile/build/web
+          godot --headless --rendering-method gl_compatibility --path deep-shift-mobile --export-release "Web" build/web/index.html 2>&1 | tee pass14-v2-export.log
+      - name: Browser runtime capture
+        shell: bash
+        run: |
+          set -euo pipefail
+          cd deep-shift-mobile/build/web
+          python3 -m http.server 8080 >/tmp/http.log 2>&1 & SERVER=$!
+          sleep 2
+          BROWSER=$(command -v google-chrome || command -v chromium || command -v chromium-browser)
+          "$BROWSER" --headless=new --no-sandbox --disable-gpu --enable-logging=stderr --window-size=1280,720 --virtual-time-budget=15000 --screenshot=/tmp/deep-shift-browser.png http://127.0.0.1:8080/index.html >/tmp/chromium.log 2>&1 || true
+          kill $SERVER || true
+          test -s /tmp/deep-shift-browser.png
+          echo '--- browser errors ---'
+          grep -Ei "uncaught|runtimeerror|compileerror|linkerror|failed|error|wasm|webgl" /tmp/chromium.log | tail -120 || true
+          echo 'DEEP_SHIFT_PASS14_V2_BROWSER_CAPTURE: PASS'
+      - name: Upload evidence and Web build
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: DeepShift-Pass14-Web-Runtime-Evidence
+          path: |
+            /tmp/deep-shift-browser.png
+            /tmp/chromium.log
+            /tmp/http.log
+            pass14-v2-import.log
+            pass14-v2-export.log
+            deep-shift-mobile/build/web/
+          retention-days: 30
