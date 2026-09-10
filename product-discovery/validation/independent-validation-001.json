@@ -1,0 +1,51 @@
+{
+  "candidate_title": "Utility Grid Site Planning Workflow",
+  "industry": "Energy and Utilities",
+  "target_buyer": "Electric utilities, energy infrastructure planners, engineering firms, municipal energy offices, project developers, and large-load/data-center planners",
+  "proposed_skill": "Energy Infrastructure Site Intelligence Orchestrator",
+  "stage": "INDEPENDENT_VALIDATION_V0_1",
+  "evidence_count": 7,
+  "independent_source_count": 7,
+  "source_urls": [
+    "https://www.ferc.gov/news-events/news/commissioner-rosners-remarks-large-load-show-cause-orders-e-7-e-12-june-18-2026",
+    "https://www.energy.gov/oe/articles/does-office-electricity-publishes-2026-draft-national-transmission-needs-study",
+    "https://www.iea.org/reports/electricity-2026/grids",
+    "https://www.ercot.com/files/docs/2026/04/13/9-Interconnection-and-Grid-Analysis-Update.pdf",
+    "https://extranet.misoenergy.org/planning/large-loads---container-page/large-load-additions/",
+    "https://www.cbre.com/insights/books/north-america-data-center-trends-h1-2026",
+    "https://www.jll.com/content/dam/jllcom/en/global/documents/reports/research-reports/26-research-global-data-center-outlook-new.pdf"
+  ],
+  "supporting_evidence": [
+    "FERC reported that rapidly growing large loads such as data centers are driving new transmission and energy-supply needs and that these loads often seek the fastest available grid connection.",
+    "DOE's 2026 draft National Transmission Needs Study identifies pressing transmission needs driven by load growth from data centers, manufacturing, and other large industrial loads.",
+    "IEA's Electricity 2026 grid analysis identifies grid capacity as a critical bottleneck and reports record connection queues, with grid build timelines materially longer than many new data-center projects.",
+    "ERCOT reported approximately 410 GW of large-load interconnection requests after receiving 198 new requests in Q1 2026, demonstrating substantial study and planning workload pressure in at least one major U.S. region.",
+    "MISO describes an unprecedented surge in large-load interconnection requests from data centers, advanced manufacturing, AI computing facilities, and other energy-intensive industries, many seeking connection within 18-36 months.",
+    "CBRE's H1 2026 North America data-center research states that power availability and infrastructure delivery timelines remain decisive site-selection factors.",
+    "JLL's 2026 global data-center outlook reports multi-year grid connection waits in primary markets and describes operators pursuing self-generation, PPAs, private wire, and storage to work around grid constraints."
+  ],
+  "counter_evidence": [
+    "FERC warns that speculative and duplicative large-load interconnection requests can clog queues, distort forecasts, and overstate realized load growth; queue size therefore cannot be treated as equivalent to real buyer demand.",
+    "CBRE identifies land, permitting, zoning, community opposition, fiber, and local approvals alongside power availability, so grid availability is not the sole site-selection constraint.",
+    "JLL notes that self-generation, private-wire arrangements, PPAs, and storage can mitigate grid-delay pain for some projects, reducing the value of a workflow that only reports grid constraints without evaluating alternatives."
+  ],
+  "validation_score": 88,
+  "disposition": "INDEPENDENTLY_VALIDATED_FOR_BOUNDED_SPEC",
+  "independently_validated": true,
+  "market_demand_validated": false,
+  "willingness_to_pay_validated": false,
+  "publication_authorized": false,
+  "spending_authorized": false,
+  "build_authorized": false,
+  "human_approval_required": true,
+  "risks": [
+    "Engineering and infrastructure decisions can be safety-critical and must remain under qualified human review.",
+    "Public grid, interconnection, zoning, and permitting data can be stale, incomplete, jurisdiction-specific, or non-comparable.",
+    "Large-load queues can contain speculative or duplicative requests and must not be presented as realized demand.",
+    "The workflow must not claim licensed engineering analysis, utility approval, legal clearance, or authoritative site-selection decisions.",
+    "Third-party research and data must be used under applicable licensing and access terms; the product should store provenance rather than copy protected implementations."
+  ],
+  "next_action": "Advance only to a bounded product specification focused on evidence collection, normalization, option comparison, provenance, and human-review preparation. Separately validate buyer willingness to pay before commercial launch.",
+  "claim_boundary": "This independent review supports the existence and recurrence of grid/interconnection/site-selection friction and the plausibility of a decision-support workflow. It does not prove product-market fit, customer willingness to pay, engineering correctness, legal compliance, or commercial readiness.",
+  "generated_at": "2026-09-10T18:42:00Z"
+}
