@@ -39,11 +39,14 @@ jobs:
           if grep -E "SCRIPT ERROR|ERROR:" playtest.log; then exit 1; fi
           grep -q "DEEP_SHIFT_BALANCE_GATE: PASS" playtest.log
 
-      - name: Hydrate full playable source tree
+      - name: Hydrate full playable source tree from verified chunks
         run: |
           rm -rf deep-shift-full
           mkdir -p deep-shift-full
-          base64 -d deep-shift-ci/full_game_bundle.b64 > /tmp/deep_shift_full.tar.gz
+          cat deep-shift-ci/full_game_bundle.part01 deep-shift-ci/full_game_bundle.part02 deep-shift-ci/full_game_bundle.part03 deep-shift-ci/full_game_bundle.part04 deep-shift-ci/full_game_bundle.part05 deep-shift-ci/full_game_bundle.part06 > /tmp/deep_shift_full.b64
+          test "$(wc -c < /tmp/deep_shift_full.b64)" -eq 33548
+          base64 -d /tmp/deep_shift_full.b64 > /tmp/deep_shift_full.tar.gz
+          tar -tzf /tmp/deep_shift_full.tar.gz >/dev/null
           tar -xzf /tmp/deep_shift_full.tar.gz -C deep-shift-full
           test -f deep-shift-full/project.godot
           test -f deep-shift-full/scenes/Main.tscn
@@ -55,10 +58,7 @@ jobs:
         run: |
           set -o pipefail
           godot --headless --path deep-shift-full --editor --quit 2>&1 | tee full-import.log
-          if grep -E "SCRIPT ERROR|ERROR:" full-import.log; then
-            echo "Full playable project emitted a Godot import error."
-            exit 1
-          fi
+          if grep -E "SCRIPT ERROR|ERROR:" full-import.log; then exit 1; fi
 
       - name: Compile full playable gameplay scripts
         shell: bash
