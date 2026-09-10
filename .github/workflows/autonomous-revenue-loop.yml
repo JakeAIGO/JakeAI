@@ -1,0 +1,59 @@
+name: JakeAI Autonomous Revenue Discovery Loop
+
+on:
+  workflow_dispatch:
+  schedule:
+    - cron: '17 */6 * * *'
+
+permissions:
+  contents: read
+
+concurrency:
+  group: jakeai-autonomous-revenue-discovery
+  cancel-in-progress: false
+
+jobs:
+  discover:
+    runs-on: ubuntu-latest
+    timeout-minutes: 20
+
+    steps:
+      - name: Checkout Repository
+        uses: actions/checkout@v4
+
+      - name: Set Up Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: '3.12'
+
+      - name: Compile Discovery Sources
+        run: python -m compileall -q product-discovery
+
+      - name: Run Autonomous Discovery Pipeline
+        run: python product-discovery/autonomous_runner.py
+
+      - name: Upload Complete Discovery Run
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: autonomous-revenue-discovery-${{ github.run_id }}
+          path: |
+            product-discovery/live-signals/
+            product-discovery/radar-first-pass/
+            product-discovery/radar-output/
+            product-discovery/enriched-signals/
+            product-discovery/opportunity-clusters/
+            product-discovery/discovery-inputs/
+            product-discovery/discovery-blocked/
+            product-discovery/candidates/
+            product-discovery/run-output/
+          if-no-files-found: warn
+          retention-days: 14
+
+      - name: Confirm Safety Boundary
+        if: always()
+        run: |
+          echo 'Autonomous discovery/research/scoring: enabled by this workflow.'
+          echo 'Autonomous spending: disabled.'
+          echo 'Autonomous publication: disabled.'
+          echo 'Autonomous checkout/deployment: disabled.'
