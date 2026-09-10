@@ -24,61 +24,33 @@ jobs:
       - name: Run Stage 3 Regression Tests
         run: python product-discovery/test_development_evidence_gate.py
 
-      - name: Run Stage 2 Validation Gate
+      - name: Verify Independent Validation Artifact
         run: |
-          mkdir -p product-discovery/validation
           python - <<'PY'
           import json
-          from datetime import datetime, timezone
           from pathlib import Path
 
-          signal_path = Path("product-discovery/signals/signal-001-grid-site-selection.json")
-          signal = json.loads(signal_path.read_text(encoding="utf-8"))
-          evidence = [item for item in signal.get("evidence", []) if item]
-          source_urls = [item for item in signal.get("source_urls", []) if item]
-          source_count = len(set(source_urls))
-          evidence_count = len(evidence)
-          score = min(100, (source_count * 20) + (evidence_count * 10))
+          path = Path("product-discovery/validation/independent-validation-001.json")
+          data = json.loads(path.read_text(encoding="utf-8"))
 
-          result = {
-              "candidate_title": signal.get("title"),
-              "industry": signal.get("industry"),
-              "target_buyer": signal.get("target_buyer"),
-              "proposed_skill": signal.get("proposed_skill"),
-              "stage": "VALIDATION_V0_1",
-              "evidence_count": evidence_count,
-              "independent_source_count": source_count,
-              "source_urls": source_urls,
-              "supporting_evidence": evidence,
-              "counter_evidence": [],
-              "validation_score": score,
-              "disposition": (
-                  "READY_FOR_INDEPENDENT_VALIDATION"
-                  if source_count >= 3
-                  else "INSUFFICIENT_INDEPENDENT_EVIDENCE"
-              ),
-              "independently_validated": False,
-              "publication_authorized": False,
-              "spending_authorized": False,
-              "build_authorized": False,
-              "human_approval_required": True,
-              "risks": signal.get("risks", []),
-              "generated_at": datetime.now(timezone.utc).isoformat(),
-          }
-
-          Path("product-discovery/validation/product-validation-001.json").write_text(
-              json.dumps(result, indent=2), encoding="utf-8"
-          )
-          print(json.dumps({"validation_score": score, "source_count": source_count}, indent=2))
+          assert data["independently_validated"] is True
+          assert data["market_demand_validated"] is False
+          assert data["willingness_to_pay_validated"] is False
+          assert data["independent_source_count"] >= 5
+          assert len(data.get("counter_evidence") or []) >= 1
+          assert data["build_authorized"] is False
+          assert data["publication_authorized"] is False
+          assert data["spending_authorized"] is False
+          print("Independent validation artifact passed structural checks.")
           PY
 
-      - name: Run Stage 3 Development Evidence Gate
+      - name: Run Stage 3 Against Independent Evidence
         run: |
           python product-discovery/development_evidence_gate.py \
-            product-discovery/validation/product-validation-001.json \
+            product-discovery/validation/independent-validation-001.json \
             product-discovery/development/product-development-001.json
 
-      - name: Verify Consequential Permissions Remain Closed
+      - name: Verify Stage 3 Route and Consequential Permissions
         run: |
           python - <<'PY'
           import json
@@ -86,6 +58,12 @@ jobs:
 
           path = Path("product-discovery/development/product-development-001.json")
           result = json.loads(path.read_text(encoding="utf-8"))
+
+          if result.get("route") != "DEVELOP":
+              raise SystemExit(f"Expected DEVELOP after independent validation; got {result.get('route')}")
+
+          if result.get("product_spec_eligible") is not True:
+              raise SystemExit("Bounded product specification should be eligible")
 
           for field in (
               "build_authorized",
@@ -100,11 +78,9 @@ jobs:
           if result.get("human_approval_required") is not True:
               raise SystemExit("Human approval invariant violated")
 
-          if result.get("route") not in {"DEVELOP", "HOLD", "REJECT"}:
-              raise SystemExit("Unexpected Stage 3 route")
-
-          print(f"Stage 3 route: {result['route']}")
-          print("All consequential permissions remain closed.")
+          print("Stage 3 route: DEVELOP")
+          print("Bounded product-specification eligibility: YES")
+          print("Build/spend/checkout/publication/deployment: ALL DISABLED")
           PY
 
       - name: Upload Stage 3 Artifact
