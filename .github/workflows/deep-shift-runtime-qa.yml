@@ -16,6 +16,12 @@ jobs:
       - name: Checkout
         uses: actions/checkout@v4
 
+      - name: Set up Java 17
+        uses: actions/setup-java@v4
+        with:
+          distribution: temurin
+          java-version: '17'
+
       - name: Install Godot 4.3
         run: |
           wget -q https://github.com/godotengine/godot/releases/download/4.3-stable/Godot_v4.3-stable_linux.x86_64.zip
@@ -195,9 +201,82 @@ jobs:
           printf 'Blazed Trail Studios\nDeep Shift\nWindows Audio Release Candidate\nProcedural Audio: PASS\n' > deep-shift-full/build/windows/BUILD_IDENTITY.txt
           echo 'DEEP_SHIFT_WINDOWS_AUDIO_EXPORT_GATE: PASS'
 
+      - name: Export Android test APK
+        shell: bash
+        run: |
+          set -euo pipefail
+          SDK_ROOT="${ANDROID_SDK_ROOT:-${ANDROID_HOME:-/usr/local/lib/android/sdk}}"
+          SDKMANAGER="$(find "$SDK_ROOT/cmdline-tools" -type f -name sdkmanager 2>/dev/null | head -1 || true)"
+          if [ -n "$SDKMANAGER" ]; then
+            yes | "$SDKMANAGER" --sdk_root="$SDK_ROOT" --licenses >/dev/null || true
+            "$SDKMANAGER" --sdk_root="$SDK_ROOT" "platform-tools" "build-tools;34.0.0" "platforms;android-34" >/dev/null
+          fi
+          test -x "$SDK_ROOT/platform-tools/adb"
+          mkdir -p "$HOME/.config/godot" "$HOME/.android" deep-shift-full/build/android
+          DEBUG_KEYSTORE="$HOME/.android/debug.keystore"
+          if [ ! -f "$DEBUG_KEYSTORE" ]; then
+            keytool -genkeypair -keystore "$DEBUG_KEYSTORE" -storepass android -alias androiddebugkey -keypass android -dname "CN=Android Debug,O=Android,C=US" -keyalg RSA -keysize 2048 -validity 10000
+          fi
+          cat > "$HOME/.config/godot/editor_settings-4.3.tres" <<EOF
+          [gd_resource type="EditorSettings" format=3]
+
+          [resource]
+          export/android/android_sdk_path = "$SDK_ROOT"
+          export/android/java_sdk_path = "$JAVA_HOME"
+          EOF
+          cat >> deep-shift-full/export_presets.cfg <<EOF
+
+          [preset.1]
+          name="Android"
+          platform="Android"
+          runnable=true
+          advanced_options=false
+          dedicated_server=false
+          custom_features=""
+          export_filter="all_resources"
+          include_filter=""
+          exclude_filter=""
+          export_path="build/android/DeepShift.apk"
+          encryption_include_filters=""
+          encryption_exclude_filters=""
+          encrypt_pck=false
+          encrypt_directory=false
+
+          [preset.1.options]
+          custom_template/debug=""
+          custom_template/release=""
+          gradle_build/use_gradle_build=false
+          architectures/armeabi-v7a=false
+          architectures/arm64-v8a=true
+          architectures/x86=false
+          architectures/x86_64=false
+          package/unique_name="com.blazedtrail.deepshift"
+          package/name="Deep Shift"
+          package/signed=true
+          keystore/debug="$DEBUG_KEYSTORE"
+          keystore/debug_user="androiddebugkey"
+          keystore/debug_password="android"
+          version/code=1
+          version/name="0.1-rc"
+          screen/immersive_mode=true
+          EOF
+          godot --headless --path deep-shift-full --export-debug "Android" build/android/DeepShift.apk 2>&1 | tee export-android.log
+          test -s deep-shift-full/build/android/DeepShift.apk
+          unzip -t deep-shift-full/build/android/DeepShift.apk >/dev/null
+          sha256sum deep-shift-full/build/android/DeepShift.apk > deep-shift-full/build/android/SHA256.txt
+          printf 'Blazed Trail Studios\nDeep Shift\nAndroid Test Build\n' > deep-shift-full/build/android/BUILD_IDENTITY.txt
+          echo 'DEEP_SHIFT_ANDROID_EXPORT_GATE: PASS'
+
       - name: Upload Windows audio release candidate
         uses: actions/upload-artifact@v4
         with:
           name: DeepShift-Windows-Audio-Release-Candidate
           path: deep-shift-full/build/windows/
+          retention-days: 90
+
+      - name: Upload Android test build
+        uses: actions/upload-artifact@v4
+        with:
+          name: DeepShift-Android-Test-Build
+          path: deep-shift-full/build/android/
           retention-days: 90
