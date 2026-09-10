@@ -11,7 +11,7 @@ on:
 jobs:
   runtime-qa:
     runs-on: ubuntu-latest
-    timeout-minutes: 15
+    timeout-minutes: 20
     steps:
       - name: Checkout
         uses: actions/checkout@v4
@@ -23,24 +23,19 @@ jobs:
           sudo mv Godot_v4.3-stable_linux.x86_64 /usr/local/bin/godot
           godot --version
 
-      - name: Import CI harness with strict log gate
+      - name: Import with strict log gate
         shell: bash
         run: |
           set -o pipefail
           godot --headless --path deep-shift-ci --editor --quit 2>&1 | tee import.log
-          if grep -E "SCRIPT ERROR|ERROR:" import.log; then
-            echo "Godot import emitted an error even if the process returned zero."
-            exit 1
-          fi
+          if grep -E "SCRIPT ERROR|ERROR:" import.log; then exit 1; fi
 
       - name: Compile production gameplay scripts
         shell: bash
         run: |
           set -o pipefail
           godot --headless --path deep-shift-ci --scene res://scenes/CompileCheck.tscn 2>&1 | tee compile.log
-          if grep -E "SCRIPT ERROR|ERROR:" compile.log; then
-            exit 1
-          fi
+          if grep -E "SCRIPT ERROR|ERROR:" compile.log; then exit 1; fi
           grep -q "DEEP_SHIFT_GAMEPLAY_COMPILE_GATE: PASS" compile.log
 
       - name: Run deterministic smoke and occupancy tests
@@ -48,9 +43,7 @@ jobs:
         run: |
           set -o pipefail
           godot --headless --path deep-shift-ci --scene res://scenes/SmokeTest.tscn 2>&1 | tee smoke.log
-          if grep -E "SCRIPT ERROR|ERROR:" smoke.log; then
-            exit 1
-          fi
+          if grep -E "SCRIPT ERROR|ERROR:" smoke.log; then exit 1; fi
           grep -q "DEEP_SHIFT_SMOKE_TEST: PASS" smoke.log
 
       - name: Run 250-expedition autonomous balance gate
@@ -58,8 +51,34 @@ jobs:
         run: |
           set -o pipefail
           godot --headless --path deep-shift-ci --scene res://scenes/PlaytestRunner.tscn 2>&1 | tee playtest.log
-          if grep -E "SCRIPT ERROR|ERROR:" playtest.log; then
-            exit 1
-          fi
+          if grep -E "SCRIPT ERROR|ERROR:" playtest.log; then exit 1; fi
           grep -q "DEEP_SHIFT_PLAYTEST_REPORT" playtest.log
           grep -q "DEEP_SHIFT_BALANCE_GATE: PASS" playtest.log
+
+      - name: Install Godot export templates
+        shell: bash
+        run: |
+          wget -q https://github.com/godotengine/godot/releases/download/4.3-stable/Godot_v4.3-stable_export_templates.tpz
+          mkdir -p "$HOME/.local/share/godot/export_templates/4.3.stable"
+          unzip -q Godot_v4.3-stable_export_templates.tpz -d templates
+          cp -r templates/templates/* "$HOME/.local/share/godot/export_templates/4.3.stable/"
+
+      - name: Export Windows technical build
+        shell: bash
+        run: |
+          mkdir -p build
+          set -o pipefail
+          godot --headless --path deep-shift-ci --export-release "Windows Desktop" ../build/DeepShift.exe 2>&1 | tee export.log
+          if grep -E "SCRIPT ERROR|ERROR:" export.log; then exit 1; fi
+          test -s build/DeepShift.exe
+          test -s build/DeepShift.pck
+          echo "DEEP_SHIFT_WINDOWS_EXPORT_GATE: PASS"
+
+      - name: Upload Windows technical build
+        uses: actions/upload-artifact@v4
+        with:
+          name: DeepShift-Windows-Technical-Build
+          path: |
+            build/DeepShift.exe
+            build/DeepShift.pck
+          if-no-files-found: error
