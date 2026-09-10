@@ -7,6 +7,7 @@ on:
     paths:
       - ".github/workflows/deep-shift-android-build.yml"
       - "deep-shift-ci/full_game_bundle.part*"
+      - "deep-shift-ci/scripts/MobileControls.gd"
 
 jobs:
   android-apk:
@@ -47,6 +48,7 @@ jobs:
           sed -i 's/var requirement := 0 if sector_index == 4 else min(int(sector_data.ore_count), 5 + sector_index)/var requirement: int = 0 if sector_index == 4 else int(min(int(sector_data.ore_count), 5 + sector_index))/' deep-shift-full/scripts/Game.gd
           sed -i 's/var tech := max(1, int(depth \/ 2) + (3 if success else 0) + int(GameState.run.score \/ 3000))/var tech: int = int(max(1, int(depth \/ 2) + (3 if success else 0) + int(GameState.run.score \/ 3000)))/' deep-shift-full/scripts/Game.gd
           printf 'extends Node\nfunc play(_id: String, _pitch := 1.0) -> void:\n    pass\n' > deep-shift-full/scripts/AudioManager.gd
+          cp deep-shift-ci/scripts/MobileControls.gd deep-shift-full/scripts/MobileControls.gd
           python3 - <<'PY'
           from pathlib import Path
           p = Path('deep-shift-full/project.godot')
@@ -57,9 +59,17 @@ jobs:
                   text = text.replace('[rendering]', '[rendering]\n' + key, 1)
               else:
                   text += '\n[rendering]\n' + key + '\n'
+          autoload = 'MobileControls="*res://scripts/MobileControls.gd"'
+          if autoload not in text:
+              if '[autoload]' in text:
+                  text = text.replace('[autoload]', '[autoload]\n' + autoload, 1)
+              else:
+                  text += '\n[autoload]\n' + autoload + '\n'
           p.write_text(text)
           PY
           grep -q '^textures/vram_compression/import_etc2_astc=true$' deep-shift-full/project.godot
+          grep -q '^MobileControls="\*res://scripts/MobileControls.gd"$' deep-shift-full/project.godot
+          test -s deep-shift-full/scripts/MobileControls.gd
 
       - name: Configure Android toolchain
         shell: bash
@@ -104,6 +114,7 @@ jobs:
           set -o pipefail
           godot --headless --path deep-shift-full --editor --quit --verbose 2>&1 | tee import.log
           ! grep -E "SCRIPT ERROR|ERROR:" import.log
+          grep -q 'MobileControls.gd' deep-shift-full/project.godot
           echo "Godot config files:"
           find "$HOME/.config/godot" -maxdepth 2 -type f -print -exec sh -c 'echo --- $1; head -40 "$1"' sh {} \;
 
@@ -143,8 +154,8 @@ jobs:
           keystore/debug="$GODOT_ANDROID_KEYSTORE_DEBUG_PATH"
           keystore/debug_user="androiddebugkey"
           keystore/debug_password="android"
-          version/code=1
-          version/name="0.1-android-test"
+          version/code=2
+          version/name="0.2-android-touch-test"
           screen/immersive_mode=true
           EOF
           mkdir -p deep-shift-full/build/android
@@ -154,12 +165,12 @@ jobs:
           unzip -l deep-shift-full/build/android/DeepShift.apk | grep -q 'AndroidManifest.xml'
           unzip -l deep-shift-full/build/android/DeepShift.apk | grep -q 'lib/arm64-v8a/'
           sha256sum deep-shift-full/build/android/DeepShift.apk > deep-shift-full/build/android/SHA256.txt
-          printf 'Deep Shift\nAndroid Test Build\narm64-v8a\n' > deep-shift-full/build/android/BUILD_IDENTITY.txt
-          echo 'DEEP_SHIFT_ANDROID_EXPORT_GATE: PASS'
+          printf 'Deep Shift\nAndroid Touch Test Build\narm64-v8a\n' > deep-shift-full/build/android/BUILD_IDENTITY.txt
+          echo 'DEEP_SHIFT_ANDROID_TOUCH_CONTROLS_GATE: PASS'
 
       - name: Upload Android test build
         uses: actions/upload-artifact@v4
         with:
-          name: DeepShift-Android-Test-Build
+          name: DeepShift-Android-Touch-Test-Build
           path: deep-shift-full/build/android/
           retention-days: 90
