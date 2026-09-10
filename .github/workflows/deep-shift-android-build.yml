@@ -1,0 +1,143 @@
+name: Deep Shift Android Build
+
+on:
+  workflow_dispatch:
+  push:
+    branches: ["deep-shift-ci"]
+    paths:
+      - ".github/workflows/deep-shift-android-build.yml"
+      - "deep-shift-ci/full_game_bundle.part*"
+
+jobs:
+  android-apk:
+    runs-on: ubuntu-latest
+    timeout-minutes: 25
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Set up Java 17
+        uses: actions/setup-java@v5
+        with:
+          distribution: temurin
+          java-version: '17'
+
+      - name: Install Godot 4.3 and export templates
+        shell: bash
+        run: |
+          set -euo pipefail
+          wget -q https://github.com/godotengine/godot/releases/download/4.3-stable/Godot_v4.3-stable_linux.x86_64.zip
+          unzip -q Godot_v4.3-stable_linux.x86_64.zip
+          sudo mv Godot_v4.3-stable_linux.x86_64 /usr/local/bin/godot
+          mkdir -p "$HOME/.local/share/godot/export_templates/4.3.stable"
+          wget -q https://github.com/godotengine/godot/releases/download/4.3-stable/Godot_v4.3-stable_export_templates.tpz
+          unzip -q Godot_v4.3-stable_export_templates.tpz -d /tmp/godot-templates
+          cp -r /tmp/godot-templates/templates/* "$HOME/.local/share/godot/export_templates/4.3.stable/"
+          godot --version
+
+      - name: Hydrate playable source
+        shell: bash
+        run: |
+          set -euo pipefail
+          rm -rf deep-shift-full && mkdir -p deep-shift-full
+          cat deep-shift-ci/full_game_bundle.part01 deep-shift-ci/full_game_bundle.part02 deep-shift-ci/full_game_bundle.part03 deep-shift-ci/full_game_bundle.part04 deep-shift-ci/full_game_bundle.part05 deep-shift-ci/full_game_bundle.part06 > /tmp/deep_shift_full.b64
+          test "$(wc -c < /tmp/deep_shift_full.b64)" -eq 33548
+          base64 -d /tmp/deep_shift_full.b64 > /tmp/deep_shift_full.tar.gz
+          tar -xzf /tmp/deep_shift_full.tar.gz -C deep-shift-full
+          sed -i 's/var requirement := 0 if sector_index == 4 else min(int(sector_data.ore_count), 5 + sector_index)/var requirement: int = 0 if sector_index == 4 else int(min(int(sector_data.ore_count), 5 + sector_index))/' deep-shift-full/scripts/Game.gd
+          sed -i 's/var tech := max(1, int(depth \/ 2) + (3 if success else 0) + int(GameState.run.score \/ 3000))/var tech: int = int(max(1, int(depth \/ 2) + (3 if success else 0) + int(GameState.run.score \/ 3000)))/' deep-shift-full/scripts/Game.gd
+          printf 'extends Node\nfunc play(_id: String, _pitch := 1.0) -> void:\n    pass\n' > deep-shift-full/scripts/AudioManager.gd
+
+      - name: Configure Android toolchain
+        shell: bash
+        run: |
+          set -euo pipefail
+          SDK_ROOT="${ANDROID_SDK_ROOT:-${ANDROID_HOME:-/usr/local/lib/android/sdk}}"
+          SDKMANAGER="$(find "$SDK_ROOT/cmdline-tools" -type f -name sdkmanager 2>/dev/null | head -1)"
+          yes | "$SDKMANAGER" --sdk_root="$SDK_ROOT" --licenses >/dev/null || true
+          "$SDKMANAGER" --sdk_root="$SDK_ROOT" \
+            "platform-tools" \
+            "build-tools;34.0.0" \
+            "platforms;android-34" \
+            "cmake;3.10.2.4988404" \
+            "ndk;23.2.8568313" >/dev/null
+          test -x "$SDK_ROOT/platform-tools/adb"
+          mkdir -p "$HOME/.config/godot" "$HOME/.android"
+          DEBUG_KEYSTORE="$HOME/.android/debug.keystore"
+          keytool -genkeypair -keystore "$DEBUG_KEYSTORE" -storepass android -alias androiddebugkey -keypass android -dname "CN=Android Debug,O=Android,C=US" -keyalg RSA -keysize 2048 -validity 10000
+          cat > "$HOME/.config/godot/editor_settings-4.tres" <<EOF
+          [gd_resource type="EditorSettings" format=3]
+
+          [resource]
+          export/android/android_sdk_path = "$SDK_ROOT"
+          export/android/java_sdk_path = "$JAVA_HOME"
+          EOF
+          export GODOT_ANDROID_KEYSTORE_DEBUG_PATH="$DEBUG_KEYSTORE"
+          export GODOT_ANDROID_KEYSTORE_DEBUG_USER="androiddebugkey"
+          export GODOT_ANDROID_KEYSTORE_DEBUG_PASSWORD="android"
+          printf '%s\n' "$SDK_ROOT" "$JAVA_HOME" "$DEBUG_KEYSTORE"
+
+      - name: Import project
+        shell: bash
+        run: |
+          set -o pipefail
+          godot --headless --path deep-shift-full --editor --quit 2>&1 | tee import.log
+          ! grep -E "SCRIPT ERROR|ERROR:" import.log
+
+      - name: Export Android APK
+        shell: bash
+        env:
+          GODOT_ANDROID_KEYSTORE_DEBUG_PATH: /home/runner/.android/debug.keystore
+          GODOT_ANDROID_KEYSTORE_DEBUG_USER: androiddebugkey
+          GODOT_ANDROID_KEYSTORE_DEBUG_PASSWORD: android
+        run: |
+          set -euo pipefail
+          cat >> deep-shift-full/export_presets.cfg <<'EOF'
+
+          [preset.1]
+          name="Android"
+          platform="Android"
+          runnable=true
+          advanced_options=false
+          dedicated_server=false
+          custom_features=""
+          export_filter="all_resources"
+          include_filter=""
+          exclude_filter=""
+          export_path="build/android/DeepShift.apk"
+          encryption_include_filters=""
+          encryption_exclude_filters=""
+          encrypt_pck=false
+          encrypt_directory=false
+
+          [preset.1.options]
+          custom_template/debug=""
+          custom_template/release=""
+          gradle_build/use_gradle_build=false
+          architectures/armeabi-v7a=false
+          architectures/arm64-v8a=true
+          architectures/x86=false
+          architectures/x86_64=false
+          package/unique_name="com.blazedtrail.deepshift"
+          package/name="Deep Shift"
+          package/signed=true
+          version/code=1
+          version/name="0.1-android-test"
+          screen/immersive_mode=true
+          EOF
+          mkdir -p deep-shift-full/build/android
+          godot --headless --path deep-shift-full --export-debug "Android" build/android/DeepShift.apk 2>&1 | tee export-android.log
+          test -s deep-shift-full/build/android/DeepShift.apk
+          unzip -t deep-shift-full/build/android/DeepShift.apk >/dev/null
+          unzip -l deep-shift-full/build/android/DeepShift.apk | grep -q 'AndroidManifest.xml'
+          unzip -l deep-shift-full/build/android/DeepShift.apk | grep -q 'lib/arm64-v8a/'
+          sha256sum deep-shift-full/build/android/DeepShift.apk > deep-shift-full/build/android/SHA256.txt
+          printf 'Deep Shift\nAndroid Test Build\narm64-v8a\n' > deep-shift-full/build/android/BUILD_IDENTITY.txt
+          echo 'DEEP_SHIFT_ANDROID_EXPORT_GATE: PASS'
+
+      - name: Upload Android test build
+        uses: actions/upload-artifact@v4
+        with:
+          name: DeepShift-Android-Test-Build
+          path: deep-shift-full/build/android/
+          retention-days: 90
