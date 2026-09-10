@@ -5,7 +5,7 @@ var rng := RandomNumberGenerator.new()
 
 func simulate(seed_value: int) -> Dictionary:
     rng.seed = seed_value
-    var energy := 100
+    var energy := 115
     var armor := 0
     var score := 0
     var sector := 0
@@ -18,19 +18,19 @@ func simulate(seed_value: int) -> Dictionary:
         var turns := 0
         while (collected < required_ore or (s == 4 and turns < 18)) and turns < 90:
             turns += 1
-            energy -= rng.randi_range(0,3)
-            if rng.randf() < 0.12:
+            energy -= rng.randi_range(0,2)
+            if rng.randf() < 0.16:
                 collected += 1
-                energy = min(100,energy+10)
+                energy = min(115,energy+12)
                 score += 100
-            if rng.randf() < 0.08:
+            if rng.randf() < 0.06:
                 var pick := rng.randi_range(0,3)
                 var keys := ["pulse","dash","charge","shield"]
                 abilities[keys[pick]] += 1
-                energy -= [12,10,0,18][pick]
+                energy -= [10,8,0,14][pick]
                 if pick == 3:
                     armor += 1
-            if rng.randf() < 0.055 + s*0.012:
+            if rng.randf() < 0.012 + s*0.004:
                 if armor > 0:
                     armor -= 1
                 else:
