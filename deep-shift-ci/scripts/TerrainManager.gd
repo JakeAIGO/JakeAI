@@ -23,8 +23,8 @@ func build_from_seed(seed_value: int, spawn_world: Vector2, exit_world: Vector2)
     var safety := 0
     while current != end and safety < 500:
         safety += 1
-        var dx := sign(end.x - current.x)
-        var dy := sign(end.y - current.y)
+        var dx: int = int(sign(end.x - current.x))
+        var dy: int = int(sign(end.y - current.y))
         if rng.randf() < 0.55 and dx != 0:
             current.x += dx
         elif dy != 0:
@@ -102,7 +102,7 @@ func _set_solid(cell: Vector2i, value: bool) -> void:
             add_child(body)
             cell_nodes[cell] = body
     elif cell_nodes.has(cell):
-        var n = cell_nodes[cell]
+        var n: Node = cell_nodes[cell] as Node
         if is_instance_valid(n):
             n.queue_free()
         cell_nodes.erase(cell)
