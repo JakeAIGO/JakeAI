@@ -84,25 +84,19 @@ jobs:
               print("INTERACTION_STAGE: upgrade")
               game.call("start_sector", 4)
               await get_tree().process_frame
+              await get_tree().process_frame
               check(int(game.get("sector_index")) == 4, "boss sector initializes")
               check(bool(game.get("boss_alive")), "boss encounter is active")
-              var boss: Node = null
-              for child in game.get_children():
-                  if child != null and child.has_method("take_damage") and child.get_class() != "CharacterBody2D":
-                      boss = child
-              if boss == null:
-                  for n in game.find_children("*", "", true, false):
-                      if n.has_method("take_damage") and str(n.name).to_lower().contains("boss"):
-                          boss = n
-                          break
+              var boss: Node = game.get_node_or_null("World/Entities/CoreWarden")
+              check(boss != null, "Core Warden node is present")
               if boss != null:
+                  check(boss.has_method("take_damage"), "Core Warden exposes damage API")
                   for i in range(12):
                       if not is_instance_valid(boss): break
                       boss.call("take_damage", 2)
                       await get_tree().process_frame
+                  await get_tree().process_frame
                   check(not bool(game.get("boss_alive")), "boss can be defeated")
-              else:
-                  failures.append("boss node discoverable")
               print("INTERACTION_STAGE: boss")
               finish()
           func finish() -> void:
