@@ -1,0 +1,54 @@
+{
+  "validation_plan_version": "0.1.0",
+  "product_name": "Energy Infrastructure Site Intelligence Orchestrator",
+  "stage": "BUYER_VALIDATION_PRE_BUILD",
+  "objective": "Determine whether the proposed workflow solves a recurring problem that target users would allocate budget to solve before authorizing product construction.",
+  "target_roles": [
+    "Data center site selection lead",
+    "Energy infrastructure development manager",
+    "Utility large-load planning or economic-development representative",
+    "Engineering or owner's-representative project manager",
+    "Infrastructure-focused real estate or development advisor"
+  ],
+  "minimum_valid_responses": 3,
+  "questions": [
+    "In the last 12 months, how often have you compared candidate sites using power availability, interconnection timing, permitting/zoning, and infrastructure constraints?",
+    "What parts of that process consume the most staff or consultant time?",
+    "What tools, spreadsheets, consultants, utility contacts, or internal systems do you use today?",
+    "What errors, delays, duplicated work, or missed information create the most cost or risk?",
+    "Would a source-linked comparison packet that organizes these inputs before engineering/legal/utility review save meaningful time? Why or why not?",
+    "Who owns budget for this work and how is it currently paid for?",
+    "What would have to be true before you would pay for a tool or service like this?",
+    "At what price would a single-project or monthly version become obviously too expensive to consider?",
+    "What capability would make this immediately useful, and what capability would make you reject it?"
+  ],
+  "success_thresholds": {
+    "recurring_problem": "At least 2 of 3 qualified respondents report the workflow occurs repeatedly or consumes material project time.",
+    "clear_cost_or_delay": "At least 2 respondents identify a concrete labor, consultant, delay, or coordination cost.",
+    "budget_signal": "At least 1 qualified respondent identifies a real budget owner or current paid substitute.",
+    "willingness_to_pay": "At least 1 unrelated qualified respondent gives a credible positive purchase/test signal at a stated price or agrees to a paid pilot.",
+    "scope_fit": "No majority requirement for autonomous engineering, legal determinations, utility approvals, or other prohibited high-consequence decisions."
+  },
+  "failure_conditions": [
+    "Respondents describe the problem as rare or trivial.",
+    "Existing tools already solve the bounded workflow with little friction.",
+    "Value depends primarily on proprietary data JakeAI cannot lawfully or economically access.",
+    "Buyers require regulated engineering or legal conclusions rather than evidence preparation.",
+    "No qualified respondent identifies budget, cost, or willingness to pay."
+  ],
+  "routing": {
+    "PASS": "Send evidence to Build Authorization Gate; construction still remains disabled until technical/security/legal review requirements are attached.",
+    "HOLD": "Refine scope or gather additional buyer evidence without building the full product.",
+    "REJECT": "Archive candidate unless materially new buyer evidence appears."
+  },
+  "controls": {
+    "build_authorized": false,
+    "spending_authorized": false,
+    "publication_authorized": false,
+    "checkout_authorized": false,
+    "deployment_authorized": false,
+    "human_approval_required": true
+  },
+  "notes": "Public market research may support problem existence, but it does not count as willingness-to-pay validation. Responses should be attributable to a real qualified role while respecting privacy and permission requirements.",
+  "generated_at": "2026-09-10T18:48:00Z"
+}
