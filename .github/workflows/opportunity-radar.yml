@@ -28,9 +28,9 @@ jobs:
           for signal in product-discovery/live-signals/*.json; do
             if [ -f "$signal" ]; then
               echo ""
-              echo "======================================================"
+              echo "======================================================================"
               echo "EVALUATING: $signal"
-              echo "======================================================"
+              echo "======================================================================"
 
               python product-discovery/opportunity_radar.py "$signal"
               count=$((count + 1))
@@ -43,6 +43,42 @@ jobs:
           if [ "$count" -eq 0 ]; then
             echo "ERROR: No live signals were captured."
             exit 1
+          fi
+
+      - name: Enrich Signals Needing More Evidence
+        run: |
+          python product-discovery/evidence_enricher.py
+
+      - name: Preserve First-Pass Radar Results
+        shell: bash
+        run: |
+          mkdir -p product-discovery/radar-first-pass
+
+          cp product-discovery/radar-output/*.json \
+             product-discovery/radar-first-pass/ 2>/dev/null || true
+
+      - name: Re-score Enriched Signals
+        shell: bash
+        run: |
+          count=0
+
+          for signal in product-discovery/enriched-signals/*.json; do
+            if [ -f "$signal" ]; then
+              echo ""
+              echo "======================================================================"
+              echo "RE-SCORING ENRICHED SIGNAL: $signal"
+              echo "======================================================================"
+
+              python product-discovery/opportunity_radar.py "$signal"
+              count=$((count + 1))
+            fi
+          done
+
+          echo ""
+          echo "Enriched signals re-scored: $count"
+
+          if [ "$count" -eq 0 ]; then
+            echo "No enriched signals were available for re-scoring."
           fi
 
       - name: Summarize Opportunity Radar Results
@@ -69,7 +105,7 @@ jobs:
 
               disposition = data.get(
                   "disposition",
-                  "UNKNOWN"
+                  "UNKNOWN",
               )
 
               counts[disposition] = (
@@ -77,16 +113,33 @@ jobs:
               )
 
               if disposition == "PROMOTE_TO_DISCOVERY":
+                  original = data.get(
+                      "original_signal",
+                      {}
+                  )
+
                   promoted.append(
-                      (
-                          data.get("radar_score", 0),
-                          data.get("title", "Untitled"),
-                          data.get("industry", "Unknown"),
-                      )
+                      {
+                          "score": data.get(
+                              "radar_score",
+                              0,
+                          ),
+                          "title": original.get(
+                              "title",
+                              "Untitled",
+                          ),
+                          "industry": original.get(
+                              "industry",
+                              "Unknown",
+                          ),
+                      }
                   )
 
           print("=" * 70)
-          print("JAKEAI OPPORTUNITY RADAR — LIVE SCAN SUMMARY")
+          print(
+              "JAKEAI OPPORTUNITY RADAR — "
+              "ENRICHED LIVE SCAN SUMMARY"
+          )
           print("=" * 70)
 
           for key, value in counts.items():
@@ -96,16 +149,20 @@ jobs:
           print("TOP PROMOTED OPPORTUNITIES")
 
           if not promoted:
-              print("None promoted during this scan.")
+              print(
+                  "None promoted during this scan."
+              )
           else:
-              for score, title, industry in sorted(
+              for item in sorted(
                   promoted,
-                  reverse=True
+                  key=lambda x: x["score"],
+                  reverse=True,
               )[:10]:
+
                   print(
-                      f"{score}/100 | "
-                      f"{industry} | "
-                      f"{title}"
+                      f"{item['score']}/100 | "
+                      f"{item['industry']} | "
+                      f"{item['title']}"
                   )
 
           print("=" * 70)
@@ -116,9 +173,25 @@ jobs:
         with:
           name: opportunity-radar-live-signals
           path: product-discovery/live-signals/
+          if-no-files-found: warn
 
-      - name: Upload Radar Results
+      - name: Upload First-Pass Radar Results
         uses: actions/upload-artifact@v4
         with:
-          name: opportunity-radar-results
+          name: opportunity-radar-first-pass
+          path: product-discovery/radar-first-pass/
+          if-no-files-found: warn
+
+      - name: Upload Evidence Enrichment
+        uses: actions/upload-artifact@v4
+        with:
+          name: opportunity-radar-evidence
+          path: product-discovery/enriched-signals/
+          if-no-files-found: warn
+
+      - name: Upload Final Radar Results
+        uses: actions/upload-artifact@v4
+        with:
+          name: opportunity-radar-final-results
           path: product-discovery/radar-output/
+          if-no-files-found: warn
