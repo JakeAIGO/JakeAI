@@ -1,0 +1,33 @@
+name: Deep Shift Runtime QA
+
+on:
+  workflow_dispatch:
+  push:
+    branches: ["deep-shift-ci"]
+    paths:
+      - "deep-shift-ci/**"
+      - ".github/workflows/deep-shift-runtime-qa.yml"
+
+jobs:
+  runtime-qa:
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Install Godot 4.3
+        run: |
+          wget -q https://github.com/godotengine/godot/releases/download/4.3-stable/Godot_v4.3-stable_linux.x86_64.zip
+          unzip -q Godot_v4.3-stable_linux.x86_64.zip
+          sudo mv Godot_v4.3-stable_linux.x86_64 /usr/local/bin/godot
+          godot --version
+
+      - name: Import CI harness
+        run: godot --headless --path deep-shift-ci --editor --quit
+
+      - name: Run deterministic smoke tests
+        run: godot --headless --path deep-shift-ci --scene res://scenes/SmokeTest.tscn
+
+      - name: Run 250-ex­pedition autonomous simulation
+        run: godot --headless --path deep-shift-ci --scene res://scenes/PlaytestRunner.tscn
