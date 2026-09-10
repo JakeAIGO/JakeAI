@@ -1,0 +1,28 @@
+name: JakeAI Opportunity Radar Test
+
+on:
+  workflow_dispatch:
+
+jobs:
+  run-radar:
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout Repository
+        uses: actions/checkout@v4
+
+      - name: Set Up Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: '3.12'
+
+      - name: Run Opportunity Radar
+        run: |
+          python product-discovery/opportunity_radar.py \
+            product-discovery/signals/signal-001-grid-site-selection.json
+
+      - name: Upload Radar Output
+        uses: actions/upload-artifact@v4
+        with:
+          name: opportunity-radar-output
+          path: product-discovery/radar-output/
