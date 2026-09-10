@@ -15,7 +15,7 @@ func configure(player: CharacterBody2D, terrain_manager: Node2D) -> void:
 func seismic_charge() -> int:
     if owner_player == null or terrain == null:
         return 0
-    var affected := terrain.dig_radius(owner_player.global_position, 2)
+    var affected: int = int(terrain.dig_radius(owner_player.global_position, 2))
     for enemy in get_tree().get_nodes_in_group("enemy"):
         if owner_player.global_position.distance_to(enemy.global_position) <= 150.0:
             if enemy.has_method("take_damage"):
@@ -27,7 +27,7 @@ func seismic_charge() -> int:
 func shock_pulse(range_pixels: float) -> int:
     if owner_player == null:
         return 0
-    var affected := 0
+    var affected: int = 0
     for enemy in get_tree().get_nodes_in_group("enemy"):
         if owner_player.global_position.distance_to(enemy.global_position) <= range_pixels:
             if enemy.has_method("take_damage"):
@@ -39,10 +39,10 @@ func shock_pulse(range_pixels: float) -> int:
 func drill_dash(direction: Vector2, range_cells: int, cell_size: float) -> int:
     if owner_player == null or terrain == null:
         return 0
-    var affected := 0
-    var dir := direction.normalized()
+    var affected: int = 0
+    var dir: Vector2 = direction.normalized()
     for i in range(1, range_cells + 1):
-        var pos := owner_player.global_position + dir * cell_size * i
+        var pos: Vector2 = owner_player.global_position + dir * cell_size * i
         if terrain.dig_world(pos):
             affected += 1
         for enemy in get_tree().get_nodes_in_group("enemy"):
