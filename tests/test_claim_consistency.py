@@ -37,13 +37,20 @@ def test_commercial_actions_remain_fail_closed():
         assert marker in validation
 
 
+def _catalog_price(main: str, product_id: str) -> float:
+    match = re.search(
+        rf'"{re.escape(product_id)}"\s*:\s*\{{[\s\S]{{0,1600}}?"price"\s*:\s*([0-9]+(?:\.[0-9]+)?)',
+        main,
+    )
+    assert match, f"catalog product/price not found: {product_id}"
+    return float(match.group(1))
+
+
 def test_audit_prices_are_not_silently_changed():
     """Lock currently implemented catalog prices pending explicit commercial approval."""
     main = read("main.py")
-    single = re.search(r'"id":\s*"prod_multi_model_audit_08"[\s\S]{0,1200}?"price_cents":\s*(\d+)', main)
-    pack = re.search(r'"id":\s*"prod_audit_pack_10"[\s\S]{0,1200}?"price_cents":\s*(\d+)', main)
-    assert single and int(single.group(1)) == 200
-    assert pack and int(pack.group(1)) == 1800
+    assert _catalog_price(main, "prod_multi_model_audit_08") == 2.00
+    assert _catalog_price(main, "prod_audit_pack_10") == 18.00
 
 
 def test_named_audit_providers_are_implemented_but_not_claimed_live_here():
