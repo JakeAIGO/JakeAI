@@ -39,12 +39,12 @@ func _physics_process(delta: float) -> void:
     move_and_slide()
     var hit_something := false
     for i in get_slide_collision_count():
-        var collision := get_slide_collision(i)
-        var collider := collision.get_collider()
+        var collision: KinematicCollision2D = get_slide_collision(i)
+        var collider: Object = collision.get_collider()
         if collider == null:
             continue
         if collider.is_in_group("enemy") and collider.has_method("take_damage"):
-            var t := collider.enemy_type if "enemy_type" in collider else "enemy"
+            var t: String = str(collider.enemy_type) if "enemy_type" in collider else "enemy"
             collider.take_damage(2)
             crushed_enemy.emit(t)
             hit_something = true
