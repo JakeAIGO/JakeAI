@@ -85,7 +85,35 @@ jobs:
         run: |
           python product-discovery/opportunity_clusterer.py
 
-      - name: Summarize Opportunity Radar Results
+      - name: Convert Qualified Clusters To Product Discovery Inputs
+        run: |
+          python product-discovery/cluster_to_discovery.py
+
+      - name: Run Product Discovery On Qualified Clusters
+        shell: bash
+        run: |
+          count=0
+
+          for candidate in product-discovery/discovery-inputs/*.json; do
+            if [ -f "$candidate" ]; then
+              echo ""
+              echo "======================================================================"
+              echo "RUNNING PRODUCT DISCOVERY: $candidate"
+              echo "======================================================================"
+
+              python product-discovery/discovery_engine.py "$candidate"
+              count=$((count + 1))
+            fi
+          done
+
+          echo ""
+          echo "Discovery inputs evaluated: $count"
+
+          if [ "$count" -eq 0 ]; then
+            echo "No qualified cluster reached Product Discovery."
+          fi
+
+      - name: Summarize Test 10 Results
         run: |
           python - <<'PY'
           import json
@@ -117,34 +145,29 @@ jobs:
               )
 
               if disposition == "PROMOTE_TO_DISCOVERY":
-                  original = data.get(
-                      "original_signal",
-                      {}
-                  )
-
                   promoted.append(
                       {
                           "score": data.get(
                               "radar_score",
                               0,
                           ),
-                          "title": original.get(
+                          "title": data.get(
                               "title",
                               "Untitled",
                           ),
-                          "industry": original.get(
+                          "industry": data.get(
                               "industry",
                               "Unknown",
                           ),
                       }
                   )
 
-          print("=" * 70)
-          print(
-              "JAKEAI OPPORTUNITY RADAR — "
-              "ENRICHED LIVE SCAN SUMMARY"
-          )
-          print("=" * 70)
+          print("=" * 72)
+          print("JAKEAI AUTONOMOUS OPPORTUNITY PIPELINE — TEST 10")
+          print("=" * 72)
+
+          print()
+          print("RADAR RESULTS")
 
           for key, value in counts.items():
               print(f"{key}: {value}")
@@ -153,16 +176,13 @@ jobs:
           print("TOP PROMOTED OPPORTUNITIES")
 
           if not promoted:
-              print(
-                  "None promoted during this scan."
-              )
+              print("None promoted during this scan.")
           else:
               for item in sorted(
                   promoted,
                   key=lambda x: x["score"],
                   reverse=True,
               )[:10]:
-
                   print(
                       f"{item['score']}/100 | "
                       f"{item['industry']} | "
@@ -173,6 +193,8 @@ jobs:
               "product-discovery/opportunity-clusters/index.json"
           )
 
+          cluster_count = 0
+
           if cluster_index.exists():
               cluster_data = json.loads(
                   cluster_index.read_text(
@@ -180,34 +202,32 @@ jobs:
                   )
               )
 
-              print()
-              print(
-                  "SYNTHESIZED OPPORTUNITY CLUSTERS"
+              cluster_count = cluster_data.get(
+                  "cluster_count",
+                  0,
               )
 
+              print()
+              print("SYNTHESIZED OPPORTUNITY CLUSTERS")
               print(
-                  f"Promoted signals: "
+                  "Promoted signals: "
                   f"{cluster_data.get('promoted_signal_count', 0)}"
               )
-
               print(
-                  f"Opportunity clusters: "
-                  f"{cluster_data.get('cluster_count', 0)}"
+                  f"Opportunity clusters: {cluster_count}"
               )
 
               for cluster in sorted(
                   cluster_data.get(
                       "clusters",
-                      []
+                      [],
                   ),
-                  key=lambda x:
-                      x.get(
-                          "cluster_score",
-                          0,
-                      ),
+                  key=lambda x: x.get(
+                      "cluster_score",
+                      0,
+                  ),
                   reverse=True,
               ):
-
                   print(
                       f"{cluster.get('cluster_score', 0)}/100 | "
                       f"{cluster.get('industry', 'Unknown')} | "
@@ -216,7 +236,71 @@ jobs:
                       f"{cluster.get('recommended_next_action', 'UNKNOWN')}"
                   )
 
-          print("=" * 70)
+          discovery_inputs = list(
+              Path(
+                  "product-discovery/discovery-inputs"
+              ).glob("*.json")
+          )
+
+          blocked = list(
+              Path(
+                  "product-discovery/discovery-blocked"
+              ).glob("*.json")
+          )
+
+          candidates = list(
+              Path(
+                  "product-discovery/candidates"
+              ).glob("*.json")
+          )
+
+          print()
+          print("CLUSTER -> DISCOVERY TRANSFER")
+          print(
+              f"Discovery inputs created: "
+              f"{len(discovery_inputs)}"
+          )
+          print(
+              f"Transfers blocked: "
+              f"{len(blocked)}"
+          )
+
+          print()
+          print("PRODUCT DISCOVERY RESULTS")
+          print(
+              f"Candidate records created: "
+              f"{len(candidates)}"
+          )
+
+          for path in candidates:
+              try:
+                  data = json.loads(
+                      path.read_text(
+                          encoding="utf-8"
+                      )
+                  )
+
+                  print(
+                      f"{data.get('score', 0)}/100 | "
+                      f"{data.get('status', 'UNKNOWN')} | "
+                      f"{data.get('industry', 'Unknown')} | "
+                      f"{data.get('proposed_skill', 'Unnamed skill')}"
+                  )
+              except Exception as error:
+                  print(
+                      f"Could not summarize "
+                      f"{path.name}: {error}"
+                  )
+
+          print()
+          print("PIPELINE")
+          print(
+              "LIVE SIGNALS -> RADAR -> ENRICHMENT -> "
+              "RE-SCORE -> CLUSTERING -> DISCOVERY INPUT -> "
+              "PRODUCT DISCOVERY -> CANDIDATE"
+          )
+
+          print("=" * 72)
           PY
 
       - name: Upload Live News Signals
@@ -252,4 +336,25 @@ jobs:
         with:
           name: opportunity-radar-clusters
           path: product-discovery/opportunity-clusters/
+          if-no-files-found: warn
+
+      - name: Upload Product Discovery Inputs
+        uses: actions/upload-artifact@v4
+        with:
+          name: opportunity-radar-discovery-inputs
+          path: product-discovery/discovery-inputs/
+          if-no-files-found: warn
+
+      - name: Upload Blocked Discovery Transfers
+        uses: actions/upload-artifact@v4
+        with:
+          name: opportunity-radar-discovery-blocked
+          path: product-discovery/discovery-blocked/
+          if-no-files-found: warn
+
+      - name: Upload Product Discovery Candidates
+        uses: actions/upload-artifact@v4
+        with:
+          name: opportunity-radar-product-candidates
+          path: product-discovery/candidates/
           if-no-files-found: warn
