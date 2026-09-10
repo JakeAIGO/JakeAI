@@ -1,0 +1,37 @@
+{
+  "validation_plan_version": "0.2.0",
+  "product_name": "Site Risk & Contradiction Review",
+  "parent_candidate": "Energy Infrastructure Site Intelligence Orchestrator",
+  "stage": "BUYER_VALIDATION_PRE_BUILD",
+  "objective": "Determine whether qualified data-center and large-load development professionals will pay for a bounded cross-source review that exposes contradictory, stale, missing, or uncertain evidence across power/interconnection, zoning/permitting, regulatory, and community constraints before expert review.",
+  "market_learning": {
+    "finding": "Generic power-first site screening is already competitive. Current 2026 evidence shows local approval, zoning, permitting, regulatory posture, and community opposition can be as decisive as power availability.",
+    "product_narrowing": "Do not compete as another generic site-selection or engineering tool. Test a source-linked contradiction/risk review layer that complements existing site-selection workflows.",
+    "evidence_checked_on": "2026-09-10"
+  },
+  "bounded_pilot": {
+    "name": "Site Risk & Contradiction Review — One Site",
+    "price_usd": 99,
+    "inputs": ["one candidate site or parcel", "buyer-authorized project requirements", "permitted public evidence", "buyer-supplied evidence if provided"],
+    "outputs": ["source register", "power/interconnection evidence summary", "zoning/permitting/regulatory evidence summary", "contradiction and staleness register", "missing-information checklist", "uncertainty flags", "questions requiring utility/engineering/legal/local-government review", "human-review packet"],
+    "explicit_non_capabilities": ["no engineering certification", "no power-flow or protection study", "no utility interconnection approval", "no legal or zoning determination", "no permit approval prediction", "no guarantee of site suitability", "no autonomous land, contract, capital, or supplier decision"]
+  },
+  "target_roles": ["Data center site selection lead", "Energy infrastructure development manager", "Utility large-load planning or economic-development representative", "Engineering or owner's-representative project manager", "Infrastructure-focused real estate or development advisor"],
+  "minimum_valid_responses": 3,
+  "outreach_target": 10,
+  "questions": ["How often do power/interconnection findings conflict with zoning, permitting, regulatory, community, or other site evidence?", "How is contradictory or stale site evidence reconciled today?", "What does a missed contradiction cost in staff time, consultant spend, option diligence, or schedule?", "Would a source-linked contradiction/risk packet before expert review save meaningful time?", "Who owns budget for this diligence?", "Would you pay $99 to test this on one real site? Why or why not?", "What missing capability would prevent a paid pilot?"],
+  "success_thresholds": {
+    "qualified_responses": "At least 3 qualified respondents.",
+    "recurring_problem": "At least 2 of 3 report repeated/material contradiction, staleness, missing-evidence, or cross-domain reconciliation work.",
+    "clear_cost_or_delay": "At least 2 identify concrete labor, consultant, delay, diligence, or coordination cost.",
+    "budget_signal": "At least 1 identifies a real budget owner or paid substitute.",
+    "willingness_to_pay": "At least 1 unrelated qualified respondent pays $99 for the bounded pilot or gives explicit written intent to pay contingent on a specific legally/safely buildable missing capability.",
+    "scope_fit": "No majority requirement for regulated engineering/legal conclusions, utility approval, or prohibited consequential action."
+  },
+  "failure_conditions": ["No positive willingness-to-pay signal after 10 qualified outreach responses/conversations.", "Existing tools solve contradiction reconciliation with little friction.", "Value depends primarily on proprietary data JakeAI cannot lawfully/economically access.", "Buyers require regulated engineering or legal conclusions.", "No qualified respondent identifies budget, cost, or willingness to pay."],
+  "routing": {"PASS": "Send attributable buyer evidence to Build Authorization Gate; construction remains disabled until technical/security/legal/liability requirements are attached.", "HOLD": "Refine scope or gather additional buyer evidence without building the full product.", "REJECT": "Archive candidate unless materially new buyer evidence appears."},
+  "controls": {"build_authorized": false, "spending_authorized": false, "publication_authorized": false, "checkout_authorized": false, "deployment_authorized": false, "human_approval_required": true},
+  "privacy": {"home_address_required": false, "home_address_must_not_be_published": true, "github_must_not_store_private_contact_data": true},
+  "notes": "Public market research supports problem existence but never counts as willingness-to-pay validation. Only attributable responses from real qualified roles count toward the buyer gate.",
+  "updated_at": "2026-09-10T19:27:00Z"
+}

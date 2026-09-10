@@ -1,0 +1,90 @@
+name: JakeAI Product Development Evidence Gate
+
+on:
+  workflow_dispatch:
+  pull_request:
+    branches: [codex-setup, main]
+
+permissions:
+  contents: read
+
+jobs:
+  stage3-development-evidence:
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout Repository
+        uses: actions/checkout@v4
+
+      - name: Set Up Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: '3.12'
+
+      - name: Run Stage 3 Regression Tests
+        run: python product-discovery/test_development_evidence_gate.py
+
+      - name: Verify Independent Validation Artifact
+        run: |
+          python - <<'PY'
+          import json
+          from pathlib import Path
+
+          path = Path("product-discovery/validation/independent-validation-001.json")
+          data = json.loads(path.read_text(encoding="utf-8"))
+
+          assert data["independently_validated"] is True
+          assert data["market_demand_validated"] is False
+          assert data["willingness_to_pay_validated"] is False
+          assert data["independent_source_count"] >= 5
+          assert len(data.get("counter_evidence") or []) >= 1
+          assert data["build_authorized"] is False
+          assert data["publication_authorized"] is False
+          assert data["spending_authorized"] is False
+          print("Independent validation artifact passed structural checks.")
+          PY
+
+      - name: Run Stage 3 Against Independent Evidence
+        run: |
+          python product-discovery/development_evidence_gate.py \
+            product-discovery/validation/independent-validation-001.json \
+            product-discovery/development/product-development-001.json
+
+      - name: Verify Stage 3 Route and Consequential Permissions
+        run: |
+          python - <<'PY'
+          import json
+          from pathlib import Path
+
+          path = Path("product-discovery/development/product-development-001.json")
+          result = json.loads(path.read_text(encoding="utf-8"))
+
+          if result.get("route") != "DEVELOP":
+              raise SystemExit(f"Expected DEVELOP after independent validation; got {result.get('route')}")
+
+          if result.get("product_spec_eligible") is not True:
+              raise SystemExit("Bounded product specification should be eligible")
+
+          for field in (
+              "build_authorized",
+              "spending_authorized",
+              "publication_authorized",
+              "deployment_authorized",
+              "checkout_authorized",
+          ):
+              if result.get(field) is not False:
+                  raise SystemExit(f"Fail-closed invariant violated: {field}")
+
+          if result.get("human_approval_required") is not True:
+              raise SystemExit("Human approval invariant violated")
+
+          print("Stage 3 route: DEVELOP")
+          print("Bounded product-specification eligibility: YES")
+          print("Build/spend/checkout/publication/deployment: ALL DISABLED")
+          PY
+
+      - name: Upload Stage 3 Artifact
+        uses: actions/upload-artifact@v4
+        with:
+          name: product-development-evidence-001
+          path: product-discovery/development/product-development-001.json
