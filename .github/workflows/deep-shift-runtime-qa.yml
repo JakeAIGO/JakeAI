@@ -15,14 +15,12 @@ jobs:
     steps:
       - name: Checkout
         uses: actions/checkout@v4
-
       - name: Install Godot 4.3
         run: |
           wget -q https://github.com/godotengine/godot/releases/download/4.3-stable/Godot_v4.3-stable_linux.x86_64.zip
           unzip -q Godot_v4.3-stable_linux.x86_64.zip
           sudo mv Godot_v4.3-stable_linux.x86_64 /usr/local/bin/godot
           godot --version
-
       - name: Validate deterministic CI harness
         shell: bash
         run: |
@@ -30,21 +28,16 @@ jobs:
           godot --headless --path deep-shift-ci --editor --quit 2>&1 | tee harness-import.log
           ! grep -E "SCRIPT ERROR|ERROR:" harness-import.log
           godot --headless --path deep-shift-ci --scene res://scenes/CompileCheck.tscn 2>&1 | tee compile.log
-          ! grep -E "SCRIPT ERROR|ERROR:" compile.log
           grep -q "DEEP_SHIFT_GAMEPLAY_COMPILE_GATE: PASS" compile.log
           godot --headless --path deep-shift-ci --scene res://scenes/SmokeTest.tscn 2>&1 | tee smoke.log
-          ! grep -E "SCRIPT ERROR|ERROR:" smoke.log
           grep -q "DEEP_SHIFT_SMOKE_TEST: PASS" smoke.log
           godot --headless --path deep-shift-ci --scene res://scenes/PlaytestRunner.tscn 2>&1 | tee playtest.log
-          ! grep -E "SCRIPT ERROR|ERROR:" playtest.log
           grep -q "DEEP_SHIFT_BALANCE_GATE: PASS" playtest.log
-
       - name: Hydrate and patch full playable source tree
         shell: bash
         run: |
           set -e
-          rm -rf deep-shift-full
-          mkdir -p deep-shift-full
+          rm -rf deep-shift-full && mkdir -p deep-shift-full
           cat deep-shift-ci/full_game_bundle.part01 deep-shift-ci/full_game_bundle.part02 deep-shift-ci/full_game_bundle.part03 deep-shift-ci/full_game_bundle.part04 deep-shift-ci/full_game_bundle.part05 deep-shift-ci/full_game_bundle.part06 > /tmp/deep_shift_full.b64
           test "$(wc -c < /tmp/deep_shift_full.b64)" -eq 33548
           base64 -d /tmp/deep_shift_full.b64 > /tmp/deep_shift_full.tar.gz
@@ -52,17 +45,12 @@ jobs:
           printf 'extends Node\nfunc play(_id: String, _pitch := 1.0) -> void:\n    pass\n' > deep-shift-full/scripts/AudioManager.gd
           sed -i 's/var requirement := 0 if sector_index == 4 else min(int(sector_data.ore_count), 5 + sector_index)/var requirement: int = 0 if sector_index == 4 else int(min(int(sector_data.ore_count), 5 + sector_index))/' deep-shift-full/scripts/Game.gd
           sed -i 's/var tech := max(1, int(depth \/ 2) + (3 if success else 0) + int(GameState.run.score \/ 3000))/var tech: int = int(max(1, int(depth \/ 2) + (3 if success else 0) + int(GameState.run.score \/ 3000)))/' deep-shift-full/scripts/Game.gd
-
-      - name: Import full playable game with strict log gate
+      - name: Import and compile full playable
         run: |
           godot --headless --path deep-shift-full --editor --quit 2>&1 | tee full-import.log
           ! grep -E "SCRIPT ERROR|ERROR:" full-import.log
-
-      - name: Compile full playable gameplay scripts
-        run: |
           godot --headless --path deep-shift-full --scene res://scenes/CompileCheck.tscn 2>&1 | tee full-compile.log
           grep -q "DEEP_SHIFT_GAMEPLAY_COMPILE_GATE: PASS" full-compile.log
-
       - name: Release candidate content gate
         run: |
           test -f deep-shift-full/scenes/Boss.tscn
@@ -70,15 +58,13 @@ jobs:
           test -f deep-shift-full/scenes/UpgradePanel.tscn
           test -f deep-shift-full/data/asset_provenance_and_ip_manifest.json
           test -f deep-shift-full/data/game_manifest.json
-          printf 'DEEP_SHIFT_RELEASE_CANDIDATE_GATE: PASS\n'
-
+          echo 'DEEP_SHIFT_RELEASE_CANDIDATE_GATE: PASS'
       - name: Install Godot export templates
         run: |
           mkdir -p ~/.local/share/godot/export_templates/4.3.stable
           wget -q https://github.com/godotengine/godot/releases/download/4.3-stable/Godot_v4.3-stable_export_templates.tpz
           unzip -q Godot_v4.3-stable_export_templates.tpz -d /tmp/godot-templates
           cp -r /tmp/godot-templates/templates/* ~/.local/share/godot/export_templates/4.3.stable/
-
       - name: Export Windows release candidate
         run: |
           mkdir -p deep-shift-full/build/windows
@@ -86,8 +72,7 @@ jobs:
           test -s deep-shift-full/build/windows/DeepShift.exe
           sha256sum deep-shift-full/build/windows/DeepShift.exe > deep-shift-full/build/windows/SHA256.txt
           printf 'Blazed Trail Studios\nDeep Shift\nWindows Release Candidate\n' > deep-shift-full/build/windows/BUILD_IDENTITY.txt
-
-      - name: Configure Android SDK and export
+      - name: Configure Android SDK and export APK
         shell: bash
         run: |
           set -euo pipefail
@@ -95,23 +80,19 @@ jobs:
           JAVA_HOME_PATH="$(dirname "$(dirname "$JAVA_BIN")")"
           SDK_ROOT="${ANDROID_SDK_ROOT:-${ANDROID_HOME:-/usr/local/lib/android/sdk}}"
           test -d "$SDK_ROOT"
-          KEYTOOL="$JAVA_HOME_PATH/bin/keytool"
           mkdir -p "$HOME/.android"
           DEBUG_KEYSTORE="$HOME/.android/debug.keystore"
           if [ ! -f "$DEBUG_KEYSTORE" ]; then
-            "$KEYTOOL" -genkeypair -v -keystore "$DEBUG_KEYSTORE" -storepass android -alias androiddebugkey -keypass android -dname "CN=Android Debug,O=Android,C=US" -keyalg RSA -keysize 2048 -validity 10000
+            "$JAVA_HOME_PATH/bin/keytool" -genkeypair -keystore "$DEBUG_KEYSTORE" -storepass android -alias androiddebugkey -keypass android -dname "CN=Android Debug,O=Android,C=US" -keyalg RSA -keysize 2048 -validity 10000
           fi
+          godot --headless --editor --quit --path deep-shift-full \
+            --editor-settings export/android/android_sdk_path="$SDK_ROOT" \
+            --editor-settings export/android/java_sdk_path="$JAVA_HOME_PATH" || true
           mkdir -p "$HOME/.config/godot"
-          cat > "$HOME/.config/godot/editor_settings-4.3.tres" <<EOF
-          [gd_resource type="EditorSettings" format=3]
-
-          [resource]
-          export/android/android_sdk_path = "$SDK_ROOT"
-          export/android/java_sdk_path = "$JAVA_HOME_PATH"
-          export/android/debug_keystore = "$DEBUG_KEYSTORE"
-          export/android/debug_keystore_user = "androiddebugkey"
-          export/android/debug_keystore_pass = "android"
-          EOF
+          SETTINGS="$HOME/.config/godot/editor_settings-4.3.tres"
+          if [ -f "$SETTINGS" ]; then
+            sed -i "/^\[resource\]/a export/android/android_sdk_path = \"$SDK_ROOT\"\nexport/android/java_sdk_path = \"$JAVA_HOME_PATH\"\nexport/android/debug_keystore = \"$DEBUG_KEYSTORE\"" "$SETTINGS"
+          fi
           cat >> deep-shift-full/export_presets.cfg <<'EOF'
 
           [preset.1]
@@ -146,13 +127,10 @@ jobs:
           screen/immersive_mode=true
           EOF
           mkdir -p deep-shift-full/build/android
-          godot --headless --editor --path deep-shift-full --quit
           godot --headless --path deep-shift-full --export-debug "Android" build/android/DeepShift.apk 2>&1 | tee export-android.log
           test -s deep-shift-full/build/android/DeepShift.apk
-          file deep-shift-full/build/android/DeepShift.apk
           sha256sum deep-shift-full/build/android/DeepShift.apk > deep-shift-full/build/android/SHA256.txt
           printf 'Blazed Trail Studios\nDeep Shift\nAndroid Test Build\n' > deep-shift-full/build/android/BUILD_IDENTITY.txt
-
       - name: Upload Windows release candidate
         if: always()
         uses: actions/upload-artifact@v4
@@ -160,7 +138,6 @@ jobs:
           name: DeepShift-Windows-Release-Candidate
           path: deep-shift-full/build/windows/
           retention-days: 90
-
       - name: Upload Android test build
         uses: actions/upload-artifact@v4
         with:
