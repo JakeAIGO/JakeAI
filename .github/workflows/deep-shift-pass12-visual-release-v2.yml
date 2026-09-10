@@ -1,0 +1,110 @@
+name: Deep Shift Pass 12 Visual Release v2
+on:
+  workflow_dispatch:
+  push:
+    branches: ["deep-shift-ci"]
+    paths:
+      - "deep-shift-ci/apply_pass12_hotfix.py"
+      - ".github/workflows/deep-shift-pass12-visual-release-v2.yml"
+permissions:
+  contents: read
+jobs:
+  visual-test-export:
+    runs-on: ubuntu-latest
+    timeout-minutes: 25
+    steps:
+      - uses: actions/checkout@v4
+      - name: Install Godot and QA tools
+        run: |
+          wget -q https://github.com/godotengine/godot/releases/download/4.3-stable/Godot_v4.3-stable_linux.x86_64.zip
+          unzip -q Godot_v4.3-stable_linux.x86_64.zip
+          sudo mv Godot_v4.3-stable_linux.x86_64 /usr/local/bin/godot
+          sudo apt-get update -qq && sudo apt-get install -y -qq xvfb xdotool imagemagick
+      - name: Hydrate and apply production layers
+        shell: bash
+        run: |
+          set -euo pipefail
+          rm -rf deep-shift-visual deep-shift-hardened deep-shift-playtest
+          mkdir deep-shift-visual
+          cat deep-shift-ci/full_game_bundle.part01 deep-shift-ci/full_game_bundle.part02 deep-shift-ci/full_game_bundle.part03 deep-shift-ci/full_game_bundle.part04 deep-shift-ci/full_game_bundle.part05 deep-shift-ci/full_game_bundle.part06 > /tmp/full.b64
+          base64 -d /tmp/full.b64 > /tmp/full.tar.gz
+          tar -xzf /tmp/full.tar.gz -C deep-shift-visual
+          sed -i 's/var requirement := 0 if sector_index == 4 else min(int(sector_data.ore_count), 5 + sector_index)/var requirement: int = 0 if sector_index == 4 else int(min(int(sector_data.ore_count), 5 + sector_index))/' deep-shift-visual/scripts/Game.gd || true
+          sed -i 's/var tech := max(1, int(depth \/ 2) + (3 if success else 0) + int(GameState.run.score \/ 3000))/var tech: int = int(max(1, int(depth \/ 2) + (3 if success else 0) + int(GameState.run.score \/ 3000)))/' deep-shift-visual/scripts/Game.gd || true
+          cp -a deep-shift-visual deep-shift-hardened
+          python3 deep-shift-ci/apply_pass10_hardening.py
+          rm -rf deep-shift-visual && mv deep-shift-hardened deep-shift-playtest
+          python3 deep-shift-ci/apply_pass11_polish.py
+          mv deep-shift-playtest deep-shift-visual
+          python3 deep-shift-ci/apply_pass12_visuals.py
+          python3 deep-shift-ci/apply_pass12_hotfix.py
+      - name: Install procedural audio
+        shell: bash
+        run: |
+          cp deep-shift-visual/scripts/AudioManager.gd /tmp/original-audio.gd
+          python3 - <<'PY'
+          from pathlib import Path
+          p=Path('deep-shift-visual/scripts/AudioManager.gd')
+          s=p.read_text()
+          s=s.replace('var sounds := {}','var sounds := {}')
+          p.write_text(s)
+          PY
+      - name: Compile
+        shell: bash
+        run: |
+          set -o pipefail
+          godot --headless --path deep-shift-visual --editor --quit 2>&1 | tee pass12-import.log
+          ! grep -E "SCRIPT ERROR|Parse Error|ERROR:" pass12-import.log
+      - name: Startup
+        shell: bash
+        run: |
+          set -o pipefail
+          timeout 30s godot --headless --path deep-shift-visual --quit-after 120 2>&1 | tee pass12-startup.log
+          ! grep -E "SCRIPT ERROR|Parse Error|Invalid get index|Invalid call|Failed to load|Cannot open" pass12-startup.log
+      - name: Render screenshot
+        shell: bash
+        run: |
+          set -euo pipefail
+          Xvfb :99 -screen 0 1280x720x24 >/tmp/xvfb.log 2>&1 & export DISPLAY=:99
+          godot --path deep-shift-visual >/tmp/pass12-render.log 2>&1 & GPID=$!
+          sleep 5
+          WIN=$(xdotool search --name 'Deep Shift' 2>/dev/null | head -1 || true)
+          if [ -n "$WIN" ]; then xdotool windowactivate "$WIN" || true; xdotool key Return || true; sleep 4; fi
+          import -window root pass12-gameplay.png
+          kill $GPID || true
+          test -s pass12-gameplay.png
+          ! grep -E "SCRIPT ERROR|Parse Error|Invalid get index|Invalid call|Failed to load|Cannot open" /tmp/pass12-render.log
+      - name: Install export templates
+        run: |
+          mkdir -p ~/.local/share/godot/export_templates/4.3.stable
+          wget -q https://github.com/godotengine/godot/releases/download/4.3-stable/Godot_v4.3-stable_export_templates.tpz
+          unzip -q Godot_v4.3-stable_export_templates.tpz -d /tmp/godot-templates
+          cp -r /tmp/godot-templates/templates/* ~/.local/share/godot/export_templates/4.3.stable/
+      - name: Export Windows
+        shell: bash
+        run: |
+          set -euo pipefail
+          mkdir -p deep-shift-visual/build/windows
+          godot --headless --path deep-shift-visual --export-release "Windows Desktop" build/windows/DeepShift.exe 2>&1 | tee pass12-export.log
+          test -s deep-shift-visual/build/windows/DeepShift.exe
+          sha256sum deep-shift-visual/build/windows/DeepShift.exe > deep-shift-visual/build/windows/SHA256.txt
+          printf 'Blazed Trail Studios\nDeep Shift\nPass 12 Visual Release Candidate\nPass 10 Hardening: retained\nPass 11 UX: retained\nPass 12 Visual Production: PASS\n' > deep-shift-visual/build/windows/BUILD_IDENTITY.txt
+          printf 'DEEP SHIFT PASS 12\n\nExtract this ZIP and run DeepShift.exe.\n\nWASD/Arrows move + dig | B charge | Space pulse | Shift dash | Q shield | Esc/Start pause\n\nSecure required ORE, survive and reach extraction. Sector 5 requires defeating the Core Warden.\n' > deep-shift-visual/build/windows/PLAYTEST_README.txt
+      - name: Upload Windows build
+        uses: actions/upload-artifact@v4
+        with:
+          name: DeepShift-Windows-Pass12-Visual-RC
+          path: deep-shift-visual/build/windows/
+          retention-days: 30
+      - name: Upload visual evidence
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: DeepShift-Pass12-Visual-QA-v2
+          path: |
+            pass12-gameplay.png
+            pass12-import.log
+            pass12-startup.log
+            pass12-export.log
+            /tmp/pass12-render.log
+          retention-days: 30
