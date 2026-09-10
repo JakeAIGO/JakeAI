@@ -23,11 +23,32 @@ jobs:
           sudo mv Godot_v4.3-stable_linux.x86_64 /usr/local/bin/godot
           godot --version
 
-      - name: Import CI harness
-        run: godot --headless --path deep-shift-ci --editor --quit
+      - name: Import CI harness with strict log gate
+        shell: bash
+        run: |
+          set -o pipefail
+          godot --headless --path deep-shift-ci --editor --quit 2>&1 | tee import.log
+          if grep -E "SCRIPT ERROR|ERROR:" import.log; then
+            echo "Godot import emitted an error even if the process returned zero."
+            exit 1
+          fi
 
-      - name: Run deterministic smoke tests
-        run: godot --headless --path deep-shift-ci --scene res://scenes/SmokeTest.tscn
+      - name: Run deterministic smoke tests with strict log gate
+        shell: bash
+        run: |
+          set -o pipefail
+          godot --headless --path deep-shift-ci --scene res://scenes/SmokeTest.tscn 2>&1 | tee smoke.log
+          if grep -E "SCRIPT ERROR|ERROR:" smoke.log; then
+            exit 1
+          fi
+          grep -q "DEEP_SHIFT_SMOKE_TEST: PASS" smoke.log
 
-      - name: Run 250-ex­pedition autonomous simulation
-        run: godot --headless --path deep-shift-ci --scene res://scenes/PlaytestRunner.tscn
+      - name: Run 250-expedition autonomous simulation
+        shell: bash
+        run: |
+          set -o pipefail
+          godot --headless --path deep-shift-ci --scene res://scenes/PlaytestRunner.tscn 2>&1 | tee playtest.log
+          if grep -E "SCRIPT ERROR|ERROR:" playtest.log; then
+            exit 1
+          fi
+          grep -q "DEEP_SHIFT_PLAYTEST_REPORT" playtest.log
