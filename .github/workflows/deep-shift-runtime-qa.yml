@@ -42,7 +42,7 @@ jobs:
           godot --headless --path deep-shift-ci --scene res://scenes/PlaytestRunner.tscn 2>&1 | tee playtest.log
           grep -q "DEEP_SHIFT_BALANCE_GATE: PASS" playtest.log
 
-      - name: Hydrate full playable source tree
+      - name: Hydrate and normalize full playable source tree
         shell: bash
         run: |
           set -euo pipefail
@@ -51,7 +51,11 @@ jobs:
           test "$(wc -c < /tmp/deep_shift_full.b64)" -eq 33548
           base64 -d /tmp/deep_shift_full.b64 > /tmp/deep_shift_full.tar.gz
           tar -xzf /tmp/deep_shift_full.tar.gz -C deep-shift-full
-          sed -i 's/Shiftforge Games/Blazed Trail Studios/g' deep-shift-full/project.godot || true
+          sed -i 's/Shiftforge Games/Blazed Trail Studios/g' deep-shift-full/project.godot deep-shift-full/scenes/Main.tscn 2>/dev/null || true
+          sed -i 's#^run/main_scene=.*#run/main_scene="res://scenes/Main.tscn"#' deep-shift-full/project.godot
+          if ! grep -q 'Blazed Trail Studios' deep-shift-full/scenes/Main.tscn; then
+            sed -i '0,/text = "DEEP SHIFT"/s//text = "BLAZED TRAIL STUDIOS PRESENTS - DEEP SHIFT"/' deep-shift-full/scenes/Main.tscn
+          fi
           sed -i 's/var requirement := 0 if sector_index == 4 else min(int(sector_data.ore_count), 5 + sector_index)/var requirement: int = 0 if sector_index == 4 else int(min(int(sector_data.ore_count), 5 + sector_index))/' deep-shift-full/scripts/Game.gd
           sed -i 's/var tech := max(1, int(depth \/ 2) + (3 if success else 0) + int(GameState.run.score \/ 3000))/var tech: int = int(max(1, int(depth \/ 2) + (3 if success else 0) + int(GameState.run.score \/ 3000)))/' deep-shift-full/scripts/Game.gd
 
