@@ -28,19 +28,21 @@ jobs:
         run: |
           set -o pipefail
           godot --headless --path deep-shift-ci --editor --quit 2>&1 | tee harness-import.log
-          if grep -E "SCRIPT ERROR|ERROR:" harness-import.log; then exit 1; fi
+          ! grep -E "SCRIPT ERROR|ERROR:" harness-import.log
           godot --headless --path deep-shift-ci --scene res://scenes/CompileCheck.tscn 2>&1 | tee compile.log
-          if grep -E "SCRIPT ERROR|ERROR:" compile.log; then exit 1; fi
+          ! grep -E "SCRIPT ERROR|ERROR:" compile.log
           grep -q "DEEP_SHIFT_GAMEPLAY_COMPILE_GATE: PASS" compile.log
           godot --headless --path deep-shift-ci --scene res://scenes/SmokeTest.tscn 2>&1 | tee smoke.log
-          if grep -E "SCRIPT ERROR|ERROR:" smoke.log; then exit 1; fi
+          ! grep -E "SCRIPT ERROR|ERROR:" smoke.log
           grep -q "DEEP_SHIFT_SMOKE_TEST: PASS" smoke.log
           godot --headless --path deep-shift-ci --scene res://scenes/PlaytestRunner.tscn 2>&1 | tee playtest.log
-          if grep -E "SCRIPT ERROR|ERROR:" playtest.log; then exit 1; fi
+          ! grep -E "SCRIPT ERROR|ERROR:" playtest.log
           grep -q "DEEP_SHIFT_BALANCE_GATE: PASS" playtest.log
 
       - name: Hydrate and patch full playable source tree
+        shell: bash
         run: |
+          set -e
           rm -rf deep-shift-full
           mkdir -p deep-shift-full
           cat deep-shift-ci/full_game_bundle.part01 deep-shift-ci/full_game_bundle.part02 deep-shift-ci/full_game_bundle.part03 deep-shift-ci/full_game_bundle.part04 deep-shift-ci/full_game_bundle.part05 deep-shift-ci/full_game_bundle.part06 > /tmp/deep_shift_full.b64
@@ -52,33 +54,23 @@ jobs:
           test -f deep-shift-full/scenes/Main.tscn
           grep -q 'run/main_scene="res://scenes/Main.tscn"' deep-shift-full/project.godot
           grep -q 'BLAZED TRAIL STUDIOS PRESENTS' deep-shift-full/scenes/Main.tscn
-          cat > deep-shift-full/scripts/AudioManager.gd <<'EOF'
-          extends Node
-          func play(_id: String, _pitch := 1.0) -> void:
-              pass
-          EOF
-          python3 - <<'PY'
-          from pathlib import Path
-          p=Path('deep-shift-full/scripts/Game.gd')
-          s=p.read_text()
-          s=s.replace('var requirement := 0 if sector_index == 4 else min(int(sector_data.ore_count), 5 + sector_index)', 'var requirement: int = 0 if sector_index == 4 else int(min(int(sector_data.ore_count), 5 + sector_index))')
-          s=s.replace('var tech := max(1, int(depth / 2) + (3 if success else 0) + int(GameState.run.score / 3000))', 'var tech: int = int(max(1, int(depth / 2) + (3 if success else 0) + int(GameState.run.score / 3000)))')
-          p.write_text(s)
-          PY
+          printf 'extends Node\nfunc play(_id: String, _pitch := 1.0) -> void:\n    pass\n' > deep-shift-full/scripts/AudioManager.gd
+          sed -i 's/var requirement := 0 if sector_index == 4 else min(int(sector_data.ore_count), 5 + sector_index)/var requirement: int = 0 if sector_index == 4 else int(min(int(sector_data.ore_count), 5 + sector_index))/' deep-shift-full/scripts/Game.gd
+          sed -i 's/var tech := max(1, int(depth \/ 2) + (3 if success else 0) + int(GameState.run.score \/ 3000))/var tech: int = int(max(1, int(depth \/ 2) + (3 if success else 0) + int(GameState.run.score \/ 3000)))/' deep-shift-full/scripts/Game.gd
 
       - name: Import full playable game with strict log gate
         shell: bash
         run: |
           set -o pipefail
           godot --headless --path deep-shift-full --editor --quit 2>&1 | tee full-import.log
-          if grep -E "SCRIPT ERROR|ERROR:" full-import.log; then exit 1; fi
+          ! grep -E "SCRIPT ERROR|ERROR:" full-import.log
 
       - name: Compile full playable gameplay scripts
         shell: bash
         run: |
           set -o pipefail
           godot --headless --path deep-shift-full --scene res://scenes/CompileCheck.tscn 2>&1 | tee full-compile.log
-          if grep -E "SCRIPT ERROR|ERROR:" full-compile.log; then exit 1; fi
+          ! grep -E "SCRIPT ERROR|ERROR:" full-compile.log
           grep -q "DEEP_SHIFT_GAMEPLAY_COMPILE_GATE: PASS" full-compile.log
 
       - name: Install Godot export templates
@@ -94,7 +86,7 @@ jobs:
           set -o pipefail
           mkdir -p deep-shift-full/build
           godot --headless --path deep-shift-full --export-release "Windows Desktop" deep-shift-full/build/DeepShift.exe 2>&1 | tee export.log
-          if grep -E "SCRIPT ERROR|ERROR:" export.log; then exit 1; fi
+          ! grep -E "SCRIPT ERROR|ERROR:" export.log
           test -s deep-shift-full/build/DeepShift.exe
           file deep-shift-full/build/DeepShift.exe
           sha256sum deep-shift-full/build/DeepShift.exe | tee deep-shift-full/build/SHA256.txt
