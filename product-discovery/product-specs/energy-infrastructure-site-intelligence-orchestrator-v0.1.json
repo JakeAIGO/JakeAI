@@ -1,0 +1,105 @@
+{
+  "product_spec_version": "0.1.0",
+  "product_name": "Energy Infrastructure Site Intelligence Orchestrator",
+  "category": "Energy and Utilities",
+  "stage": "BOUNDED_PRODUCT_SPECIFICATION",
+  "origin_candidate": "Utility Grid Site Planning Workflow",
+  "stage3_route": "DEVELOP",
+  "commercial_status": "NOT_FOR_SALE",
+  "market_demand_validated": false,
+  "willingness_to_pay_validated": false,
+  "build_authorized": false,
+  "spending_authorized": false,
+  "checkout_authorized": false,
+  "publication_authorized": false,
+  "deployment_authorized": false,
+  "human_approval_required": true,
+  "problem": "Large-load and infrastructure projects face recurring friction when comparing power availability, grid/interconnection timing, siting constraints, permitting context, and alternative energy options across candidate locations. Existing evidence supports the existence of this planning problem but does not yet prove willingness to pay for this product.",
+  "target_users": [
+    "Large-load and data-center site planning teams",
+    "Energy infrastructure developers",
+    "Utility and transmission planning support teams",
+    "Engineering and owner's-representative teams",
+    "Municipal or regional infrastructure planning teams"
+  ],
+  "mvp_outcome": "Turn user-authorized project requirements and permitted public evidence into a traceable site-comparison packet that highlights power/interconnection constraints, missing information, alternative energy pathways, and questions requiring expert review.",
+  "mvp_inputs": [
+    "Candidate site list supplied by user",
+    "Required load range and target in-service date",
+    "User-selected comparison criteria and weights",
+    "Public or licensed utility/interconnection information",
+    "Public zoning/permitting/policy information where permitted",
+    "User-supplied engineering, project, or commercial data when authorized"
+  ],
+  "mvp_workflow": [
+    "Validate input completeness and provenance",
+    "Normalize site names, jurisdictions, utility territories, and project requirements",
+    "Collect permitted public evidence relevant to power availability, interconnection process, transmission constraints, and infrastructure timing",
+    "Collect permitted siting, zoning, permitting, and local-policy context",
+    "Identify missing, stale, conflicting, or speculative evidence",
+    "Record alternative pathways such as storage, behind-the-meter generation, private wire, phased load, or non-firm service only when supported by user-approved assumptions and sources",
+    "Apply transparent user-defined comparison criteria rather than hidden engineering judgments",
+    "Produce a preliminary comparison matrix and ranked research queue",
+    "Generate a source-linked expert-review packet with uncertainty and escalation flags"
+  ],
+  "outputs": [
+    "Site comparison matrix",
+    "Power/interconnection evidence summary",
+    "Constraint and uncertainty register",
+    "Missing-information checklist",
+    "Alternative-pathway research list",
+    "Source/provenance manifest",
+    "Human expert-review packet"
+  ],
+  "explicit_non_capabilities": [
+    "No power-flow or protection-study certification",
+    "No regulated engineering sign-off",
+    "No utility interconnection approval",
+    "No legal or zoning determination",
+    "No autonomous land acquisition, contracting, supplier selection, or capital commitment",
+    "No guarantee of capacity, energization date, permit approval, project economics, or site suitability",
+    "No use of speculative queue totals as realized demand without qualification"
+  ],
+  "safety_and_quality_gates": [
+    "Every material factual claim must retain source provenance and retrieval date",
+    "Conflicting sources must be surfaced rather than silently resolved",
+    "Stale or non-authoritative data must be labeled",
+    "Engineering, legal, utility, permitting, and capital decisions require qualified human review",
+    "Third-party data and research use must comply with applicable access and licensing terms",
+    "High-consequence recommendations are prohibited; the product prepares evidence for review"
+  ],
+  "technical_mvp": {
+    "architecture": "Python pipeline plus structured JSON artifacts and human-readable report output",
+    "required_components": [
+      "Input schema validator",
+      "Source/provenance collector",
+      "Jurisdiction and utility normalization",
+      "Constraint extractor",
+      "Evidence conflict detector",
+      "Transparent comparison scorer",
+      "Uncertainty/missing-data detector",
+      "Report generator",
+      "Audit log"
+    ],
+    "external_integrations": "Optional and source-specific. No integration is assumed available until access, terms, reliability, and cost are verified.",
+    "estimated_prototype_spend_usd": 0
+  },
+  "acceptance_tests": [
+    "Reject or flag records lacking provenance for material claims",
+    "Surface conflicting capacity or timing claims from different sources",
+    "Never convert queue size into realized demand without an explicit caveat",
+    "Produce identical scores from identical normalized inputs and user-defined weights",
+    "Keep engineering/legal/utility approval language out of generated conclusions",
+    "Fail closed when a required source or user input is missing",
+    "Preserve all consequential authorization fields as false"
+  ],
+  "next_validation_before_build": [
+    "Obtain direct evidence from at least three target users that the proposed comparison/research workflow addresses a recurring paid or costly task",
+    "Test one realistic site-comparison case using public or user-supplied data and measure preparation-time reduction and source completeness",
+    "Review data-source licensing and terms for the exact MVP sources",
+    "Perform technical/security/legal-liability review before any external release",
+    "Define pricing only after willingness-to-pay evidence is collected"
+  ],
+  "claim_boundary": "This specification is authorized only because Stage 3 found sufficient independent evidence to justify designing a bounded decision-support product. It is not authorization to build, sell, publish, deploy, charge, or represent the product as market validated.",
+  "generated_at": "2026-09-10T18:46:00Z"
+}
