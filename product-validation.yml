@@ -1,0 +1,75 @@
+name: JakeAI Product Validation Test
+
+on:
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  validate-candidate:
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout Repository
+        uses: actions/checkout@v4
+
+      - name: Set Up Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: '3.12'
+
+      - name: Validate Candidate 001
+        run: |
+          mkdir -p product-discovery/validation
+          python - <<'PY'
+          import json
+          from datetime import datetime, timezone
+          from pathlib import Path
+
+          signal_path = Path("product-discovery/signals/signal-001-grid-site-selection.json")
+          signal = json.loads(signal_path.read_text(encoding="utf-8"))
+
+          supporting = signal.get("evidence", [])
+          sources = signal.get("source_urls", [])
+          risks = signal.get("risks", [])
+
+          source_count = len([s for s in sources if s])
+          evidence_count = len([e for e in supporting if e])
+
+          if source_count >= 2 and evidence_count >= 2:
+              disposition = "READY_FOR_INDEPENDENT_VALIDATION"
+          else:
+              disposition = "INSUFFICIENT_INDEPENDENT_EVIDENCE"
+
+          result = {
+              "candidate_title": signal.get("title"),
+              "proposed_skill": signal.get("proposed_skill"),
+              "stage": "VALIDATION_V0_1",
+              "supporting_evidence_count": evidence_count,
+              "source_count": source_count,
+              "source_urls": sources,
+              "counter_evidence": [],
+              "risks": risks,
+              "disposition": disposition,
+              "independently_validated": False,
+              "publication_authorized": False,
+              "spending_authorized": False,
+              "human_approval_required": True,
+              "next_action": (
+                  "Gather multiple independent credible sources, including counter-evidence "
+                  "and buyer/problem-frequency evidence, before any build or publication decision."
+              ),
+              "generated_at": datetime.now(timezone.utc).isoformat()
+          }
+
+          out = Path("product-discovery/validation/product-validation-001.json")
+          out.write_text(json.dumps(result, indent=2), encoding="utf-8")
+          print(json.dumps(result, indent=2))
+          PY
+
+      - name: Upload Validation Output
+        uses: actions/upload-artifact@v4
+        with:
+          name: product-validation-001
+          path: product-discovery/validation/product-validation-001.json
