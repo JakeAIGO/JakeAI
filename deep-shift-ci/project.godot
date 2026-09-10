@@ -1,0 +1,14 @@
+[application]
+config/name="Deep Shift CI Harness"
+run/main_scene="res://scenes/SmokeTest.tscn"
+
+[autoload]
+GameState="*res://scripts/GameState.gd"
+
+[display]
+window/size/viewport_width=1280
+window/size/viewport_height=720
+
+[rendering]
+renderer/rendering_method="gl_compatibility"
+renderer/rendering_method.mobile="gl_compatibility"
