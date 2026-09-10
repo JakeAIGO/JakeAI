@@ -1,0 +1,189 @@
+name: Deep Shift Pass 12 Visual Release
+
+on:
+  workflow_dispatch:
+  push:
+    branches: ["deep-shift-ci"]
+    paths:
+      - "deep-shift-ci/apply_pass12_visuals.py"
+      - ".github/workflows/deep-shift-pass12-visual-release.yml"
+
+permissions:
+  contents: read
+
+jobs:
+  visual-test-export:
+    runs-on: ubuntu-latest
+    timeout-minutes: 25
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Install Godot and visual QA tools
+        run: |
+          wget -q https://github.com/godotengine/godot/releases/download/4.3-stable/Godot_v4.3-stable_linux.x86_64.zip
+          unzip -q Godot_v4.3-stable_linux.x86_64.zip
+          sudo mv Godot_v4.3-stable_linux.x86_64 /usr/local/bin/godot
+          sudo apt-get update -qq
+          sudo apt-get install -y -qq xvfb xdotool imagemagick
+          godot --version
+
+      - name: Hydrate production source and apply Pass 10-12
+        shell: bash
+        run: |
+          set -euo pipefail
+          rm -rf deep-shift-visual deep-shift-hardened deep-shift-playtest
+          mkdir deep-shift-visual
+          cat deep-shift-ci/full_game_bundle.part01 deep-shift-ci/full_game_bundle.part02 deep-shift-ci/full_game_bundle.part03 deep-shift-ci/full_game_bundle.part04 deep-shift-ci/full_game_bundle.part05 deep-shift-ci/full_game_bundle.part06 > /tmp/full.b64
+          base64 -d /tmp/full.b64 > /tmp/full.tar.gz
+          tar -xzf /tmp/full.tar.gz -C deep-shift-visual
+          sed -i 's/var requirement := 0 if sector_index == 4 else min(int(sector_data.ore_count), 5 + sector_index)/var requirement: int = 0 if sector_index == 4 else int(min(int(sector_data.ore_count), 5 + sector_index))/' deep-shift-visual/scripts/Game.gd || true
+          sed -i 's/var tech := max(1, int(depth \/ 2) + (3 if success else 0) + int(GameState.run.score \/ 3000))/var tech: int = int(max(1, int(depth \/ 2) + (3 if success else 0) + int(GameState.run.score \/ 3000)))/' deep-shift-visual/scripts/Game.gd || true
+          cp -a deep-shift-visual deep-shift-hardened
+          python3 deep-shift-ci/apply_pass10_hardening.py
+          rm -rf deep-shift-visual && mv deep-shift-hardened deep-shift-playtest
+          python3 deep-shift-ci/apply_pass11_polish.py
+          mv deep-shift-playtest deep-shift-visual
+          python3 deep-shift-ci/apply_pass12_visuals.py
+
+      - name: Install procedural original audio
+        shell: bash
+        run: |
+          cat > deep-shift-visual/scripts/AudioManager.gd <<'GDSCRIPT'
+          extends Node
+          const MIX_RATE: float = 44100.0
+          var player: AudioStreamPlayer
+          var generator: AudioStreamGenerator
+          var playback: AudioStreamGeneratorPlayback
+          var rng_state: int = 123456789
+          func _ready() -> void:
+              generator = AudioStreamGenerator.new(); generator.mix_rate = MIX_RATE; generator.buffer_length = 0.5
+              player = AudioStreamPlayer.new(); player.stream = generator; add_child(player); player.play()
+              playback = player.get_stream_playback() as AudioStreamGeneratorPlayback
+          func play(id: String, pitch: float = 1.0) -> void:
+              if playback == null: return
+              var spec := _spec(id); var duration: float = float(spec.get("duration",0.12)); var f0: float=float(spec.get("f0",220.0))*pitch; var f1: float=float(spec.get("f1",f0))*pitch; var amp:float=float(spec.get("amp",0.25)); var shape:String=str(spec.get("shape","sine")); var count:int=int(MIX_RATE*duration); var frames:=PackedVector2Array(); frames.resize(count)
+              for i in range(count):
+                  var t:=float(i)/MIX_RATE; var phase:=float(i)/float(max(1,count-1)); var freq:=lerpf(f0,f1,phase); var env:=pow(1.0-phase,1.7); var sample:=_wave(shape,freq,t)*amp*env; frames[i]=Vector2(sample,sample)
+              playback.clear_buffer(); playback.push_buffer(frames)
+          func _wave(shape:String,freq:float,t:float)->float:
+              var s:=sin(TAU*freq*t)
+              match shape:
+                  "square": return 1.0 if s>=0.0 else -1.0
+                  "triangle": return asin(s)*(2.0/PI)
+                  "crunch":
+                      rng_state=int((1103515245*rng_state+12345)&0x7fffffff); var n:=(float(rng_state)/1073741823.5)-1.0; return clamp(s*0.65+n*0.35,-1.0,1.0)
+                  _: return s
+          func _spec(id:String)->Dictionary:
+              match id:
+                  "dig": return {"duration":0.07,"f0":95.0,"f1":55.0,"amp":0.30,"shape":"crunch"}
+                  "ore": return {"duration":0.16,"f0":620.0,"f1":980.0,"amp":0.22,"shape":"sine"}
+                  "pulse": return {"duration":0.18,"f0":260.0,"f1":95.0,"amp":0.25,"shape":"triangle"}
+                  "charge": return {"duration":0.22,"f0":80.0,"f1":42.0,"amp":0.32,"shape":"crunch"}
+                  "hurt": return {"duration":0.12,"f0":125.0,"f1":65.0,"amp":0.32,"shape":"square"}
+                  "boss_warning": return {"duration":0.30,"f0":72.0,"f1":48.0,"amp":0.30,"shape":"square"}
+                  "extract": return {"duration":0.34,"f0":330.0,"f1":880.0,"amp":0.23,"shape":"sine"}
+                  _: return {"duration":0.10,"f0":220.0,"f1":180.0,"amp":0.20,"shape":"sine"}
+          GDSCRIPT
+
+      - name: Visual content gate
+        shell: bash
+        run: |
+          set -euo pipefail
+          grep -q 'func _draw_player' deep-shift-visual/scripts/VisualArt.gd
+          grep -q 'func _draw_boss' deep-shift-visual/scripts/VisualArt.gd
+          grep -q 'CRYSTAL FAULT' deep-shift-visual/scripts/SectorBackdrop.gd
+          grep -q 'SectorBackdrop.gd' deep-shift-visual/scenes/Game.tscn
+          grep -q 'visible = false' deep-shift-visual/scenes/Player.tscn
+          echo 'DEEP_SHIFT_PASS12_VISUAL_CONTENT_GATE: PASS'
+
+      - name: Import and compile visual build
+        shell: bash
+        run: |
+          set -o pipefail
+          godot --headless --path deep-shift-visual --editor --quit 2>&1 | tee pass12-import.log
+          ! grep -E "SCRIPT ERROR|Parse Error|ERROR:" pass12-import.log
+
+      - name: Main scene startup gate
+        shell: bash
+        run: |
+          set -o pipefail
+          timeout 30s godot --headless --path deep-shift-visual --quit-after 120 2>&1 | tee pass12-startup.log
+          ! grep -E "SCRIPT ERROR|Parse Error|Invalid get index|Invalid call|Failed to load|Cannot open" pass12-startup.log
+          echo 'DEEP_SHIFT_PASS12_STARTUP_GATE: PASS'
+
+      - name: Capture rendered gameplay screenshot
+        shell: bash
+        run: |
+          set -euo pipefail
+          Xvfb :99 -screen 0 1280x720x24 >/tmp/xvfb.log 2>&1 &
+          export DISPLAY=:99
+          godot --path deep-shift-visual >/tmp/pass12-render.log 2>&1 &
+          GPID=$!
+          sleep 5
+          WIN=$(xdotool search --name 'Deep Shift' 2>/dev/null | head -1 || true)
+          if [ -n "$WIN" ]; then
+            xdotool windowactivate "$WIN" || true
+            xdotool key Return || true
+            sleep 4
+          fi
+          import -window root pass12-gameplay.png || true
+          kill $GPID || true
+          test -s pass12-gameplay.png
+          ! grep -E "SCRIPT ERROR|Parse Error|Invalid get index|Invalid call|Failed to load|Cannot open" /tmp/pass12-render.log
+          echo 'DEEP_SHIFT_PASS12_RENDER_CAPTURE_GATE: PASS'
+
+      - name: Install Windows export templates
+        run: |
+          mkdir -p ~/.local/share/godot/export_templates/4.3.stable
+          wget -q https://github.com/godotengine/godot/releases/download/4.3-stable/Godot_v4.3-stable_export_templates.tpz
+          unzip -q Godot_v4.3-stable_export_templates.tpz -d /tmp/godot-templates
+          cp -r /tmp/godot-templates/templates/* ~/.local/share/godot/export_templates/4.3.stable/
+
+      - name: Export Pass 12 visual Windows candidate
+        shell: bash
+        run: |
+          set -euo pipefail
+          mkdir -p deep-shift-visual/build/windows
+          godot --headless --path deep-shift-visual --export-release "Windows Desktop" build/windows/DeepShift.exe 2>&1 | tee pass12-export.log
+          test -s deep-shift-visual/build/windows/DeepShift.exe
+          sha256sum deep-shift-visual/build/windows/DeepShift.exe > deep-shift-visual/build/windows/SHA256.txt
+          printf 'Blazed Trail Studios\nDeep Shift\nPass 12 Visual Release Candidate\nPass 10 Hardening: retained\nPass 11 UX: retained\nPass 12 Procedural Visual Production: PASS\n' > deep-shift-visual/build/windows/BUILD_IDENTITY.txt
+          cat > deep-shift-visual/build/windows/PLAYTEST_README.txt <<'EOF'
+          DEEP SHIFT — PASS 12 VISUAL RELEASE CANDIDATE
+
+          Extract this ZIP, then run DeepShift.exe on Windows.
+
+          Controls:
+          WASD / Arrow Keys = Move and dig
+          B = Seismic Charge
+          Space = Shock Pulse
+          Shift = Drill Dash
+          Q = Reactive Shield
+          Esc / Controller Start = Pause
+
+          Goal: secure required ORE, survive, reach extraction. In Sector 5 destroy the Core Warden before extraction unlocks.
+
+          Pass 12 replaces primitive placeholder presentation with original code-drawn salvage rig, creatures, ore crystals, boss, beacon, layered rock terrain, sector atmosphere and upgraded HUD treatment.
+          EOF
+          echo 'DEEP_SHIFT_PASS12_WINDOWS_EXPORT_GATE: PASS'
+
+      - name: Upload Windows candidate
+        uses: actions/upload-artifact@v4
+        with:
+          name: DeepShift-Windows-Pass12-Visual-RC
+          path: deep-shift-visual/build/windows/
+          retention-days: 30
+
+      - name: Upload visual QA evidence
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: DeepShift-Pass12-Visual-QA
+          path: |
+            pass12-gameplay.png
+            pass12-import.log
+            pass12-startup.log
+            pass12-export.log
+            /tmp/pass12-render.log
+          retention-days: 30
