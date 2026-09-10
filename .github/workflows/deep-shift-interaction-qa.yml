@@ -1,0 +1,174 @@
+name: Deep Shift Interaction QA
+
+on:
+  workflow_dispatch:
+  push:
+    branches: ["deep-shift-ci"]
+    paths:
+      - ".github/workflows/deep-shift-interaction-qa.yml"
+
+permissions:
+  contents: read
+
+jobs:
+  interaction-rules:
+    runs-on: ubuntu-latest
+    timeout-minutes: 12
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Install Godot 4.3
+        run: |
+          wget -q https://github.com/godotengine/godot/releases/download/4.3-stable/Godot_v4.3-stable_linux.x86_64.zip
+          unzip -q Godot_v4.3-stable_linux.x86_64.zip
+          sudo mv Godot_v4.3-stable_linux.x86_64 /usr/local/bin/godot
+          godot --version
+
+      - name: Hydrate playable source
+        shell: bash
+        run: |
+          set -euo pipefail
+          mkdir -p deep-shift-interaction
+          cat deep-shift-ci/full_game_bundle.part01 deep-shift-ci/full_game_bundle.part02 deep-shift-ci/full_game_bundle.part03 deep-shift-ci/full_game_bundle.part04 deep-shift-ci/full_game_bundle.part05 deep-shift-ci/full_game_bundle.part06 > /tmp/deep_shift_full.b64
+          test "$(wc -c < /tmp/deep_shift_full.b64)" -eq 33548
+          base64 -d /tmp/deep_shift_full.b64 > /tmp/deep_shift_full.tar.gz
+          tar -xzf /tmp/deep_shift_full.tar.gz -C deep-shift-interaction
+          sed -i 's/var requirement := 0 if sector_index == 4 else min(int(sector_data.ore_count), 5 + sector_index)/var requirement: int = 0 if sector_index == 4 else int(min(int(sector_data.ore_count), 5 + sector_index))/' deep-shift-interaction/scripts/Game.gd || true
+          sed -i 's/var tech := max(1, int(depth \/ 2) + (3 if success else 0) + int(GameState.run.score \/ 3000))/var tech: int = int(max(1, int(depth \/ 2) + (3 if success else 0) + int(GameState.run.score \/ 3000)))/' deep-shift-interaction/scripts/Game.gd || true
+          cat > deep-shift-interaction/scripts/AudioManager.gd <<'GDSCRIPT'
+          extends Node
+          func play(_id: String, _pitch: float = 1.0) -> void:
+              pass
+          GDSCRIPT
+
+      - name: Add interaction probe
+        shell: bash
+        run: |
+          cat > deep-shift-interaction/scripts/InteractionCheck.gd <<'GDSCRIPT'
+          extends Node
+
+          var failures: Array[String] = []
+
+          func check(v: bool, label: String) -> void:
+              if not v:
+                  failures.append(label)
+                  push_error("INTERACTION CHECK FAILED: " + label)
+
+          func _ready() -> void:
+              await get_tree().process_frame
+              GameState.reset_run()
+              var game_scene: PackedScene = load("res://scenes/Game.tscn")
+              check(game_scene != null, "Game.tscn loads")
+              if game_scene == null:
+                  finish(); return
+              var game: Node = game_scene.instantiate()
+              add_child(game)
+              await get_tree().process_frame
+              await get_tree().process_frame
+
+              check(int(game.get("sector_index")) == 0, "expedition begins in sector 1")
+              var player: Node = game.get("player") as Node
+              check(player != null, "player exists")
+              if player == null:
+                  finish(); return
+
+              var energy_before: int = int(GameState.run.energy)
+              if player.has_method("drain_energy"):
+                  player.call("drain_energy", 7)
+                  await get_tree().process_frame
+                  check(int(GameState.run.energy) == energy_before - 7, "energy drain applies")
+
+              if game.has_method("collect_ore"):
+                  var ore_before: int = int(game.get("ore_collected"))
+                  var credits_before: int = int(GameState.run.credits)
+                  var energy_low: int = min(int(GameState.run.energy), int(GameState.run.max_energy) - 10)
+                  GameState.run.energy = energy_low
+                  game.call("collect_ore")
+                  await get_tree().process_frame
+                  check(int(game.get("ore_collected")) == ore_before + 1, "ore pickup increments ore")
+                  check(int(GameState.run.credits) == credits_before + 10, "ore pickup grants credits")
+                  check(int(GameState.run.energy) >= energy_low, "ore pickup does not reduce energy")
+
+              var armor_before: int = int(GameState.run.armor)
+              GameState.run.armor = max(1, armor_before)
+              if player.has_method("take_hit"):
+                  player.call("take_hit")
+                  await get_tree().process_frame
+                  check(int(GameState.run.armor) == max(1, armor_before) - 1, "armor absorbs player damage")
+
+              var ability: Node = game.get_node_or_null("AbilityController")
+              if ability == null:
+                  ability = game.get_node_or_null("Abilities")
+              check(ability != null, "ability controller exists")
+              if ability != null:
+                  var energy_skill_before: int = int(GameState.run.energy)
+                  for m in ["use_pulse", "pulse", "shock_pulse"]:
+                      if ability.has_method(m):
+                          ability.call(m)
+                          await get_tree().process_frame
+                          check(int(GameState.run.energy) <= energy_skill_before, "ability consumes or preserves energy")
+                          break
+
+              var old_battery: int = int(GameState.run.max_energy)
+              GameState.apply_upgrade("battery")
+              check(int(GameState.run.max_energy) > old_battery, "battery upgrade increases max energy")
+
+              game.call("start_sector", 4)
+              await get_tree().process_frame
+              check(int(game.get("sector_index")) == 4, "boss sector initializes")
+              var boss: Node = game.get("boss") as Node if "boss" in game else null
+              if boss == null:
+                  boss = game.get_node_or_null("World/Boss")
+              check(boss != null or bool(game.get("boss_alive")), "boss encounter is present")
+              if boss != null and boss.has_method("take_damage"):
+                  for i in range(20):
+                      if not is_instance_valid(boss):
+                          break
+                      boss.call("take_damage", 2)
+                      await get_tree().process_frame
+                  check(not bool(game.get("boss_alive")), "boss can be defeated")
+
+              finish()
+
+          func finish() -> void:
+              if failures.is_empty():
+                  print("DEEP_SHIFT_INTERACTION_GATE: PASS")
+                  get_tree().quit(0)
+              else:
+                  print("DEEP_SHIFT_INTERACTION_GATE: FAIL")
+                  for f in failures:
+                      print(" - " + f)
+                  get_tree().quit(1)
+          GDSCRIPT
+          cat > deep-shift-interaction/scenes/InteractionCheck.tscn <<'TSCN'
+          [gd_scene load_steps=2 format=3]
+          [ext_resource path="res://scripts/InteractionCheck.gd" type="Script" id="1"]
+          [node name="InteractionCheck" type="Node"]
+          script = ExtResource("1")
+          TSCN
+
+      - name: Import full game
+        shell: bash
+        run: |
+          set -o pipefail
+          godot --headless --path deep-shift-interaction --editor --quit 2>&1 | tee import.log
+          ! grep -E "SCRIPT ERROR|Parse Error|ERROR:" import.log
+
+      - name: Run interaction gate
+        shell: bash
+        run: |
+          set -o pipefail
+          godot --headless --path deep-shift-interaction --scene res://scenes/InteractionCheck.tscn 2>&1 | tee interaction.log
+          ! grep -E "SCRIPT ERROR|Parse Error|Invalid get index|Invalid call|Failed to load|Cannot open" interaction.log
+          grep -q "DEEP_SHIFT_INTERACTION_GATE: PASS" interaction.log
+
+      - name: Preserve interaction diagnostics
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: DeepShift-Interaction-QA-Logs
+          path: |
+            import.log
+            interaction.log
+          retention-days: 30
