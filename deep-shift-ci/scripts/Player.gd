@@ -91,7 +91,7 @@ func use_seismic_charge() -> void:
 func use_shock_pulse() -> void:
     if pulse_cooldown > 0 or abilities == null:
         return
-    var cost := max(4, 12 - int(GameState.run.skill_discount))
+    var cost: int = int(max(4, 12 - int(GameState.run.skill_discount)))
     if not spend_energy(cost):
         return
     pulse_cooldown = 5.0
@@ -103,7 +103,7 @@ func use_shock_pulse() -> void:
 func use_drill_dash() -> void:
     if dash_cooldown > 0 or abilities == null:
         return
-    var cost := max(3, 10 - int(GameState.run.skill_discount))
+    var cost: int = int(max(3, 10 - int(GameState.run.skill_discount)))
     if not spend_energy(cost):
         return
     dash_cooldown = 4.0
@@ -113,7 +113,7 @@ func use_drill_dash() -> void:
 func use_reactive_shield() -> void:
     if shield_cooldown > 0:
         return
-    var cost := max(6, 18 - int(GameState.run.skill_discount))
+    var cost: int = int(max(6, 18 - int(GameState.run.skill_discount)))
     if not spend_energy(cost):
         return
     armor += 1
