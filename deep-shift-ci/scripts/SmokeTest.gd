@@ -5,6 +5,7 @@ var failures: Array[String] = []
 func _ready() -> void:
     _test_game_state()
     _test_sector_generation()
+    _test_occupancy_safety()
     _test_upgrade_application()
     _test_terrain_excavation()
     _test_pathfinding()
@@ -39,6 +40,28 @@ func _test_sector_generation() -> void:
     expect(a.ore_positions == b.ore_positions, "Ore placement must reproduce from the same seed.")
     expect(a.enemy_specs == b.enemy_specs, "Enemy placement must reproduce from the same seed.")
     expect(a.ore_count >= 5, "Sector must contain enough ore to satisfy extraction.")
+    generator.queue_free()
+
+func _test_occupancy_safety() -> void:
+    var generator := preload("res://scripts/SectorGenerator.gd").new()
+    add_child(generator)
+    for seed_offset in 100:
+        generator.set_seed(700000 + seed_offset)
+        for sector_index in 5:
+            var sector: Dictionary = generator.generate_sector(sector_index)
+            var occupied: Dictionary = {}
+            var positions: Array[Vector2] = []
+            positions.append(sector.player_spawn)
+            positions.append(sector.exit_position)
+            positions.append_array(sector.ore_positions)
+            positions.append_array(sector.hazard_positions)
+            positions.append_array(sector.rock_positions)
+            for spec in sector.enemy_specs:
+                positions.append(spec.position)
+            for pos in positions:
+                var cell := Vector2i(floor(pos.x / 48.0), floor(pos.y / 48.0))
+                expect(not occupied.has(cell), "Placement overlap at seed %d sector %d cell %s" % [700000 + seed_offset, sector_index, cell])
+                occupied[cell] = true
     generator.queue_free()
 
 func _test_upgrade_application() -> void:
