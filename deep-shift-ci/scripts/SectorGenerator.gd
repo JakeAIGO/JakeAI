@@ -20,6 +20,10 @@ const UPGRADES := [
     {"id":"reactor","name":"Hot Reactor","description":"Abilities cost 2 less energy"}
 ]
 
+const CELL_SIZE := 48
+const PLAYER_SPAWN := Vector2(120,168)
+const EXIT_POSITION := Vector2(1128,600)
+
 var rng := RandomNumberGenerator.new()
 var run_seed := 0
 
@@ -38,21 +42,36 @@ func set_seed(value: int) -> void:
 func sector_seed(index: int) -> int:
     return int((run_seed + (index + 1) * 104729) & 0x7fffffff)
 
+func _cell_to_world(cell: Vector2i) -> Vector2:
+    return Vector2(cell.x * CELL_SIZE + CELL_SIZE * 0.5, cell.y * CELL_SIZE + CELL_SIZE * 0.5)
+
+func _reserve_world(occupied: Dictionary, pos: Vector2) -> void:
+    occupied[Vector2i(floor(pos.x / CELL_SIZE), floor(pos.y / CELL_SIZE))] = true
+
+func _unique_position(local_rng: RandomNumberGenerator, occupied: Dictionary) -> Vector2:
+    for attempt in 200:
+        var cell := Vector2i(local_rng.randi_range(4, 22), local_rng.randi_range(3, 11))
+        if not occupied.has(cell):
+            occupied[cell] = true
+            return _cell_to_world(cell)
+    push_error("SectorGenerator exhausted unique placement attempts")
+    return Vector2.ZERO
+
 func generate_sector(index: int) -> Dictionary:
     var biome: Dictionary = BIOMES[index]
     var local_rng := RandomNumberGenerator.new()
     var seed_value := sector_seed(index)
     local_rng.seed = seed_value
+    var occupied: Dictionary = {}
+    _reserve_world(occupied, PLAYER_SPAWN)
+    _reserve_world(occupied, EXIT_POSITION)
 
     var ore_positions: Array[Vector2] = []
-    for i in biome.ore:
-        ore_positions.append(Vector2(
-            local_rng.randi_range(220, 1080),
-            local_rng.randi_range(180, 610)
-        ))
+    for i in int(biome.ore):
+        ore_positions.append(_unique_position(local_rng, occupied))
 
     var enemy_specs: Array[Dictionary] = []
-    var enemy_count := 3 + index + (2 if biome.modifier == "Enemy Surge" else 0)
+    var enemy_count: int = 3 + index + (2 if biome.modifier == "Enemy Surge" else 0)
     for i in enemy_count:
         var t := "crawler"
         if index >= 1 and i % 3 == 1:
@@ -62,28 +81,19 @@ func generate_sector(index: int) -> Dictionary:
         enemy_specs.append({
             "type": t,
             "hp": 2 if t == "brute" else 1,
-            "position": Vector2(
-                local_rng.randi_range(300, 1080),
-                local_rng.randi_range(190, 600)
-            )
+            "position": _unique_position(local_rng, occupied)
         })
 
     if index == 4:
-        enemy_specs.append({"type":"boss","hp":10,"position":Vector2(850,380)})
+        enemy_specs.append({"type":"boss","hp":10,"position":_unique_position(local_rng, occupied)})
 
     var hazard_positions: Array[Vector2] = []
     for i in 3 + index:
-        hazard_positions.append(Vector2(
-            local_rng.randi_range(280, 1080),
-            local_rng.randi_range(220, 600)
-        ))
+        hazard_positions.append(_unique_position(local_rng, occupied))
 
     var rock_positions: Array[Vector2] = []
     for i in 4 + index:
-        rock_positions.append(Vector2(
-            local_rng.randi_range(260, 1060),
-            local_rng.randi_range(150, 520)
-        ))
+        rock_positions.append(_unique_position(local_rng, occupied))
 
     return {
         "seed": seed_value,
@@ -94,8 +104,8 @@ func generate_sector(index: int) -> Dictionary:
         "ore_positions": ore_positions,
         "hazard_positions": hazard_positions,
         "rock_positions": rock_positions,
-        "player_spawn": Vector2(140,180),
-        "exit_position": Vector2(1120,600),
+        "player_spawn": PLAYER_SPAWN,
+        "exit_position": EXIT_POSITION,
         "enemy_specs": enemy_specs,
         "briefing": "Sector %d — %s • %s • Seed %d" % [index + 1, biome.name, biome.modifier, seed_value]
     }
