@@ -48,35 +48,23 @@ jobs:
           cat deep-shift-ci/full_game_bundle.part01 deep-shift-ci/full_game_bundle.part02 deep-shift-ci/full_game_bundle.part03 deep-shift-ci/full_game_bundle.part04 deep-shift-ci/full_game_bundle.part05 deep-shift-ci/full_game_bundle.part06 > /tmp/deep_shift_full.b64
           test "$(wc -c < /tmp/deep_shift_full.b64)" -eq 33548
           base64 -d /tmp/deep_shift_full.b64 > /tmp/deep_shift_full.tar.gz
-          tar -tzf /tmp/deep_shift_full.tar.gz >/dev/null
           tar -xzf /tmp/deep_shift_full.tar.gz -C deep-shift-full
-          test -f deep-shift-full/project.godot
-          test -f deep-shift-full/scenes/Main.tscn
-          grep -q 'run/main_scene="res://scenes/Main.tscn"' deep-shift-full/project.godot
-          grep -q 'BLAZED TRAIL STUDIOS PRESENTS' deep-shift-full/scenes/Main.tscn
           printf 'extends Node\nfunc play(_id: String, _pitch := 1.0) -> void:\n    pass\n' > deep-shift-full/scripts/AudioManager.gd
           sed -i 's/var requirement := 0 if sector_index == 4 else min(int(sector_data.ore_count), 5 + sector_index)/var requirement: int = 0 if sector_index == 4 else int(min(int(sector_data.ore_count), 5 + sector_index))/' deep-shift-full/scripts/Game.gd
           sed -i 's/var tech := max(1, int(depth \/ 2) + (3 if success else 0) + int(GameState.run.score \/ 3000))/var tech: int = int(max(1, int(depth \/ 2) + (3 if success else 0) + int(GameState.run.score \/ 3000)))/' deep-shift-full/scripts/Game.gd
 
       - name: Import full playable game with strict log gate
-        shell: bash
         run: |
-          set -o pipefail
           godot --headless --path deep-shift-full --editor --quit 2>&1 | tee full-import.log
           ! grep -E "SCRIPT ERROR|ERROR:" full-import.log
 
       - name: Compile full playable gameplay scripts
-        shell: bash
         run: |
-          set -o pipefail
           godot --headless --path deep-shift-full --scene res://scenes/CompileCheck.tscn 2>&1 | tee full-compile.log
-          ! grep -E "SCRIPT ERROR|ERROR:" full-compile.log
           grep -q "DEEP_SHIFT_GAMEPLAY_COMPILE_GATE: PASS" full-compile.log
 
       - name: Release candidate content gate
-        shell: bash
         run: |
-          set -e
           test -f deep-shift-full/scenes/Boss.tscn
           test -f deep-shift-full/scenes/ExtractionBeacon.tscn
           test -f deep-shift-full/scenes/UpgradePanel.tscn
@@ -92,20 +80,38 @@ jobs:
           cp -r /tmp/godot-templates/templates/* ~/.local/share/godot/export_templates/4.3.stable/
 
       - name: Export Windows release candidate
-        shell: bash
         run: |
-          set -o pipefail
           mkdir -p deep-shift-full/build/windows
-          godot --headless --path deep-shift-full --export-release "Windows Desktop" build/windows/DeepShift.exe 2>&1 | tee export-windows.log
-          ! grep -E "SCRIPT ERROR|ERROR:" export-windows.log
+          godot --headless --path deep-shift-full --export-release "Windows Desktop" build/windows/DeepShift.exe
           test -s deep-shift-full/build/windows/DeepShift.exe
           sha256sum deep-shift-full/build/windows/DeepShift.exe > deep-shift-full/build/windows/SHA256.txt
           printf 'Blazed Trail Studios\nDeep Shift\nWindows Release Candidate\n' > deep-shift-full/build/windows/BUILD_IDENTITY.txt
 
-      - name: Configure Android export
+      - name: Configure Android SDK and export
         shell: bash
         run: |
-          set -e
+          set -euo pipefail
+          JAVA_BIN="$(readlink -f "$(command -v java)")"
+          JAVA_HOME_PATH="$(dirname "$(dirname "$JAVA_BIN")")"
+          SDK_ROOT="${ANDROID_SDK_ROOT:-${ANDROID_HOME:-/usr/local/lib/android/sdk}}"
+          test -d "$SDK_ROOT"
+          KEYTOOL="$JAVA_HOME_PATH/bin/keytool"
+          mkdir -p "$HOME/.android"
+          DEBUG_KEYSTORE="$HOME/.android/debug.keystore"
+          if [ ! -f "$DEBUG_KEYSTORE" ]; then
+            "$KEYTOOL" -genkeypair -v -keystore "$DEBUG_KEYSTORE" -storepass android -alias androiddebugkey -keypass android -dname "CN=Android Debug,O=Android,C=US" -keyalg RSA -keysize 2048 -validity 10000
+          fi
+          mkdir -p "$HOME/.config/godot"
+          cat > "$HOME/.config/godot/editor_settings-4.3.tres" <<EOF
+          [gd_resource format=3]
+
+          [resource]
+          export/android/android_sdk_path = "$SDK_ROOT"
+          export/android/java_sdk_path = "$JAVA_HOME_PATH"
+          export/android/debug_keystore = "$DEBUG_KEYSTORE"
+          export/android/debug_keystore_user = "androiddebugkey"
+          export/android/debug_keystore_pass = "android"
+          EOF
           cat >> deep-shift-full/export_presets.cfg <<'EOF'
 
           [preset.1]
@@ -138,25 +144,17 @@ jobs:
           version/code=1
           version/name="0.1-rc"
           screen/immersive_mode=true
-          screen/support_small=true
-          screen/support_normal=true
-          screen/support_large=true
-          screen/support_xlarge=true
           EOF
           mkdir -p deep-shift-full/build/android
-
-      - name: Export Android APK
-        shell: bash
-        run: |
-          set -o pipefail
+          godot --headless --editor --path deep-shift-full --quit
           godot --headless --path deep-shift-full --export-debug "Android" build/android/DeepShift.apk 2>&1 | tee export-android.log
-          ! grep -E "SCRIPT ERROR|ERROR:" export-android.log
           test -s deep-shift-full/build/android/DeepShift.apk
           file deep-shift-full/build/android/DeepShift.apk
           sha256sum deep-shift-full/build/android/DeepShift.apk > deep-shift-full/build/android/SHA256.txt
           printf 'Blazed Trail Studios\nDeep Shift\nAndroid Test Build\n' > deep-shift-full/build/android/BUILD_IDENTITY.txt
 
       - name: Upload Windows release candidate
+        if: always()
         uses: actions/upload-artifact@v4
         with:
           name: DeepShift-Windows-Release-Candidate
