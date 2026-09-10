@@ -81,6 +81,10 @@ jobs:
             echo "No enriched signals were available for re-scoring."
           fi
 
+      - name: Cluster Promoted Opportunities
+        run: |
+          python product-discovery/opportunity_clusterer.py
+
       - name: Summarize Opportunity Radar Results
         run: |
           python - <<'PY'
@@ -165,6 +169,53 @@ jobs:
                       f"{item['title']}"
                   )
 
+          cluster_index = Path(
+              "product-discovery/opportunity-clusters/index.json"
+          )
+
+          if cluster_index.exists():
+              cluster_data = json.loads(
+                  cluster_index.read_text(
+                      encoding="utf-8"
+                  )
+              )
+
+              print()
+              print(
+                  "SYNTHESIZED OPPORTUNITY CLUSTERS"
+              )
+
+              print(
+                  f"Promoted signals: "
+                  f"{cluster_data.get('promoted_signal_count', 0)}"
+              )
+
+              print(
+                  f"Opportunity clusters: "
+                  f"{cluster_data.get('cluster_count', 0)}"
+              )
+
+              for cluster in sorted(
+                  cluster_data.get(
+                      "clusters",
+                      []
+                  ),
+                  key=lambda x:
+                      x.get(
+                          "cluster_score",
+                          0,
+                      ),
+                  reverse=True,
+              ):
+
+                  print(
+                      f"{cluster.get('cluster_score', 0)}/100 | "
+                      f"{cluster.get('industry', 'Unknown')} | "
+                      f"{cluster.get('signal_count', 0)} signals | "
+                      f"{cluster.get('problem_statement', 'Unknown problem')} | "
+                      f"{cluster.get('recommended_next_action', 'UNKNOWN')}"
+                  )
+
           print("=" * 70)
           PY
 
@@ -194,4 +245,11 @@ jobs:
         with:
           name: opportunity-radar-final-results
           path: product-discovery/radar-output/
+          if-no-files-found: warn
+
+      - name: Upload Synthesized Opportunity Clusters
+        uses: actions/upload-artifact@v4
+        with:
+          name: opportunity-radar-clusters
+          path: product-discovery/opportunity-clusters/
           if-no-files-found: warn
