@@ -1,0 +1,96 @@
+name: JakeAI Codex PR Guardrails
+
+on:
+  pull_request:
+    branches: [main]
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  validate:
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout Repository
+        uses: actions/checkout@v4
+
+      - name: Set Up Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: '3.12'
+
+      - name: Install Dependencies
+        run: |
+          python -m pip install -r requirements.txt
+          python -m pip install pytest
+
+      - name: Compile Python Sources
+        run: |
+          python -m py_compile main.py jakeai_mcp_server.py jakeai_audit.py
+          python -m compileall -q product-discovery
+
+      - name: Run Opportunity Clusterer Regression Test
+        run: python product-discovery/test_opportunity_clusterer.py
+
+      - name: Run Public Claim Consistency Tests
+        run: python -m pytest -q tests/test_claim_consistency.py
+
+      - name: Validate Machine-Readable JSON
+        run: |
+          python - <<'PY'
+          import json
+          from pathlib import Path
+
+          for name in ("agent_card.json",):
+              path = Path(name)
+              json.loads(path.read_text(encoding="utf-8"))
+              print(f"valid json: {name}")
+          PY
+
+      - name: Verify Core Safety Invariants
+        run: |
+          python - <<'PY'
+          from pathlib import Path
+
+          main = Path("main.py").read_text(encoding="utf-8")
+          validation = Path(".github/workflows/product-validation.yml").read_text(encoding="utf-8")
+          redirects = Path("_redirects").read_text(encoding="utf-8")
+
+          required_main_markers = [
+              "allow_credentials=False",
+              "def is_product_checkout_enabled",
+              "if p.get(\"requires_metering\", False)",
+              "def is_safe_url",
+              '@app.get("/llms.txt"',
+              '@app.get("/.well-known/agent.json"',
+          ]
+
+          required_validation_markers = [
+              '"publication_authorized": False',
+              '"spending_authorized": False',
+              '"build_authorized": False',
+              '"human_approval_required": True',
+          ]
+
+          required_redirect_markers = [
+              "/llms.txt  https://agent-commerce-network-production-56e8.up.railway.app/llms.txt  200!",
+              "/.well-known/agent.json  https://agent-commerce-network-production-56e8.up.railway.app/.well-known/agent.json  200!",
+              "/api/*  https://agent-commerce-network-production-56e8.up.railway.app/:splat  200",
+          ]
+
+          missing = [m for m in required_main_markers if m not in main]
+          missing += [m for m in required_validation_markers if m not in validation]
+          missing += [m for m in required_redirect_markers if m not in redirects]
+
+          if missing:
+              raise SystemExit("Safety/truth invariant missing: " + ", ".join(missing))
+
+          print("Core fail-closed, human-approval, and machine-surface routing invariants present.")
+          PY
+
+      - name: Report Guardrail Status
+        run: |
+          echo "JakeAI Codex PR guardrails passed."
+          echo "This workflow does not authorize deployment, publication, spending, or checkout."
