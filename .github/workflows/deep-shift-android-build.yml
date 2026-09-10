@@ -47,6 +47,19 @@ jobs:
           sed -i 's/var requirement := 0 if sector_index == 4 else min(int(sector_data.ore_count), 5 + sector_index)/var requirement: int = 0 if sector_index == 4 else int(min(int(sector_data.ore_count), 5 + sector_index))/' deep-shift-full/scripts/Game.gd
           sed -i 's/var tech := max(1, int(depth \/ 2) + (3 if success else 0) + int(GameState.run.score \/ 3000))/var tech: int = int(max(1, int(depth \/ 2) + (3 if success else 0) + int(GameState.run.score \/ 3000)))/' deep-shift-full/scripts/Game.gd
           printf 'extends Node\nfunc play(_id: String, _pitch := 1.0) -> void:\n    pass\n' > deep-shift-full/scripts/AudioManager.gd
+          python3 - <<'PY'
+          from pathlib import Path
+          p = Path('deep-shift-full/project.godot')
+          text = p.read_text()
+          key = 'textures/vram_compression/import_etc2_astc=true'
+          if key not in text:
+              if '[rendering]' in text:
+                  text = text.replace('[rendering]', '[rendering]\n' + key, 1)
+              else:
+                  text += '\n[rendering]\n' + key + '\n'
+          p.write_text(text)
+          PY
+          grep -q '^textures/vram_compression/import_etc2_astc=true$' deep-shift-full/project.godot
 
       - name: Configure Android toolchain
         shell: bash
