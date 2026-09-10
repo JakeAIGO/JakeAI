@@ -217,13 +217,21 @@ jobs:
           if [ ! -f "$DEBUG_KEYSTORE" ]; then
             keytool -genkeypair -keystore "$DEBUG_KEYSTORE" -storepass android -alias androiddebugkey -keypass android -dname "CN=Android Debug,O=Android,C=US" -keyalg RSA -keysize 2048 -validity 10000
           fi
-          cat > "$HOME/.config/godot/editor_settings-4.3.tres" <<EOF
-          [gd_resource type="EditorSettings" format=3]
-
-          [resource]
-          export/android/android_sdk_path = "$SDK_ROOT"
-          export/android/java_sdk_path = "$JAVA_HOME"
-          EOF
+          godot --headless --editor --path deep-shift-full --quit
+          SETTINGS="$HOME/.config/godot/editor_settings-4.tres"
+          test -f "$SETTINGS"
+          python3 - "$SETTINGS" "$SDK_ROOT" "$JAVA_HOME" <<'PY'
+          import sys
+          from pathlib import Path
+          settings, sdk, java = sys.argv[1:]
+          p = Path(settings)
+          text = p.read_text()
+          lines = [line for line in text.splitlines() if not line.startswith('export/android/android_sdk_path = ') and not line.startswith('export/android/java_sdk_path = ')]
+          insert_at = lines.index('[resource]') + 1
+          lines[insert_at:insert_at] = [f'export/android/android_sdk_path = "{sdk}"', f'export/android/java_sdk_path = "{java}"']
+          p.write_text('\n'.join(lines) + '\n')
+          PY
+          grep -E '^export/android/(android_sdk_path|java_sdk_path)' "$SETTINGS"
           cat >> deep-shift-full/export_presets.cfg <<EOF
 
           [preset.1]
@@ -268,6 +276,7 @@ jobs:
           echo 'DEEP_SHIFT_ANDROID_EXPORT_GATE: PASS'
 
       - name: Upload Windows audio release candidate
+        if: always()
         uses: actions/upload-artifact@v4
         with:
           name: DeepShift-Windows-Audio-Release-Candidate
