@@ -1,0 +1,1 @@
+Trigger full playable promotion after live Godot repair.
