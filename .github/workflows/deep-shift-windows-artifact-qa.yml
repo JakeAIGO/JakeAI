@@ -1,0 +1,91 @@
+name: Deep Shift Windows Artifact QA
+
+on:
+  workflow_dispatch:
+  workflow_run:
+    workflows: ["Deep Shift Runtime QA"]
+    types: [completed]
+
+permissions:
+  contents: read
+  actions: read
+
+jobs:
+  windows-artifact-launch:
+    if: github.event_name == 'workflow_dispatch' || github.event.workflow_run.conclusion == 'success'
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+    steps:
+      - name: Select successful Deep Shift build
+        id: pick
+        shell: bash
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          set -euo pipefail
+          if [ "${{ github.event_name }}" = "workflow_run" ]; then
+            RUN_ID="${{ github.event.workflow_run.id }}"
+          else
+            RUN_ID=$(gh api "repos/${GITHUB_REPOSITORY}/actions/workflows/deep-shift-runtime-qa.yml/runs?branch=deep-shift-ci&status=success&per_page=20" --jq '.workflow_runs[0].id')
+          fi
+          test -n "$RUN_ID"
+          echo "run_id=$RUN_ID" >> "$GITHUB_OUTPUT"
+          echo "Selected run $RUN_ID"
+
+      - name: Download Windows release artifact
+        shell: bash
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          set -euo pipefail
+          mkdir -p artifact
+          gh run download "${{ steps.pick.outputs.run_id }}" -R "$GITHUB_REPOSITORY" -n DeepShift-Windows-Audio-Release-Candidate -D artifact
+          test -s artifact/DeepShift.exe
+          file artifact/DeepShift.exe | tee artifact-file.txt
+          grep -q 'PE32+ executable' artifact-file.txt
+          if [ -f artifact/SHA256.txt ]; then
+            EXPECTED=$(awk '/DeepShift.exe/{print $1}' artifact/SHA256.txt | head -1)
+            ACTUAL=$(sha256sum artifact/DeepShift.exe | awk '{print $1}')
+            test "$EXPECTED" = "$ACTUAL"
+          fi
+          echo 'DEEP_SHIFT_WINDOWS_ARTIFACT_STRUCTURE_GATE: PASS'
+
+      - name: Install Wine and virtual display
+        run: |
+          sudo apt-get update -qq
+          sudo apt-get install -y --no-install-recommends wine64 xvfb >/dev/null
+          wine --version
+
+      - name: Launch exported Deep Shift executable
+        shell: bash
+        env:
+          WINEDEBUG: -all
+        run: |
+          set -euo pipefail
+          cd artifact
+          set +e
+          timeout 15s xvfb-run -a wine ./DeepShift.exe > artifact-launch.log 2>&1
+          CODE=$?
+          set -e
+          cat artifact-launch.log
+          if [ "$CODE" -eq 124 ] || [ "$CODE" -eq 0 ]; then
+            true
+          else
+            echo "Windows artifact failed startup probe with exit code $CODE"
+            exit "$CODE"
+          fi
+          if grep -E 'SCRIPT ERROR|Parse Error|Invalid get index|Invalid call|Failed to load|Cannot open' artifact-launch.log; then
+            echo 'Runtime engine/script error detected in exported artifact.'
+            exit 1
+          fi
+          echo 'DEEP_SHIFT_WINDOWS_ARTIFACT_STARTUP_GATE: PASS'
+
+      - name: Preserve launch diagnostics
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: DeepShift-Windows-Artifact-QA-Logs
+          path: |
+            artifact/artifact-launch.log
+            artifact-file.txt
+          retention-days: 30
