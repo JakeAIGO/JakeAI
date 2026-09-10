@@ -18,7 +18,7 @@ func _ready() -> void:
     var win_rate: float = float(report.win_rate)
     var total_deaths: int = int(report.runs) - int(report.wins)
     var energy_deaths: int = int(report.deaths.get("energy_depletion", 0))
-    var energy_share := 0.0 if total_deaths <= 0 else float(energy_deaths) / float(total_deaths)
+    var energy_share: float = 0.0 if total_deaths <= 0 else float(energy_deaths) / float(total_deaths)
 
     if win_rate < MIN_WIN_RATE or win_rate > MAX_WIN_RATE:
         failures.append("Win rate %.3f outside prototype gate %.2f-%.2f" % [win_rate, MIN_WIN_RATE, MAX_WIN_RATE])
@@ -31,6 +31,8 @@ func _ready() -> void:
     if failures.is_empty():
         print("DEEP_SHIFT_BALANCE_GATE: PASS")
         get_tree().quit(0)
+        return
+
     for failure in failures:
         push_error(failure)
     print("DEEP_SHIFT_BALANCE_GATE: FAIL")
