@@ -113,7 +113,7 @@ func _in_bounds(cell: Vector2i) -> bool:
 func get_open_neighbors(cell: Vector2i) -> Array[Vector2i]:
     var result: Array[Vector2i] = []
     for d in [Vector2i.RIGHT, Vector2i.LEFT, Vector2i.UP, Vector2i.DOWN]:
-        var n := cell + d
+        var n: Vector2i = cell + d
         if _in_bounds(n) and not is_solid_cell(n):
             result.append(n)
     return result
