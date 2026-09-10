@@ -5,37 +5,46 @@ on:
       package_path:
         description: Repository path to review package
         required: true
-        default: product-discovery/validation/aerospace-supply-bottleneck-validation.md
+        default: product-discovery/council-packages/aerospace-bottleneck-review.md
+      live_calls:
+        description: Explicitly authorize paid/external model API calls
+        required: true
+        default: false
+        type: boolean
 permissions:
   contents: read
 jobs:
   council:
     runs-on: ubuntu-latest
-    timeout-minutes: 15
+    timeout-minutes: 20
     steps:
       - uses: actions/checkout@v4
       - uses: actions/setup-python@v5
         with:
           python-version: '3.12'
-      - name: Run council provenance gate
+      - name: Run council
         env:
+          COUNCIL_LIVE_CALLS: ${{ inputs.live_calls && '1' || '0' }}
           OPENAI_API_KEY: ${{ secrets.OPENAI_API_KEY }}
           ANTHROPIC_API_KEY: ${{ secrets.ANTHROPIC_API_KEY }}
           GEMINI_API_KEY: ${{ secrets.GEMINI_API_KEY }}
           PERPLEXITY_API_KEY: ${{ secrets.PERPLEXITY_API_KEY }}
           XAI_API_KEY: ${{ secrets.XAI_API_KEY }}
         run: python product-discovery/multimodel_council.py "${{ inputs.package_path }}"
+      - name: Verify provenance invariant
+        run: |
+          python - <<'PY'
+          import json
+          r=json.load(open('product-discovery/run-output/council-latest.json'))
+          for name,m in r['members'].items():
+              if m.get('participated'):
+                  assert m.get('status') == 'SUCCESS'
+                  assert m.get('request_id') or m.get('received_at')
+                  assert m.get('analysis',{}).get('verdict') in {'PASS_WITH_GATES','HOLD','REJECT'}
+          print('Council provenance gate passed:', r['status'], 'verified participants:', r['participating_count'])
+          PY
       - uses: actions/upload-artifact@v4
         with:
           name: multimodel-council-report
           path: product-discovery/run-output/council-latest.json
           retention-days: 30
-      - name: Enforce no fabricated council
-        run: |
-          python - <<'PY'
-          import json
-          p='product-discovery/run-output/council-latest.json'
-          r=json.load(open(p))
-          assert all(not v.get('participated') for v in r['members'].values()), 'Participation requires completed provider adapter and captured response'
-          print('Council provenance gate passed; no external model participation is being falsely claimed.')
-          PY
