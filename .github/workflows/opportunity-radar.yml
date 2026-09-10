@@ -16,13 +16,109 @@ jobs:
         with:
           python-version: '3.12'
 
-      - name: Run Opportunity Radar
+      - name: Scan Live Public News
         run: |
-          python product-discovery/opportunity_radar.py \
-            product-discovery/signals/signal-001-grid-site-selection.json
+          python product-discovery/news_ingestor.py 40
 
-      - name: Upload Radar Output
+      - name: Run Opportunity Radar Across Live Signals
+        shell: bash
+        run: |
+          count=0
+
+          for signal in product-discovery/live-signals/*.json; do
+            if [ -f "$signal" ]; then
+              echo ""
+              echo "======================================================"
+              echo "EVALUATING: $signal"
+              echo "======================================================"
+
+              python product-discovery/opportunity_radar.py "$signal"
+              count=$((count + 1))
+            fi
+          done
+
+          echo ""
+          echo "Signals evaluated: $count"
+
+          if [ "$count" -eq 0 ]; then
+            echo "ERROR: No live signals were captured."
+            exit 1
+          fi
+
+      - name: Summarize Opportunity Radar Results
+        run: |
+          python - <<'PY'
+          import json
+          from pathlib import Path
+
+          counts = {
+              "PROMOTE_TO_DISCOVERY": 0,
+              "NEEDS_MORE_EVIDENCE": 0,
+              "REJECT_NOISE": 0,
+          }
+
+          promoted = []
+
+          for path in Path(
+              "product-discovery/radar-output"
+          ).glob("*.json"):
+
+              data = json.loads(
+                  path.read_text(encoding="utf-8")
+              )
+
+              disposition = data.get(
+                  "disposition",
+                  "UNKNOWN"
+              )
+
+              counts[disposition] = (
+                  counts.get(disposition, 0) + 1
+              )
+
+              if disposition == "PROMOTE_TO_DISCOVERY":
+                  promoted.append(
+                      (
+                          data.get("radar_score", 0),
+                          data.get("title", "Untitled"),
+                          data.get("industry", "Unknown"),
+                      )
+                  )
+
+          print("=" * 70)
+          print("JAKEAI OPPORTUNITY RADAR — LIVE SCAN SUMMARY")
+          print("=" * 70)
+
+          for key, value in counts.items():
+              print(f"{key}: {value}")
+
+          print()
+          print("TOP PROMOTED OPPORTUNITIES")
+
+          if not promoted:
+              print("None promoted during this scan.")
+          else:
+              for score, title, industry in sorted(
+                  promoted,
+                  reverse=True
+              )[:10]:
+                  print(
+                      f"{score}/100 | "
+                      f"{industry} | "
+                      f"{title}"
+                  )
+
+          print("=" * 70)
+          PY
+
+      - name: Upload Live News Signals
         uses: actions/upload-artifact@v4
         with:
-          name: opportunity-radar-output
+          name: opportunity-radar-live-signals
+          path: product-discovery/live-signals/
+
+      - name: Upload Radar Results
+        uses: actions/upload-artifact@v4
+        with:
+          name: opportunity-radar-results
           path: product-discovery/radar-output/
