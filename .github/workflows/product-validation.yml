@@ -1,0 +1,178 @@
+name: JakeAI Product Validation Test
+
+on:
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  validate-candidate:
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout Repository
+        uses: actions/checkout@v4
+
+      - name: Set Up Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: '3.12'
+
+      - name: Run Stage 2 Validation Gate
+        run: |
+          mkdir -p product-discovery/validation
+
+          python - <<'PY'
+          import json
+          from datetime import datetime, timezone
+          from pathlib import Path
+
+          signal_path = Path(
+              "product-discovery/signals/"
+              "signal-001-grid-site-selection.json"
+          )
+
+          signal = json.loads(
+              signal_path.read_text(encoding="utf-8")
+          )
+
+          evidence = [
+              item for item in signal.get("evidence", [])
+              if item
+          ]
+
+          source_urls = [
+              item for item in signal.get("source_urls", [])
+              if item
+          ]
+
+          risks = signal.get("risks", [])
+
+          # Stage 2 v0.1 is intentionally conservative.
+          # It checks whether the candidate has enough
+          # independent evidence to advance to real validation.
+          #
+          # It does NOT search the web yet.
+          # It does NOT claim the market problem is validated.
+
+          evidence_count = len(evidence)
+          source_count = len(set(source_urls))
+
+          supporting_source_threshold = 3
+
+          if source_count >= supporting_source_threshold:
+              disposition = "READY_FOR_INDEPENDENT_VALIDATION"
+          else:
+              disposition = "INSUFFICIENT_INDEPENDENT_EVIDENCE"
+
+          validation_score = min(
+              100,
+              (source_count * 20) +
+              (evidence_count * 10)
+          )
+
+          result = {
+              "candidate_title": signal.get("title"),
+              "industry": signal.get("industry"),
+              "target_buyer": signal.get("target_buyer"),
+              "proposed_skill": signal.get("proposed_skill"),
+
+              "stage": "VALIDATION_V0_1",
+
+              "evidence_count": evidence_count,
+              "independent_source_count": source_count,
+
+              "source_urls": source_urls,
+
+              "supporting_evidence": evidence,
+
+              "counter_evidence": [],
+
+              "validation_score": validation_score,
+
+              "disposition": disposition,
+
+              "independently_validated": False,
+
+              "publication_authorized": False,
+              "spending_authorized": False,
+              "build_authorized": False,
+
+              "human_approval_required": True,
+
+              "risks": risks,
+
+              "next_action": (
+                  "Gather multiple independent credible sources "
+                  "that support or contradict the problem hypothesis. "
+                  "Collect buyer evidence, problem-frequency evidence, "
+                  "existing-solution evidence, and counter-evidence "
+                  "before authorizing product construction."
+              ),
+
+              "claim_boundary": (
+                  "This result evaluates evidence readiness only. "
+                  "It does not establish market demand, product-market "
+                  "fit, willingness to pay, engineering validity, or "
+                  "commercial validation."
+              ),
+
+              "generated_at": datetime.now(
+                  timezone.utc
+              ).isoformat()
+          }
+
+          output_path = Path(
+              "product-discovery/validation/"
+              "product-validation-001.json"
+          )
+
+          output_path.write_text(
+              json.dumps(result, indent=2),
+              encoding="utf-8"
+          )
+
+          print("=" * 72)
+          print("JAKEAI PRODUCT VALIDATION STAGE 2")
+          print("=" * 72)
+
+          print(
+              f"Candidate: "
+              f"{result['candidate_title']}"
+          )
+
+          print(
+              f"Proposed skill: "
+              f"{result['proposed_skill']}"
+          )
+
+          print(
+              f"Independent sources: "
+              f"{result['independent_source_count']}"
+          )
+
+          print(
+              f"Validation score: "
+              f"{result['validation_score']} / 100"
+          )
+
+          print(
+              f"Disposition: "
+              f"{result['disposition']}"
+          )
+
+          print()
+          print("Autonomous build: DISABLED")
+          print("Autonomous spending: DISABLED")
+          print("Autonomous publication: DISABLED")
+          print("Human approval: REQUIRED")
+
+          print("=" * 72)
+          PY
+
+      - name: Upload Validation Output
+        uses: actions/upload-artifact@v4
+        with:
+          name: product-validation-001
+          path: product-discovery/validation/product-validation-001.json
