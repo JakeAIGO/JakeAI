@@ -32,7 +32,7 @@ def test_health_endpoint_is_liveness_not_dependency_health_claim():
 def test_robotics_endpoint_is_explicitly_advisory_not_control_ready():
     source = read("main.py")
     assert 'status="advisory_only"' in source
-    assert '"safety_classification": "UNVALIDATED_PHYSICAL_CONTROL_MODEL"' in source
+    assert 'safety_classification="UNVALIDATED_PHYSICAL_CONTROL_MODEL"' in source
     assert 'status="optimized"' not in source
 
 
@@ -40,3 +40,15 @@ def test_robotics_catalog_does_not_claim_solver_is_validated_control_logic():
     source = read("main.py")
     assert 'Unvalidated educational calculation' in source
     assert 'Deterministic physics calculation for 5-fingered, 22-DoF robotic hands.' not in source
+
+
+def test_multi_model_audit_does_not_accept_provider_keys_from_request_headers():
+    source = read("main.py")
+    assert 'request.headers.get("X-Anthropic-Key")' not in source
+    assert 'request.headers.get("X-Perplexity-Key")' not in source
+
+
+def test_public_network_fetch_tools_fail_closed_by_default():
+    source = read("main.py")
+    assert 'NETWORK_FETCH_TOOLS_ENABLED' in source
+    assert 'External network-fetch tools are disabled pending hardened egress controls.' in source
