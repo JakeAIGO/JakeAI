@@ -281,16 +281,16 @@ class ExtractRequest(BaseModel):
     url: str = Field(..., example="https://en.wikipedia.org/wiki/Artificial_intelligence")
 
 class IRACalculatorRequest(BaseModel):
-    system_cost: float = Field(..., example=500000.0, description="Gross Turnkey EPC Cost in USD")
-    system_kw_dc: float = Field(..., example=400.0, description="System DC Nameplate Rating in kW")
+    system_cost: float = Field(..., gt=0.0, example=500000.0, description="Gross Turnkey EPC Cost in USD")
+    system_kw_dc: float = Field(..., gt=0.0, example=400.0, description="System DC Nameplate Rating in kW")
     is_energy_community: bool = Field(False, description="Whether location qualifies for Energy Community +10% adder")
     is_domestic_content: bool = Field(False, description="Whether equipment qualifies for 100% US steel + domestic adder")
 
 class TariffNormalizeRequest(BaseModel):
     utility: str = Field(..., example="Dominion_VA")
     rate_class: str = Field(..., example="GS-3")
-    peak_demand_kw: float = Field(..., example=450.0)
-    monthly_consumption_kwh: float = Field(..., example=180000.0)
+    peak_demand_kw: float = Field(..., ge=0.0, example=450.0)
+    monthly_consumption_kwh: float = Field(..., gt=0.0, example=180000.0)
 
 class MultiModelAuditRequest(BaseModel):
     content: str = Field(..., max_length=15000, description="Proposal text, code, schema, or product manifest to audit")
@@ -302,8 +302,8 @@ class AgentAuditRequest(BaseModel):
 class SettlementRequest(BaseModel):
     product_id: str
     buyer_did: str
-    amount: float
-    take_rate: Optional[float] = 0.01
+    amount: float = Field(..., gt=0.0)
+    take_rate: Optional[float] = Field(0.01, ge=0.0, le=1.0)
 
 # --- WORKING AI PRODUCT ENDPOINTS ---
 
