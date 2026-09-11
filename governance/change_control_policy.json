@@ -1,5 +1,5 @@
 {
-  "schema_version": "1.0",
+  "schema_version": "1.1",
   "baseline_ref": "origin/baseline/master-2026-09-11",
   "change_request_glob": "governance/change_requests/*.json",
   "risk_levels": ["low", "moderate", "high", "critical"],
@@ -21,6 +21,19 @@
     "tests": ["tests/**"],
     "documentation": ["*.md", "docs/**", "governance/**"]
   },
+  "minimum_risk_by_scope": {
+    "governance": "moderate",
+    "runtime": "high",
+    "commerce": "high",
+    "security": "high",
+    "privacy": "high",
+    "legal": "high",
+    "safety": "critical",
+    "brand": "moderate",
+    "dependencies": "high",
+    "tests": "low",
+    "documentation": "low"
+  },
   "review_requirements": {
     "security": ["security"],
     "privacy": ["privacy"],
@@ -35,5 +48,6 @@
     "governance/change_control_policy.json",
     ".github/workflows/change-control-gate.yml"
   ],
+  "self_modification_minimum_risk": "high",
   "protected_manifest": "governance/master_manifest.json"
 }
