@@ -6,16 +6,17 @@ from tools.change_control import (
     minimum_required_risk,
     required_reviews,
     validate_change_request,
+    validate_change_request_set,
 )
 
 
 POLICY = load_policy(Path("governance/change_control_policy.json"))
 
 
-def base_request():
+def base_request(change_id="TEST-1"):
     return {
         "schema_version": "1.1",
-        "id": "TEST-1",
+        "id": change_id,
         "title": "Test",
         "status": "proposed",
         "baseline_ref": "baseline/master-2026-09-11",
@@ -36,6 +37,11 @@ def test_classifies_governance_and_security_self_modification():
     classified = classify_paths(paths, POLICY)
     assert "governance" in classified
     assert "security" in classified
+
+
+def test_classifies_module_paths():
+    classified = classify_paths(["modules/demo/module.json"], POLICY)
+    assert "modules" in classified
 
 
 def test_required_reviews_derived_from_scope():
@@ -112,3 +118,19 @@ def test_authorized_self_modification_requires_all_reviews_approved():
     }
     errors = validate_change_request(request, categories, {"tools/change_control.py"}, POLICY)
     assert any("authorization requires council review=approved" in e for e in errors)
+
+
+def test_cumulative_change_requests_can_split_scopes_without_rewriting_history():
+    first = base_request("OLD")
+    first["scope_categories"] = ["governance", "security"]
+    first["reviews"] = {"architecture": "pending", "security": "pending", "council": "pending", "human": "pending"}
+    second = base_request("NEW")
+    second["scope_categories"] = ["modules"]
+    second["reviews"] = {"architecture": "pending", "security": "pending", "council": "pending", "human": "pending"}
+    errors = validate_change_request_set(
+        [first, second],
+        {"governance", "security", "modules"},
+        {"tools/change_control.py", "modules/demo/module.json"},
+        POLICY,
+    )
+    assert errors == []
