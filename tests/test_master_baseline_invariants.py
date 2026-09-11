@@ -1,6 +1,7 @@
-"""Static regression gates for Jake AI Master Baseline candidate.
+"""Static regression gates for the Jake AI Master Baseline candidate.
 
 These tests intentionally require no production credentials and make no network calls.
+They are guardrails, not proof of deployed runtime behavior.
 """
 from pathlib import Path
 
@@ -8,6 +9,7 @@ ROOT = Path(__file__).resolve().parents[1]
 MAIN = (ROOT / "main.py").read_text(encoding="utf-8")
 INDEX = (ROOT / "index.html").read_text(encoding="utf-8")
 NETLIFY = (ROOT / "netlify.toml").read_text(encoding="utf-8")
+README = (ROOT / "README.md").read_text(encoding="utf-8")
 
 
 def test_free_checkout_precedes_stripe_secret_requirement():
@@ -42,9 +44,35 @@ def test_machine_discovery_is_proxied_to_backend():
     assert 'from = "/.well-known/*"' in NETLIFY
 
 
+def test_canonical_public_api_proxy_exists():
+    assert 'from = "/api/v1/*"' in NETLIFY
+    assert '/v1/:splat' in NETLIFY
+
+
 def test_homepage_does_not_make_global_checkout_active_claim():
     assert "● Checkout Active" not in INDEX
 
 
 def test_homepage_does_not_call_solar_guide_authoritative():
     assert "Authoritative reference guide" not in INDEX
+
+
+def test_demo_energy_product_title_does_not_imply_unqualified_realtime_data():
+    assert '"PJM Real-Time Energy Tariff & 4CP Peak Forecast API"' not in MAIN
+
+
+def test_readme_does_not_claim_unbounded_human_free_commerce():
+    assert "without human intervention" not in README.lower()
+
+
+def test_readme_does_not_document_removed_register_or_settle_routes():
+    assert "/v1/products/register" not in README
+    assert "/v1/transactions/settle" not in README
+
+
+def test_readme_does_not_call_admin_private_without_verified_access_control():
+    assert "Private Web Admin Dashboard" not in README
+
+
+def test_readme_documents_master_baseline_gate():
+    assert "MASTER BASELINE -> WORKING BRANCH -> AUTOMATED TESTS" in README
