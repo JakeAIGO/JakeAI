@@ -1,0 +1,54 @@
+{
+  "project": "JakeAI Autonomous Product Factory / JakeAIOfficial.com",
+  "checkpoint": {
+    "created_at": "2026-09-11T07:12:00-04:00",
+    "source": "JakeAI master handoff plus verified repository state",
+    "version": 1
+  },
+  "status_legend": {
+    "verified_live": "Confirmed in the real destination",
+    "verified_staged": "Built or tested but not confirmed live",
+    "pending": "Initiated; final outcome not independently verified",
+    "blocked": "Needs dependency, permission, or security/user step",
+    "proposed": "Idea only"
+  },
+  "verified_facts": [
+    {
+      "id": "repo-main",
+      "summary": "Canonical repository is JakeAIGO/JakeAI with default branch main.",
+      "status": "verified_live",
+      "evidence": ["GitHub repository metadata verified 2026-09-11"],
+      "owner": "JakeAI"
+    },
+    {
+      "id": "continuity-branch",
+      "summary": "Model continuity implementation is isolated on feature/model-continuity-router.",
+      "status": "verified_staged",
+      "evidence": ["GitHub branch created 2026-09-11"],
+      "owner": "JakeAI"
+    }
+  ],
+  "active_work": [
+    {
+      "id": "model-continuity-router",
+      "summary": "Build a provider-neutral continuity layer so JakeAI can switch between AI models without reconstructing project context.",
+      "status": "verified_staged",
+      "evidence": ["continuity/README.md", "continuity/state.schema.json", "continuity/current_state.json"],
+      "owner": "JakeAI"
+    }
+  ],
+  "next_action": "Complete and test the deterministic handoff generator, then open a draft PR for review before any merge to main.",
+  "constraints": [
+    "Canonical brand spelling is JakeAI.",
+    "No additional spend beyond the existing domain cost unless explicitly approved.",
+    "Do not claim proposed, staged, pending, or unit-tested work is live or sold.",
+    "Do not bypass provider usage limits; design lawful provider-independent failover instead.",
+    "Do not include secrets, tokens, credentials, private paid-delivery URLs, proprietary prompts, or trade-secret implementation details in portable handoffs.",
+    "Preserve legal, financial, security, and consequential-action approval gates.",
+    "Near-term commercial goal remains the first real independent paid sale."
+  ],
+  "handoff_notes": [
+    "The model is not the memory. The model is not the project. JakeAI owns the project state; models are interchangeable compute.",
+    "Resume from the highest-value unresolved checkpoint with less discussion and more verified execution."
+  ]
+}
