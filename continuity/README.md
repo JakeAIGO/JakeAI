@@ -21,25 +21,52 @@ This package is the first implementation skeleton for surviving model/session li
 - `state.schema.json` — portable state contract.
 - `current_state.json` — current sanitized JakeAI checkpoint.
 - `router.py` — standard-library CLI that validates state and emits a portable handoff bundle.
+- `checkpoint.py` — atomic checkpoint writer that advances version/source/next action after completed work.
 - `test_router.py` — standard-library regression tests for status preservation and validation behavior.
 
 ## Operating flow
 
 1. Work occurs in any model/tool.
-2. Meaningful progress updates `current_state.json`.
-3. Before a session/model limit, run `python continuity/router.py handoff`.
-4. The command writes a timestamped Markdown handoff to `continuity/out/`.
-5. Give that handoff plus relevant files/links to the next model.
-6. The next model resumes from `next_action`, verifies external state before consequential writes, and updates the state again.
+2. After a meaningful completed work unit, advance the JakeAI-owned checkpoint.
+3. Before a session/model limit, generate a portable handoff.
+4. Give that handoff plus only the relevant files/links to the next model.
+5. The next model resumes from `next_action`, verifies external state before consequential writes, and checkpoints again.
 
-## Validation
+## Commands
 
-Run:
+Validate current state:
 
 ```bash
 python continuity/router.py validate
-python -m unittest continuity/test_router.py
+```
+
+Advance a checkpoint atomically:
+
+```bash
+python continuity/checkpoint.py \
+  --source "verified work-unit description" \
+  --next-action "the next unresolved action"
+```
+
+Preview a checkpoint without writing:
+
+```bash
+python continuity/checkpoint.py \
+  --source "test" \
+  --next-action "test next action" \
+  --dry-run
+```
+
+Generate a portable handoff:
+
+```bash
 python continuity/router.py handoff
+```
+
+Run regression tests:
+
+```bash
+python -m unittest continuity/test_router.py
 ```
 
 A generated handoff must preserve status labels and guardrails. Passing unit tests do not by themselves prove that any external system is live.
