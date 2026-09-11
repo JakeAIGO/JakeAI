@@ -30,3 +30,11 @@ def test_privacy_policy_is_payment_provider_neutral():
     privacy = read("privacy.html")
     assert "payment details (processed securely via Stripe" not in privacy
     assert "configured payment provider" in privacy
+
+
+def test_privacy_policy_discloses_external_ai_processing():
+    privacy = read("privacy.html")
+    assert "third-party AI providers" in privacy
+    assert "their own applicable terms and privacy practices" in privacy
+    assert "does not claim that third-party providers never retain submitted content" in privacy
+    assert "is not retained or used to train public machine learning models" not in privacy
