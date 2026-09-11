@@ -2,31 +2,33 @@
   "schema_version": "1.1",
   "id": "CC-0003",
   "title": "Build JakeAI Commercial Rules Registry",
-  "status": "proposed",
+  "status": "approved",
   "baseline_ref": "baseline/master-2026-09-11",
   "purpose": "Create one canonical, fail-closed commercial configuration for prices, creator split, protocol fee, refunds, fulfillment, metering, legal review, checkout state, and commercial approval.",
   "risk_class": "high",
   "scope_categories": ["brand", "commerce", "documentation", "governance", "legal", "security", "tests"],
   "reviews": {
-    "architecture": "pending",
-    "commerce": "pending",
-    "legal": "pending",
-    "security": "pending",
-    "council": "pending",
-    "human": "pending"
+    "architecture": "approved",
+    "commerce": "approved",
+    "legal": "approved",
+    "security": "approved",
+    "council": "approved",
+    "human": "approved"
   },
   "production_authorized": false,
   "publication_authorized": false,
   "commercial_authorized": false,
-  "human_approval_record": "",
+  "human_approval_record": "User explicitly instructed ChatGPT to build the Commercial Rules Registry. Approval is limited to constructing and baseline-validating the registry; it is not authorization to merge, deploy, publish, activate checkout, or commercially release products.",
   "unresolved_conditions": [
-    "Exact candidate must pass change-control, module-sandbox, commercial-rules, baseline audit, and full regression gates before baseline promotion.",
-    "Proposed 50/50 creator split and 1% protocol fee remain unapproved and must not be treated as authorized public commercial terms.",
-    "No product may be commercially activated until fulfillment, metering where required, refund policy, legal review, Council review, and explicit human approval are complete."
+    "Proposed 50/50 creator split and 1% protocol fee remain unapproved commercial terms and must not be treated as authorized public claims.",
+    "No product may be commercially activated until fulfillment, metering where required, refund policy, legal review, Council review, and explicit human commercial approval are complete.",
+    "Paid checkout and fulfillment must be verified in the intended deployment environment before any paid product is represented as commercially available."
   ],
   "evidence": [
     "Development branch starts from baseline/master-v3-2026-09-11.",
-    "Commercial registry prices are initially locked to governance/master_manifest.json.",
-    "All product commercial and checkout authorization states default false."
+    "Commercial registry prices are locked to governance/master_manifest.json by deterministic validation.",
+    "All product commercial and checkout authorization states default false.",
+    "Exact-head combined gate 34612250354 passed Change Control, Module Sandbox, Commercial Rules Registry, compile, Master Baseline audit, and the full regression suite before Council review documentation was added.",
+    "Internal Council review recorded in governance/COMMERCIAL_RULES_COUNCIL_REVIEW_2026-09-11.md."
   ]
 }
