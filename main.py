@@ -22,6 +22,7 @@ if STRIPE_SECRET_KEY:
 
 # Configurable CORS origins — never wildcard with credentials
 ALLOWED_ORIGINS = [o.strip() for o in os.environ.get("ALLOWED_ORIGINS", "https://www.jakeaiofficial.com,https://jakeaiofficial.com").split(",") if o.strip()]
+NETWORK_FETCH_TOOLS_ENABLED = os.environ.get("NETWORK_FETCH_TOOLS_ENABLED", "false").strip().lower() == "true"
 
 # Categories that require entitlement/metering before they can be sold
 API_CREDIT_CATEGORIES = {"ai-utilities", "data-api", "developer-pack", "fintech-api", "robotics-api"}
@@ -379,7 +380,9 @@ def get_tariff_data():
 
 @app.post("/v1/tools/extract-markdown")
 def extract_markdown(req: ExtractRequest):
-    """Clean web-to-markdown text extractor for LLMs"""
+    """Clean web-to-markdown text extractor for LLMs."""
+    if not NETWORK_FETCH_TOOLS_ENABLED:
+        raise HTTPException(status_code=503, detail="External network-fetch tools are disabled pending hardened egress controls.")
     # SSRF protection
     if not is_safe_url(req.url):
         raise HTTPException(status_code=400, detail="URL rejected: target is not a publicly accessible resource.")
@@ -479,8 +482,9 @@ def query_perplexity_auditor(prompt: str, api_key: Optional[str]) -> Dict[str, A
 @app.post("/v1/tools/multi-model-audit")
 def multi_model_audit(req: MultiModelAuditRequest, request: Request):
     """Automated pre-deployment dual-model consensus audit (Claude 3.5 Sonnet + Perplexity Sonar-Pro)"""
-    anthropic_key = request.headers.get("X-Anthropic-Key") or os.environ.get("ANTHROPIC_API_KEY", "").strip()
-    perplexity_key = request.headers.get("X-Perplexity-Key") or os.environ.get("PERPLEXITY_API_KEY", "").strip()
+    # Provider credentials are server-side configuration only; never accept secrets in request headers.
+    anthropic_key = os.environ.get("ANTHROPIC_API_KEY", "").strip()
+    perplexity_key = os.environ.get("PERPLEXITY_API_KEY", "").strip()
     
     claude_res = query_claude_auditor(req.content, anthropic_key)
     perplexity_res = query_perplexity_auditor(req.content, perplexity_key)
@@ -509,7 +513,9 @@ def multi_model_audit(req: MultiModelAuditRequest, request: Request):
 
 @app.post("/v1/tools/audit-agent-card")
 def audit_agent_card(req: AgentAuditRequest):
-    """Audits any domain for llms.txt & agent-card readability"""
+    """Audits a domain for llms.txt & agent-card readability when hardened egress is enabled."""
+    if not NETWORK_FETCH_TOOLS_ENABLED:
+        raise HTTPException(status_code=503, detail="External network-fetch tools are disabled pending hardened egress controls.")
     clean_domain = req.domain.replace("https://", "").replace("http://", "").strip("/")
     # Attempt actual checks rather than returning hardcoded pass results
     has_llms_txt = False
