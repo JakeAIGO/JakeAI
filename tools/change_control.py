@@ -2,7 +2,6 @@
 import argparse
 import fnmatch
 import json
-import os
 import subprocess
 import sys
 from pathlib import Path
@@ -46,6 +45,26 @@ def required_reviews(categories: set[str], policy: dict) -> set[str]:
     return required
 
 
+def risk_rank(level: str, policy: dict) -> int:
+    try:
+        return policy["risk_levels"].index(level)
+    except ValueError:
+        return -1
+
+
+def minimum_required_risk(categories: set[str], changed_paths: set[str], policy: dict) -> str:
+    minimum = "low"
+    for category in categories:
+        candidate = policy.get("minimum_risk_by_scope", {}).get(category, "low")
+        if risk_rank(candidate, policy) > risk_rank(minimum, policy):
+            minimum = candidate
+    if set(policy.get("self_modification_paths", [])) & changed_paths:
+        self_min = policy.get("self_modification_minimum_risk", "high")
+        if risk_rank(self_min, policy) > risk_rank(minimum, policy):
+            minimum = self_min
+    return minimum
+
+
 def validate_change_request(data: dict, categories: set[str], changed_paths: set[str], policy: dict) -> list[str]:
     errors: list[str] = []
     required_fields = [
@@ -60,12 +79,17 @@ def validate_change_request(data: dict, categories: set[str], changed_paths: set
     if errors:
         return errors
 
-    if data["schema_version"] != "1.0":
-        errors.append("schema_version must be 1.0")
+    if data["schema_version"] not in {"1.0", "1.1"}:
+        errors.append("schema_version must be 1.0 or 1.1")
     if data["baseline_ref"] not in {"baseline/master-2026-09-11", "origin/baseline/master-2026-09-11"}:
         errors.append("baseline_ref must identify baseline/master-2026-09-11")
     if data["risk_class"] not in policy["risk_levels"]:
         errors.append("risk_class is invalid")
+    else:
+        minimum_risk = minimum_required_risk(categories, changed_paths, policy)
+        if risk_rank(data["risk_class"], policy) < risk_rank(minimum_risk, policy):
+            errors.append(f"risk_class {data['risk_class']} is below required minimum {minimum_risk}")
+
     if not isinstance(data["scope_categories"], list):
         errors.append("scope_categories must be a list")
     else:
@@ -88,23 +112,33 @@ def validate_change_request(data: dict, categories: set[str], changed_paths: set
         if state not in valid_review_states:
             errors.append(f"invalid review state for {lane}: {state}")
 
+    self_mod = set(policy.get("self_modification_paths", [])) & changed_paths
+    if self_mod:
+        for lane in ("council", "human"):
+            if lane not in reviews:
+                errors.append(f"change-control self-modification requires {lane} review lane")
+
     authorization_fields = ["production_authorized", "publication_authorized", "commercial_authorized"]
+    any_authorized = False
     for field in authorization_fields:
         if not isinstance(data[field], bool):
             errors.append(f"{field} must be boolean")
+            continue
         if data[field] is True:
+            any_authorized = True
             if data.get("status") != "approved":
                 errors.append(f"{field}=true requires status=approved")
             if not str(data.get("human_approval_record") or "").strip():
                 errors.append(f"{field}=true requires a human_approval_record")
 
-    self_mod = set(policy.get("self_modification_paths", [])) & changed_paths
-    if self_mod:
-        if data["risk_class"] not in {"high", "critical"}:
-            errors.append("change-control self-modification requires high or critical risk_class")
-        for lane in ("council", "human"):
-            if lane not in reviews:
-                errors.append(f"change-control self-modification requires {lane} review lane")
+    if any_authorized:
+        approval_lanes = set(required)
+        approval_lanes.add("human")
+        if self_mod:
+            approval_lanes.add("council")
+        for lane in sorted(approval_lanes):
+            if reviews.get(lane) != "approved":
+                errors.append(f"authorization requires {lane} review=approved")
 
     return errors
 
@@ -133,6 +167,7 @@ def main() -> int:
         "head": None,
         "changed_paths": [],
         "categories": {},
+        "unclassified_paths": [],
         "change_requests": [],
         "errors": [],
     }
@@ -143,6 +178,7 @@ def main() -> int:
         ancestor = subprocess.run(["git", "merge-base", "--is-ancestor", base, "HEAD"], cwd=ROOT)
         if ancestor.returncode != 0:
             report["errors"].append(f"HEAD is not descended from canonical baseline {base}")
+
         diff_text = run_git("diff", "--name-only", f"{base}...HEAD")
         changed = sorted({p for p in diff_text.splitlines() if p.strip()})
         report["changed_paths"] = changed
@@ -150,6 +186,12 @@ def main() -> int:
         report["categories"] = categories_map
         categories = set(categories_map)
         changed_set = set(changed)
+
+        classified_paths = {p for hits in categories_map.values() for p in hits}
+        unclassified = sorted(changed_set - classified_paths)
+        report["unclassified_paths"] = unclassified
+        if unclassified:
+            report["errors"].append("unclassified changed paths: " + ", ".join(unclassified))
 
         request_paths = [p for p in changed if matches(p, policy["change_request_glob"])]
         if changed and not request_paths:
