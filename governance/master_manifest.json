@@ -1,0 +1,104 @@
+{
+  "schema_version": "1.0",
+  "baseline_name": "JakeAI Master Baseline Engine",
+  "candidate_branch": "fix/website-truthfulness-audit-2026-09-11",
+  "production_authorized": false,
+  "publication_authorized": false,
+  "commercial_approval_default": false,
+  "public_api_convention": "https://www.jakeaiofficial.com/api/v1/...",
+  "direct_backend_convention": "/v1/...",
+  "machine_discovery": {
+    "runtime_llms_txt": "https://www.jakeaiofficial.com/llms.txt",
+    "runtime_agent_card": "https://www.jakeaiofficial.com/.well-known/agent.json",
+    "static_repository_files_authoritative": false
+  },
+  "products": {
+    "prod_grasp_solver_09": {
+      "price_usd": 0.10,
+      "category": "robotics-api",
+      "requires_metering": true,
+      "commercial_approved": false,
+      "safety_state": "UNVALIDATED_PHYSICAL_CONTROL_MODEL"
+    },
+    "prod_make_free_00": {
+      "price_usd": 0.00,
+      "category": "autonomous-workflow-skills",
+      "requires_metering": false,
+      "commercial_approved": false,
+      "safety_state": "general_workflow"
+    },
+    "prod_solar_guide_04": {
+      "price_usd": 3.00,
+      "category": "digital-guide",
+      "requires_metering": false,
+      "commercial_approved": false,
+      "safety_state": "technical_reference_requires_independent_verification"
+    },
+    "prod_ira_calc_05": {
+      "price_usd": 1.00,
+      "category": "fintech-api",
+      "requires_metering": true,
+      "commercial_approved": false,
+      "safety_state": "financial_tax_advisory_only"
+    },
+    "prod_scrape_01": {
+      "price_usd": 5.00,
+      "category": "ai-utilities",
+      "requires_metering": true,
+      "commercial_approved": false,
+      "safety_state": "network_fetch_disabled_by_default_pending_egress_validation"
+    },
+    "prod_energy_01": {
+      "price_usd": 0.25,
+      "category": "data-api",
+      "requires_metering": true,
+      "commercial_approved": false,
+      "safety_state": "demonstration_data_only"
+    },
+    "prod_tariff_norm_06": {
+      "price_usd": 0.50,
+      "category": "data-api",
+      "requires_metering": true,
+      "commercial_approved": false,
+      "safety_state": "demonstration_model_only"
+    },
+    "prod_audit_pack_10": {
+      "price_usd": 18.00,
+      "category": "developer-pack",
+      "requires_metering": true,
+      "commercial_approved": false,
+      "safety_state": "advisory_only_external_models_may_be_unconfigured"
+    },
+    "prod_multi_model_audit_08": {
+      "price_usd": 2.00,
+      "category": "ai-utilities",
+      "requires_metering": true,
+      "commercial_approved": false,
+      "safety_state": "advisory_only_external_models_may_be_unconfigured"
+    },
+    "prod_agent_audit_07": {
+      "price_usd": 0.50,
+      "category": "ai-utilities",
+      "requires_metering": true,
+      "commercial_approved": false,
+      "safety_state": "network_fetch_disabled_by_default_pending_egress_validation"
+    },
+    "prod_game_qa_autopilot_01": {
+      "price_usd": 9.99,
+      "category": "autonomous-workflow-skills",
+      "requires_metering": false,
+      "commercial_approved": false,
+      "safety_state": "human_release_authority_by_default"
+    }
+  },
+  "promotion_gates": [
+    "static_repository_audit",
+    "full_regression_suite",
+    "runtime_contract_tests",
+    "security_and_privacy_contracts",
+    "live_read_only_smoke",
+    "truth_and_claims_audit",
+    "council_review",
+    "human_approval_where_required"
+  ]
+}
