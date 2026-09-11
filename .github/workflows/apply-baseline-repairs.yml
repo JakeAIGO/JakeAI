@@ -48,7 +48,7 @@ jobs:
           fi
           git config user.name "JakeAI Baseline Bot"
           git config user.email "actions@users.noreply.github.com"
-          git add main.py index.html terms.html
+          git add main.py index.html terms.html privacy.html
           git commit -m "Apply deterministic Master Baseline repairs [skip repair]"
 
           # Another safe branch-only write may have landed while this job ran.
