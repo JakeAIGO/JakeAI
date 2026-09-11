@@ -30,7 +30,7 @@ API_CREDIT_CATEGORIES = {"ai-utilities", "data-api", "developer-pack", "fintech-
 GENESIS_CATALOG = {
     "prod_grasp_solver_09": {
         "title": "22-DoF Tendon Grasp & Impedance Solver API",
-        "description": "Deterministic physics calculation for 5-fingered, 22-DoF robotic hands. Solves normal force, tendon tension distribution, joint torque limits, compliance margin, and slip risk.",
+        "description": "Unvalidated educational calculation for hypothetical 5-fingered robotic hands. Outputs are advisory only and must not be used as validated physical-control commands without independent engineering verification.",
         "category": "robotics-api",
         "price": 0.10,
         "download_url": "https://www.jakeaiofficial.com/docs#/default/solve_grasp_v1_robotics_grasp_impedance_solver_post",
@@ -398,7 +398,8 @@ def extract_markdown(req: ExtractRequest):
             "markdown_content": text[:4000]
         }
     except Exception as e:
-        raise HTTPException(status_code=400, detail=f"Extraction failed: {str(e)}")
+        print(f"Extraction provider error: {type(e).__name__}")
+        raise HTTPException(status_code=400, detail="Extraction failed for the requested public resource.")
 
 
 def query_claude_auditor(prompt: str, api_key: Optional[str]) -> Dict[str, Any]:
@@ -435,7 +436,8 @@ def query_claude_auditor(prompt: str, api_key: Optional[str]) -> Dict[str, Any]:
             verdict = "GO" if "no-go" not in review_text.lower() else "NO-GO"
             return {"status": "success", "model": "claude-3-5-sonnet-20241022", "verdict": verdict, "review": review_text}
     except Exception as e:
-        return {"status": "error", "model": "claude-3-5-sonnet-20241022", "error": str(e)}
+        print(f"Anthropic audit provider error: {type(e).__name__}")
+        return {"status": "error", "model": "claude-3-5-sonnet-20241022", "error": "Provider request failed."}
 
 def query_perplexity_auditor(prompt: str, api_key: Optional[str]) -> Dict[str, Any]:
     if not api_key:
@@ -471,7 +473,8 @@ def query_perplexity_auditor(prompt: str, api_key: Optional[str]) -> Dict[str, A
             verdict = "GO" if "no-go" not in review_text.lower() else "NO-GO"
             return {"status": "success", "model": "sonar-pro", "verdict": verdict, "review": review_text}
     except Exception as e:
-        return {"status": "error", "model": "sonar-pro", "error": str(e)}
+        print(f"Perplexity audit provider error: {type(e).__name__}")
+        return {"status": "error", "model": "sonar-pro", "error": "Provider request failed."}
 
 @app.post("/v1/tools/multi-model-audit")
 def multi_model_audit(req: MultiModelAuditRequest, request: Request):
@@ -597,7 +600,8 @@ def create_checkout_session(product_id: str, idempotency_key: Optional[str] = He
         )
         return RedirectResponse(url=session.url, status_code=303)
     except Exception as e:
-        raise HTTPException(status_code=400, detail=f"Stripe Error: {str(e)}")
+        print(f"Checkout provider error: {type(e).__name__}")
+        raise HTTPException(status_code=400, detail="Checkout provider could not create a session.")
 
 
 @app.get("/v1/checkout/verify")
@@ -616,7 +620,8 @@ def verify_checkout(product_id: str, session_id: str = Query(...)):
     try:
         session = stripe.checkout.Session.retrieve(session_id)
     except Exception as e:
-        raise HTTPException(status_code=400, detail=f"Failed to retrieve checkout session: {str(e)}")
+        print(f"Checkout verification provider error: {type(e).__name__}")
+        raise HTTPException(status_code=400, detail="Checkout session could not be verified.")
     
     if session.payment_status != "paid":
         raise HTTPException(status_code=402, detail="Payment not completed. Delivery withheld.")
@@ -672,6 +677,7 @@ class GraspRequest(BaseModel):
 
 class GraspResponse(BaseModel):
     status: str
+    safety_classification: str
     required_normal_force_newtons: float
     tendon_cable_tensions_newtons: List[float]
     joint_torque_limits_nm: float
@@ -697,7 +703,8 @@ def solve_grasp(req: GraspRequest):
     slip_risk = max(0.0, 1.0 - (req.friction_coefficient * 2))
     
     return GraspResponse(
-        status="optimized",
+        status="advisory_only",
+        safety_classification="UNVALIDATED_PHYSICAL_CONTROL_MODEL",
         required_normal_force_newtons=round(required_force, 3),
         tendon_cable_tensions_newtons=[round(t, 3) for t in tendon_tensions],
         joint_torque_limits_nm=round(torque_limit, 3),
@@ -768,4 +775,5 @@ def agent_card():
 
 @app.get("/health")
 def health():
-    return {"status": "healthy", "service": "JakeAI Core v2.3"}
+    """Process liveness only; does not assert dependency or commerce readiness."""
+    return {"status": "alive", "service": "JakeAI Core v2.3", "scope": "process_liveness_only"}
