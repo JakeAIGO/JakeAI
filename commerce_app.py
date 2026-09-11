@@ -3,9 +3,11 @@ import sqlite3
 import uuid
 from datetime import datetime, timezone
 from typing import Optional
+from urllib.parse import urlparse
 
 import stripe
 from fastapi import Header, HTTPException, Request
+from fastapi.middleware.cors import CORSMiddleware
 from fastapi.responses import RedirectResponse
 
 import main
@@ -18,6 +20,45 @@ COMMERCE_ENABLED = {
     "prod_make_free_00",
     "prod_solar_guide_04",
 }
+
+# The legacy app used wildcard CORS with credentials. The commerce runtime is
+# intentionally credential-free and limited to JakeAI browser origins.
+app.user_middleware = [m for m in app.user_middleware if m.cls is not CORSMiddleware]
+app.add_middleware(
+    CORSMiddleware,
+    allow_origins=["https://jakeaiofficial.com", "https://www.jakeaiofficial.com"],
+    allow_credentials=False,
+    allow_methods=["GET", "POST", "OPTIONS"],
+    allow_headers=["Content-Type", "Idempotency-Key"],
+)
+
+
+def is_safe_url(url: str) -> bool:
+    """Allow delivery only to HTTPS destinations JakeAI has explicitly approved."""
+    try:
+        parsed = urlparse(url)
+    except Exception:
+        return False
+    if parsed.scheme != "https":
+        return False
+    hostname = (parsed.hostname or "").lower()
+    return hostname in {
+        "jakeaiofficial.com",
+        "www.jakeaiofficial.com",
+        "docs.google.com",
+        "drive.google.com",
+    }
+
+
+def is_product_checkout_enabled(product_id: str) -> bool:
+    p = main.GENESIS_CATALOG.get(product_id)
+    if not p:
+        return False
+    if p.get("requires_metering", False):
+        return False
+    if product_id not in COMMERCE_ENABLED:
+        return False
+    return bool(p.get("download_url")) and is_safe_url(p["download_url"])
 
 
 def _init_commerce_tables() -> None:
@@ -89,13 +130,13 @@ async def buy_product(
     product = main.GENESIS_CATALOG.get(product_id)
     if not product:
         raise HTTPException(status_code=404, detail="Product not found")
-    if product_id not in COMMERCE_ENABLED:
+    if not is_product_checkout_enabled(product_id):
         raise HTTPException(status_code=409, detail="Checkout is not active for this product yet")
 
     amount_cents = int(round(float(product.get("price", 0)) * 100))
     delivery_url = product.get("download_url")
-    if not delivery_url:
-        raise HTTPException(status_code=409, detail="Product delivery is not configured")
+    if not delivery_url or not is_safe_url(delivery_url):
+        raise HTTPException(status_code=409, detail="Product delivery is not configured safely")
 
     # Free acquisitions are real commerce events, but never touch Stripe.
     if amount_cents <= 0:
@@ -119,7 +160,7 @@ async def buy_product(
     order_id = _create_order(product_id, amount_cents, "pending_payment", source or "direct")
     base_url = str(request.base_url).rstrip("/")
     success_url = f"{base_url}/v1/checkout/complete?session_id={{CHECKOUT_SESSION_ID}}&order_id={order_id}"
-    cancel_url = f"https://www.jakeaiofficial.com/?payment=cancelled"
+    cancel_url = "https://www.jakeaiofficial.com/?payment=cancelled"
 
     kwargs = {}
     if idempotency_key:
@@ -165,12 +206,12 @@ def complete_checkout(session_id: str, order_id: str):
     order = _get_order(order_id)
     if not order:
         raise HTTPException(status_code=404, detail="Order not found")
-    if order["product_id"] not in COMMERCE_ENABLED:
+    if not is_product_checkout_enabled(order["product_id"]):
         raise HTTPException(status_code=409, detail="Product is not enabled for commerce")
 
     product = main.GENESIS_CATALOG.get(order["product_id"])
-    if not product or not product.get("download_url"):
-        raise HTTPException(status_code=409, detail="Product delivery is not configured")
+    if not product or not product.get("download_url") or not is_safe_url(product["download_url"]):
+        raise HTTPException(status_code=409, detail="Product delivery is not configured safely")
 
     # Idempotent completion: a previously verified order may be delivered again.
     if order["status"] == "paid" and order.get("stripe_session_id") == session_id:
