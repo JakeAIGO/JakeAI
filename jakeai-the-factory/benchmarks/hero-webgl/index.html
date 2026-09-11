@@ -15,15 +15,29 @@
       <div class="sub">Browser-native 3D • $0 runtime target</div>
     </div>
     <div class="hud top-right" id="perf">FPS --</div>
-    <div class="center-card">
+
+    <div class="center-card" id="originCard">
       <div class="kicker">ORIGIN BAY // $12.99</div>
       <h1>Build something impossible.</h1>
       <p id="beat">Factory systems waking up…</p>
       <button id="enter">ENTER THE FACTORY</button>
     </div>
+
+    <div class="incident-card hidden" id="incidentCard" role="dialog" aria-live="assertive">
+      <div class="incident-kicker">⚠ SELF-REPAIR BAY // INCIDENT 001</div>
+      <h2>DEPLOYMENT FAILED SUCCESSFULLY.</h2>
+      <p>Evidence points to a broken deployment layer. Blind retrying burns simulated resources.</p>
+      <div class="evidence">ROOT CAUSE CONFIDENCE <strong id="confidence">87%</strong></div>
+      <div class="choices">
+        <button id="retry" class="danger">BLIND RETRY</button>
+        <button id="repair" class="repair">FIX ROOT CAUSE</button>
+      </div>
+      <div class="incident-status" id="incidentStatus">Engineering would like a moment.</div>
+    </div>
+
     <div class="bottom-bar">
       <span>CANONICAL AVATAR SLOT: RESERVED</span>
-      <span>SELF-REPAIR ONLINE</span>
+      <span id="repairChip">SELF-REPAIR ONLINE</span>
       <span>AGENT ARENA: PROTOTYPE</span>
     </div>
   </div>
