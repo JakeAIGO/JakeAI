@@ -6,6 +6,7 @@ on:
       - fix/website-truthfulness-audit-2026-09-11
     paths:
       - tools/apply_baseline_repairs.py
+      - tools/apply_network_hardening.py
       - .github/workflows/apply-baseline-repairs.yml
   workflow_dispatch:
 
@@ -34,7 +35,9 @@ jobs:
           python-version: '3.12'
 
       - name: Apply deterministic repairs
-        run: python tools/apply_baseline_repairs.py
+        run: |
+          python tools/apply_baseline_repairs.py
+          python tools/apply_network_hardening.py
 
       - name: Show repair diff
         run: git diff --check && git diff
