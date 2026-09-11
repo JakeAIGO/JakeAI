@@ -1,11 +1,11 @@
 extends Control
 
-@onready var status_label: Label = $Root/TopBar/Status
-@onready var budget_label: Label = $Root/TopBar/Budget
-@onready var headline: Label = $Root/Hero/Headline
-@onready var subhead: Label = $Root/Hero/Subhead
-@onready var action_button: Button = $Root/Hero/Action
-@onready var pipeline: HBoxContainer = $Root/Pipeline
+@onready var status_label: Label = $Root/TopBar/TopBarRow/Status
+@onready var budget_label: Label = $Root/TopBar/TopBarRow/Budget
+@onready var headline: Label = $Root/Hero/HeroBox/Headline
+@onready var subhead: Label = $Root/Hero/HeroBox/Subhead
+@onready var action_button: Button = $Root/Hero/HeroBox/Action
+@onready var pipeline: HBoxContainer = $Root/PipelinePanel/Pipeline
 
 var budget := 12.99
 var stage_index := 0
@@ -21,7 +21,7 @@ func _ready() -> void:
 func _build_pipeline() -> void:
 	for child in pipeline.get_children():
 		child.queue_free()
-	for i in stages.size():
+	for i in range(stages.size()):
 		var chip := Label.new()
 		chip.text = stages[i]
 		chip.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
