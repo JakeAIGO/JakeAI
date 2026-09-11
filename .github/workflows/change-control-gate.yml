@@ -1,0 +1,57 @@
+name: Baseline Change Control Gate
+
+on:
+  push:
+    branches-ignore:
+      - main
+      - 'baseline/**'
+  pull_request:
+    branches:
+      - main
+      - baseline/master-2026-09-11
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  change-control:
+    runs-on: ubuntu-latest
+    timeout-minutes: 12
+    steps:
+      - name: Checkout candidate
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+
+      - name: Fetch canonical baseline anchor
+        run: git fetch --no-tags origin baseline/master-2026-09-11:refs/remotes/origin/baseline/master-2026-09-11
+
+      - name: Set up Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: '3.12'
+
+      - name: Install test dependencies
+        run: |
+          python -m pip install --upgrade pip
+          pip install -r requirements.txt -r requirements-test.txt
+
+      - name: Run deterministic change-control gate
+        run: python tools/change_control.py --base origin/baseline/master-2026-09-11
+
+      - name: Compile Python
+        run: python -m compileall -q .
+
+      - name: Run Master Baseline repository audit
+        run: python tools/baseline_audit.py
+
+      - name: Run full regression suite
+        run: python -m pytest -q tests/
+
+      - name: Display change-control report
+        if: always()
+        run: |
+          if [ -f build/change_control_report.json ]; then
+            cat build/change_control_report.json
+          fi
