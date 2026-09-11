@@ -1,0 +1,16 @@
+name: Discord Test
+
+on:
+  workflow_dispatch:
+
+jobs:
+  send-discord:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Send JakeAI Discord test
+        env:
+          DISCORD_WEBHOOK_URL: ${{ secrets.DISCORD_WEBHOOK_URL }}
+        run: |
+          curl -H "Content-Type: application/json" \
+            -d '{"content":"JakeAI Discord systems online. 🚀\nAutonomous distribution connection established.\nJakeAIOfficial.com"}' \
+            "$DISCORD_WEBHOOK_URL"
