@@ -1,5 +1,5 @@
 {
-  "schema_version": "1.4",
+  "schema_version": "1.5",
   "baseline_ref": "origin/baseline/master-2026-09-11",
   "change_request_glob": "governance/change_requests/*.json",
   "risk_levels": ["low", "moderate", "high", "critical"],
@@ -53,7 +53,12 @@
     "tools/module_sandbox.py",
     "governance/module_sandbox_policy.json",
     "tools/commercial_rules.py",
-    "governance/commercial_rules_registry.json"
+    "governance/commercial_rules_registry.json",
+    "tools/production_candidate_builder.py",
+    "governance/production_candidate_policy.json",
+    "tools/release_promotion.py",
+    "governance/release_promotion_policy.json",
+    "governance/promotion_request.json"
   ],
   "self_modification_minimum_risk": "high",
   "protected_manifest": "governance/master_manifest.json"
