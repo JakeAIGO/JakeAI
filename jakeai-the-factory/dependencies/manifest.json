@@ -1,38 +1,78 @@
 {
   "policy": "ZERO_COST_DEPENDENCY_GATE",
-  "schema_version": 1,
+  "schema_version": 2,
   "production_default": "deny",
+  "audited_utc": "2026-09-11",
   "dependencies": [
     {
       "name": "Godot Engine",
       "purpose": "game engine/runtime",
-      "status": "REVIEWING",
+      "status": "APPROVED-PENDING-VERSION-PIN",
       "acquisition_cost_usd": 0,
       "mandatory_runtime_cost_usd": 0,
       "license": "MIT",
       "commercial_use_allowed": true,
       "attribution_required": true,
-      "notes": "Engine is free/open source and permits commercial games. Exact engine version and exported third-party notices must be pinned before APPROVED-PINNED."
+      "notes": "Free/open source. Pin engine version and ship Godot/third-party notices before production."
     },
     {
       "name": "Phantom Camera",
       "purpose": "cinematic camera system",
-      "status": "CANDIDATE"
+      "status": "APPROVED-FOR-PROTOTYPE",
+      "acquisition_cost_usd": 0,
+      "mandatory_runtime_cost_usd": 0,
+      "license": "MIT",
+      "commercial_use_allowed": true,
+      "attribution_required": true,
+      "compatibility": "Godot 4; current Asset Library release 0.11.0.3 targets Godot 4.4",
+      "risk": "Current Asset Store release marked unstable; use stable GitHub/AssetLib release appropriate to pinned engine, never main branch.",
+      "source": "ramokz/phantom-camera"
     },
     {
       "name": "Dialogue Manager",
       "purpose": "dialogue and narrative sequencing",
-      "status": "CANDIDATE"
+      "status": "APPROVED-FOR-PROTOTYPE",
+      "acquisition_cost_usd": 0,
+      "mandatory_runtime_cost_usd": 0,
+      "license": "MIT",
+      "commercial_use_allowed": true,
+      "attribution_required": true,
+      "compatibility": "Use Dialogue Manager v3.3 for Godot 4.3; v3.10 for 4.4/4.5; v4 for 4.6+.",
+      "risk": "Do not install latest blindly; version must match pinned Godot.",
+      "source": "nathanhoad/godot_dialogue_manager"
     },
     {
       "name": "GDrama",
       "purpose": "cutscene/timeline sequencing",
-      "status": "CANDIDATE"
+      "status": "APPROVED-FOR-SANDBOX-EVALUATION",
+      "acquisition_cost_usd": 0,
+      "mandatory_runtime_cost_usd": 0,
+      "license": "MIT",
+      "commercial_use_allowed": true,
+      "attribution_required": false,
+      "compatibility": "Godot 4; HTML5 demo exists; Asset Library v1.1.1.",
+      "risk": "Potential overlap with Dialogue Manager/JakeAI Scene Director. Evaluate architecture before adopting to avoid redundant dependencies.",
+      "source": "Moraguma/GDrama"
     },
     {
       "name": "LimboAI",
       "purpose": "agent/NPC behavior trees and state machines",
-      "status": "CANDIDATE"
+      "status": "APPROVED-FOR-PROTOTYPE",
+      "acquisition_cost_usd": 0,
+      "mandatory_runtime_cost_usd": 0,
+      "license": "MIT-style",
+      "commercial_use_allowed": true,
+      "attribution_required": true,
+      "compatibility": "v1.2.0-v1.3.x for Godot 4.3; v1.6.x for 4.4/4.5; Web export supported by Godot 4.3 GDExtension release.",
+      "risk": "Demo artwork has separate CC BY 4.0 terms and must not be silently incorporated. Current Asset Store release is marked unstable; pin a stable compatible release.",
+      "source": "limbonaut/limboai"
     }
-  ]
+  ],
+  "integration_order": [
+    "Phantom Camera",
+    "Dialogue Manager",
+    "LimboAI",
+    "GDrama sandbox comparison"
+  ],
+  "hard_rule": "No dependency becomes APPROVED-PINNED until automated Web/mobile smoke tests pass and all required license notices are captured."
 }
