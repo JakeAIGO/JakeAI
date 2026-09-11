@@ -14,5 +14,6 @@ COPY . .
 # Expose standard web port
 EXPOSE 8000
 
-# Run uvicorn on 0.0.0.0 and use PORT environment variable if provided by cloud host
-CMD ["sh", "-c", "uvicorn main:app --host 0.0.0.0 --port ${PORT:-8000}"]
+# Run the commerce wrapper, which imports the existing JakeAI app and replaces
+# the legacy checkout route with tracked free claims and verified paid delivery.
+CMD ["sh", "-c", "uvicorn commerce_app:app --host 0.0.0.0 --port ${PORT:-8000}"]
