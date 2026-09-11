@@ -590,6 +590,7 @@ def create_checkout_session(product_id: str, idempotency_key: Optional[str] = He
                 'quantity': 1,
             }],
             mode='payment',
+            metadata={'product_id': product_id},
             success_url=success_url,
             cancel_url="https://www.jakeaiofficial.com?payment=cancelled",
             **stripe_kwargs
@@ -619,8 +620,21 @@ def verify_checkout(product_id: str, session_id: str = Query(...)):
     
     if session.payment_status != "paid":
         raise HTTPException(status_code=402, detail="Payment not completed. Delivery withheld.")
+
+    # Bind the verified Stripe session to the exact product and catalog price.
+    # A paid session for one SKU must never unlock another SKU.
+    session_product_id = (getattr(session, "metadata", None) or {}).get("product_id")
+    if session_product_id != product_id:
+        raise HTTPException(status_code=403, detail="Checkout session product mismatch. Delivery withheld.")
+
+    expected_amount = int(round(float(prod_data["price"]) * 100))
+    if getattr(session, "amount_total", None) != expected_amount:
+        raise HTTPException(status_code=403, detail="Checkout session amount mismatch. Delivery withheld.")
+
+    if str(getattr(session, "currency", "")).lower() != "usd":
+        raise HTTPException(status_code=403, detail="Checkout session currency mismatch. Delivery withheld.")
     
-    # Payment verified — redirect to private delivery URL
+    # Payment verified and bound to this product — redirect to private delivery URL
     delivery_url = prod_data.get("download_url", "").strip()
     if not delivery_url:
         raise HTTPException(status_code=503, detail="Delivery URL not configured for this product.")
