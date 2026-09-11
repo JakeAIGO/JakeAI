@@ -74,7 +74,12 @@ def test_unpaid_stripe_session_withholds_delivery(monkeypatch):
     monkeypatch.setattr(
         main.stripe.checkout.Session,
         'retrieve',
-        lambda session_id: SimpleNamespace(payment_status='unpaid'),
+        lambda session_id: SimpleNamespace(
+            payment_status='unpaid',
+            metadata={'product_id': 'prod_solar_guide_04'},
+            amount_total=300,
+            currency='usd',
+        ),
     )
     response = client.get(
         '/v1/checkout/verify',
@@ -90,7 +95,12 @@ def test_paid_session_delivers_only_after_verification(monkeypatch):
     monkeypatch.setattr(
         main.stripe.checkout.Session,
         'retrieve',
-        lambda session_id: SimpleNamespace(payment_status='paid'),
+        lambda session_id: SimpleNamespace(
+            payment_status='paid',
+            metadata={'product_id': 'prod_solar_guide_04'},
+            amount_total=300,
+            currency='usd',
+        ),
     )
     response = client.get(
         '/v1/checkout/verify',
@@ -99,3 +109,45 @@ def test_paid_session_delivers_only_after_verification(monkeypatch):
     )
     assert response.status_code == 303
     assert response.headers['location'].startswith('https://drive.google.com/file/')
+
+
+def test_paid_session_cannot_be_replayed_for_different_product(monkeypatch):
+    monkeypatch.setenv('STRIPE_SECRET_KEY', 'sk_test_placeholder')
+    monkeypatch.setattr(
+        main.stripe.checkout.Session,
+        'retrieve',
+        lambda session_id: SimpleNamespace(
+            payment_status='paid',
+            metadata={'product_id': 'prod_make_free_00'},
+            amount_total=0,
+            currency='usd',
+        ),
+    )
+    response = client.get(
+        '/v1/checkout/verify',
+        params={'product_id': 'prod_solar_guide_04', 'session_id': 'cs_test_wrong_product'},
+        follow_redirects=False,
+    )
+    assert response.status_code == 403
+    assert 'product mismatch' in response.json()['error']['message'].lower()
+
+
+def test_paid_session_amount_must_match_catalog_price(monkeypatch):
+    monkeypatch.setenv('STRIPE_SECRET_KEY', 'sk_test_placeholder')
+    monkeypatch.setattr(
+        main.stripe.checkout.Session,
+        'retrieve',
+        lambda session_id: SimpleNamespace(
+            payment_status='paid',
+            metadata={'product_id': 'prod_solar_guide_04'},
+            amount_total=1,
+            currency='usd',
+        ),
+    )
+    response = client.get(
+        '/v1/checkout/verify',
+        params={'product_id': 'prod_solar_guide_04', 'session_id': 'cs_test_wrong_amount'},
+        follow_redirects=False,
+    )
+    assert response.status_code == 403
+    assert 'amount mismatch' in response.json()['error']['message'].lower()
