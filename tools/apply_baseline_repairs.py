@@ -36,6 +36,31 @@ def main() -> int:
         ("index.html", "Connect your custom software services, APIs, or datasets to the global agent network and monetize machine traffic.", "Developer and vendor onboarding is being prepared around documented, agent-readable interfaces. Commercial activation remains subject to verification and approval gates."),
         ("index.html", "Automated discovery by external agents", "Agent-readable discovery surfaces"),
         ("terms.html", "Transactions initiated by software agents, API keys, or human users are processed securely via Stripe. JakeAI applies a 1.0% (100 basis points) network protocol fee on settled commerce. Users and agents are responsible for maintaining API key confidentiality and setting internal rate caps.", "Where checkout is enabled, payments are handled through the payment provider configured for that product and deployment. Commercial fees and revenue-sharing terms apply only when explicitly presented and supported by the active transaction flow. Users and agents are responsible for protecting their own credentials and authorization controls."),
+        (
+            "main.py",
+            '    system_cost: float = Field(..., example=500000.0, description="Gross Turnkey EPC Cost in USD")',
+            '    system_cost: float = Field(..., gt=0.0, example=500000.0, description="Gross Turnkey EPC Cost in USD")',
+        ),
+        (
+            "main.py",
+            '    system_kw_dc: float = Field(..., example=400.0, description="System DC Nameplate Rating in kW")',
+            '    system_kw_dc: float = Field(..., gt=0.0, example=400.0, description="System DC Nameplate Rating in kW")',
+        ),
+        (
+            "main.py",
+            '    peak_demand_kw: float = Field(..., example=450.0)',
+            '    peak_demand_kw: float = Field(..., ge=0.0, example=450.0)',
+        ),
+        (
+            "main.py",
+            '    monthly_consumption_kwh: float = Field(..., example=180000.0)',
+            '    monthly_consumption_kwh: float = Field(..., gt=0.0, example=180000.0)',
+        ),
+        (
+            "main.py",
+            '    amount: float\n    take_rate: Optional[float] = 0.01',
+            '    amount: float = Field(..., gt=0.0)\n    take_rate: Optional[float] = Field(0.01, ge=0.0, le=1.0)',
+        ),
     ]
 
     for path, old, new in replacements:
