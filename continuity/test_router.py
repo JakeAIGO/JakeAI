@@ -4,9 +4,12 @@
 from __future__ import annotations
 
 import copy
+import json
+import tempfile
 import unittest
+from pathlib import Path
 
-from router import validate_state, render_handoff
+from router import load_capacity, load_recent_events, render_handoff, validate_state
 
 
 BASE_STATE = {
@@ -46,6 +49,54 @@ class ContinuityRouterTests(unittest.TestCase):
         self.assertIn("[verified_staged] **continuity**", handoff)
         self.assertIn("Continue testing.", handoff)
         self.assertIn("models are interchangeable compute", handoff)
+
+    def test_recent_events_are_limited_to_newest(self) -> None:
+        with tempfile.TemporaryDirectory() as tmp:
+            path = Path(tmp) / "events.jsonl"
+            events = [
+                {"timestamp": f"t{i}", "event_type": "work", "summary": f"event-{i}", "status": "verified_staged", "evidence": [], "worker": "test"}
+                for i in range(5)
+            ]
+            path.write_text("\n".join(json.dumps(e) for e in events) + "\n", encoding="utf-8")
+            recent = load_recent_events(path, limit=2)
+            self.assertEqual([e["summary"] for e in recent], ["event-3", "event-4"])
+
+    def test_invalid_journal_status_is_rejected(self) -> None:
+        with tempfile.TemporaryDirectory() as tmp:
+            path = Path(tmp) / "events.jsonl"
+            path.write_text(json.dumps({"status": "sort-of-live", "summary": "bad"}) + "\n", encoding="utf-8")
+            with self.assertRaises(ValueError):
+                load_recent_events(path)
+
+    def test_capacity_and_events_render_in_handoff(self) -> None:
+        events = [{
+            "timestamp": "2026-09-11T12:00:00Z",
+            "event_type": "deploy",
+            "summary": "Continuity change staged.",
+            "status": "verified_staged",
+            "evidence": ["PR #9"],
+            "worker": "test",
+        }]
+        capacity = {
+            "policy": "free-first",
+            "paid_capacity_requires_explicit_approval": True,
+            "circumvention_prohibited": True,
+            "signals": {"model_availability": "unknown"},
+        }
+        handoff = render_handoff(copy.deepcopy(BASE_STATE), events, capacity)
+        self.assertIn("## Recent continuity events", handoff)
+        self.assertIn("Continuity change staged.", handoff)
+        self.assertIn("## Capacity status", handoff)
+        self.assertIn("Policy: free-first", handoff)
+        self.assertIn("Paid capacity requires explicit approval: True", handoff)
+        self.assertIn("Circumvention prohibited: True", handoff)
+
+    def test_capacity_loader_requires_object(self) -> None:
+        with tempfile.TemporaryDirectory() as tmp:
+            path = Path(tmp) / "capacity.json"
+            path.write_text("[]", encoding="utf-8")
+            with self.assertRaises(ValueError):
+                load_capacity(path)
 
 
 if __name__ == "__main__":
