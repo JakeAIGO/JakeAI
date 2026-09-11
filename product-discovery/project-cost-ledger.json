@@ -1,0 +1,41 @@
+{
+  "schema": "jakeai.project-cost-ledger.v1",
+  "currency": "USD",
+  "as_of": "2026-09-10",
+  "total_invested": 22.99,
+  "entries": [
+    {
+      "amount": 12.99,
+      "category": "domain",
+      "purpose": "Jake AI domain",
+      "type": "one_time"
+    },
+    {
+      "amount": 5.00,
+      "category": "api_testing",
+      "purpose": "Anthropic/API Council testing",
+      "type": "one_time"
+    },
+    {
+      "amount": 5.00,
+      "category": "api_testing",
+      "purpose": "Additional Council/API setup",
+      "type": "one_time"
+    }
+  ],
+  "workflow_candidate": {
+    "name": "Autonomous Project Cost Ledger",
+    "status": "captured_for_product_factory",
+    "goal": "Capture authorized project costs and maintain invested capital, product costs, provider/API costs, payment fees, revenue, net cash, and ROI without conflating free evaluation copies with sales.",
+    "required_fields": [
+      "amount",
+      "vendor_or_source",
+      "purpose",
+      "project_or_product",
+      "date",
+      "one_time_or_recurring",
+      "authorization"
+    ],
+    "guardrail": "Recording a cost does not authorize new spending."
+  }
+}
