@@ -1,0 +1,36 @@
+{
+  "schema_version": 1,
+  "project": "JakeAI: The Factory",
+  "continuity_policy": "DENY_ON_IDENTITY_DRIFT",
+  "production_character_rendering": "BLOCKED_UNTIL_CANONICAL_MASTER_PRESENT",
+  "canonical_assets": [
+    {
+      "id": "jakeai_avatar_master",
+      "role": "primary_protagonist_identity",
+      "status": "MASTER_RECOVERY_REQUIRED",
+      "immutable_identity": true,
+      "approved_derivative_reference": {
+        "library_file_id": "file_000000006c9881f5be7e0b894e204e70",
+        "name": "JakeAI Discord Neon Asset Pack.png",
+        "purpose": "visual identity verification only; do not use as a substitute master asset"
+      },
+      "rules": [
+        "No substitute human protagonist",
+        "No redesign of face/identity",
+        "Pose, expression, props and environment may vary",
+        "Every generated character asset must reference the canonical master once recovered",
+        "Reject output if identity does not match approved JakeAI avatar",
+        "Do not publish character art while master status is unresolved"
+      ]
+    },
+    {
+      "id": "jakeai_neon_emblem",
+      "role": "brand_mark",
+      "status": "REFERENCE_AVAILABLE",
+      "approved_reference": {
+        "library_file_id": "file_00000000dda881f5a98a23e848a05ca5",
+        "name": "1000008768.png"
+      }
+    }
+  ]
+}
