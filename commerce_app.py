@@ -15,26 +15,45 @@ import main
 app = main.app
 DB_PATH = main.DB_PATH
 
+SECURE_DELIVERY_URL = "https://jakeai-secure-delivery-z0syg0.v2.appdeploy.ai/"
+
 GAME_QA_PRODUCT_ID = "prod_game_qa_autopilot_01"
 GAME_QA_PRODUCT = {
     "title": "Game QA Autopilot v1.0",
     "description": "Practical game QA workflow kit for build fingerprinting, smoke tests, test matrices, edge cases, reproducible bug reports, regression queues, and release-readiness review. Human testing remains required.",
     "category": "gaming-qa-workflow",
     "price": 9.99,
-    "download_url": "https://jakeai-secure-delivery-z0syg0.v2.appdeploy.ai/",
+    "download_url": SECURE_DELIVERY_URL,
     "delivery_mode": "protected_order",
     "vendor_did": "did:a2a:jakeai_core",
 }
 
+BOSS_FIGHT_PRODUCT_ID = "prod_boss_fight_lab_01"
+BOSS_FIGHT_PRODUCT = {
+    "title": "Boss Fight Lab v1.0",
+    "description": "Original boss-encounter design workflow with arena mechanics, readable phases, telegraphs, counterplay, difficulty scaling, rewards, implementation notes, and accessibility/frustration-risk review.",
+    "category": "games-creative-workflow",
+    "price": 3.99,
+    "download_url": SECURE_DELIVERY_URL,
+    "delivery_mode": "protected_order",
+    "vendor_did": "did:a2a:jakeai_core",
+}
+
+PROMOTED_PRODUCTS = {
+    GAME_QA_PRODUCT_ID: GAME_QA_PRODUCT,
+    BOSS_FIGHT_PRODUCT_ID: BOSS_FIGHT_PRODUCT,
+}
+
 # Product overlays can be promoted independently of the legacy catalog file while
 # still participating in JakeAI's first-party order and verification system.
-main.GENESIS_CATALOG[GAME_QA_PRODUCT_ID] = GAME_QA_PRODUCT
+main.GENESIS_CATALOG.update(PROMOTED_PRODUCTS)
 
 # Only products with a verified deliverable are allowed to transact.
 COMMERCE_ENABLED = {
     "prod_make_free_00",
     "prod_solar_guide_04",
     GAME_QA_PRODUCT_ID,
+    BOSS_FIGHT_PRODUCT_ID,
 }
 
 # The legacy app used wildcard CORS with credentials. The commerce runtime is
@@ -102,23 +121,24 @@ def _init_commerce_tables() -> None:
         )
         """
     )
-    # Keep the legacy product registry aware of the promoted product without
+    # Keep the legacy product registry aware of promoted products without
     # requiring it to own entitlement/delivery logic.
-    conn.execute(
-        """
-        INSERT OR REPLACE INTO products (id, title, description, category, price, endpoint_url, vendor_did)
-        VALUES (?, ?, ?, ?, ?, ?, ?)
-        """,
-        (
-            GAME_QA_PRODUCT_ID,
-            GAME_QA_PRODUCT["title"],
-            GAME_QA_PRODUCT["description"],
-            GAME_QA_PRODUCT["category"],
-            GAME_QA_PRODUCT["price"],
-            GAME_QA_PRODUCT["download_url"],
-            GAME_QA_PRODUCT["vendor_did"],
-        ),
-    )
+    for product_id, product in PROMOTED_PRODUCTS.items():
+        conn.execute(
+            """
+            INSERT OR REPLACE INTO products (id, title, description, category, price, endpoint_url, vendor_did)
+            VALUES (?, ?, ?, ?, ?, ?, ?)
+            """,
+            (
+                product_id,
+                product["title"],
+                product["description"],
+                product["category"],
+                product["price"],
+                product["download_url"],
+                product["vendor_did"],
+            ),
+        )
     conn.commit()
     conn.close()
 
@@ -180,7 +200,6 @@ async def buy_product(
     if not delivery_url or not is_safe_url(delivery_url):
         raise HTTPException(status_code=409, detail="Product delivery is not configured safely")
 
-    # Free acquisitions are real commerce events, but never touch Stripe.
     if amount_cents <= 0:
         order_id = _create_order(product_id, 0, "free_claim_complete", source or "direct")
         response = RedirectResponse(url=_delivery_target(product_id, product, order_id), status_code=303)
@@ -257,7 +276,6 @@ def complete_checkout(session_id: str, order_id: str):
 
     delivery_target = _delivery_target(order["product_id"], product, order_id)
 
-    # Idempotent completion: a previously verified order may be delivered again.
     if order["status"] == "paid" and order.get("stripe_session_id") == session_id:
         return RedirectResponse(url=delivery_target, status_code=303)
 
