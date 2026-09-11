@@ -1,326 +1,90 @@
-<!DOCTYPE html>
+<!doctype html>
 <html lang="en">
 <head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>JakeAI — Autonomous Workflow Skills & Machine Commerce</title>
-    <link href="https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@500;700&family=Inter:wght@300;400;500;600&display=swap" rel="stylesheet">
-    <style>
-        :root {
-            --bg: #06090f;
-            --card: #0e1420;
-            --border: #1b2537;
-            --cyan: #00f0ff;
-            --violet: #8a2be2;
-            --green: #10b981;
-            --amber: #f59e0b;
-            --text: #f0f4fc;
-            --muted: #8899b0;
-        }
-        * { box-sizing: border-box; margin: 0; padding: 0; }
-        body { font-family: 'Inter', sans-serif; background: var(--bg); color: var(--text); line-height: 1.6; }
-        header { padding: 20px 40px; display: flex; justify-content: space-between; align-items: center; border-bottom: 1px solid var(--border); }
-        .logo { font-family: 'Space Grotesk', sans-serif; font-size: 24px; font-weight: 700; color: #fff; text-decoration: none; }
-        .logo span { color: var(--cyan); }
-        .nav-links a { color: var(--muted); text-decoration: none; margin-left: 20px; font-size: 14px; font-weight: 500; }
-        .nav-links a:hover { color: var(--cyan); }
-        .btn-cta { background: linear-gradient(135deg, var(--cyan), #0099ff); color: #000 !important; font-weight: 600; padding: 8px 16px; border-radius: 6px; }
-        
-        .hero { max-width: 960px; margin: 50px auto 30px; text-align: center; padding: 0 20px; }
-        .badge { display: inline-block; background: rgba(0, 240, 255, 0.1); color: var(--cyan); border: 1px solid rgba(0, 240, 255, 0.3); padding: 5px 14px; border-radius: 50px; font-size: 12px; font-weight: 600; margin-bottom: 20px; letter-spacing: 0.5px; }
-        h1 { font-family: 'Space Grotesk', sans-serif; font-size: 46px; line-height: 1.2; margin-bottom: 16px; }
-        .hero p { font-size: 18px; color: var(--muted); max-width: 760px; margin: 0 auto 30px; }
-
-        .metrics-bar { max-width: 1040px; margin: 30px auto; display: flex; background: var(--card); border: 1px solid var(--border); border-radius: 12px; overflow: hidden; }
-        .metric { flex: 1; padding: 20px; text-align: center; border-right: 1px solid var(--border); }
-        .metric:last-child { border-right: none; }
-        .metric-val { font-family: 'Space Grotesk', sans-serif; font-size: 28px; font-weight: 700; color: var(--cyan); }
-        .metric-label { font-size: 12px; color: var(--muted); text-transform: uppercase; margin-top: 4px; }
-
-        .section-wrap { max-width: 1040px; margin: 50px auto; padding: 0 20px; }
-        .section-header { display: flex; justify-content: space-between; align-items: flex-end; margin-bottom: 24px; }
-        .section-header h2 { font-family: 'Space Grotesk', sans-serif; font-size: 28px; }
-        .catalog-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(310px, 1fr)); gap: 20px; }
-        .product-card { background: var(--card); border: 1px solid var(--border); border-radius: 12px; padding: 24px; display: flex; flex-direction: column; justify-content: space-between; }
-        .product-badge { font-size: 11px; font-weight: 700; text-transform: uppercase; color: var(--cyan); letter-spacing: 0.5px; margin-bottom: 8px; }
-        .product-title { font-family: 'Space Grotesk', sans-serif; font-size: 18px; font-weight: 700; margin-bottom: 10px; color: #fff; }
-        .product-desc { font-size: 13px; color: var(--muted); margin-bottom: 20px; flex-grow: 1; }
-        .product-footer { display: flex; justify-content: space-between; align-items: center; border-top: 1px solid var(--border); padding-top: 16px; }
-        .product-price { font-family: 'Space Grotesk', sans-serif; font-size: 22px; font-weight: 700; color: #fff; }
-        .btn-buy { background: linear-gradient(135deg, var(--cyan), #0099ff); color: #000; padding: 8px 18px; border-radius: 6px; font-weight: 700; font-size: 13px; text-decoration: none; transition: transform 0.2s; }
-        .btn-buy:hover { transform: translateY(-2px); }
-        .btn-disabled { background: #1a2333; color: var(--muted); padding: 8px 18px; border-radius: 6px; font-weight: 600; font-size: 13px; cursor: not-allowed; border: 1px solid var(--border); }
-        .status-pill { font-size: 11px; font-weight: 700; padding: 2px 8px; border-radius: 4px; }
-        .status-soon { background: rgba(245, 158, 11, 0.15); color: var(--amber); }
-        .status-disabled { background: rgba(136, 153, 176, 0.15); color: var(--muted); }
-
-        .dual-grid { max-width: 1040px; margin: 50px auto; display: grid; grid-template-columns: 1fr 1fr; gap: 24px; padding: 0 20px; }
-        .surface-card { background: var(--card); border: 1px solid var(--border); border-radius: 12px; padding: 32px; display: flex; flex-direction: column; justify-content: space-between; }
-        .surface-card.ai { border-top: 4px solid var(--cyan); }
-        .surface-card.dev { border-top: 4px solid var(--violet); }
-        .surface-tag { font-size: 12px; font-weight: 700; text-transform: uppercase; letter-spacing: 1px; margin-bottom: 12px; }
-        .surface-card.ai .surface-tag { color: var(--cyan); }
-        .surface-card.dev .surface-tag { color: var(--violet); }
-        .surface-card h2 { font-family: 'Space Grotesk', sans-serif; font-size: 24px; margin-bottom: 12px; color: #fff; }
-        .surface-card p { font-size: 14px; color: var(--muted); margin-bottom: 20px; }
-        .code-box { background: #070a10; border: 1px solid var(--border); border-radius: 8px; padding: 14px; font-family: monospace; font-size: 12px; color: var(--cyan); margin-bottom: 20px; overflow-x: auto; }
-        .feature-list { list-style: none; margin-bottom: 24px; }
-        .feature-list li { font-size: 14px; color: #d0d8e8; margin-bottom: 10px; display: flex; align-items: center; gap: 8px; }
-        .feature-list li::before { content: "✓"; color: var(--cyan); font-weight: bold; }
-        .btn-action { display: inline-block; text-align: center; padding: 12px 20px; border-radius: 8px; font-size: 14px; font-weight: 600; text-decoration: none; }
-        .btn-ai { background: #131d2e; color: var(--cyan); border: 1px solid rgba(0, 240, 255, 0.4); }
-        .btn-dev { background: linear-gradient(135deg, var(--cyan), var(--violet)); color: #000; font-weight: bold; }
-
-        footer { text-align: center; margin: 80px 0 40px; color: #4b5563; font-size: 13px; }
-        footer a { color: var(--muted); text-decoration: none; margin: 0 10px; }
-        footer a:hover { color: var(--cyan); }
-        @media(max-width: 768px) { .dual-grid { grid-template-columns: 1fr; } .metrics-bar { flex-direction: column; } .metric { border-right: none; border-bottom: 1px solid var(--border); } }
-    </style>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width,initial-scale=1">
+  <title>JakeAI — AI Skills for a Bigger Tomorrow</title>
+  <meta name="description" content="JakeAI builds ready-to-use autonomous workflow skills, creative tools, games, APIs, and original AI-powered products.">
+  <style>
+    :root{--bg:#050914;--bg2:#08101e;--panel:#0b1422;--panel2:#101b2b;--line:#203149;--text:#f7fbff;--muted:#9bb0c8;--cyan:#12def2;--cyan2:#50f2ff;--purple:#9e72ff;--green:#46efaa;--amber:#ffd064;--shadow:0 22px 70px rgba(0,0,0,.34)}
+    *{box-sizing:border-box}html{scroll-behavior:smooth}body{margin:0;color:var(--text);background:linear-gradient(180deg,#030712,#07101d 44%,#050914);font:15px/1.55 Inter,ui-sans-serif,system-ui,-apple-system,Segoe UI,sans-serif}a{color:inherit}.wrap{width:min(1180px,92vw);margin:auto}.muted{color:var(--muted)}
+    header{position:sticky;top:0;z-index:40;background:rgba(4,8,17,.92);backdrop-filter:blur(18px);border-bottom:1px solid rgba(95,137,177,.22)}nav{height:74px;display:flex;align-items:center;justify-content:space-between;gap:20px}.brand{display:flex;flex-direction:column;text-decoration:none;line-height:1}.brand strong{font-size:26px;letter-spacing:-1.3px}.brand strong span{color:var(--cyan)}.brand small{font-size:10px;color:#c2d0df;margin-top:5px}.navlinks{display:flex;align-items:center;gap:25px}.navlinks a{text-decoration:none;color:#dce8f4;font-size:13px;font-weight:700}.navlinks a:hover{color:var(--cyan)}.navbtn{border:1px solid var(--cyan);border-radius:10px;padding:9px 16px;color:var(--cyan)!important}
+    .hero-shell{position:relative;overflow:hidden;border-bottom:1px solid rgba(88,126,166,.25);background:radial-gradient(circle at 14% 33%,rgba(28,115,255,.35),transparent 28%),radial-gradient(circle at 75% 18%,rgba(89,48,177,.35),transparent 30%),linear-gradient(135deg,#050918,#071322 55%,#040813)}.hero-shell:before{content:"";position:absolute;inset:0;background-image:radial-gradient(#fff 1px,transparent 1px);background-size:54px 54px;opacity:.12;mask-image:linear-gradient(180deg,#000,transparent 90%)}.hero{position:relative;z-index:2;min-height:540px;display:grid;grid-template-columns:1.02fr .98fr;align-items:center;gap:38px;padding:62px 0 54px}.eyebrow{font-size:11px;letter-spacing:.14em;text-transform:uppercase;color:var(--cyan);font-weight:900}.hero h1{font-size:clamp(48px,6vw,78px);line-height:.98;letter-spacing:-.055em;margin:11px 0 18px;max-width:650px}.hero h1 span{color:var(--cyan)}.hero p{font-size:18px;color:#d7e4f2;max-width:600px;margin:0}.benefits{display:flex;gap:22px;flex-wrap:wrap;margin:24px 0 26px;color:#f4fbff;font-size:12px;font-weight:800}.benefits span b{color:var(--cyan);margin-right:6px}.actions{display:flex;gap:12px;flex-wrap:wrap}.btn{display:inline-flex;align-items:center;justify-content:center;min-height:44px;padding:0 18px;border-radius:9px;background:linear-gradient(135deg,var(--cyan),#33d2ff);color:#001019;text-decoration:none;font-weight:900;box-shadow:0 12px 35px rgba(18,222,242,.16)}.btn.alt{background:rgba(6,13,25,.5);color:#fff;border:1px solid #3a6f89;box-shadow:none}
+    .hero-art{position:relative;min-height:400px}.planet{position:absolute;width:380px;height:380px;border-radius:50%;right:-120px;top:-70px;background:radial-gradient(circle at 35% 30%,#4f96ff 0,#1e4b91 16%,#0b214d 48%,#030711 72%);opacity:.75;box-shadow:0 0 80px rgba(47,112,231,.28)}.vending{position:absolute;right:30px;top:18px;width:290px;height:360px;border-radius:24px;background:linear-gradient(145deg,#111d31,#050a12);border:2px solid var(--cyan);box-shadow:0 0 28px rgba(18,222,242,.28),inset 0 0 0 6px rgba(15,61,81,.45);padding:18px;transform:perspective(900px) rotateY(-7deg)}.vending .title{text-align:center;border:1px solid #218bab;border-radius:9px;padding:8px 6px;color:var(--cyan2);font-size:18px;font-weight:1000;line-height:1.05;background:#081521}.icons{display:grid;grid-template-columns:repeat(3,1fr);gap:10px;margin-top:16px;padding:13px;border-radius:14px;background:linear-gradient(180deg,#082337,#05111d);border:1px solid #215574}.icons span{aspect-ratio:1;border-radius:11px;display:grid;place-items:center;font-size:22px;background:linear-gradient(145deg,rgba(39,214,255,.14),rgba(153,91,255,.2));border:1px solid rgba(104,223,255,.35)}.vending .slot{margin-top:15px;border:1px solid #20536b;border-radius:10px;padding:10px;text-align:center;color:var(--cyan);font-weight:900;font-size:13px}.bot{position:absolute;left:-6px;bottom:0;width:205px;height:250px}.bot-head{position:absolute;left:42px;top:0;width:120px;height:88px;border-radius:42px;background:linear-gradient(145deg,#d8e7f5,#54667c);border:4px solid #b6d1e8;box-shadow:0 0 34px rgba(18,222,242,.2)}.bot-face{position:absolute;inset:15px;border-radius:28px;background:#04101a;border:2px solid #2c536f}.bot-eye{position:absolute;top:27px;width:17px;height:25px;border-radius:50%;background:var(--cyan);box-shadow:0 0 18px rgba(18,222,242,.9)}.bot-eye.l{left:25px}.bot-eye.r{right:25px}.bot-body{position:absolute;left:32px;top:84px;width:140px;height:116px;border-radius:34px 34px 20px 20px;background:linear-gradient(145deg,#233956,#0e1827);border:3px solid #5c7ea1}.bot-body:after{content:"JakeAI";position:absolute;left:0;right:0;top:34px;text-align:center;font-size:21px;font-weight:1000}.bot-leg{position:absolute;bottom:0;width:45px;height:65px;border-radius:18px;background:linear-gradient(#20334e,#0b1422);border:2px solid #58789a}.bot-leg.l{left:46px}.bot-leg.r{right:46px}
+    .section{padding:56px 0}.section.alt{background:#07101a;border-block:1px solid var(--line)}.section-head{display:flex;justify-content:space-between;align-items:end;gap:25px;margin-bottom:20px}.section h2{font-size:30px;margin:0;letter-spacing:-.025em}.section-head p{margin:3px 0 0;color:var(--muted)}.section-link{font-size:12px;color:var(--cyan);font-weight:900;text-decoration:none}.grid4{display:grid;grid-template-columns:repeat(4,1fr);gap:16px}.product{background:linear-gradient(180deg,#0e1928,#09121e);border:1px solid var(--line);border-radius:14px;overflow:hidden;display:flex;flex-direction:column;min-height:360px;box-shadow:var(--shadow)}.thumb{height:128px;position:relative;overflow:hidden;background:radial-gradient(circle at 50% 45%,rgba(29,221,242,.4),transparent 28%),linear-gradient(145deg,#071a2a,#160e31)}.thumb:after{content:"";position:absolute;inset:0;background-image:radial-gradient(#fff 1px,transparent 1px);background-size:27px 27px;opacity:.12}.thumb.boss:before{content:"◈";position:absolute;z-index:2;font-size:74px;left:50%;top:50%;transform:translate(-50%,-54%);color:var(--cyan)}.thumb.npc{background:radial-gradient(circle at 50% 40%,rgba(91,255,179,.38),transparent 33%),linear-gradient(145deg,#092218,#102242)}.thumb.npc:before{content:"✦";position:absolute;z-index:2;font-size:68px;left:50%;top:50%;transform:translate(-50%,-55%);color:#91ffcb}.thumb.quest{background:radial-gradient(circle at 50% 45%,rgba(255,184,86,.36),transparent 35%),linear-gradient(145deg,#2c190b,#111a29)}.thumb.quest:before{content:"✧";position:absolute;z-index:2;font-size:78px;left:50%;top:50%;transform:translate(-50%,-55%);color:#ffd29a}.thumb.chaos{background:radial-gradient(circle at 50% 45%,rgba(198,92,255,.4),transparent 36%),linear-gradient(145deg,#1d0e31,#171b34)}.thumb.chaos:before{content:"⚄";position:absolute;z-index:2;font-size:74px;left:50%;top:50%;transform:translate(-50%,-55%);color:#eee3ff}.prod-body{padding:16px;display:flex;flex-direction:column;flex:1}.prod-title{display:flex;align-items:start;justify-content:space-between;gap:10px}.prod-title h3{font-size:18px;margin:0}.price{color:var(--cyan);font-weight:1000;white-space:nowrap}.prod-body p{font-size:13px;color:#c0d0e1;margin:9px 0 12px}.tags{display:flex;gap:7px;flex-wrap:wrap;margin-top:auto}.tag{padding:5px 10px;border-radius:999px;background:#142237;color:#d5e3f1;font-size:10px;font-weight:800}.prod-btn{margin-top:13px;text-decoration:none;text-align:center;border-radius:8px;padding:9px;background:var(--cyan);color:#001018;font-weight:950;font-size:12px}.prod-btn.disabled{background:#172436;color:#8295aa;border:1px solid #263a52;cursor:default}
+    .categories{display:grid;grid-template-columns:repeat(8,1fr);gap:10px}.cat{min-height:108px;background:#0c1725;border:1px solid var(--line);border-radius:12px;padding:15px 9px;text-align:center}.cat i{display:block;font-style:normal;font-size:30px;margin-bottom:8px}.cat b{font-size:11px}.existing{display:grid;grid-template-columns:repeat(6,1fr);gap:12px}.mini-card{min-height:220px;background:#0c1725;border:1px solid var(--line);border-radius:12px;padding:14px;display:flex;flex-direction:column}.mini-card h3{font-size:13px;line-height:1.25;margin:0 0 7px}.mini-card .mini-price{color:var(--cyan);font-weight:1000;margin-bottom:9px}.mini-card p{font-size:11px;color:#adc0d4;margin:0 0 12px}.mini-card a,.mini-card .disabled{margin-top:auto;display:block;text-align:center;padding:8px;border-radius:7px;background:var(--cyan);color:#001019;text-decoration:none;font-size:10px;font-weight:950}.mini-card .disabled{background:#172436;color:#8295aa;border:1px solid #263a52}.steps{display:grid;grid-template-columns:repeat(3,1fr);gap:16px}.step{background:#0c1725;border:1px solid var(--line);border-radius:14px;padding:22px}.step strong{display:block;color:var(--cyan);font-size:12px;letter-spacing:.1em;text-transform:uppercase;margin-bottom:7px}.step h3{margin:0 0 8px}.step p{margin:0;color:var(--muted)}.about-card{display:grid;grid-template-columns:1.1fr .9fr;gap:18px;background:linear-gradient(135deg,rgba(18,222,242,.07),rgba(158,114,255,.06));border:1px solid #29405d;border-radius:16px;padding:24px}.about-card p{color:#bfd0e1}.about-card ul{margin:0;padding-left:20px;color:#d8e5f2}.about-card li{margin:8px 0}.trust{border-block:1px solid var(--line);background:#07101a}.trust-grid{display:grid;grid-template-columns:repeat(4,1fr)}.trust-item{padding:25px 18px;display:flex;gap:12px;align-items:center}.trust-item i{font-style:normal;font-size:28px;color:var(--cyan)}.trust-item b{display:block}.trust-item span{font-size:11px;color:var(--muted)}footer{padding:34px 0 42px}.foot{display:flex;align-items:end;justify-content:space-between;gap:25px}.footlinks a{margin-left:17px;color:#c2d0df;text-decoration:none;font-size:12px}.note{margin-top:30px;border:1px solid #273d59;border-radius:14px;background:linear-gradient(135deg,rgba(18,222,242,.06),rgba(159,114,255,.04));padding:18px 20px;color:#b8c9db;font-size:12px}.note strong{color:#eaf6ff}
+    @media(max-width:980px){.hero{grid-template-columns:1fr;min-height:auto}.hero-art{min-height:390px}.grid4{grid-template-columns:1fr 1fr}.categories{grid-template-columns:repeat(4,1fr)}.existing{grid-template-columns:repeat(3,1fr)}.navlinks a:not(.navbtn){display:none}.about-card{grid-template-columns:1fr}}
+    @media(max-width:620px){nav{height:66px}.brand small{display:none}.hero{padding-top:42px}.hero h1{font-size:52px}.hero-art{min-height:320px}.vending{width:220px;height:300px;right:0}.bot{transform:scale(.78);transform-origin:left bottom}.grid4{grid-template-columns:1fr}.categories{grid-template-columns:repeat(2,1fr)}.existing{grid-template-columns:1fr 1fr}.steps{grid-template-columns:1fr}.trust-grid{grid-template-columns:1fr 1fr}.section-head{align-items:start;flex-direction:column}.foot{align-items:start;flex-direction:column}.footlinks a{margin:0 13px 0 0}}
+  </style>
 </head>
 <body>
-    <header>
-        <a href="/" class="logo">Jake<span>AI</span></a>
-        <div class="nav-links">
-            <a href="#gateway" style="color: var(--cyan); font-weight: 600;">Gateway Skill</a>
-            <a href="/llms.txt">llms.txt</a>
-            <a href="https://agent-commerce-network-production-56e8.up.railway.app/docs" target="_blank">Swagger API</a>
-            <a href="#catalog" class="btn-cta">Browse Skills</a>
-        </div>
-    </header>
-
-    <section class="hero" id="gateway">
-        <div class="badge">FLAGSHIP AUTONOMOUS WORKFLOW SKILL &bull; PRODUCTION ORCHESTRATOR</div>
-        <h1>Make the Damn Thing for Free&trade;</h1>
-        <p style="font-size: 20px; color: #fff; font-weight: 600; margin-bottom: 12px; letter-spacing: -0.2px;">"Tell it what you want to make. Starting budget: $0. Find a way."</p>
-        <p style="font-size: 15px; color: var(--muted); max-width: 760px; margin: 0 auto 26px;">The gateway Autonomous Workflow Skill that breaks goals into micro-tasks, inventories free assets, enforces the 8-stage resource chain, locks solved outputs, and escalates to paid tools only when mathematically justified.</p>
-        <div style="display: flex; justify-content: center; gap: 14px; margin-bottom: 30px; flex-wrap: wrap;">
-            <a href="/api/v1/checkout/buy/prod_make_free_00" target="_blank" class="btn-buy" style="padding: 12px 28px; font-size: 15px; background: linear-gradient(135deg, #00ff88, var(--cyan));">Access Gateway Skill</a>
-        </div>
-    </section>
-
-    <!-- Industry Benchmarks -->
-    <div class="metrics-bar">
-        <div class="metric">
-            <div class="metric-val">50 / 50</div>
-            <div class="metric-label">Creator Revenue Split</div>
-        </div>
-        <div class="metric">
-            <div class="metric-val">1.0%</div>
-            <div class="metric-label">Protocol Fee</div>
-        </div>
-        <div class="metric">
-            <div class="metric-val">$0.99+</div>
-            <div class="metric-label">Starting Price</div>
-        </div>
-        <div class="metric">
-            <div class="metric-val">v2.3</div>
-            <div class="metric-label">Platform Version</div>
-        </div>
+<header>
+  <nav class="wrap">
+    <a class="brand" href="#home"><strong>Jake<span>AI</span></strong><small>AI skills for a Bigger Tomorrow</small></a>
+    <div class="navlinks">
+      <a href="#home">Home</a><a href="#skills">Browse Skills</a><a href="#categories">Categories</a><a href="#how">How It Works</a><a href="#about">About</a><a class="navbtn" href="#skills">Explore</a>
     </div>
-
-    <!-- Autonomous Workflow Skills & Capability Catalog -->
-    <section class="section-wrap" id="catalog">
-        <div class="section-header">
-            <div>
-                <h2>Autonomous Workflow Skills &amp; Capability Catalog</h2>
-                <p style="color: var(--muted); font-size: 14px;">Deterministic APIs and structured Autonomous Workflow Skills. <strong>Independent creators retain 50% on all skill sales.</strong></p>
-            </div>
-            <span style="font-size: 12px; color: var(--green); font-weight: 600;">Checkout status shown per product</span>
-        </div>
-
-        <div class="catalog-grid">
-            <!-- Featured Gateway Product: Make the Damn Thing for Free -->
-            <div class="product-card" style="border: 2px solid var(--cyan); background: linear-gradient(180deg, rgba(0, 240, 255, 0.08), var(--card)); grid-column: 1 / -1;">
-                <div>
-                    <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 8px;">
-                        <div class="product-badge" style="color: #00ff88; font-weight: 800;">GATEWAY AUTONOMOUS WORKFLOW SKILL</div>
-                        <span class="status-pill status-disabled">FREE ACCESS</span>
-                    </div>
-                    <div class="product-title" style="font-size: 24px;">Make the Damn Thing for Free&trade; (Zero-Budget Production Orchestrator)</div>
-                    <div class="product-desc" style="font-size: 14px; max-width: 900px;">
-                        "Tell it what you want to make. Starting budget: $0. Find a way." Intelligently decomposes any creative, commercial, or software goal into micro-tasks, inventories available accounts and free tiers, routes to the cheapest capable resource, tests cheaply, locks verified outputs so solved work is never re-run, and escalates only when mathematically justified.
-                    </div>
-                    <div style="margin: 14px 0; display: flex; gap: 8px; flex-wrap: wrap;">
-                        <span style="background: #131d2e; border: 1px solid var(--border); font-size: 11px; padding: 4px 8px; border-radius: 4px; color: var(--cyan);">1. Find Cheapest Resource</span>
-                        <span style="background: #131d2e; border: 1px solid var(--border); font-size: 11px; padding: 4px 8px; border-radius: 4px; color: var(--cyan);">2. Test Cheaply</span>
-                        <span style="background: #131d2e; border: 1px solid var(--border); font-size: 11px; padding: 4px 8px; border-radius: 4px; color: var(--cyan);">3. Validate</span>
-                        <span style="background: #131d2e; border: 1px solid var(--border); font-size: 11px; padding: 4px 8px; border-radius: 4px; color: #00ff88;">4. Lock Output</span>
-                        <span style="background: #131d2e; border: 1px solid var(--border); font-size: 11px; padding: 4px 8px; border-radius: 4px; color: #f59e0b;">5. Escalate Only When Necessary</span>
-                        <span style="background: #131d2e; border: 1px solid var(--border); font-size: 11px; padding: 4px 8px; border-radius: 4px; color: var(--cyan);">6. QA & Assemble</span>
-                    </div>
-                </div>
-                <div class="product-footer" style="padding-top: 16px;">
-                    <div class="product-price" style="color: #00ff88;">Free <span style="font-size: 13px; color: var(--muted); font-weight: normal;">(instant access)</span></div>
-                    <a href="/api/v1/checkout/buy/prod_make_free_00" target="_blank" class="btn-buy" style="background: linear-gradient(135deg, #00ff88, var(--cyan)); font-size: 14px; padding: 10px 24px;">Access Now</a>
-                </div>
-            </div>
-
-            <!-- Game QA Autopilot v1.0 -->
-            <div class="product-card" style="border: 1px solid var(--amber);">
-                <div>
-                    <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 8px;">
-                        <div class="product-badge" style="color: var(--amber);">AUTONOMOUS WORKFLOW SKILL &bull; GAME QA</div>
-                        <span class="status-pill status-soon">COMING SOON</span>
-                    </div>
-                    <div class="product-title">Game QA Autopilot v1.0</div>
-                    <div class="product-desc">Deterministic QA workflow for game studios: requirement decomposition, test matrix generation, edge-case coverage, evidence-gated PASS/FAIL, reproducible bug reports, severity/confidence separation, regression queue, and release-readiness reports. Supports Unity, Unreal, Godot, and custom engines. Human release authority by default.</div>
-                </div>
-                <div class="product-footer">
-                    <div class="product-price">$9.99</div>
-                    <span class="btn-disabled">Checkout Pending</span>
-                </div>
-            </div>
-
-            <!-- Product: The $3 Solar Guide -->
-            <div class="product-card">
-                <div>
-                    <div class="product-badge">TECHNICAL GUIDE &bull; C&I SOLAR</div>
-                    <div class="product-title">Commercial Solar & BESS Microgrid Sizing Guide (2026 PDF)</div>
-                    <div class="product-desc">Technical reference guide covering C&I DC/AC loading ratios, 4CP peak-shaving dispatch, and IRA tax credit stacking formulas (30% + 10% + 10%). PDF download.</div>
-                </div>
-                <div class="product-footer">
-                    <div class="product-price">$3.00</div>
-                    <a href="/api/v1/checkout/buy/prod_solar_guide_04" target="_blank" class="btn-buy">Buy for $3.00</a>
-                </div>
-            </div>
-
-            <!-- Product: IRA Tax Calculator API -->
-            <div class="product-card">
-                <div>
-                    <div class="product-badge">FINTECH API &bull; IRA § 48</div>
-                    <div class="product-title">Section 48 IRA Tax Credit Stacking Calculator API</div>
-                    <div class="product-desc">Executable calculator returning statutory cash direct elective pay breakdowns (30% Base + 10% Energy Community + 10% Domestic Content).</div>
-                </div>
-                <div class="product-footer">
-                    <div class="product-price">$1.00 <span style="font-size: 12px; color: var(--muted); font-weight: normal;">/ calculation</span></div>
-                    <span class="btn-disabled">Checkout Disabled</span>
-                </div>
-            </div>
-
-            <!-- Product: The Scrape API -->
-            <div class="product-card">
-                <div>
-                    <div class="product-badge">AI DEVELOPER TOOL &bull; CONTEXT</div>
-                    <div class="product-title">JakeAI Web-to-Markdown Extraction API (100 Credits)</div>
-                    <div class="product-desc">High-speed clean text & markdown extractor for LLMs and autonomous agents. Bypasses ads, navbars, and bloated HTML.</div>
-                </div>
-                <div class="product-footer">
-                    <div class="product-price">$5.00 <span style="font-size: 12px; color: var(--muted); font-weight: normal;">/ 100 calls</span></div>
-                    <span class="btn-disabled">Checkout Disabled</span>
-                </div>
-            </div>
-
-            <!-- Product: Energy Tariff API -->
-            <div class="product-card">
-                <div>
-                    <div class="product-badge">DATA API &bull; PJM GRID</div>
-                    <div class="product-title">PJM Energy Tariff & 4CP Peak Forecast API</div>
-                    <div class="product-desc">Nodal electricity price queries and 4CP transmission peak alerts for energy automation. <em style="color: var(--amber); font-size: 11px;">Demonstration data — not live grid pricing.</em></div>
-                </div>
-                <div class="product-footer">
-                    <div class="product-price">$0.25 <span style="font-size: 12px; color: var(--muted); font-weight: normal;">/ query</span></div>
-                    <span class="btn-disabled">Checkout Disabled</span>
-                </div>
-            </div>
-
-            <!-- Product: Tariff Normalizer API -->
-            <div class="product-card">
-                <div>
-                    <div class="product-badge">DATA API &bull; UTILITY NORMALIZER</div>
-                    <div class="product-title">Utility Tariff Normalizer API (PJM / Dominion / AEP)</div>
-                    <div class="product-desc">Transforms complex non-standard utility rate schedules (GS-1, GS-3, large industrial) into standardized JSON objects for financial modeling.</div>
-                </div>
-                <div class="product-footer">
-                    <div class="product-price">$0.50 <span style="font-size: 12px; color: var(--muted); font-weight: normal;">/ query</span></div>
-                    <span class="btn-disabled">Checkout Disabled</span>
-                </div>
-            </div>
-
-            <!-- Product: Advisory Audit 10-Pack -->
-            <div class="product-card">
-                <div>
-                    <div class="product-badge" style="color: var(--green);">DEVELOPER PACK &bull; 10 AUDITS</div>
-                    <div class="product-title">Advisory Audit 10-Pack (CI/CD Token)</div>
-                    <div class="product-desc">Pre-funded 10-audit developer bundle for automated GitHub Actions, Netlify build hooks, and autonomous agent tool calling.</div>
-                </div>
-                <div class="product-footer">
-                    <div class="product-price">$18.00 <span style="font-size: 12px; color: var(--muted); font-weight: normal;">/ 10 audits</span></div>
-                    <span class="btn-disabled">Checkout Disabled</span>
-                </div>
-            </div>
-
-            <!-- Product: Multi-Model Advisory Council Audit API -->
-            <div class="product-card">
-                <div>
-                    <div class="product-badge">AI AUDIT &bull; FRONTIER CONSENSUS</div>
-                    <div class="product-title">Multi-Model Advisory Council Audit API</div>
-                    <div class="product-desc">Dual-model pre-deployment audit combining Claude 3.5 Sonnet (architecture & legal risk) and Perplexity Sonar-Pro (market intelligence) into a unified Go/No-Go report.</div>
-                </div>
-                <div class="product-footer">
-                    <div class="product-price">$2.00 <span style="font-size: 12px; color: var(--muted); font-weight: normal;">/ audit</span></div>
-                    <span class="btn-disabled">Checkout Disabled</span>
-                </div>
-            </div>
-
-            <!-- Product: llms.txt Auditor -->
-            <div class="product-card">
-                <div>
-                    <div class="product-badge">AI UTILITY &bull; MCP PROTOCOL</div>
-                    <div class="product-title">llms.txt & Agent-Card Readability Auditor API</div>
-                    <div class="product-desc">Automated machine audit testing any domain for /llms.txt compliance, MCP schema compatibility, and AI bot crawlability score.</div>
-                </div>
-                <div class="product-footer">
-                    <div class="product-price">$0.50 <span style="font-size: 12px; color: var(--muted); font-weight: normal;">/ audit</span></div>
-                    <span class="btn-disabled">Checkout Disabled</span>
-                </div>
-            </div>
-        </div>
-    </section>
-
-    <!-- Two-Part Architecture: Machine Protocol vs Developer Onboarding -->
-    <div class="dual-grid">
-        <div class="surface-card ai">
-            <div>
-                <div class="surface-tag">For Autonomous AI Agents</div>
-                <h2>Machine Protocol Layer</h2>
-                <p>Designed for autonomous agents to query documented REST interfaces directly; transaction availability is determined per product and deployment state.</p>
-                <div class="code-box">
-                    curl -X POST https://www.jakeaiofficial.com/api/v1/products/search \<br>
-                    &nbsp;&nbsp;-H "Content-Type: application/json" \<br>
-                    &nbsp;&nbsp;-d '{"query": "energy"}'
-                </div>
-                <ul class="feature-list">
-                    <li>Standardized <code>llms.txt</code> & Agent Card specs</li>
-                    <li>REST interfaces with machine-readable discovery</li>
-                    <li>1.0% protocol settlement fee</li>
-                </ul>
-            </div>
-            <a href="/llms.txt" class="btn-action btn-ai">Inspect llms.txt Spec</a>
-        </div>
-
-        <div class="surface-card dev">
-            <div>
-                <div class="surface-tag">For Developers & Vendors</div>
-                <h2>List Your Tool or API</h2>
-                <p>Developer and vendor onboarding is being prepared around documented, agent-readable interfaces. Commercial activation remains subject to verification and approval gates.</p>
-                <ul class="feature-list">
-                    <li>50/50 creator revenue split on skill sales</li>
-                    <li>1.0% protocol fee on machine settlements</li>
-                    <li>Agent-readable discovery surfaces</li>
-                    <li>Standardized agent-readable catalog</li>
-                </ul>
-            </div>
-            <a href="https://agent-commerce-network-production-56e8.up.railway.app/docs" target="_blank" class="btn-action btn-dev">Explore API Documentation</a>
-        </div>
+  </nav>
+</header>
+<main id="home">
+  <section class="hero-shell">
+    <div class="wrap hero">
+      <div>
+        <div class="eyebrow">Ready-to-use autonomous workflow skills</div>
+        <h1>AI Skills for a Bigger <span>Tomorrow</span></h1>
+        <p>Useful skills for AIs, developers, teams, creators, and builders—designed to turn ideas into working outputs faster.</p>
+        <div class="benefits"><span><b>⚡</b>Save Time</span><span><b>⚙</b>Work Smarter</span><span><b>↗</b>Go Further</span></div>
+        <div class="actions"><a class="btn" href="#skills">Browse AI Skills →</a><a class="btn alt" href="#how">How It Works</a></div>
+      </div>
+      <div class="hero-art" aria-label="JakeAI robot beside the Cosmic Vending Machine">
+        <div class="planet"></div>
+        <div class="vending"><div class="title">THE COSMIC<br>VENDING MACHINE</div><div class="icons"><span>🎮</span><span>⚙</span><span>↗</span><span>🧠</span><span>🛠</span><span>◉</span><span>✦</span><span>⚡</span><span>∞</span></div><div class="slot">PLUG IN A SKILL.<br>LAUNCH A POSSIBILITY.</div></div>
+        <div class="bot"><div class="bot-head"><div class="bot-face"><span class="bot-eye l"></span><span class="bot-eye r"></span></div></div><div class="bot-body"></div><div class="bot-leg l"></div><div class="bot-leg r"></div></div>
+      </div>
     </div>
+  </section>
 
-    <footer>
-        <p style="margin-bottom: 12px;">&copy; 2026 JakeAI Network &bull; www.jakeaiofficial.com &bull; All Rights Reserved.</p>
-        <p>
-            <a href="/terms.html">Terms of Service</a> &bull; 
-            <a href="/privacy.html">Privacy Policy</a> &bull; 
-            <a href="/refunds.html">Refund Policy</a>
-        </p>
-    </footer>
+  <section class="section wrap" id="skills">
+    <div class="section-head"><div><div class="eyebrow">Featured launch collection</div><h2>Small skills. Big possibilities.</h2><p>New creative products testing the full JakeAI product pipeline.</p></div></div>
+    <div class="grid4">
+      <article class="product"><div class="thumb boss"></div><div class="prod-body"><div class="prod-title"><h3>Boss Fight Lab</h3><span class="price">$3.99</span></div><p>Generate an original boss encounter with phases, arena mechanics, telegraphs, counterplay, rewards, and implementation notes.</p><div class="tags"><span class="tag">Games</span><span class="tag">Creative Tool</span></div><a class="prod-btn" href="boss-fight-lab.html">View Demo</a></div></article>
+      <article class="product"><div class="thumb npc"></div><div class="prod-body"><div class="prod-title"><h3>NPC Spark</h3><span class="price">$2.99</span></div><p>Create an original NPC with backstory, motivations, dialogue style, secrets, relationships, and quest hooks.</p><div class="tags"><span class="tag">Games</span><span class="tag">Storytelling</span></div><span class="prod-btn disabled">Candidate — checkout gated</span></div></article>
+      <article class="product"><div class="thumb quest"></div><div class="prod-body"><div class="prod-title"><h3>QuestForge Mini</h3><span class="price">$3.99</span></div><p>Generate a complete side quest with objectives, obstacles, choices, rewards, difficulty variants, and alternate endings.</p><div class="tags"><span class="tag">Games</span><span class="tag">Content Creation</span></div><span class="prod-btn disabled">Candidate — checkout gated</span></div></article>
+      <article class="product"><div class="thumb chaos"></div><div class="prod-body"><div class="prod-title"><h3>Game Night Chaos</h3><span class="price">$1.99</span></div><p>Create a safe original party game from your group, available time, setting, and everyday objects.</p><div class="tags"><span class="tag">Games</span><span class="tag">Entertainment</span></div><span class="prod-btn disabled">Candidate — checkout gated</span></div></article>
+    </div>
+  </section>
+
+  <section class="section alt" id="categories">
+    <div class="wrap"><div class="section-head"><div><div class="eyebrow">Explore all categories</div><h2>More than one kind of intelligence.</h2><p>From games to engineering tools, JakeAI is built to grow across useful categories.</p></div></div>
+      <div class="categories">
+        <div class="cat"><i>🎮</i><b>Games & Entertainment</b></div><div class="cat"><i>🤖</i><b>AI Agents</b></div><div class="cat"><i>▥</i><b>Business & Productivity</b></div><div class="cat"><i>◫</i><b>APIs & Data Tools</b></div><div class="cat"><i>⚙</i><b>Engineering & Manufacturing</b></div><div class="cat"><i>🦾</i><b>Robotics & IoT</b></div><div class="cat"><i>◒</i><b>Energy & Sustainability</b></div><div class="cat"><i>▦</i><b>More Categories</b></div>
+      </div>
+    </div>
+  </section>
+
+  <section class="section wrap">
+    <div class="section-head"><div><div class="eyebrow">Existing JakeAI catalog</div><h2>Keep what works. Make it easier to discover.</h2><p>The redesign preserves the current catalog rather than replacing it.</p></div></div>
+    <div class="existing">
+      <article class="mini-card"><h3>Make the Damn Thing for Free™</h3><div class="mini-price">Free</div><p>Zero-budget production orchestration built around finding the cheapest capable path, validating it, and locking successful outputs.</p><a href="/api/v1/checkout/buy/prod_make_free_00">Access</a></article>
+      <article class="mini-card"><h3>Game QA Autopilot v1.0</h3><div class="mini-price">$9.99</div><p>Game QA workflow for test matrices, edge cases, reproducible bugs, regression queues, and release readiness.</p><span class="disabled">Checkout pending</span></article>
+      <article class="mini-card"><h3>Commercial Solar & BESS Guide</h3><div class="mini-price">$3.00</div><p>Technical reference for commercial solar, storage sizing concepts, peak-shaving, and tax-credit formulas.</p><a href="/api/v1/checkout/buy/prod_solar_guide_04">Buy</a></article>
+      <article class="mini-card"><h3>IRA / Section 48 Calculator API</h3><div class="mini-price">$1.00</div><p>Structured tax-credit calculation output. Commercial activation remains gated behind metering.</p><span class="disabled">Checkout disabled</span></article>
+      <article class="mini-card"><h3>Web-to-Markdown Extraction API</h3><div class="mini-price">$5.00</div><p>Clean text and Markdown extraction for LLM and agent workflows.</p><span class="disabled">Checkout disabled</span></article>
+      <article class="mini-card"><h3>Agent Readability Auditor</h3><div class="mini-price">$0.50</div><p>Checks domains for llms.txt, agent-card readability, and related machine-discovery signals.</p><span class="disabled">Checkout disabled</span></article>
+      <article class="mini-card"><h3>PJM Demonstration Tariff & 4CP API</h3><div class="mini-price">$0.25</div><p>Demonstration energy-pricing and peak-alert data for automation testing. Not live grid pricing.</p><span class="disabled">Checkout disabled</span></article>
+      <article class="mini-card"><h3>Utility Tariff Normalizer API</h3><div class="mini-price">$0.50</div><p>Transforms non-standard utility-rate schedules into standardized JSON structures for modeling.</p><span class="disabled">Checkout disabled</span></article>
+      <article class="mini-card"><h3>Multi-Model Advisory Audit — 10 Pack</h3><div class="mini-price">$18.00</div><p>Developer audit bundle intended for automated pre-deployment review workflows.</p><span class="disabled">Checkout disabled</span></article>
+      <article class="mini-card"><h3>Multi-Model Advisory Council Audit API</h3><div class="mini-price">$2.00</div><p>Multiple model perspectives combined into a structured pre-deployment advisory report.</p><span class="disabled">Checkout disabled</span></article>
+      <article class="mini-card"><h3>22-DoF Tendon Grasp Solver API</h3><div class="mini-price">$0.10</div><p>Educational hypothetical robotics calculations. Independent engineering validation required before physical-control use.</p><span class="disabled">Checkout disabled</span></article>
+    </div>
+  </section>
+
+  <section class="section alt" id="how"><div class="wrap"><div class="section-head"><div><div class="eyebrow">How it works</div><h2>From idea to usable output.</h2></div></div><div class="steps"><article class="step"><strong>01 — Pick a skill</strong><h3>Start with the outcome.</h3><p>Choose the tool that matches what you want to make, test, analyze, or automate.</p></article><article class="step"><strong>02 — Give it context</strong><h3>Tell JakeAI what matters.</h3><p>Provide the inputs the skill needs. Product pages explain what goes in and what comes back.</p></article><article class="step"><strong>03 — Review the result</strong><h3>Useful output, human judgment.</h3><p>Creative and advisory products are designed to accelerate work, not replace appropriate human review.</p></article></div></div></section>
+
+  <section class="section wrap" id="about"><div class="about-card"><div><div class="eyebrow">About JakeAI</div><h2>Build in public. Keep the engine private.</h2><p>JakeAI is an evolving ecosystem of autonomous workflow skills, creative tools, games, media, APIs, and experiments. The public site shows products, demonstrations, and outcomes—not proprietary prompts, orchestration logic, internal architecture, or protected production methods.</p></div><ul><li>New products are developed as isolated candidates before promotion.</li><li>Checkout and delivery stay gated until the product is actually ready.</li><li>Existing products remain visible with truthful status labels.</li><li>Unrelated operating brands are not presented as part of JakeAI unless explicitly approved.</li></ul></div></section>
+
+  <section class="trust"><div class="wrap trust-grid"><div class="trust-item"><i>◇</i><div><b>Safety Gates</b><span>Products are reviewed before activation.</span></div></div><div class="trust-item"><i>◎</i><div><b>Creator Friendly</b><span>Built for a future creator marketplace.</span></div></div><div class="trust-item"><i>☆</i><div><b>Practical & Useful</b><span>Real outputs over buzzwords.</span></div></div><div class="trust-item"><i>↗</i><div><b>Growing Ecosystem</b><span>New categories can be added without rebuilding the identity.</span></div></div></div></section>
+</main>
+<footer><div class="wrap"><div class="foot"><a class="brand" href="#home"><strong>Jake<span>AI</span></strong><small>AI skills for a Bigger Tomorrow</small></a><div class="footlinks"><a href="#about">About</a><a href="/terms.html">Terms</a><a href="/privacy.html">Privacy</a><a href="/refunds.html">Refunds</a><a href="/llms.txt">llms.txt</a></div></div><div class="note"><strong>Public brand boundary:</strong> JakeAI is presented here as its own marketplace and creative ecosystem. Candidate products remain clearly gated until QA, delivery, and checkout validation are complete.</div></div></footer>
 </body>
 </html>
