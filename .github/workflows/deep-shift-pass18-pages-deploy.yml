@@ -1,0 +1,147 @@
+name: Deep Shift Pass 18 Pages Deploy
+on:
+  workflow_dispatch:
+  push:
+    branches: ["deep-shift-ci"]
+    paths:
+      - ".github/workflows/deep-shift-pass18-pages-deploy.yml"
+permissions:
+  contents: read
+  pages: write
+  id-token: write
+concurrency:
+  group: deep-shift-pages
+  cancel-in-progress: true
+jobs:
+  deploy:
+    environment:
+      name: github-pages
+    runs-on: ubuntu-latest
+    timeout-minutes: 30
+    steps:
+      - uses: actions/checkout@v4
+      - name: Install Godot
+        run: |
+          wget -q https://github.com/godotengine/godot/releases/download/4.3-stable/Godot_v4.3-stable_linux.x86_64.zip
+          unzip -q Godot_v4.3-stable_linux.x86_64.zip
+          sudo mv Godot_v4.3-stable_linux.x86_64 /usr/local/bin/godot
+      - name: Hydrate current production layers
+        shell: bash
+        run: |
+          set -euo pipefail
+          rm -rf deep-shift-mobile deep-shift-hardened deep-shift-playtest deep-shift-visual
+          mkdir deep-shift-mobile
+          cat deep-shift-ci/full_game_bundle.part01 deep-shift-ci/full_game_bundle.part02 deep-shift-ci/full_game_bundle.part03 deep-shift-ci/full_game_bundle.part04 deep-shift-ci/full_game_bundle.part05 deep-shift-ci/full_game_bundle.part06 > /tmp/full.b64
+          base64 -d /tmp/full.b64 > /tmp/full.tar.gz
+          tar -xzf /tmp/full.tar.gz -C deep-shift-mobile
+          sed -i 's/var requirement := 0 if sector_index == 4 else min(int(sector_data.ore_count), 5 + sector_index)/var requirement: int = 0 if sector_index == 4 else int(min(int(sector_data.ore_count), 5 + sector_index))/' deep-shift-mobile/scripts/Game.gd || true
+          sed -i 's/var tech := max(1, int(depth \/ 2) + (3 if success else 0) + int(GameState.run.score \/ 3000))/var tech: int = int(max(1, int(depth \/ 2) + (3 if success else 0) + int(GameState.run.score \/ 3000)))/' deep-shift-mobile/scripts/Game.gd || true
+          cp -a deep-shift-mobile deep-shift-hardened
+          python3 deep-shift-ci/apply_pass10_hardening.py
+          rm -rf deep-shift-mobile && mv deep-shift-hardened deep-shift-playtest
+          python3 deep-shift-ci/apply_pass11_polish.py
+          mv deep-shift-playtest deep-shift-visual
+          python3 deep-shift-ci/apply_pass12_visuals.py
+          python3 deep-shift-ci/apply_pass12_hotfix.py
+          python3 deep-shift-ci/apply_pass12_audio_hotfix.py
+          mv deep-shift-visual deep-shift-mobile
+          python3 deep-shift-ci/apply_pass13_mobile_web.py
+      - name: Apply Web runtime fixes and remove engine splash
+        shell: bash
+        run: |
+          set -euo pipefail
+          python3 - <<'PY'
+          from pathlib import Path
+          import re
+          p=Path('deep-shift-mobile/project.godot')
+          s=p.read_text()
+          s=re.sub(r'^renderer/rendering_method=.*\n?', '', s, flags=re.M)
+          s=re.sub(r'^renderer/rendering_method\.mobile=.*\n?', '', s, flags=re.M)
+          s=re.sub(r'^boot_splash/show_image=.*\n?', '', s, flags=re.M)
+          s=re.sub(r'^boot_splash/image=.*\n?', '', s, flags=re.M)
+          if '[rendering]' in s:
+              s=s.replace('[rendering]', '[rendering]\n\nrenderer/rendering_method="gl_compatibility"\nrenderer/rendering_method.mobile="gl_compatibility"',1)
+          else:
+              s+='\n[rendering]\n\nrenderer/rendering_method="gl_compatibility"\nrenderer/rendering_method.mobile="gl_compatibility"\n'
+          if '[application]' in s:
+              s=s.replace('[application]', '[application]\n\nboot_splash/show_image=false',1)
+          p.write_text(s)
+          PY
+          python3 - <<'PY'
+          from pathlib import Path
+          p=Path('deep-shift-mobile/scripts/Audio.gd')
+          if p.exists():
+              s=p.read_text()
+              if 'OS.has_feature("web")' not in s:
+                  s=s.replace('func _ready():', 'func _ready():\n\tif OS.has_feature("web"):\n\t\tset_process(false)\n\t\treturn', 1)
+                  p.write_text(s)
+          PY
+      - name: Write Safari-safe Web preset
+        shell: bash
+        run: |
+          cat > deep-shift-mobile/export_presets.cfg <<'EOF'
+          [preset.0]
+          name="Web"
+          platform="Web"
+          runnable=true
+          advanced_options=false
+          dedicated_server=false
+          custom_features=""
+          export_filter="all_resources"
+          include_filter=""
+          exclude_filter=""
+          export_path="build/web/index.html"
+          encryption_include_filters=""
+          encryption_exclude_filters=""
+          encrypt_pck=false
+          encrypt_directory=false
+          script_export_mode=2
+
+          [preset.0.options]
+          custom_template/debug=""
+          custom_template/release=""
+          variant/extensions_support=false
+          variant/thread_support=false
+          vram_texture_compression/for_desktop=false
+          vram_texture_compression/for_mobile=false
+          html/export_icon=true
+          html/custom_html_shell=""
+          html/head_include="<meta name='apple-mobile-web-app-capable' content='yes'><meta name='mobile-web-app-capable' content='yes'><meta name='viewport' content='width=device-width,initial-scale=1,maximum-scale=1,user-scalable=no'>"
+          html/canvas_resize_policy=2
+          html/focus_canvas_on_start=true
+          html/experimental_virtual_keyboard=true
+          progressive_web_app/enabled=false
+          progressive_web_app/ensure_cross_origin_isolation_headers=false
+          EOF
+      - name: Install official Web templates
+        run: |
+          mkdir -p ~/.local/share/godot/export_templates/4.3.stable
+          wget -q https://github.com/godotengine/godot/releases/download/4.3-stable/Godot_v4.3-stable_export_templates.tpz
+          unzip -q Godot_v4.3-stable_export_templates.tpz -d /tmp/godot-templates
+          cp -r /tmp/godot-templates/templates/* ~/.local/share/godot/export_templates/4.3.stable/
+          test -s ~/.local/share/godot/export_templates/4.3.stable/web_nothreads_release.zip
+      - name: Compile and export
+        shell: bash
+        run: |
+          set -euo pipefail
+          godot --headless --rendering-method gl_compatibility --path deep-shift-mobile --editor --quit
+          mkdir -p deep-shift-mobile/build/web
+          godot --headless --rendering-method gl_compatibility --path deep-shift-mobile --export-release "Web" build/web/index.html
+          test -s deep-shift-mobile/build/web/index.html
+          test -s deep-shift-mobile/build/web/index.wasm
+          test -s deep-shift-mobile/build/web/index.pck
+          touch deep-shift-mobile/build/web/.nojekyll
+          echo 'DEEP_SHIFT_PASS18_EXPORT_GATE: PASS'
+      - name: Configure Pages
+        uses: actions/configure-pages@v5
+      - name: Upload Pages artifact
+        uses: actions/upload-pages-artifact@v3
+        with:
+          path: deep-shift-mobile/build/web
+      - name: Deploy to GitHub Pages
+        id: deployment
+        uses: actions/deploy-pages@v4
+      - name: Confirm deployment
+        run: |
+          echo "${{ steps.deployment.outputs.page_url }}"
+          echo 'DEEP_SHIFT_PASS18_PAGES_GATE: PASS'
