@@ -1,0 +1,26 @@
+{
+  "policy": "free-first",
+  "paid_capacity_requires_explicit_approval": true,
+  "circumvention_prohibited": true,
+  "signals": {
+    "model_availability": "unknown",
+    "context_pressure": "unknown",
+    "api_rate_pressure": "unknown",
+    "web_bandwidth_pressure": "unknown",
+    "storage_pressure": "unknown",
+    "build_minutes_pressure": "unknown",
+    "automation_pressure": "unknown"
+  },
+  "escalation_order": [
+    "optimize",
+    "legitimate_free_capacity",
+    "alternate_permitted_free_provider",
+    "practical_open_source_or_local_capacity",
+    "paid_capacity_with_explicit_approval"
+  ],
+  "notes": [
+    "Unknown means not yet measured; it does not mean unlimited capacity.",
+    "Provider limits and terms must be respected.",
+    "No purchase is authorized by this file."
+  ]
+}
