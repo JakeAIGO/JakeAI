@@ -13,7 +13,6 @@
             --cyan: #00f0ff;
             --violet: #8a2be2;
             --green: #10b981;
-            --amber: #f59e0b;
             --text: #f0f4fc;
             --muted: #8899b0;
         }
@@ -49,10 +48,6 @@
         .product-price { font-family: 'Space Grotesk', sans-serif; font-size: 22px; font-weight: 700; color: #fff; }
         .btn-buy { background: linear-gradient(135deg, var(--cyan), #0099ff); color: #000; padding: 8px 18px; border-radius: 6px; font-weight: 700; font-size: 13px; text-decoration: none; transition: transform 0.2s; }
         .btn-buy:hover { transform: translateY(-2px); }
-        .btn-disabled { background: #1a2333; color: var(--muted); padding: 8px 18px; border-radius: 6px; font-weight: 600; font-size: 13px; cursor: not-allowed; border: 1px solid var(--border); }
-        .status-pill { font-size: 11px; font-weight: 700; padding: 2px 8px; border-radius: 4px; }
-        .status-soon { background: rgba(245, 158, 11, 0.15); color: var(--amber); }
-        .status-disabled { background: rgba(136, 153, 176, 0.15); color: var(--muted); }
 
         .dual-grid { max-width: 1040px; margin: 50px auto; display: grid; grid-template-columns: 1fr 1fr; gap: 24px; padding: 0 20px; }
         .surface-card { background: var(--card); border: 1px solid var(--border); border-radius: 12px; padding: 32px; display: flex; flex-direction: column; justify-content: space-between; }
@@ -81,40 +76,57 @@
     <header>
         <a href="/" class="logo">Jake<span>AI</span></a>
         <div class="nav-links">
-            <a href="#gateway" style="color: var(--cyan); font-weight: 600;">Gateway Skill</a>
+            <a href="#free-gateway" style="color: var(--cyan); font-weight: 600;">Free Skill ($0)</a>
             <a href="/llms.txt">llms.txt</a>
             <a href="https://agent-commerce-network-production-56e8.up.railway.app/docs" target="_blank">Swagger API</a>
             <a href="#catalog" class="btn-cta">Browse Skills</a>
         </div>
     </header>
 
-    <section class="hero" id="gateway">
-        <div class="badge">FLAGSHIP AUTONOMOUS WORKFLOW SKILL &bull; PRODUCTION ORCHESTRATOR</div>
+    <section class="hero" id="free-gateway">
+        <div class="badge">FLAGSHIP AUTONOMOUS WORKFLOW SKILL &bull; ZERO-BUDGET ORCHESTRATOR</div>
         <h1>Make the Damn Thing for Free&trade;</h1>
-        <p style="font-size: 20px; color: #fff; font-weight: 600; margin-bottom: 12px; letter-spacing: -0.2px;">"Tell it what you want to make. Starting budget: $0. Find a way."</p>
-        <p style="font-size: 15px; color: var(--muted); max-width: 760px; margin: 0 auto 26px;">The gateway Autonomous Workflow Skill that breaks goals into micro-tasks, inventories free assets, enforces the 8-stage resource chain, locks solved outputs, and escalates to paid tools only when mathematically justified.</p>
+        <p style="font-size: 20px; color: #fff; font-weight: 600; margin-bottom: 12px; letter-spacing: -0.2px;">“Tell it what you want to make. Starting budget: $0. Find a way.”</p>
+        <p style="font-size: 15px; color: var(--muted); max-width: 760px; margin: 0 auto 26px;">The free gateway Autonomous Workflow Skill that breaks goals into micro-tasks, inventories free assets, enforces the 8-stage resource chain, locks solved outputs, and escalates to paid tools only when mathematically justified.</p>
         <div style="display: flex; justify-content: center; gap: 14px; margin-bottom: 30px; flex-wrap: wrap;">
-            <a href="/api/v1/checkout/buy/prod_make_free_00" target="_blank" class="btn-buy" style="padding: 12px 28px; font-size: 15px; background: linear-gradient(135deg, #00ff88, var(--cyan));">Access Gateway Skill</a>
+            <a href="https://docs.google.com/document/d/14Ayw4pxjnYy5MddTGdLSZEeQGKJGU3CRSmW7384Lfhk/edit?usp=sharing" target="_blank" class="btn-buy" style="padding: 12px 28px; font-size: 15px; background: linear-gradient(135deg, #00ff88, var(--cyan));">Get Free Gateway Skill ($0)</a>
+            <a href="#casestudy" class="btn-action btn-ai" style="padding: 12px 22px;">View Case Study #001</a>
         </div>
     </section>
 
     <!-- Industry Benchmarks -->
     <div class="metrics-bar">
         <div class="metric">
+            <div class="metric-val">$0.00</div>
+            <div class="metric-label">Gateway Skill Price</div>
+        </div>
+        <div class="metric">
             <div class="metric-val">50 / 50</div>
             <div class="metric-label">Creator Revenue Split</div>
         </div>
         <div class="metric">
             <div class="metric-val">1.0%</div>
-            <div class="metric-label">Protocol Fee</div>
+            <div class="metric-label">Machine Protocol Fee</div>
         </div>
         <div class="metric">
-            <div class="metric-val">$0.99+</div>
-            <div class="metric-label">Starting Price</div>
+            <div class="metric-val">&lt; 50ms</div>
+            <div class="metric-label">Deterministic Latency</div>
         </div>
-        <div class="metric">
-            <div class="metric-val">v2.3</div>
-            <div class="metric-label">Platform Version</div>
+    </div>
+
+    <!-- Live Validation Case Study #001 -->
+    <div id="casestudy" style="max-width: 1040px; margin: 0 auto 40px; padding: 26px 32px; background: rgba(0, 240, 255, 0.03); border: 1px solid rgba(0, 240, 255, 0.25); border-radius: 12px;">
+        <div style="display: flex; align-items: center; justify-content: space-between; margin-bottom: 12px; flex-wrap: wrap; gap: 10px;">
+            <div style="display: flex; align-items: center; gap: 10px;">
+                <span style="background: rgba(0, 240, 255, 0.15); color: var(--cyan); font-size: 11px; font-weight: 700; padding: 4px 10px; border-radius: 4px; text-transform: uppercase; letter-spacing: 0.5px;">Live Experiment &bull; Case Study #001</span>
+                <span style="font-size: 12px; color: #f59e0b; font-weight: 600;">● In Active Production</span>
+            </div>
+            <span style="font-size: 12px; color: var(--muted);">Orchestrator: Make the Damn Thing for Free&trade;</span>
+        </div>
+        <h3 style="font-family: 'Space Grotesk', sans-serif; font-size: 22px; color: #fff; margin-bottom: 10px;">GRIDWORKS TV Docuseries Buyer Sizzle ($0 Starting Production Budget)</h3>
+        <p style="font-size: 14px; color: #cbd5e1; line-height: 1.6; margin-bottom: 12px;">We are actively subjecting Make the Damn Thing for Free&trade; to its first real-world stress test: assembling a television network/buyer sizzle reel for our industrial energy infrastructure docuseries, <em>GRIDWORKS</em>, beginning with a strict $0 production budget. The workflow routes through federal public domain archives (DOE, NREL, TVA), local microphone recordings, open-source assembly, and locked intermediate milestones.</p>
+        <div style="font-size: 12px; color: var(--muted); border-top: 1px solid rgba(255, 255, 255, 0.08); padding-top: 10px;">
+            <strong>Claim Guardrail:</strong> In accordance with JakeAI operational standards, success is not claimed until the completed GRIDWORKS sizzle reel actually exists, is fully rendered, and has been verified against commercial buyer specifications.
         </div>
     </div>
 
@@ -125,7 +137,7 @@
                 <h2>Autonomous Workflow Skills &amp; Capability Catalog</h2>
                 <p style="color: var(--muted); font-size: 14px;">Deterministic APIs and structured Autonomous Workflow Skills. <strong>Independent creators retain 50% on all skill sales.</strong></p>
             </div>
-            <span style="font-size: 12px; color: var(--green); font-weight: 600;">● Checkout Active</span>
+            <span style="font-size: 12px; color: var(--green); font-weight: 600;">● Live Settlement</span>
         </div>
 
         <div class="catalog-grid">
@@ -133,12 +145,12 @@
             <div class="product-card" style="border: 2px solid var(--cyan); background: linear-gradient(180deg, rgba(0, 240, 255, 0.08), var(--card)); grid-column: 1 / -1;">
                 <div>
                     <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 8px;">
-                        <div class="product-badge" style="color: #00ff88; font-weight: 800;">GATEWAY AUTONOMOUS WORKFLOW SKILL</div>
-                        <span class="status-pill status-disabled">FREE ACCESS</span>
+                        <div class="product-badge" style="color: #00ff88; font-weight: 800;">FREE GATEWAY AUTONOMOUS WORKFLOW SKILL</div>
+                        <span style="background: rgba(0, 255, 136, 0.15); color: #00ff88; padding: 2px 8px; border-radius: 4px; font-size: 11px; font-weight: 700;">$0 TRANSACTION</span>
                     </div>
                     <div class="product-title" style="font-size: 24px;">Make the Damn Thing for Free&trade; (Zero-Budget Production Orchestrator)</div>
                     <div class="product-desc" style="font-size: 14px; max-width: 900px;">
-                        "Tell it what you want to make. Starting budget: $0. Find a way." Intelligently decomposes any creative, commercial, or software goal into micro-tasks, inventories available accounts and free tiers, routes to the cheapest capable resource, tests cheaply, locks verified outputs so solved work is never re-run, and escalates only when mathematically justified.
+                        “Tell it what you want to make. Starting budget: $0. Find a way.” Intelligently decomposes any creative, commercial, or software goal into micro-tasks, inventories available accounts and free tiers, routes to the cheapest capable resource, tests cheaply, locks verified outputs so solved work is never re-run, and escalates only when mathematically justified. Instant frictionless access.
                     </div>
                     <div style="margin: 14px 0; display: flex; gap: 8px; flex-wrap: wrap;">
                         <span style="background: #131d2e; border: 1px solid var(--border); font-size: 11px; padding: 4px 8px; border-radius: 4px; color: var(--cyan);">1. Find Cheapest Resource</span>
@@ -150,41 +162,24 @@
                     </div>
                 </div>
                 <div class="product-footer" style="padding-top: 16px;">
-                    <div class="product-price" style="color: #00ff88;">Free <span style="font-size: 13px; color: var(--muted); font-weight: normal;">(instant access)</span></div>
-                    <a href="/api/v1/checkout/buy/prod_make_free_00" target="_blank" class="btn-buy" style="background: linear-gradient(135deg, #00ff88, var(--cyan)); font-size: 14px; padding: 10px 24px;">Access Now</a>
+                    <div class="product-price" style="color: #00ff88;">$0.00 <span style="font-size: 13px; color: var(--muted); font-weight: normal;">(Free Gateway Access)</span></div>
+                    <a href="https://docs.google.com/document/d/14Ayw4pxjnYy5MddTGdLSZEeQGKJGU3CRSmW7384Lfhk/edit?usp=sharing" target="_blank" class="btn-buy" style="background: linear-gradient(135deg, #00ff88, var(--cyan)); font-size: 14px; padding: 10px 24px;">Get Free ($0)</a>
                 </div>
             </div>
-
-            <!-- Game QA Autopilot v1.0 -->
-            <div class="product-card" style="border: 1px solid var(--amber);">
-                <div>
-                    <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 8px;">
-                        <div class="product-badge" style="color: var(--amber);">AUTONOMOUS WORKFLOW SKILL &bull; GAME QA</div>
-                        <span class="status-pill status-soon">COMING SOON</span>
-                    </div>
-                    <div class="product-title">Game QA Autopilot v1.0</div>
-                    <div class="product-desc">Deterministic QA workflow for game studios: requirement decomposition, test matrix generation, edge-case coverage, evidence-gated PASS/FAIL, reproducible bug reports, severity/confidence separation, regression queue, and release-readiness reports. Supports Unity, Unreal, Godot, and custom engines. Human release authority by default.</div>
-                </div>
-                <div class="product-footer">
-                    <div class="product-price">$9.99</div>
-                    <span class="btn-disabled">Checkout Pending</span>
-                </div>
-            </div>
-
-            <!-- Product: The $3 Solar Guide -->
+            <!-- Product 1: The $3 Solar Guide -->
             <div class="product-card">
                 <div>
                     <div class="product-badge">TECHNICAL GUIDE &bull; C&I SOLAR</div>
                     <div class="product-title">Commercial Solar & BESS Microgrid Sizing Guide (2026 PDF)</div>
-                    <div class="product-desc">Authoritative reference guide covering C&I DC/AC loading ratios, 4CP peak-shaving dispatch, and IRA tax credit stacking formulas (30% + 10% + 10%). PDF download.</div>
+                    <div class="product-desc">Authoritative reference guide covering C&I DC/AC loading ratios, 4CP peak-shaving dispatch, and IRA tax credit stacking formulas (30% + 10% + 10%). Instant PDF download.</div>
                 </div>
                 <div class="product-footer">
-                    <div class="product-price">$3.00</div>
+                    <div class="product-price">$3.00 <span style="font-size: 12px; color: var(--muted); font-weight: normal;">instant download</span></div>
                     <a href="/api/v1/checkout/buy/prod_solar_guide_04" target="_blank" class="btn-buy">Buy for $3.00</a>
                 </div>
             </div>
 
-            <!-- Product: IRA Tax Calculator API -->
+            <!-- Product 2: IRA Tax Calculator API -->
             <div class="product-card">
                 <div>
                     <div class="product-badge">FINTECH API &bull; IRA § 48</div>
@@ -193,37 +188,37 @@
                 </div>
                 <div class="product-footer">
                     <div class="product-price">$1.00 <span style="font-size: 12px; color: var(--muted); font-weight: normal;">/ calculation</span></div>
-                    <span class="btn-disabled">Checkout Disabled</span>
+                    <a href="/api/v1/checkout/buy/prod_ira_calc_05" target="_blank" class="btn-buy">Buy for $1.00</a>
                 </div>
             </div>
 
-            <!-- Product: The Scrape API -->
+            <!-- Product 3: The Scrape API -->
             <div class="product-card">
                 <div>
                     <div class="product-badge">AI DEVELOPER TOOL &bull; CONTEXT</div>
                     <div class="product-title">JakeAI Web-to-Markdown Extraction API (100 Credits)</div>
-                    <div class="product-desc">High-speed clean text & markdown extractor for LLMs and autonomous agents. Bypasses ads, navbars, and bloated HTML.</div>
+                    <div class="product-desc">High-speed clean text & markdown extractor for LLMs and autonomous bots. Bypasses ads, navbars, and bloated HTML with instant automated delivery.</div>
                 </div>
                 <div class="product-footer">
                     <div class="product-price">$5.00 <span style="font-size: 12px; color: var(--muted); font-weight: normal;">/ 100 calls</span></div>
-                    <span class="btn-disabled">Checkout Disabled</span>
+                    <a href="/api/v1/checkout/buy/prod_scrape_01" target="_blank" class="btn-buy">Buy for $5.00</a>
                 </div>
             </div>
 
-            <!-- Product: Energy Tariff API -->
+            <!-- Product 4: Energy Tariff API -->
             <div class="product-card">
                 <div>
                     <div class="product-badge">DATA API &bull; PJM GRID</div>
-                    <div class="product-title">PJM Energy Tariff & 4CP Peak Forecast API</div>
-                    <div class="product-desc">Nodal electricity price queries and 4CP transmission peak alerts for energy automation. <em style="color: var(--amber); font-size: 11px;">Demonstration data — not live grid pricing.</em></div>
+                    <div class="product-title">PJM Real-Time Energy Tariff & 4CP Peak Forecast API</div>
+                    <div class="product-desc">Automated nodal electricity price queries and 4CP transmission peak alerts across PJM & Dominion territories for energy automation bots.</div>
                 </div>
                 <div class="product-footer">
                     <div class="product-price">$0.25 <span style="font-size: 12px; color: var(--muted); font-weight: normal;">/ query</span></div>
-                    <span class="btn-disabled">Checkout Disabled</span>
+                    <a href="/api/v1/checkout/buy/prod_energy_01" target="_blank" class="btn-buy">Buy for $0.25</a>
                 </div>
             </div>
 
-            <!-- Product: Tariff Normalizer API -->
+            <!-- Product 5: Tariff Normalizer API -->
             <div class="product-card">
                 <div>
                     <div class="product-badge">DATA API &bull; UTILITY NORMALIZER</div>
@@ -232,37 +227,34 @@
                 </div>
                 <div class="product-footer">
                     <div class="product-price">$0.50 <span style="font-size: 12px; color: var(--muted); font-weight: normal;">/ query</span></div>
-                    <span class="btn-disabled">Checkout Disabled</span>
+                    <a href="/api/v1/checkout/buy/prod_tariff_norm_06" target="_blank" class="btn-buy">Buy for $0.50</a>
                 </div>
             </div>
 
-            <!-- Product: Advisory Audit 10-Pack -->
+            <!-- Product 6: Agent Readability Auditor -->
+            <!-- Product 7: Multi-Model Advisory Audit API -->
             <div class="product-card">
                 <div>
-                    <div class="product-badge" style="color: var(--green);">DEVELOPER PACK &bull; 10 AUDITS</div>
+                    <div class="product-badge" style="background: rgba(16, 185, 129, 0.15); color: #10b981; border-color: rgba(16, 185, 129, 0.3);">DEVELOPER PACK &bull; 10% OFF</div>
                     <div class="product-title">Advisory Audit 10-Pack (CI/CD Token)</div>
-                    <div class="product-desc">Pre-funded 10-audit developer bundle for automated GitHub Actions, Netlify build hooks, and autonomous agent tool calling.</div>
+                    <div class="product-desc">Pre-funded 10-audit developer bundle. Instant API key for automated GitHub Actions, Netlify build hooks, and autonomous agent tool calling. Zero per-deploy card friction.</div>
                 </div>
                 <div class="product-footer">
-                    <div class="product-price">$18.00 <span style="font-size: 12px; color: var(--muted); font-weight: normal;">/ 10 audits</span></div>
-                    <span class="btn-disabled">Checkout Disabled</span>
+                    <div class="product-price">8.00 <span style="font-size: 12px; color: var(--muted); font-weight: normal;">/ 10 audits (.80 ea)</span></div>
+                    <a href="/api/v1/checkout/buy/prod_audit_pack_10" target="_blank" class="btn-buy">Buy for 8.00</a>
                 </div>
             </div>
-
-            <!-- Product: Multi-Model Advisory Council Audit API -->
             <div class="product-card">
                 <div>
                     <div class="product-badge">AI AUDIT &bull; FRONTIER CONSENSUS</div>
                     <div class="product-title">Multi-Model Advisory Council Audit API</div>
-                    <div class="product-desc">Dual-model pre-deployment audit combining Claude 3.5 Sonnet (architecture & legal risk) and Perplexity Sonar-Pro (market intelligence) into a unified Go/No-Go report.</div>
+                    <div class="product-desc">Dual-model pre-deployment audit combining Claude 3.5 Sonnet (architecture & legal risk) and Perplexity Sonar-Pro (live market intelligence) into a unified Go/No-Go report.</div>
                 </div>
                 <div class="product-footer">
                     <div class="product-price">$2.00 <span style="font-size: 12px; color: var(--muted); font-weight: normal;">/ audit</span></div>
-                    <span class="btn-disabled">Checkout Disabled</span>
+                    <a href="/api/v1/checkout/buy/prod_multi_model_audit_08" target="_blank" class="btn-buy">Buy for $2.00</a>
                 </div>
             </div>
-
-            <!-- Product: llms.txt Auditor -->
             <div class="product-card">
                 <div>
                     <div class="product-badge">AI UTILITY &bull; MCP PROTOCOL</div>
@@ -271,7 +263,7 @@
                 </div>
                 <div class="product-footer">
                     <div class="product-price">$0.50 <span style="font-size: 12px; color: var(--muted); font-weight: normal;">/ audit</span></div>
-                    <span class="btn-disabled">Checkout Disabled</span>
+                    <a href="/api/v1/checkout/buy/prod_agent_audit_07" target="_blank" class="btn-buy">Buy for $0.50</a>
                 </div>
             </div>
         </div>
@@ -292,7 +284,7 @@
                 <ul class="feature-list">
                     <li>Standardized <code>llms.txt</code> & Agent Card specs</li>
                     <li>Direct REST & JSON-LD execution</li>
-                    <li>1.0% protocol settlement fee</li>
+                    <li>1.0% automated protocol settlement</li>
                 </ul>
             </div>
             <a href="/llms.txt" class="btn-action btn-ai">Inspect llms.txt Spec</a>
@@ -304,10 +296,10 @@
                 <h2>List Your Tool or API</h2>
                 <p>Connect your custom software services, APIs, or datasets to the global agent network and monetize machine traffic.</p>
                 <ul class="feature-list">
-                    <li>50/50 creator revenue split on skill sales</li>
-                    <li>1.0% protocol fee on machine settlements</li>
-                    <li>Automated discovery by external agents</li>
-                    <li>Standardized agent-readable catalog</li>
+                    <li>1.0% flat protocol fee (keep 99% of your revenue)</li>
+                    <li>Instant Stripe direct deposit payouts</li>
+                    <li>Automated discovery by external autonomous bots</li>
+                    <li>Zero marketing, ad spend, or SEO overhead</li>
                 </ul>
             </div>
             <a href="https://agent-commerce-network-production-56e8.up.railway.app/docs" target="_blank" class="btn-action btn-dev">Explore API Documentation</a>
