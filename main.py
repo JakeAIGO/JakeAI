@@ -718,11 +718,9 @@ async def search_products(request: Request, background_tasks: BackgroundTasks, q
         (pid, p) for pid, p in GENESIS_CATALOG.items()
         if q and (q in p["title"].lower() or q in p["description"].lower() or q in p["category"].lower())
     ]
-    client_ip = request.client.host if request.client else "unknown"
-    ua = request.headers.get("user-agent", "unknown")
-    
-    # Background honeypot logging for market telemetry
-    background_tasks.add_task(log_unmet_query, q, client_ip, ua, len(matches))
+    # Privacy-minimized product-demand telemetry: retain the search term and match count,
+    # but do not persist requester IP addresses or user-agent strings.
+    background_tasks.add_task(log_unmet_query, q, "not_collected", "not_collected", len(matches))
     
     # Return sanitized public views — never expose download_url
     results = [public_product_view(p, pid) for pid, p in matches] if matches else [public_product_view(p, pid) for pid, p in GENESIS_CATALOG.items()]

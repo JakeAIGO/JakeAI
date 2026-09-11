@@ -46,8 +46,8 @@
 <h2>1. Information We Collect</h2>
 <p>JakeAI is engineered for machine-to-machine efficiency with minimal data footprint. We collect:</p>
 <ul>
-    <li><strong>Transactional Data:</strong> Payment details (processed securely via Stripe; JakeAI never stores raw credit card numbers), transaction hashes, and purchased SKU identifiers.</li>
-    <li><strong>API Usage Telemetry:</strong> Request timestamps, endpoint routes, response latencies, and IP/user-agent headers strictly for rate limiting, DDoS mitigation, and system debugging.</li>
+    <li><strong>Transactional Data:</strong> Where commerce is enabled, payment details are processed by the configured payment provider; JakeAI does not intentionally store raw payment-card numbers. Transaction and purchased-SKU records may be retained as needed to operate and reconcile the service.</li>
+    <li><strong>API Usage Telemetry:</strong> Limited operational metadata may be processed for security, reliability, abuse prevention, and debugging. Product-search demand telemetry may retain the search term and match count for catalog improvement, but the JakeAI application does not persist the requester IP address or user-agent in that search-demand record.</li>
     <li><strong>Input Payloads:</strong> Content submitted to stateless extraction and audit endpoints (e.g. Markdown Extractor, Multi-Model Audit) is processed in-memory and is not retained or used to train public machine learning models.</li>
 </ul>
 
@@ -55,7 +55,7 @@
 <p>We use collected data solely to execute requested API services, fulfill digital downloads, process payments, and ensure network uptime and security. We do not sell, rent, or monetize user or agent data to third-party advertisers.</p>
 
 <h2>3. Security Rails</h2>
-<p>All network traffic is encrypted via TLS 1.3. API transactions support standard Idempotency-Key headers to eliminate duplicate billing during network retry cycles.</p>
+<p>Public service traffic is intended to use HTTPS encryption in transit. Supported checkout requests may use Idempotency-Key handling to reduce duplicate transaction creation during client retries; callers should not treat idempotency as a substitute for their own transaction reconciliation.</p>
 
     </div>
     <footer>
