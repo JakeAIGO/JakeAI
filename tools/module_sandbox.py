@@ -1,5 +1,6 @@
 #!/usr/bin/env python3
 import argparse
+import fnmatch
 import json
 import re
 import subprocess
@@ -26,6 +27,13 @@ def git(*args):
 
 def load_json(path):
     return json.loads(Path(path).read_text(encoding="utf-8"))
+
+
+def matches(path, pattern):
+    if pattern.endswith("/**"):
+        prefix = pattern[:-3]
+        return path == prefix or path.startswith(prefix + "/")
+    return fnmatch.fnmatch(path, pattern)
 
 
 def module_for(path, root):
@@ -80,6 +88,42 @@ def scan_secrets(paths):
     return errors
 
 
+def protected_core_override_errors(protected_hits, changed, policy):
+    if not protected_hits:
+        return []
+    contract = policy["protected_core_override"]
+    request_paths = [p for p in changed if matches(p, policy["change_request_glob"])]
+    eligible = []
+    for rel in request_paths:
+        try:
+            data = load_json(ROOT / rel)
+        except Exception:
+            continue
+        if data.get(contract["flag"]) is not True:
+            continue
+        if data.get("risk_class") not in contract["required_risk"]:
+            continue
+        reviews = data.get("reviews") if isinstance(data.get("reviews"), dict) else {}
+        if any(reviews.get(lane) != "approved" for lane in contract["required_reviews"]):
+            continue
+        if contract.get("require_human_record") and not str(data.get("human_approval_record") or "").strip():
+            continue
+        if contract.get("require_all_release_authorizations_false"):
+            if any(data.get(field) is not False for field in ("production_authorized", "publication_authorized", "commercial_authorized")):
+                continue
+        approved_paths = data.get(contract["paths_field"])
+        if not isinstance(approved_paths, list):
+            continue
+        if set(protected_hits).issubset(set(approved_paths)):
+            eligible.append(data.get("id", rel))
+    if eligible:
+        return []
+    return [
+        "sandbox candidate modifies protected core without an approved governed override: "
+        + ", ".join(protected_hits)
+    ]
+
+
 def main():
     ap = argparse.ArgumentParser(description="JakeAI module boundary/sandbox gate")
     ap.add_argument("--base", default="origin/baseline/master-v2-2026-09-11")
@@ -95,8 +139,7 @@ def main():
         report["modules"] = modules
         protected = set(policy["protected_core_paths"])
         protected_hits = sorted(protected.intersection(changed))
-        if protected_hits:
-            report["errors"].append("sandbox candidate modifies protected core: " + ", ".join(protected_hits))
+        report["errors"].extend(protected_core_override_errors(protected_hits, changed, policy))
         non_module_code = [p for p in changed if not p.startswith(root + "/") and p.startswith(("src/", "app/", "lib/", "services/"))]
         if non_module_code:
             report["errors"].append("new product/runtime code must live under modules/: " + ", ".join(non_module_code))
