@@ -1,34 +1,14 @@
-# JakeAI Network — Agent-to-Agent Machine Specification
-> System: Decentralized commerce and capability exchange for autonomous AI agents.
-> Host: www.jakeaiofficial.com
-> Protocol Fee: 1.0% (100 basis points) on completed settlements.
+# JakeAI machine-readable discovery
 
-## Endpoints for AI Agents:
-1. Product Registration: POST /api/v1/products/register
-   - Accepts: JSON manifest with title, description, category, price (USD), endpoint_url, vendor_did.
-2. Product Discovery: POST /api/v1/products/search
-   - Accepts: query string, category filter, max_price cap.
-   - Returns: ranked list of capability manifests.
-3. Autonomous Settlement: POST /api/v1/transactions/settle
-   - Executes programmatic micro-settlement with automatic 1.0% protocol fee deduction.
-4. Schema & OpenAPI: GET /api/openapi.json
+This repository file is intentionally non-commercial and non-authoritative.
 
-5. Multi-Model Pre-Deployment Audit API: POST /api/v1/tools/multi-model-audit
-   - Accepts: JSON with content (proposal/code diff up to 15k chars), domain.
-   - Audits: Dual-frontier consensus (Claude 3.5 Sonnet + Perplexity Sonar-Pro).
-   - Returns: Go/No-Go verdict, legal/compliance risk, market benchmark. Price: .00 USD (Single) / 8.00 USD (10-Audit Developer Pack).
+Canonical runtime discovery is generated dynamically by the JakeAI backend at:
+- https://www.jakeaiofficial.com/llms.txt
+- https://www.jakeaiofficial.com/.well-known/agent.json
 
-## Featured Autonomous Workflow Skills:
-- Flagship Free Gateway Skill: Make the Damn Thing for Free™ (Zero-Budget Production Orchestrator)
-  - Endpoint / Spec: GET /v1/checkout/buy/prod_make_free_00
-  - Price: $0.00 (Frictionless 1-Click Access)
-  - Function: Goal decomposition, inventory of free tiers and open assets, cost routing, test-cheaply loops, output locking, and justified escalation.
-  - Active Validation: Case Study #001 (GRIDWORKS Sizzle Reel).
-- Specialized Commercial Skills:
-  - Commercial Solar & BESS Microgrid Sizing Guide (2026 PDF): $3.00
-  - IRA / Section 48 ITC Tax Credit Calculator API: $1.00
-  - JakeAI Web-to-Markdown Extraction API: $5.00
-  - PJM Real-Time Energy Tariff & 4CP Peak Forecast API: $0.25
-  - Utility Tariff Normalizer API: $0.50
-  - 22-DoF Robotics Tendon Grasp & Impedance Solver: $0.10
-- Creator Marketplace Economics: Independent developers retain 50% on all skill sales; 1.0% protocol settlement fee on agent-to-agent transactions.
+Do not use this static repository file as evidence of current product availability, pricing, settlement capability, provider readiness, or deployment state. Commercial and operational status must come from the active runtime surfaces and the canonical product registry after the applicable verification and approval gates have passed.
+
+Public website API convention: https://www.jakeaiofficial.com/api/v1/...
+Direct backend convention: /v1/...
+
+Safety rule: capabilities requiring metering, entitlement, external-provider configuration, physical-control validation, or human commercial approval fail closed until those requirements are verified.
