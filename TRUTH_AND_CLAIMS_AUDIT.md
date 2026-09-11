@@ -1,93 +1,95 @@
 # JakeAI Truth & Claims Audit
 
-Status: draft audit for Codex setup branch only. This document does not authorize production deployment, publication, spending, checkout, or product activation.
+Status: remediation-branch audit only. This document does not authorize production deployment, publication, spending, checkout activation, or product activation.
 
 ## Purpose
-JakeAI exposes machine-readable claims through README.md, llms.txt, agent_card.json, MCP tooling, public catalog metadata, and deployment configuration. Those claims should describe only behavior that is actually implemented, deployed, tested, and authorized.
+JakeAI exposes machine-readable claims through README.md, runtime `/llms.txt`, runtime `/.well-known/agent.json`, repository compatibility files, catalog metadata, and deployment configuration. Those claims should describe only behavior that is actually implemented, tested, runtime-verified where applicable, and explicitly authorized.
 
-## Findings
+## Current findings and dispositions
 
-### 1. Pricing mismatch in llms.txt
-`llms.txt` describes the Multi-Model Pre-Deployment Audit as `Price: .00 USD (Single) / 8.00 USD (10-Audit Developer Pack)`.
-
-The product catalog in `main.py` currently declares:
+### 1. Audit-product pricing is locked pending explicit commercial approval
+The runtime catalog currently declares:
 - `prod_multi_model_audit_08`: $2.00
 - `prod_audit_pack_10`: $18.00
 
-Disposition: BLOCK public-price synchronization until the intended commercial pricing is explicitly confirmed. No automatic price change should be made from either source.
+Repository tests lock those values against silent change. The static repository `llms.txt` no longer publishes stale commercial pricing and is explicitly non-authoritative.
 
-### 2. External-model implementation exists; runtime configuration remains unverified
-Inspection of `main.py` confirms that the audit endpoint has direct provider implementations for:
-- Anthropic Messages API at `https://api.anthropic.com/v1/messages`, using model `claude-3-5-sonnet-20241022`.
-- Perplexity Chat Completions API at `https://api.perplexity.ai/chat/completions`, using model `sonar-pro`.
+Disposition: BLOCK any public price change until intended commercial pricing is explicitly approved. Do not infer commercial approval from implemented catalog values.
 
-The endpoint reads `ANTHROPIC_API_KEY` and `PERPLEXITY_API_KEY` from the environment, with optional request-header overrides. If either key is missing, that provider returns `simulation_mode` / `NOT_RUN`; consensus then returns `REVIEW REQUIRED — one or more models not configured` rather than falsely reporting a successful dual-model audit.
+### 2. External-model implementation exists; successful live runtime participation remains unverified
+Inspection of `main.py` confirms direct provider implementations for:
+- Anthropic Messages API at `https://api.anthropic.com/v1/messages`, model `claude-3-5-sonnet-20241022`, configured by `ANTHROPIC_API_KEY`.
+- Perplexity Chat Completions API at `https://api.perplexity.ai/chat/completions`, model `sonar-pro`, configured by `PERPLEXITY_API_KEY`.
 
-Disposition: Provider wiring is VERIFIED IN CODE. Successful live runtime participation is still UNVERIFIED until deployment configuration/runtime evidence confirms both providers are configured and returning successful responses. Marketing should distinguish implemented integration from verified live execution.
+Caller-supplied Anthropic/Perplexity secret-header overrides have been removed. Provider credentials are server-side configuration only.
 
-Security note: request-header API-key overrides (`X-Anthropic-Key`, `X-Perplexity-Key`) should be reviewed before broad public use. They may be intentional for bring-your-own-key clients, but their authorization, logging, retention, abuse, and disclosure model should be explicit.
+If either key is absent, that provider returns `simulation_mode` / `NOT_RUN`; consensus does not falsely report a successful dual-model GO.
 
-### 3. "Protects production deployments" is not yet enforced by repository CI
-`jakeai_audit.py` describes itself as a CI/CD runner that exits non-zero on NO-GO to protect production deployments.
+Disposition: Provider wiring is VERIFIED IN CODE and fail-closed behavior is VERIFIED IN TESTS. Successful live runtime participation is still UNVERIFIED until deployment evidence confirms both providers are configured and returning successful responses.
 
-At the time of this audit, the existing repository workflows are opportunity-radar, product-discovery, product-validation, and a disabled Drive sync. None of those workflows invokes `jakeai_audit.py` as a required production gate.
+### 3. Production-enforcement claims remain constrained
+`jakeai_audit.py` may be capable of returning a non-zero result on a NO-GO, but the Master Baseline must not claim that every production deployment is protected by that mechanism unless repository/deployment rules actually require it.
 
-Disposition: Rephrase documentation as a capability unless/until the audit becomes a required branch/deployment check. Do not claim enforcement that is not configured.
+Disposition: Treat the audit as a capability, not an enforced production control, until required checks/rules are explicitly configured and verified.
 
-### 4. Public API path conventions are inconsistent but the proxy behavior is now understood
-`README.md` documents backend paths such as `/v1/products/search` and `/v1/transactions/settle`.
+### 4. Public API path convention is now explicit
+Canonical website-facing convention: `/api/v1/...`.
+Direct Railway/backend convention: `/v1/...`.
 
-`llms.txt` documents public proxied paths such as `/api/v1/products/search` and `/api/v1/transactions/settle`.
+Netlify proxy rules translate website `/api/...` requests to backend routes. Documentation must distinguish public proxy paths from direct backend paths.
 
-Netlify `_redirects` proxies `/api/*` to the Railway backend with the `/api/` prefix removed. `main.py` also explicitly registers both `/v1/products/search` and `/api/v1/products/search` for product search.
+Disposition: VERIFIED IN REPOSITORY CONFIGURATION. Do not present deployment-context paths as interchangeable without explanation.
 
-Disposition: Define `/api/v1/...` as the canonical website-facing API path and document `/v1/...` as the direct Railway/backend path where applicable. Do not present deployment-context paths as interchangeable without explanation.
+### 5. Dynamic machine-readable discovery is the intended authority
+`main.py` dynamically serves `/llms.txt` and `/.well-known/agent.json` from the runtime catalog. Netlify routing force-proxies these public paths to the backend.
 
-### 5. Machine-readable discovery surfaces were split between static Netlify files and dynamic Railway routes
-`main.py` dynamically serves `/llms.txt` and `/.well-known/agent.json` from the live catalog, including current product price and checkout status. The repository also contains a static root `llms.txt`, while the static `agent_card.json` is not located at the standard `/.well-known/agent.json` path.
+Static repository `llms.txt` and `agent_card.json` are now non-authoritative compatibility/pointer artifacts and are guarded by claim-consistency tests so they cannot silently assert live commercial state.
 
-This creates drift risk: the website could serve stale static claims while the backend generates newer truth from `GENESIS_CATALOG`.
+Disposition: Dynamic runtime discovery is the intended source of public capability truth. Repository copies must remain non-authoritative.
 
-Remediation staged on `codex-setup`: Netlify `_redirects` now force-proxies `/llms.txt` and `/.well-known/agent.json` to the Railway backend so the public machine-readable surfaces use the backend-generated source of truth. This is branch-preview only until the PR is approved and merged.
+### 6. Broad no-human-intervention claims are not allowed
+Current product-validation and Master Baseline governance preserve human approval for consequential commercial, publication, spending, and release actions.
 
-### 6. agent_card.json is materially narrower than the backend-generated agent surface
-The static `agent_card.json` advertises only product search and the robotics grasp solver. The dynamic `/.well-known/agent.json` in `main.py` publishes the active catalog from `GENESIS_CATALOG`.
+Disposition: Describe autonomy only for scoped execution. Do not claim unrestricted commercial operation without human intervention.
 
-Disposition: Treat the dynamic well-known endpoint as the intended authoritative discovery surface after proxy verification. Keep or deprecate the static `agent_card.json` only after compatibility needs are understood.
+### 7. Commercial/economic claims still require explicit approval
+The repository and website have historically referenced protocol fees, creator economics, prices, checkout availability, and agent-to-agent settlement language.
 
-### 7. "Without human intervention" conflicts with current Product Factory approval gates
-`README.md` describes commercial publishing, discovery, and settlement as operating "without human intervention."
+The Master Baseline manifest now sets `production_authorized`, `publication_authorized`, and default commercial approval to false. Individual products also remain `commercial_approved: false`.
 
-Current validation logic explicitly sets publication, spending, and build authorization to false and requires human approval. The new Codex operating instructions also preserve those fail-closed gates.
+Disposition: Commercial claims are not authorized merely because code or copy exists. Protocol fee, creator split, settlement language, and individual price decisions require explicit approval before being promoted as active commercial truth.
 
-Disposition: Replace broad autonomy language with scoped language that distinguishes autonomous execution from human authorization for consequential or commercial actions.
+### 8. Safety and regulated-domain claims are constrained
+- PJM/tariff outputs are demonstration/static data, not live grid pricing.
+- Robotics grasp outputs are classified `UNVALIDATED_PHYSICAL_CONTROL_MODEL` and advisory only.
+- Tax/financial outputs remain informational/advisory and require independent validation before production reliance.
+- External network-fetch tools fail closed by default pending hardened egress validation.
 
-### 8. Machine-readable commercial claims need one source of truth
-Prices, product availability, endpoint descriptions, creator economics, protocol fees, checkout state, and named external dependencies are currently represented across multiple files.
-
-Disposition: Long-term target should be a generated machine-readable manifest sourced from one canonical product registry, with README/llms.txt/agent-card content derived from verified registry fields rather than maintained independently.
+Disposition: Keep these constraints in catalog, machine discovery, docs, and tests. Do not strengthen claims without independent validation and applicable legal/safety review.
 
 ## Required truth gates before autonomous publication
 A coding or product agent must not publish or strengthen a claim unless all applicable checks pass:
 
 1. Implementation exists in the repository or approved external dependency.
-2. Deployment/runtime behavior has been verified.
+2. Deployment/runtime behavior has been verified for claims that depend on live runtime state.
 3. Pricing and commercial terms match the approved source of truth.
 4. Required metering, entitlement, fulfillment, and checkout controls are operational.
-5. Named third-party models/services are actually configured and successfully invoked before being described as live.
-6. Data labeled live or real-time is genuinely live; otherwise it must be labeled demonstration, simulated, cached, or historical as appropriate.
-7. Safety-critical or regulated products have completed the applicable technical, security, legal/liability, and human-approval gates.
-8. Public machine-readable files agree on canonical endpoint paths and capability status.
+5. Named third-party models/services are configured and successfully invoked before being described as live.
+6. Data labeled live or real-time is genuinely live; otherwise label it demonstration, simulated, cached, or historical.
+7. Safety-critical or regulated products complete applicable technical, security, legal/liability, and human-approval gates.
+8. Public machine-readable surfaces agree on canonical endpoint paths and capability status.
+9. The exact candidate SHA passes the full Master Baseline gate.
+10. Council review and required human approvals are recorded before promotion.
 
-## Recommended remediation order
-1. Verify live runtime configuration/results for both audit providers.
-2. Confirm intended audit-product prices before changing any public prices.
-3. Verify the new Netlify proxy behavior in the deploy preview.
-4. Define canonical public API paths in documentation.
-5. Reconcile README.md autonomy wording with current human-approval policy.
-6. Decide whether static `agent_card.json` remains for compatibility or is deprecated.
-7. Add automated claim-consistency tests for price, endpoint, and capability metadata.
-8. Only after verification, update public claims in a separate reviewable commit.
+## Remaining blockers before production/commercial promotion
+
+- Verify live provider configuration/results if external-model execution is to be marketed as live.
+- Confirm intended commercial pricing, creator economics, protocol fee, and settlement language.
+- Verify metering/entitlement for API-credit products.
+- Verify paid checkout and private fulfillment in an explicitly authorized test environment before production activation.
+- Complete applicable legal/liability review for tax/financial, robotics, settlement, refunds, and privacy claims.
+- Decide whether the temporary write-capable remediation workflow is removed/disabled before final baseline freeze.
+- Freeze and fingerprint the exact Council-approved candidate.
 
 ## Safety note
-This audit intentionally does not auto-correct prices, activate checkout, change settlement logic, enable autonomous publication, or alter production deployment behavior. Ambiguities remain fail-closed until explicitly resolved.
+This audit intentionally does not auto-correct commercial prices, activate checkout, enable autonomous publication, spend money, or deploy to production. Ambiguities remain fail-closed until explicitly resolved.
