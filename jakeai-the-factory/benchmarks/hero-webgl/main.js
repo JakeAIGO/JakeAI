@@ -7,6 +7,13 @@ const canvas = document.querySelector('#scene');
 const perf = document.querySelector('#perf');
 const beat = document.querySelector('#beat');
 const enter = document.querySelector('#enter');
+const originCard = document.querySelector('#originCard');
+const incidentCard = document.querySelector('#incidentCard');
+const retry = document.querySelector('#retry');
+const repair = document.querySelector('#repair');
+const incidentStatus = document.querySelector('#incidentStatus');
+const repairChip = document.querySelector('#repairChip');
+const app = document.querySelector('#app');
 
 const renderer = new THREE.WebGLRenderer({canvas, antialias:true, alpha:false, powerPreference:'high-performance'});
 renderer.setPixelRatio(Math.min(devicePixelRatio, 1.7));
@@ -27,6 +34,7 @@ const key = new THREE.DirectionalLight(0xbfeeff, 3.3); key.position.set(12,22,8)
 const magenta = new THREE.PointLight(0xff2fd1, 42, 42, 2); magenta.position.set(-11,5,-5); scene.add(magenta);
 const cyan = new THREE.PointLight(0x00d9ff, 48, 48, 2); cyan.position.set(12,7,-10); scene.add(cyan);
 const gold = new THREE.PointLight(0xff9c35, 28, 30, 2); gold.position.set(0,3,7); scene.add(gold);
+const alarm = new THREE.PointLight(0xff143d, 0, 30, 2); alarm.position.set(0,5,-33); scene.add(alarm);
 
 const composer = new EffectComposer(renderer);
 composer.addPass(new RenderPass(scene,camera));
@@ -38,6 +46,7 @@ const matFloor = new THREE.MeshStandardMaterial({color:0x07111c,metalness:.72,ro
 const matCyan = new THREE.MeshStandardMaterial({color:0x062a38,emissive:0x00cfff,emissiveIntensity:3.0,metalness:.58,roughness:.22});
 const matMag = new THREE.MeshStandardMaterial({color:0x2a0525,emissive:0xff1fd0,emissiveIntensity:2.6,metalness:.5,roughness:.26});
 const matGold = new THREE.MeshStandardMaterial({color:0x38240e,emissive:0xffa13f,emissiveIntensity:2.1,metalness:.45,roughness:.25});
+const matRed = new THREE.MeshStandardMaterial({color:0x35040c,emissive:0xff123e,emissiveIntensity:4.2,metalness:.45,roughness:.2});
 
 const hall = new THREE.Group(); scene.add(hall);
 const floor = new THREE.Mesh(new THREE.PlaneGeometry(54,86),matFloor); floor.rotation.x=-Math.PI/2; floor.position.z=-15; hall.add(floor);
@@ -64,6 +73,11 @@ const orbMat=new THREE.MeshPhysicalMaterial({color:0x0a1930,emissive:0x00d8ff,em
 const orb=new THREE.Mesh(new THREE.IcosahedronGeometry(3.2,3),orbMat); core.add(orb);
 for(let i=0;i<4;i++){const r=new THREE.Mesh(new THREE.TorusGeometry(5+i*.75,.08,12,96),i%2?matMag:matCyan);r.rotation.set(Math.random()*2,Math.random()*2,Math.random()*2);core.add(r)}
 
+const repairBay = new THREE.Group(); hall.add(repairBay); repairBay.position.set(0,0,-36);
+const repairBase = new THREE.Mesh(new THREE.CylinderGeometry(5.2,6.4,1.1,8),matDark); repairBase.position.y=.55; repairBay.add(repairBase);
+for(let i=0;i<3;i++){const r=new THREE.Mesh(new THREE.TorusGeometry(4.5+i*.45,.11,12,72),i===1?matMag:matCyan);r.rotation.x=Math.PI/2;r.position.y=1.15+i*.35;repairBay.add(r)}
+const repairCore = new THREE.Mesh(new THREE.OctahedronGeometry(2.1,1),matGold); repairCore.position.y=4.2; repairBay.add(repairCore);
+
 const archGeo=new THREE.BoxGeometry(.45,8,.45);
 for(let z=-4;z>-52;z-=8){
   for(const x of [-13,13]){const p=new THREE.Mesh(archGeo,matDark);p.position.set(x,4,z);hall.add(p)}
@@ -77,22 +91,68 @@ for(let i=0;i<particles;i++){pos[i*3]=(Math.random()-.5)*36;pos[i*3+1]=Math.rand
 const pg=new THREE.BufferGeometry();pg.setAttribute('position',new THREE.BufferAttribute(pos,3));
 const pm=new THREE.PointsMaterial({color:0x6fe9ff,size:.055,transparent:true,opacity:.62,depthWrite:false});scene.add(new THREE.Points(pg,pm));
 
+const sparkCount=240;
+const sparkPos=new Float32Array(sparkCount*3);
+const sparkVel=[];
+for(let i=0;i<sparkCount;i++){sparkPos[i*3]=0;sparkPos[i*3+1]=4;sparkPos[i*3+2]=-36;sparkVel.push(new THREE.Vector3())}
+const sparkGeo=new THREE.BufferGeometry();sparkGeo.setAttribute('position',new THREE.BufferAttribute(sparkPos,3));
+const sparkMat=new THREE.PointsMaterial({color:0xff3658,size:.13,transparent:true,opacity:0,depthWrite:false});
+const sparks=new THREE.Points(sparkGeo,sparkMat);scene.add(sparks);
+
 const holo=new THREE.Mesh(new THREE.CylinderGeometry(4.6,4.6,.09,64),new THREE.MeshBasicMaterial({color:0x00cfff,transparent:true,opacity:.23,wireframe:true}));holo.position.set(0,.18,4.4);scene.add(holo);
 const marker=new THREE.Mesh(new THREE.TorusGeometry(3.4,.09,12,64),matGold);marker.position.set(0,.25,4.4);marker.rotation.x=Math.PI/2;scene.add(marker);
 
 const clock=new THREE.Clock();
-let entered=false, targetZ=0, pointerX=0, pointerY=0;
+let entered=false, incident=false, repaired=false, targetZ=0, pointerX=0, pointerY=0, shake=0;
 addEventListener('pointermove',e=>{pointerX=(e.clientX/innerWidth-.5);pointerY=(e.clientY/innerHeight-.5)});
-enter.addEventListener('click',()=>{entered=true;targetZ=-28;beat.textContent='Autonomous systems engaged. Follow the light.';enter.textContent='FACTORY ONLINE'});
+
+function triggerIncident(){
+  if(incident||repaired)return;
+  incident=true; targetZ=-32; shake=1.0; alarm.intensity=70; sparkMat.opacity=1; app.classList.add('alert-flash');
+  repairCore.material=matRed;
+  for(let i=0;i<sparkCount;i++) sparkVel[i].set((Math.random()-.5)*.16,Math.random()*.17+.03,(Math.random()-.5)*.16);
+  originCard.classList.add('hidden'); incidentCard.classList.remove('hidden'); repairChip.textContent='SELF-REPAIR: INCIDENT';
+}
+
+enter.addEventListener('click',()=>{
+  if(!entered){
+    entered=true;targetZ=-28;beat.textContent='Autonomous systems engaged. Follow the light.';enter.textContent='FACTORY ONLINE';
+    setTimeout(triggerIncident,2500);
+  }
+});
+
+retry.addEventListener('click',()=>{
+  shake=1.35; alarm.intensity=95; incidentStatus.textContent='Retry changed nothing. Resources burned. Root cause still waving at us.';
+  repairChip.textContent='WASTED RETRY // -EFFICIENCY';
+});
+
+repair.addEventListener('click',()=>{
+  repaired=true;incident=false;shake=.35; alarm.intensity=0; sparkMat.opacity=0; app.classList.remove('alert-flash');
+  repairCore.material=matCyan; incidentStatus.textContent='Responsible layer repaired. Regression check passed. Institutional learning saved.';
+  repairChip.textContent='SELF-REPAIR: LEARNED +1';
+  repair.textContent='ROOT CAUSE FIXED'; retry.disabled=true; repair.disabled=true;
+  targetZ=-40;
+  setTimeout(()=>incidentCard.classList.add('hidden'),1800);
+});
 
 let frames=0,lastFps=performance.now();
-function animate(){requestAnimationFrame(animate);const t=clock.getElapsedTime();
+function animate(){requestAnimationFrame(animate);const dt=Math.min(clock.getDelta(),.05);const t=clock.elapsedTime;
   core.rotation.y=t*.32; orb.rotation.x=t*.21;orb.rotation.y=t*.36;
+  repairCore.rotation.x=t*.7;repairCore.rotation.y=t*1.05;
+  repairBay.children.forEach((c,i)=>{if(c.geometry?.type==='TorusGeometry')c.rotation.z=t*(i%2?.32:-.26)});
   towers.forEach((tw,i)=>{tw.rotation.y=Math.sin(t*.28+i)*.05});
   magenta.intensity=38+Math.sin(t*1.7)*7; cyan.intensity=44+Math.sin(t*1.3+1)*8;
-  if(entered){camera.position.z=THREE.MathUtils.lerp(camera.position.z,targetZ,.012);camera.position.y=7.2+Math.sin(t*.35)*.45;}
+  if(incident) alarm.intensity=58+Math.sin(t*8)*26;
+
+  const sp=sparkGeo.attributes.position.array;
+  if(sparkMat.opacity>0){for(let i=0;i<sparkCount;i++){sp[i*3]+=sparkVel[i].x;sp[i*3+1]+=sparkVel[i].y;sp[i*3+2]+=sparkVel[i].z;sparkVel[i].y-=.0025;if(sp[i*3+1]<.4){sp[i*3]=0;sp[i*3+1]=4;sp[i*3+2]=-36}}sparkGeo.attributes.position.needsUpdate=true}
+
+  if(entered){camera.position.z=THREE.MathUtils.lerp(camera.position.z,targetZ,.018);camera.position.y=7.2+Math.sin(t*.35)*.45;}
   else{camera.position.z=26+Math.sin(t*.18)*1.1;camera.position.y=8.5+Math.sin(t*.32)*.25;}
-  camera.position.x=THREE.MathUtils.lerp(camera.position.x,pointerX*1.3,.025);camera.rotation.x=THREE.MathUtils.lerp(camera.rotation.x,-.05+pointerY*.03,.03);camera.lookAt(0,4,entered?-28:-20);
+  const sx=(Math.random()-.5)*shake*.5, sy=(Math.random()-.5)*shake*.32; shake=Math.max(0,shake-dt*.9);
+  camera.position.x=THREE.MathUtils.lerp(camera.position.x,pointerX*1.3,.025)+sx; camera.position.y+=sy;
+  camera.rotation.x=THREE.MathUtils.lerp(camera.rotation.x,-.05+pointerY*.03,.03);camera.lookAt(0,4,incident?-36:(repaired?-40:(entered?-28:-20)));
+  bloom.strength=incident?1.45:1.0;
   composer.render();
   frames++; const now=performance.now(); if(now-lastFps>700){perf.textContent=`FPS ${Math.round(frames*1000/(now-lastFps))}`;frames=0;lastFps=now;}
 }
