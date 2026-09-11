@@ -29,7 +29,8 @@ def test_backend_owns_dynamic_machine_surfaces():
 
 def test_static_machine_files_cannot_claim_live_commercial_state():
     llms = read("llms.txt")
-    card = json.loads(read("agent_card.json"))
+    card_text = read("agent_card.json")
+    card = json.loads(card_text)
     for stale_claim in (
         "Product Registration: POST",
         "Autonomous Settlement: POST",
@@ -39,7 +40,7 @@ def test_static_machine_files_cannot_claim_live_commercial_state():
         "Calculate optimal tendon tensions",
     ):
         assert stale_claim not in llms
-        assert stale_claim not in read("agent_card.json")
+        assert stale_claim not in card_text
     assert "non-authoritative" in llms.lower()
     assert card["status"] == "repository_pointer_only"
     assert card["commercial_state_authoritative"] is False
@@ -64,6 +65,26 @@ def _catalog_price(main: str, product_id: str) -> float:
     )
     assert match, f"catalog product/price not found: {product_id}"
     return float(match.group(1))
+
+
+def _catalog_category(main: str, product_id: str) -> str:
+    match = re.search(
+        rf'"{re.escape(product_id)}"\s*:\s*\{{[\s\S]{{0,1600}}?"category"\s*:\s*"([^"]+)"',
+        main,
+    )
+    assert match, f"catalog product/category not found: {product_id}"
+    return match.group(1)
+
+
+def test_master_manifest_matches_runtime_catalog_identity_and_prices():
+    main = read("main.py")
+    manifest = json.loads(read("governance/master_manifest.json"))
+    assert manifest["production_authorized"] is False
+    assert manifest["publication_authorized"] is False
+    for product_id, item in manifest["products"].items():
+        assert _catalog_price(main, product_id) == item["price_usd"]
+        assert _catalog_category(main, product_id) == item["category"]
+        assert item["commercial_approved"] is False
 
 
 def test_audit_prices_are_not_silently_changed():
