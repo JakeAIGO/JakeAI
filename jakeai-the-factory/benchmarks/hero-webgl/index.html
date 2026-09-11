@@ -1,0 +1,35 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover" />
+  <title>JakeAI: The Factory — Hero Visual Benchmark</title>
+  <link rel="stylesheet" href="./styles.css" />
+</head>
+<body>
+  <div id="app">
+    <canvas id="scene" aria-label="JakeAI Factory 3D benchmark"></canvas>
+    <div class="hud top-left">
+      <div class="eyebrow">JAKEAI: THE FACTORY</div>
+      <div class="title">HERO VISUAL BENCHMARK</div>
+      <div class="sub">Browser-native 3D • $0 runtime target</div>
+    </div>
+    <div class="hud top-right" id="perf">FPS --</div>
+    <div class="center-card">
+      <div class="kicker">ORIGIN BAY // $12.99</div>
+      <h1>Build something impossible.</h1>
+      <p id="beat">Factory systems waking up…</p>
+      <button id="enter">ENTER THE FACTORY</button>
+    </div>
+    <div class="bottom-bar">
+      <span>CANONICAL AVATAR SLOT: RESERVED</span>
+      <span>SELF-REPAIR ONLINE</span>
+      <span>AGENT ARENA: PROTOTYPE</span>
+    </div>
+  </div>
+  <script type="importmap">
+  {"imports":{"three":"https://unpkg.com/three@0.180.0/build/three.module.js","three/addons/":"https://unpkg.com/three@0.180.0/examples/jsm/"}}
+  </script>
+  <script type="module" src="./main.js"></script>
+</body>
+</html>
