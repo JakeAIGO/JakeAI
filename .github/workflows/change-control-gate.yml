@@ -8,7 +8,7 @@ on:
   pull_request:
     branches:
       - main
-      - baseline/master-v4-2026-09-11
+      - baseline/master-v5-2026-09-11
   workflow_dispatch:
 
 permissions:
@@ -30,6 +30,7 @@ jobs:
           git fetch --no-tags origin baseline/master-v2-2026-09-11:refs/remotes/origin/baseline/master-v2-2026-09-11
           git fetch --no-tags origin baseline/master-v3-2026-09-11:refs/remotes/origin/baseline/master-v3-2026-09-11
           git fetch --no-tags origin baseline/master-v4-2026-09-11:refs/remotes/origin/baseline/master-v4-2026-09-11
+          git fetch --no-tags origin baseline/master-v5-2026-09-11:refs/remotes/origin/baseline/master-v5-2026-09-11
 
       - name: Set up Python
         uses: actions/setup-python@v5
@@ -53,6 +54,9 @@ jobs:
       - name: Build fail-closed production candidate
         run: python tools/production_candidate_builder.py
 
+      - name: Build fail-closed release and rollback plans
+        run: python tools/release_promotion.py
+
       - name: Compile Python
         run: python -m compileall -q .
 
@@ -70,3 +74,5 @@ jobs:
           if [ -f build/commercial_rules_report.json ]; then cat build/commercial_rules_report.json; fi
           if [ -f build/production_candidate/candidate_manifest.json ]; then cat build/production_candidate/candidate_manifest.json; fi
           if [ -f build/production_candidate/candidate_fingerprint.json ]; then cat build/production_candidate/candidate_fingerprint.json; fi
+          if [ -f build/release_promotion/release_plan.json ]; then cat build/release_promotion/release_plan.json; fi
+          if [ -f build/release_promotion/rollback_plan.json ]; then cat build/release_promotion/rollback_plan.json; fi
