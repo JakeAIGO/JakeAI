@@ -15,7 +15,8 @@ concurrency:
 jobs:
   deploy:
     environment:
-      name: github-pages
+      name: mantlebreak-playtest
+      url: ${{ steps.deployment.outputs.page_url }}
     runs-on: ubuntu-latest
     timeout-minutes: 30
     steps:
@@ -134,10 +135,8 @@ jobs:
           echo 'DEEP_SHIFT_PASS18_EXPORT_GATE: PASS'
       - name: Configure Pages
         uses: actions/configure-pages@v5
-        with:
-          enablement: true
       - name: Upload Pages artifact
-        uses: actions/upload-pages-artifact@v3
+        uses: actions/upload-pages-artifact@v4
         with:
           path: deep-shift-mobile/build/web
       - name: Deploy to GitHub Pages
