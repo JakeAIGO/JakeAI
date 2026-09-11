@@ -4,6 +4,7 @@ These tests are deliberately fail-closed: they verify code/document relationship
 without changing pricing, checkout, deployment, or publication state.
 """
 from pathlib import Path
+import json
 import re
 
 ROOT = Path(__file__).resolve().parents[1]
@@ -24,6 +25,25 @@ def test_backend_owns_dynamic_machine_surfaces():
     main = read("main.py")
     assert '@app.get("/llms.txt"' in main
     assert '@app.get("/.well-known/agent.json"' in main
+
+
+def test_static_machine_files_cannot_claim_live_commercial_state():
+    llms = read("llms.txt")
+    card = json.loads(read("agent_card.json"))
+    for stale_claim in (
+        "Product Registration: POST",
+        "Autonomous Settlement: POST",
+        "PJM Real-Time Energy Tariff",
+        "Price: .00 USD",
+        "Production endpoints for telemetry demand tracking and physical AI robotics solvers",
+        "Calculate optimal tendon tensions",
+    ):
+        assert stale_claim not in llms
+        assert stale_claim not in read("agent_card.json")
+    assert "non-authoritative" in llms.lower()
+    assert card["status"] == "repository_pointer_only"
+    assert card["commercial_state_authoritative"] is False
+    assert card["physical_control_validated"] is False
 
 
 def test_commercial_actions_remain_fail_closed():
