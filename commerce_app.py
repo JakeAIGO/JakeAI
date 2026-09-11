@@ -3,7 +3,7 @@ import sqlite3
 import uuid
 from datetime import datetime, timezone
 from typing import Optional
-from urllib.parse import urlparse
+from urllib.parse import urlencode, urlparse
 
 import stripe
 from fastapi import Header, HTTPException, Request
@@ -15,10 +15,26 @@ import main
 app = main.app
 DB_PATH = main.DB_PATH
 
+GAME_QA_PRODUCT_ID = "prod_game_qa_autopilot_01"
+GAME_QA_PRODUCT = {
+    "title": "Game QA Autopilot v1.0",
+    "description": "Practical game QA workflow kit for build fingerprinting, smoke tests, test matrices, edge cases, reproducible bug reports, regression queues, and release-readiness review. Human testing remains required.",
+    "category": "gaming-qa-workflow",
+    "price": 9.99,
+    "download_url": "https://jakeai-secure-delivery-z0syg0.v2.appdeploy.ai/",
+    "delivery_mode": "protected_order",
+    "vendor_did": "did:a2a:jakeai_core",
+}
+
+# Product overlays can be promoted independently of the legacy catalog file while
+# still participating in JakeAI's first-party order and verification system.
+main.GENESIS_CATALOG[GAME_QA_PRODUCT_ID] = GAME_QA_PRODUCT
+
 # Only products with a verified deliverable are allowed to transact.
 COMMERCE_ENABLED = {
     "prod_make_free_00",
     "prod_solar_guide_04",
+    GAME_QA_PRODUCT_ID,
 }
 
 # The legacy app used wildcard CORS with credentials. The commerce runtime is
@@ -47,6 +63,7 @@ def is_safe_url(url: str) -> bool:
         "www.jakeaiofficial.com",
         "docs.google.com",
         "drive.google.com",
+        "jakeai-secure-delivery-z0syg0.v2.appdeploy.ai",
     }
 
 
@@ -59,6 +76,14 @@ def is_product_checkout_enabled(product_id: str) -> bool:
     if product_id not in COMMERCE_ENABLED:
         return False
     return bool(p.get("download_url")) and is_safe_url(p["download_url"])
+
+
+def _delivery_target(product_id: str, product: dict, order_id: str) -> str:
+    url = product["download_url"]
+    if product.get("delivery_mode") != "protected_order":
+        return url
+    separator = "&" if "?" in url else "?"
+    return f"{url}{separator}{urlencode({'order_id': order_id, 'product_id': product_id})}"
 
 
 def _init_commerce_tables() -> None:
@@ -76,6 +101,23 @@ def _init_commerce_tables() -> None:
             completed_at TEXT
         )
         """
+    )
+    # Keep the legacy product registry aware of the promoted product without
+    # requiring it to own entitlement/delivery logic.
+    conn.execute(
+        """
+        INSERT OR REPLACE INTO products (id, title, description, category, price, endpoint_url, vendor_did)
+        VALUES (?, ?, ?, ?, ?, ?, ?)
+        """,
+        (
+            GAME_QA_PRODUCT_ID,
+            GAME_QA_PRODUCT["title"],
+            GAME_QA_PRODUCT["description"],
+            GAME_QA_PRODUCT["category"],
+            GAME_QA_PRODUCT["price"],
+            GAME_QA_PRODUCT["download_url"],
+            GAME_QA_PRODUCT["vendor_did"],
+        ),
     )
     conn.commit()
     conn.close()
@@ -141,7 +183,7 @@ async def buy_product(
     # Free acquisitions are real commerce events, but never touch Stripe.
     if amount_cents <= 0:
         order_id = _create_order(product_id, 0, "free_claim_complete", source or "direct")
-        response = RedirectResponse(url=delivery_url, status_code=303)
+        response = RedirectResponse(url=_delivery_target(product_id, product, order_id), status_code=303)
         response.set_cookie(
             "jakeai_claim",
             order_id,
@@ -213,9 +255,11 @@ def complete_checkout(session_id: str, order_id: str):
     if not product or not product.get("download_url") or not is_safe_url(product["download_url"]):
         raise HTTPException(status_code=409, detail="Product delivery is not configured safely")
 
+    delivery_target = _delivery_target(order["product_id"], product, order_id)
+
     # Idempotent completion: a previously verified order may be delivered again.
     if order["status"] == "paid" and order.get("stripe_session_id") == session_id:
-        return RedirectResponse(url=product["download_url"], status_code=303)
+        return RedirectResponse(url=delivery_target, status_code=303)
 
     secret_key = os.environ.get("STRIPE_SECRET_KEY", "").strip()
     if not secret_key:
@@ -239,7 +283,7 @@ def complete_checkout(session_id: str, order_id: str):
         raise HTTPException(status_code=402, detail="Payment has not been verified for this order")
 
     _mark_order_paid(order_id, session_id)
-    response = RedirectResponse(url=product["download_url"], status_code=303)
+    response = RedirectResponse(url=delivery_target, status_code=303)
     response.set_cookie(
         "jakeai_order",
         order_id,
