@@ -20,8 +20,8 @@ This package is the first implementation skeleton for surviving model/session li
 
 - `state.schema.json` — portable state contract.
 - `current_state.json` — current sanitized JakeAI checkpoint.
-- `handoff_template.md` — deterministic prompt/template for the next worker.
 - `router.py` — standard-library CLI that validates state and emits a portable handoff bundle.
+- `test_router.py` — standard-library regression tests for status preservation and validation behavior.
 
 ## Operating flow
 
@@ -31,6 +31,18 @@ This package is the first implementation skeleton for surviving model/session li
 4. The command writes a timestamped Markdown handoff to `continuity/out/`.
 5. Give that handoff plus relevant files/links to the next model.
 6. The next model resumes from `next_action`, verifies external state before consequential writes, and updates the state again.
+
+## Validation
+
+Run:
+
+```bash
+python continuity/router.py validate
+python -m unittest continuity/test_router.py
+python continuity/router.py handoff
+```
+
+A generated handoff must preserve status labels and guardrails. Passing unit tests do not by themselves prove that any external system is live.
 
 ## Non-negotiable status meanings
 
