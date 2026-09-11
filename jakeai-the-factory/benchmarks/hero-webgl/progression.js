@@ -1,18 +1,12 @@
-// Persistent, evolving Factory progression. Local-first: no account or paid backend required.
+// Persistent evolving Factory: the world remembers what the player builds.
 const KEY='jakeai_factory_save_v1';
-export const DISTRICTS=[
- {id:'origin',name:'Origin Bay',xp:0},
- {id:'repair',name:'Self-Repair Bay',xp:40},
- {id:'arena',name:'Agent Arena',xp:90},
- {id:'observatory',name:'Opportunity Observatory',xp:160},
- {id:'social',name:'Social City',xp:260},
- {id:'council',name:'Council Chamber',xp:400},
- {id:'beyond',name:'The Beyond',xp:650}
-];
-export function newSave(){return{version:1,createdAt:Date.now(),lastVisit:Date.now(),visits:1,xp:0,level:1,products:0,learning:0,arenaRuns:0,streak:1,lastDay:new Date().toISOString().slice(0,10),unlocks:['origin'],discoveries:[],legacy:[]}}
-export function loadSave(){try{const x=JSON.parse(localStorage.getItem(KEY));if(!x)return newSave();const today=new Date().toISOString().slice(0,10);if(x.lastDay!==today){const d=Math.round((new Date(today)-new Date(x.lastDay))/86400000);x.streak=d===1?(x.streak||1)+1:1;x.lastDay=today;x.visits=(x.visits||1)+1}x.lastVisit=Date.now();return normalize(x)}catch{return newSave()}}
-function normalize(s){s.xp=s.xp||0;s.level=Math.max(1,Math.floor(s.xp/100)+1);s.unlocks=DISTRICTS.filter(d=>s.xp>=d.xp).map(d=>d.id);return s}
-export function award(s,{xp=0,products=0,learning=0,arenaRuns=0,discovery=null}={}){s.xp+=xp;s.products+=products;s.learning+=learning;s.arenaRuns+=arenaRuns;if(discovery&&!s.discoveries.includes(discovery))s.discoveries.push(discovery);normalize(s);save(s);return s}
+export const DISTRICTS=[{id:'origin',name:'Origin Bay',xp:0},{id:'repair',name:'Self-Repair Bay',xp:40},{id:'arena',name:'Agent Arena',xp:90},{id:'observatory',name:'Opportunity Observatory',xp:160},{id:'social',name:'Social City',xp:260},{id:'council',name:'Council Chamber',xp:400},{id:'beyond',name:'The Beyond',xp:650}];
+export function newSave(){return{version:2,createdAt:Date.now(),lastVisit:Date.now(),visits:1,xp:0,level:1,products:0,learning:0,arenaRuns:0,streak:1,lastDay:new Date().toISOString().slice(0,10),unlocks:['origin'],discoveries:[],legacy:[],traits:{reliability:0,discovery:0,velocity:0,efficiency:0},history:[]}}
+function normalize(s){s.xp=s.xp||0;s.level=Math.max(1,Math.floor(s.xp/100)+1);s.discoveries=s.discoveries||[];s.legacy=s.legacy||[];s.history=s.history||[];s.traits=s.traits||{reliability:0,discovery:0,velocity:0,efficiency:0};s.unlocks=DISTRICTS.filter(d=>s.xp>=d.xp).map(d=>d.id);return s}
+export function loadSave(){try{const x=localStorage.getItem(KEY);if(!x)return newSave();const s=normalize(JSON.parse(x)),today=new Date().toISOString().slice(0,10);if(s.lastDay!==today){const d=Math.round((new Date(today)-new Date(s.lastDay))/86400000);s.streak=d===1?(s.streak||1)+1:1;s.lastDay=today;s.visits=(s.visits||1)+1}s.lastVisit=Date.now();save(s);return s}catch{return newSave()}}
+export function award(s,{xp=0,products=0,learning=0,arenaRuns=0,discovery=null,trait=null,event=null}={}){s.xp+=xp;s.products+=products;s.learning+=learning;s.arenaRuns+=arenaRuns;if(discovery&&!s.discoveries.includes(discovery))s.discoveries.push(discovery);if(trait){const[k,v]=trait;s.traits[k]=(s.traits[k]||0)+v}if(event){s.history.push({at:Date.now(),...event});s.history=s.history.slice(-40)}normalize(s);save(s);return s}
+export function dominantTrait(s){return Object.entries(s.traits).sort((a,b)=>b[1]-a[1])[0]?.[0]||'discovery'}
+export function worldProfile(s){const d=dominantTrait(s),profiles={reliability:{title:'FORTRESS FACTORY',line:'Your systems learned to survive failure.',accent:'cyan'},discovery:{title:'FRONTIER FACTORY',line:'Your Factory keeps finding doors nobody else saw.',accent:'magenta'},velocity:{title:'VELOCITY FACTORY',line:'Your production lines are becoming frighteningly fast.',accent:'gold'},efficiency:{title:'LEAN FACTORY',line:'You turn tiny resources into unreasonable output.',accent:'green'}};return{...profiles[d],trait:d,scale:1+Math.min(1.2,s.level*.07),activity:Math.min(2,1+s.products/60),historyCount:s.history.length}}
+export function returnHook(s){const next=DISTRICTS.find(d=>!s.unlocks.includes(d.id)),h=[];if(next)h.push(`${next.name} unlocks at ${next.xp} XP`);h.push(`Factory streak: ${s.streak} day${s.streak===1?'':'s'}`);const daily=['Dependency Kraken','Viral Storm','Budget Blackout','Compliance Dragon','Infinite Retry Loop'],day=Math.floor(Date.now()/86400000);h.push(`Today's anomaly: ${daily[day%daily.length]}`);if(s.history.length)h.push(`${s.history.length} decisions remembered`);return h}
 export function save(s){s.lastVisit=Date.now();localStorage.setItem(KEY,JSON.stringify(s))}
-export function returnHook(s){const next=DISTRICTS.find(d=>!s.unlocks.includes(d.id));const hooks=[];if(next)hooks.push(`${next.name} unlocks at ${next.xp} XP`);hooks.push(`Factory visit streak: ${s.streak} day${s.streak===1?'':'s'}`);const daily=['Dependency Kraken','Viral Storm','Budget Blackout','Compliance Dragon','Infinite Retry Loop'];const day=Math.floor(Date.now()/86400000);hooks.push(`Today's anomaly: ${daily[day%daily.length]}`);return hooks}
-export function snapshot(s){return{level:s.level,xp:s.xp,visits:s.visits,streak:s.streak,products:s.products,learning:s.learning,arenaRuns:s.arenaRuns,unlocks:[...s.unlocks],discoveries:[...s.discoveries]}}
+export function snapshot(s){return{level:s.level,xp:s.xp,visits:s.visits,streak:s.streak,products:s.products,learning:s.learning,arenaRuns:s.arenaRuns,unlocks:[...s.unlocks],discoveries:[...s.discoveries],traits:{...s.traits},history:[...s.history]}}
