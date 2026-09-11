@@ -1,0 +1,58 @@
+{
+  "schema_version": "1.0",
+  "registry_name": "JakeAI Commercial Rules Registry",
+  "authority": "canonical_commercial_configuration",
+  "baseline_ref": "baseline/master-v3-2026-09-11",
+  "currency": "USD",
+  "defaults": {
+    "commercial_authorized": false,
+    "checkout_authorized": false,
+    "publication_as_available_authorized": false,
+    "metering_verified": false,
+    "fulfillment_verified": false,
+    "refund_policy_verified": false,
+    "legal_review_complete": false
+  },
+  "platform_terms": {
+    "creator_revenue_split": {
+      "status": "proposed_not_approved",
+      "creator_share": 0.50,
+      "jakeai_share": 0.50,
+      "approved": false,
+      "public_claim_authorized": false
+    },
+    "protocol_fee": {
+      "status": "proposed_not_approved",
+      "rate": 0.01,
+      "approved": false,
+      "public_claim_authorized": false
+    },
+    "refunds": {
+      "status": "pending_product_specific_policy_and_legal_review",
+      "approved": false,
+      "public_claim_authorized": false
+    }
+  },
+  "products": {
+    "prod_grasp_solver_09": {"price_usd": 0.10, "commercial_authorized": false, "checkout_authorized": false, "metering_verified": false, "fulfillment_verified": false, "legal_review_complete": false},
+    "prod_make_free_00": {"price_usd": 0.00, "commercial_authorized": false, "checkout_authorized": false, "metering_verified": true, "fulfillment_verified": false, "legal_review_complete": false},
+    "prod_solar_guide_04": {"price_usd": 3.00, "commercial_authorized": false, "checkout_authorized": false, "metering_verified": true, "fulfillment_verified": false, "legal_review_complete": false},
+    "prod_ira_calc_05": {"price_usd": 1.00, "commercial_authorized": false, "checkout_authorized": false, "metering_verified": false, "fulfillment_verified": false, "legal_review_complete": false},
+    "prod_scrape_01": {"price_usd": 5.00, "commercial_authorized": false, "checkout_authorized": false, "metering_verified": false, "fulfillment_verified": false, "legal_review_complete": false},
+    "prod_energy_01": {"price_usd": 0.25, "commercial_authorized": false, "checkout_authorized": false, "metering_verified": false, "fulfillment_verified": false, "legal_review_complete": false},
+    "prod_tariff_norm_06": {"price_usd": 0.50, "commercial_authorized": false, "checkout_authorized": false, "metering_verified": false, "fulfillment_verified": false, "legal_review_complete": false},
+    "prod_audit_pack_10": {"price_usd": 18.00, "commercial_authorized": false, "checkout_authorized": false, "metering_verified": false, "fulfillment_verified": false, "legal_review_complete": false},
+    "prod_multi_model_audit_08": {"price_usd": 2.00, "commercial_authorized": false, "checkout_authorized": false, "metering_verified": false, "fulfillment_verified": false, "legal_review_complete": false},
+    "prod_agent_audit_07": {"price_usd": 0.50, "commercial_authorized": false, "checkout_authorized": false, "metering_verified": false, "fulfillment_verified": false, "legal_review_complete": false},
+    "prod_game_qa_autopilot_01": {"price_usd": 9.99, "commercial_authorized": false, "checkout_authorized": false, "metering_verified": true, "fulfillment_verified": false, "legal_review_complete": false}
+  },
+  "promotion_requirements": [
+    "exact_price_matches_master_manifest",
+    "product_specific_fulfillment_verified",
+    "metering_verified_when_required",
+    "refund_policy_verified",
+    "legal_review_complete",
+    "council_review_complete",
+    "explicit_human_commercial_approval"
+  ]
+}
