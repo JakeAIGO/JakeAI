@@ -39,9 +39,21 @@ BOSS_FIGHT_PRODUCT = {
     "vendor_did": "did:a2a:jakeai_core",
 }
 
+INVENTORY_PRODUCT_ID = "prod_inventory_replenishment_01"
+INVENTORY_PRODUCT = {
+    "title": "JakeAI Inventory & Replenishment Intelligence Autopilot — Founding Pilot",
+    "description": "CSV-based inventory decision-support workflow that identifies stockout risk, reorder candidates, excess or possible-obsolete inventory, and suggested replenishment quantities for authorized buyer review. No purchase orders are placed autonomously.",
+    "category": "inventory-replenishment-workflow",
+    "price": 49.00,
+    "download_url": SECURE_DELIVERY_URL,
+    "delivery_mode": "protected_order",
+    "vendor_did": "did:a2a:jakeai_core",
+}
+
 PROMOTED_PRODUCTS = {
     GAME_QA_PRODUCT_ID: GAME_QA_PRODUCT,
     BOSS_FIGHT_PRODUCT_ID: BOSS_FIGHT_PRODUCT,
+    INVENTORY_PRODUCT_ID: INVENTORY_PRODUCT,
 }
 
 # Product overlays can be promoted independently of the legacy catalog file while
@@ -54,6 +66,7 @@ COMMERCE_ENABLED = {
     "prod_solar_guide_04",
     GAME_QA_PRODUCT_ID,
     BOSS_FIGHT_PRODUCT_ID,
+    INVENTORY_PRODUCT_ID,
 }
 
 # The legacy app used wildcard CORS with credentials. The commerce runtime is
