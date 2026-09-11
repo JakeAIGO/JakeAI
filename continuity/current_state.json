@@ -1,0 +1,87 @@
+{
+  "project": "JakeAI Autonomous Product Factory / JakeAIOfficial.com",
+  "checkpoint": {
+    "created_at": "2026-09-11T12:01:43.795045+00:00",
+    "source": "Journal and capacity integration regression pass",
+    "version": 5
+  },
+  "status_legend": {
+    "verified_live": "Confirmed in the real destination",
+    "verified_staged": "Built or tested but not confirmed live",
+    "pending": "Initiated; final outcome not independently verified",
+    "blocked": "Needs dependency, permission, or security/user step",
+    "proposed": "Idea only"
+  },
+  "verified_facts": [
+    {
+      "id": "repo-main",
+      "summary": "Canonical repository is JakeAIGO/JakeAI with default branch main.",
+      "status": "verified_live",
+      "evidence": ["GitHub repository metadata verified 2026-09-11"],
+      "owner": "JakeAI"
+    },
+    {
+      "id": "continuity-branch",
+      "summary": "Model continuity implementation is isolated on feature/model-continuity-router.",
+      "status": "verified_staged",
+      "evidence": ["GitHub branch created 2026-09-11", "Draft PR #9"],
+      "owner": "JakeAI"
+    },
+    {
+      "id": "continuity-local-tests",
+      "summary": "Continuity state validation, journal handling, capacity rendering, and portable handoff regression coverage pass locally.",
+      "status": "verified_staged",
+      "evidence": ["8 unittest cases passed 2026-09-11", "continuity/test_router.py"],
+      "owner": "JakeAI"
+    },
+    {
+      "id": "rolling-autosave-design",
+      "summary": "Continuity uses rolling state plus an append-only event journal so meaningful work is captured during long sessions rather than only in periodic handoff documents.",
+      "status": "verified_staged",
+      "evidence": ["continuity/journal.py", "continuity/events.jsonl", "continuity/AUTOSAVE_POLICY.md"],
+      "owner": "JakeAI"
+    },
+    {
+      "id": "free-first-capacity-policy",
+      "summary": "JakeAI has a documented free-first capacity policy and provider-neutral capacity registry; circumvention is prohibited and paid expansion requires explicit owner approval.",
+      "status": "verified_staged",
+      "evidence": ["continuity/FREE_FIRST_CAPACITY_POLICY.md", "continuity/capacity.json"],
+      "owner": "JakeAI"
+    },
+    {
+      "id": "handoff-journal-capacity-integration",
+      "summary": "Generated portable handoffs now automatically include recent continuity events and current capacity status.",
+      "status": "verified_staged",
+      "evidence": ["continuity/router.py", "continuity/test_router.py", "8 regression tests passed locally"],
+      "owner": "JakeAI"
+    }
+  ],
+  "active_work": [
+    {
+      "id": "model-continuity-router",
+      "summary": "Provider-neutral continuity layer is implemented and locally tested with rolling state, event journaling, free-first capacity governance, and integrated handoff generation.",
+      "status": "verified_staged",
+      "evidence": ["continuity/README.md", "continuity/state.schema.json", "continuity/current_state.json", "continuity/router.py", "continuity/checkpoint.py", "continuity/test_router.py", "continuity/journal.py", "continuity/events.jsonl", "continuity/AUTOSAVE_POLICY.md", "continuity/FREE_FIRST_CAPACITY_POLICY.md", "continuity/capacity.json"],
+      "owner": "JakeAI"
+    }
+  ],
+  "next_action": "Perform the external cross-provider acceptance test: generate the current portable handoff, give it to a fresh permitted AI provider/session, and verify that provider identifies the same next action, recent events, status labels, capacity policy, constraints, and no-secret rule without manual project reconstruction.",
+  "constraints": [
+    "Canonical brand spelling is JakeAI.",
+    "No additional spend beyond the existing domain cost unless explicitly approved.",
+    "Do not claim proposed, staged, pending, or unit-tested work is live or sold.",
+    "Do not bypass provider usage limits; design lawful provider-independent failover instead.",
+    "Do not include secrets, tokens, credentials, private paid-delivery URLs, proprietary prompts, or trade-secret implementation details in portable handoffs.",
+    "Preserve legal, financial, security, and consequential-action approval gates.",
+    "Near-term commercial goal remains the first real independent paid sale.",
+    "Continuity state must be updated after meaningful state-changing work rather than waiting for the end of a session.",
+    "Optimize first; use only legitimate free capacity; paid capacity requires demonstrated need and explicit owner approval.",
+    "Never evade quotas, rate limits, access controls, account restrictions, or payment requirements."
+  ],
+  "handoff_notes": [
+    "The model is not the memory. The model is not the project. JakeAI owns the project state; models are interchangeable compute.",
+    "Resume from the highest-value unresolved checkpoint with less discussion and more verified execution.",
+    "The handoff is generated from rolling state plus recent journal events rather than reconstructed from conversation memory.",
+    "Capacity expansion follows the free-first escalation ladder and does not authorize spending."
+  ]
+}
