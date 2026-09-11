@@ -1,0 +1,38 @@
+{
+  "policy": "ZERO_COST_DEPENDENCY_GATE",
+  "schema_version": 1,
+  "production_default": "deny",
+  "dependencies": [
+    {
+      "name": "Godot Engine",
+      "purpose": "game engine/runtime",
+      "status": "REVIEWING",
+      "acquisition_cost_usd": 0,
+      "mandatory_runtime_cost_usd": 0,
+      "license": "MIT",
+      "commercial_use_allowed": true,
+      "attribution_required": true,
+      "notes": "Engine is free/open source and permits commercial games. Exact engine version and exported third-party notices must be pinned before APPROVED-PINNED."
+    },
+    {
+      "name": "Phantom Camera",
+      "purpose": "cinematic camera system",
+      "status": "CANDIDATE"
+    },
+    {
+      "name": "Dialogue Manager",
+      "purpose": "dialogue and narrative sequencing",
+      "status": "CANDIDATE"
+    },
+    {
+      "name": "GDrama",
+      "purpose": "cutscene/timeline sequencing",
+      "status": "CANDIDATE"
+    },
+    {
+      "name": "LimboAI",
+      "purpose": "agent/NPC behavior trees and state machines",
+      "status": "CANDIDATE"
+    }
+  ]
+}
