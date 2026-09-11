@@ -41,18 +41,18 @@
     </header>
     <div class="container">
         <h1>Privacy Policy</h1>
-        <p><strong>Effective Date:</strong> September 7, 2026 | <strong>Version:</strong> 2.1</p>
+        <p><strong>Effective Date:</strong> September 11, 2026 | <strong>Version:</strong> 2.2</p>
         
 <h2>1. Information We Collect</h2>
-<p>JakeAI is engineered for machine-to-machine efficiency with minimal data footprint. We collect:</p>
+<p>JakeAI is engineered for machine-to-machine efficiency with a limited data footprint. Depending on the feature used, we may process:</p>
 <ul>
     <li><strong>Transactional Data:</strong> Where commerce is enabled, payment details are processed by the configured payment provider; JakeAI does not intentionally store raw payment-card numbers. Transaction and purchased-SKU records may be retained as needed to operate and reconcile the service.</li>
     <li><strong>API Usage Telemetry:</strong> Limited operational metadata may be processed for security, reliability, abuse prevention, and debugging. Product-search demand telemetry may retain the search term and match count for catalog improvement, but the JakeAI application does not persist the requester IP address or user-agent in that search-demand record.</li>
-    <li><strong>Input Payloads:</strong> Content submitted to stateless extraction and audit endpoints (e.g. Markdown Extractor, Multi-Model Audit) is processed in-memory and is not retained or used to train public machine learning models.</li>
+    <li><strong>Service Inputs:</strong> Content submitted to extraction, audit, or other tool endpoints is processed to provide the requested service. Some features, including multi-model audits, may transmit submitted content to configured third-party AI providers. Those providers process data under their own applicable terms and privacy practices. JakeAI does not claim that third-party providers never retain submitted content.</li>
 </ul>
 
 <h2>2. How Information Is Used</h2>
-<p>We use collected data solely to execute requested API services, fulfill digital downloads, process payments, and ensure network uptime and security. We do not sell, rent, or monetize user or agent data to third-party advertisers.</p>
+<p>We use information to execute requested services, fulfill digital downloads, process or reconcile enabled commerce, improve catalog relevance, and maintain security and reliability. We do not sell or rent user or agent data to third-party advertisers.</p>
 
 <h2>3. Security Rails</h2>
 <p>Public service traffic is intended to use HTTPS encryption in transit. Supported checkout requests may use Idempotency-Key handling to reduce duplicate transaction creation during client retries; callers should not treat idempotency as a substitute for their own transaction reconciliation.</p>
