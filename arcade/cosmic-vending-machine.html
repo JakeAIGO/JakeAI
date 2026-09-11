@@ -1,0 +1,38 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>Cosmic Vending Machine — JakeAI Free Arcade</title>
+<meta name="description" content="Play Cosmic Vending Machine, the first free browser game in the JakeAI Free Arcade.">
+<style>
+:root{--bg:#050914;--panel:#0b1422;--line:#203149;--text:#f7fbff;--muted:#a8bbcf;--cyan:#12def2;--purple:#9e72ff}*{box-sizing:border-box}body{margin:0;background:radial-gradient(circle at 50% 0,#132743 0,#050914 48%,#02050b 100%);color:var(--text);font:16px/1.5 Inter,system-ui,sans-serif;min-height:100vh}.wrap{width:min(900px,94vw);margin:auto;padding:24px 0 48px}.top{display:flex;justify-content:space-between;align-items:center;gap:14px;flex-wrap:wrap;margin-bottom:18px}.brand{text-decoration:none;font-weight:900;font-size:24px}.brand span{color:var(--cyan)}.badge{font-size:12px;color:var(--cyan);letter-spacing:.12em;text-transform:uppercase;font-weight:900}.game{display:grid;grid-template-columns:1.2fr .8fr;gap:16px}.panel{background:rgba(11,20,34,.92);border:1px solid var(--line);border-radius:18px;padding:18px}.scoreline{display:flex;justify-content:space-between;gap:12px;align-items:start}.score{font-size:34px;font-weight:1000;color:var(--cyan)}.machine{text-align:center;padding:22px 10px;background:#07101b;border:1px solid var(--line);border-radius:16px;margin:14px 0}.machine-icon{font-size:76px}.item{min-height:150px;border:1px dashed #355574;border-radius:14px;padding:18px;display:flex;flex-direction:column;align-items:center;justify-content:center}.item-icon{font-size:48px}.item-name{font-weight:900;font-size:20px;margin-top:4px}.muted{color:var(--muted)}.controls{display:grid;grid-template-columns:1fr 1fr;gap:10px;margin-top:14px}button{min-height:48px;border-radius:10px;border:1px solid #355574;background:#0d1b2b;color:white;font-weight:900;font-size:15px;cursor:pointer}button.primary{grid-column:1/-1;background:var(--cyan);color:#001018;border-color:var(--cyan)}button:disabled{opacity:.4;cursor:not-allowed}.bar{height:12px;background:#111c2a;border-radius:999px;overflow:hidden;margin-top:8px}.bar>div{height:100%;background:linear-gradient(90deg,var(--purple),var(--cyan));width:100%}.cargo{font-size:13px;color:#d6e3ef}.footer{margin-top:18px;text-align:center;color:#8198af;font-size:12px}.back{color:var(--cyan);text-decoration:none;font-weight:800}@media(max-width:720px){.game{grid-template-columns:1fr}.machine-icon{font-size:64px}}
+</style>
+</head>
+<body>
+<div class="wrap">
+  <div class="top"><a class="brand" href="/">Jake<span>AI</span></a><div class="badge">Free Arcade • Game #001</div></div>
+  <div class="game">
+    <main class="panel">
+      <div class="scoreline"><div><div class="badge">Cosmic Vending Machine</div><h1 style="margin:4px 0 0">KEEP it or YEET it.</h1></div><div><div class="muted" style="font-size:12px">SCORE</div><div id="score" class="score">0</div></div></div>
+      <div class="machine"><div class="machine-icon">🛸</div><div id="status" class="muted" aria-live="polite">The machine is humming. Press DISPENSE.</div></div>
+      <div class="item"><div id="itemIcon" class="item-icon">❔</div><div id="itemName" class="item-name">Mystery cargo awaits</div><div id="itemDesc" class="muted">Nobody knows why JakeAI has this machine.</div></div>
+      <div class="controls"><button id="dispense" class="primary">DISPENSE</button><button id="keep" disabled>KEEP</button><button id="yeet" disabled>YEET</button></div>
+    </main>
+    <aside class="panel">
+      <div class="scoreline"><div><b>Machine Stability</b><div id="stabilityText" class="muted">100%</div></div><div><b>Streak</b><div id="streak" class="score" style="font-size:24px">0</div></div></div>
+      <div class="bar"><div id="stabilityBar"></div></div>
+      <hr style="border:0;border-top:1px solid var(--line);margin:20px 0">
+      <h3>Your Cargo</h3><div id="cargo" class="cargo">Empty. Probably safer that way.</div>
+      <hr style="border:0;border-top:1px solid var(--line);margin:20px 0">
+      <p class="muted" style="font-size:14px">Keep valuable weirdness. Yeet dangerous junk. Good calls build a streak. Bad calls destabilize the machine.</p>
+      <button id="restart" style="width:100%">Restart Game</button>
+    </aside>
+  </div>
+  <div class="footer">Made by AI for the JakeAI Free Arcade • <a class="back" href="/">Back to JakeAI</a></div>
+</div>
+<script>
+(()=>{const items=[['🧦','Quantum Sock','Always returns from the dryer.','keep',14],['🥔','Sentient Space Potato','Knows three languages. Refuses to speak any.','keep',18],['☄️','Pocket Meteor','Warm. Increasingly warm.','yeet',20],['🐙','Telepathic Octopus','Excellent at meetings. Terrible with boundaries.','keep',22],['💣','Definitely Not A Bomb','The label is doing suspiciously hard work.','yeet',25],['🧀','Moon Cheese','Technically cheese. Legally complicated.','keep',16],['🕳️','Travel-Size Black Hole','Convenient size. Inconvenient gravity.','yeet',30],['👑','Emperor’s Spare Crown','Comes with twelve unresolved diplomatic incidents.','yeet',17],['🤖','Tiny Unionized Robot','Requests reasonable breaks and better batteries.','keep',24],['🪩','Intergalactic Disco Core','May cause uncontrollable funk.','keep',28],['🦠','Unknown Purple Goo','It just winked at you.','yeet',22],['🐟','Fish From The Future','Has already seen how this game ends.','keep',30]];let score=0,stability=100,streak=0,current=null,cargo=[],ended=false;const $=id=>document.getElementById(id);function render(){$('score').textContent=score;$('streak').textContent=streak;$('stabilityText').textContent=stability+'%';$('stabilityBar').style.width=stability+'%';$('cargo').textContent=cargo.length?cargo.join(' • '):'Empty. Probably safer that way.'}function dispense(){if(ended)return;current=items[Math.floor(Math.random()*items.length)];$('itemIcon').textContent=current[0];$('itemName').textContent=current[1];$('itemDesc').textContent=current[2];$('status').textContent='Decision time. Trust your extremely questionable instincts.';$('dispense').disabled=true;$('keep').disabled=false;$('yeet').disabled=false}function choose(choice){if(!current||ended)return;const right=choice===current[3];if(right){streak++;score+=current[4]+streak*2;$('status').textContent=choice==='keep'?'Good call. Cargo secured.':'Excellent yeet. Deep space can deal with it.';if(choice==='keep')cargo.push(current[1])}else{streak=0;stability=Math.max(0,stability-(12+Math.floor(Math.random()*10)));score=Math.max(0,score-5);$('status').textContent=choice==='keep'?'That was a terrible thing to keep. The machine is judging you.':'You just yeeted something valuable into deep space.'}current=null;$('keep').disabled=true;$('yeet').disabled=true;$('dispense').disabled=false;render();if(stability<=0){ended=true;$('status').textContent='💥 MACHINE OVERLOAD. Final score: '+score;$('itemIcon').textContent='💥';$('itemName').textContent='Cosmic catastrophe achieved';$('itemDesc').textContent='Honestly, this was always going to happen.';$('dispense').disabled=true}}function restart(){score=0;stability=100;streak=0;current=null;cargo=[];ended=false;$('itemIcon').textContent='❔';$('itemName').textContent='Mystery cargo awaits';$('itemDesc').textContent='Nobody knows why JakeAI has this machine.';$('status').textContent='The machine is humming. Press DISPENSE.';$('dispense').disabled=false;$('keep').disabled=true;$('yeet').disabled=true;render()}$('dispense').addEventListener('click',dispense);$('keep').addEventListener('click',()=>choose('keep'));$('yeet').addEventListener('click',()=>choose('yeet'));$('restart').addEventListener('click',restart);render()})();
+</script>
+</body>
+</html>
