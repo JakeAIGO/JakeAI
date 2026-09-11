@@ -1,7 +1,12 @@
-import copy
 from pathlib import Path
 
-from tools.change_control import classify_paths, load_policy, required_reviews, validate_change_request
+from tools.change_control import (
+    classify_paths,
+    load_policy,
+    minimum_required_risk,
+    required_reviews,
+    validate_change_request,
+)
 
 
 POLICY = load_policy(Path("governance/change_control_policy.json"))
@@ -9,7 +14,7 @@ POLICY = load_policy(Path("governance/change_control_policy.json"))
 
 def base_request():
     return {
-        "schema_version": "1.0",
+        "schema_version": "1.1",
         "id": "TEST-1",
         "title": "Test",
         "status": "proposed",
@@ -38,6 +43,20 @@ def test_required_reviews_derived_from_scope():
     assert {"security", "legal", "commerce", "council"}.issubset(reviews)
 
 
+def test_minimum_risk_is_critical_for_safety():
+    risk = minimum_required_risk({"safety", "runtime"}, {"main.py"}, POLICY)
+    assert risk == "critical"
+
+
+def test_low_risk_cannot_underdeclare_security_change():
+    request = base_request()
+    request["risk_class"] = "low"
+    request["scope_categories"] = ["security"]
+    request["reviews"] = {"security": "pending"}
+    errors = validate_change_request(request, {"security"}, {"tools/helper.py"}, POLICY)
+    assert any("below required minimum high" in e for e in errors)
+
+
 def test_self_modification_requires_council_and_human_lanes():
     request = base_request()
     request["scope_categories"] = ["security"]
@@ -47,16 +66,19 @@ def test_self_modification_requires_council_and_human_lanes():
     assert any("human" in e for e in errors)
 
 
-def test_authorization_true_fails_without_approved_status_and_human_record():
+def test_authorization_true_requires_approved_status_human_record_and_reviews():
     request = base_request()
-    request["scope_categories"] = ["documentation"]
+    request["scope_categories"] = ["governance"]
+    request["reviews"] = {"architecture": "pending", "human": "pending"}
     request["production_authorized"] = True
-    errors = validate_change_request(request, {"documentation"}, {"README.md"}, POLICY)
+    errors = validate_change_request(request, {"governance"}, {"governance/example.json"}, POLICY)
     assert any("production_authorized=true requires status=approved" in e for e in errors)
     assert any("production_authorized=true requires a human_approval_record" in e for e in errors)
+    assert any("authorization requires architecture review=approved" in e for e in errors)
+    assert any("authorization requires human review=approved" in e for e in errors)
 
 
-def test_valid_high_risk_self_modification_declaration_passes():
+def test_valid_high_risk_self_modification_declaration_passes_while_reviews_pending():
     request = base_request()
     categories = {"governance", "security", "brand", "documentation", "tests"}
     request["scope_categories"] = sorted(categories)
@@ -73,3 +95,20 @@ def test_valid_high_risk_self_modification_declaration_passes():
         "tests/test_change_control.py",
     }
     assert validate_change_request(request, categories, changed, POLICY) == []
+
+
+def test_authorized_self_modification_requires_all_reviews_approved():
+    request = base_request()
+    categories = {"governance", "security"}
+    request["scope_categories"] = sorted(categories)
+    request["status"] = "approved"
+    request["human_approval_record"] = "approved by authorized human"
+    request["production_authorized"] = True
+    request["reviews"] = {
+        "architecture": "approved",
+        "security": "approved",
+        "council": "pending",
+        "human": "approved",
+    }
+    errors = validate_change_request(request, categories, {"tools/change_control.py"}, POLICY)
+    assert any("authorization requires council review=approved" in e for e in errors)
