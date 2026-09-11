@@ -74,7 +74,7 @@ GENESIS_CATALOG = {
         "requires_metering": True
     },
     "prod_energy_01": {
-        "title": "PJM Real-Time Energy Tariff & 4CP Peak Forecast API",
+        "title": "PJM Demonstration Energy Tariff & 4CP Peak Forecast API",
         "description": "Nodal electricity price queries and 4CP transmission peak alerts across PJM & Dominion territories for energy automation bots. Values are demonstration data, not live grid pricing.",
         "category": "data-api",
         "price": 0.25,
@@ -556,15 +556,16 @@ def create_checkout_session(product_id: str, idempotency_key: Optional[str] = He
             detail=f"Checkout for {product_id} is not available. This product requires configuration before it can be purchased."
         )
         
+    # Free Gateway SKU: deliver without requiring Stripe credentials.
+    # This branch intentionally executes before any payment-processor dependency.
+    if prod_data.get("price", 0) <= 0 or product_id == "prod_make_free_00":
+        return RedirectResponse(url=prod_data.get("download_url", "https://www.jakeaiofficial.com"), status_code=303)
+
     secret_key = os.environ.get("STRIPE_SECRET_KEY", "").strip()
     if not secret_key:
         raise HTTPException(status_code=500, detail="STRIPE_SECRET_KEY missing in server variables")
-        
+
     stripe.api_key = secret_key
-    
-    # Free Gateway SKU: frictionless 1-click delivery, bypass Stripe minimums
-    if prod_data.get("price", 0) <= 0 or product_id == "prod_make_free_00":
-        return RedirectResponse(url=prod_data.get("download_url", "https://www.jakeaiofficial.com"), status_code=303)
 
     # Use a verification callback URL instead of direct delivery URL
     # After payment, user hits /v1/checkout/verify which checks Stripe payment status before delivering
