@@ -1,2 +1,4 @@
-# Netlify API Proxy to Railway Backend
+# Netlify proxies canonical machine-readable surfaces and API traffic to Railway
+/llms.txt  https://agent-commerce-network-production-56e8.up.railway.app/llms.txt  200!
+/.well-known/agent.json  https://agent-commerce-network-production-56e8.up.railway.app/.well-known/agent.json  200!
 /api/*  https://agent-commerce-network-production-56e8.up.railway.app/:splat  200
