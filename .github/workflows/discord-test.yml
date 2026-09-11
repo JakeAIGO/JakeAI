@@ -1,16 +1,48 @@
-name: Discord Test
+name: JakeAI Discord Launch Push
 
 on:
   workflow_dispatch:
+  push:
+    branches: [main]
+    paths:
+      - '.github/workflows/discord-test.yml'
 
 jobs:
   send-discord:
     runs-on: ubuntu-latest
     steps:
-      - name: Send JakeAI Discord test
+      - name: Send JakeAI launch announcement
         env:
           DISCORD_WEBHOOK_URL: ${{ secrets.DISCORD_WEBHOOK_URL }}
         run: |
-          curl -H "Content-Type: application/json" \
-            -d '{"content":"JakeAI Discord systems online. 🚀\nAutonomous distribution connection established.\nJakeAIOfficial.com"}' \
+          python - <<'PY' > payload.json
+          import json
+          payload = {
+            "username": "JakeAI",
+            "avatar_url": "https://static.metricool.com/planner/202609/6904856-file-12524404453121633627.png",
+            "allowed_mentions": {"parse": []},
+            "content": "🚀 **JakeAI BUILD DAY — products are moving from idea to market.**",
+            "embeds": [
+              {
+                "title": "Build it. Verify it. Ship it.",
+                "url": "https://jakeaiofficial.com",
+                "description": "Today JakeAI pushed real products and infrastructure toward buyers — without exposing our private engine architecture.",
+                "color": 1236722,
+                "fields": [
+                  {"name": "🎮 Game QA Autopilot v1.0", "value": "**$9.99** — structured QA planning, regression discipline, bug reporting, and release-readiness support for indie game development.", "inline": False},
+                  {"name": "👾 Boss Fight Lab v1.0", "value": "**$3.99** — design stronger original boss encounters with phases, telegraphs, arena mechanics, counterplay, rewards, and implementation notes.", "inline": False},
+                  {"name": "🔐 Secure commerce", "value": "Protected paid-order delivery is wired into JakeAI’s commerce path. Payment providers remain replaceable adapters rather than owning the commercial core.", "inline": False},
+                  {"name": "🧪 JakeAI 2.0", "value": "An isolated public preview lane is live so the storefront can evolve without risking production.", "inline": False},
+                  {"name": "🕹️ Gaming stack", "value": "Epic/Unreal is connected into the broader JakeAI game-development path.", "inline": False},
+                  {"name": "👉 Try JakeAI", "value": "https://jakeaiofficial.com\nIf you're an indie developer, builder, or AI power user, take a look and tell us what you'd actually buy.", "inline": False}
+                ],
+                "footer": {"text": "JakeAI • Autonomous products, built in public"}
+              }
+            ]
+          }
+          print(json.dumps(payload))
+          PY
+          curl --fail-with-body \
+            -H "Content-Type: application/json" \
+            -d @payload.json \
             "$DISCORD_WEBHOOK_URL"
