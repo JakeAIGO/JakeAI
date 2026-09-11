@@ -1,7 +1,7 @@
 import json
 from pathlib import Path
 
-from tools.module_sandbox import validate_manifest, scan_secrets
+from tools.module_sandbox import protected_core_override_errors, validate_manifest
 
 POLICY = json.loads(Path("governance/module_sandbox_policy.json").read_text())
 
@@ -44,3 +44,8 @@ def test_network_access_is_explicit(tmp_path):
     m = manifest(); m["network_access"] = "anything"
     (d / "module.json").write_text(json.dumps(m), encoding="utf-8")
     assert any("network_access" in e for e in validate_manifest(d, POLICY))
+
+
+def test_protected_core_without_override_fails():
+    errors = protected_core_override_errors(["tools/change_control.py"], ["tools/change_control.py"], POLICY)
+    assert any("without an approved governed override" in e for e in errors)
