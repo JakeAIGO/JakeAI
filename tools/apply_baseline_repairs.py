@@ -61,6 +61,16 @@ def main() -> int:
             '    amount: float\n    take_rate: Optional[float] = 0.01',
             '    amount: float = Field(..., gt=0.0)\n    take_rate: Optional[float] = Field(0.01, ge=0.0, le=1.0)',
         ),
+        (
+            "main.py",
+            "            mode='payment',\n            success_url=success_url,",
+            "            mode='payment',\n            metadata={'product_id': product_id},\n            success_url=success_url,",
+        ),
+        (
+            "main.py",
+            '''    if session.payment_status != "paid":\n        raise HTTPException(status_code=402, detail="Payment not completed. Delivery withheld.")\n    \n    # Payment verified — redirect to private delivery URL\n    delivery_url = prod_data.get("download_url", "").strip()''',
+            '''    if session.payment_status != "paid":\n        raise HTTPException(status_code=402, detail="Payment not completed. Delivery withheld.")\n\n    # Bind the verified Stripe session to the exact product and catalog price.\n    # A paid session for one SKU must never unlock another SKU.\n    session_product_id = (getattr(session, "metadata", None) or {}).get("product_id")\n    if session_product_id != product_id:\n        raise HTTPException(status_code=403, detail="Checkout session product mismatch. Delivery withheld.")\n\n    expected_amount = int(round(float(prod_data["price"]) * 100))\n    if getattr(session, "amount_total", None) != expected_amount:\n        raise HTTPException(status_code=403, detail="Checkout session amount mismatch. Delivery withheld.")\n\n    if str(getattr(session, "currency", "")).lower() != "usd":\n        raise HTTPException(status_code=403, detail="Checkout session currency mismatch. Delivery withheld.")\n    \n    # Payment verified and bound to this product — redirect to private delivery URL\n    delivery_url = prod_data.get("download_url", "").strip()''',
+        ),
     ]
 
     for path, old, new in replacements:
