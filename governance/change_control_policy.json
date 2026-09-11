@@ -1,5 +1,5 @@
 {
-  "schema_version": "1.2",
+  "schema_version": "1.3",
   "baseline_ref": "origin/baseline/master-2026-09-11",
   "change_request_glob": "governance/change_requests/*.json",
   "risk_levels": ["low", "moderate", "high", "critical"],
@@ -49,7 +49,9 @@
   "self_modification_paths": [
     "tools/change_control.py",
     "governance/change_control_policy.json",
-    ".github/workflows/change-control-gate.yml"
+    ".github/workflows/change-control-gate.yml",
+    "tools/module_sandbox.py",
+    "governance/module_sandbox_policy.json"
   ],
   "self_modification_minimum_risk": "high",
   "protected_manifest": "governance/master_manifest.json"
