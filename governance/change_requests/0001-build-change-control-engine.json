@@ -1,5 +1,5 @@
 {
-  "schema_version": "1.0",
+  "schema_version": "1.1",
   "id": "CC-0001",
   "title": "Build JakeAI Baseline Change-Control Engine",
   "status": "proposed",
@@ -18,11 +18,14 @@
   "commercial_authorized": false,
   "human_approval_record": "",
   "unresolved_conditions": [
-    "Change-control candidate must pass its own gate and the full Master Baseline regression suite.",
-    "Council/human review is required before this self-modifying governance engine becomes a future canonical baseline version."
+    "Hardened change-control candidate must pass its own gate and the full Master Baseline regression suite at the exact reviewed head.",
+    "Council/security review must close the initial under-declared-risk, authorization-state, and unclassified-path findings before baseline-v2 designation."
   ],
   "evidence": [
     "Historical anchor baseline/master-2026-09-11 remains unchanged.",
-    "Working branch is feature/baseline-change-control-engine-2026-09-11."
+    "Working branch is feature/baseline-change-control-engine-2026-09-11.",
+    "Initial gate at 91ec62cd02d98f07e698b03df304fa77ecff4425 passed before adversarial Council review.",
+    "Council review identified three hardening opportunities: minimum risk enforcement, authorization review-state enforcement, and fail-closed handling of unclassified changed paths.",
+    "Hardening changes add policy-driven minimum risk levels, require approved review lanes before any authorization=true state, fail on unclassified changed paths, and add adversarial regression tests."
   ]
 }
