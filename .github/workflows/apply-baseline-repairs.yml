@@ -1,61 +1,17 @@
-name: Apply Baseline Repairs
+name: Apply Baseline Repairs — RETIRED
 
 on:
-  push:
-    branches:
-      - fix/website-truthfulness-audit-2026-09-11
-    paths:
-      - tools/apply_baseline_repairs.py
-      - tools/apply_network_hardening.py
-      - .github/workflows/apply-baseline-repairs.yml
   workflow_dispatch:
 
 permissions:
-  contents: write
-
-concurrency:
-  group: master-baseline-repair-${{ github.ref }}
-  cancel-in-progress: false
+  contents: read
 
 jobs:
-  repair:
-    if: github.ref == 'refs/heads/fix/website-truthfulness-audit-2026-09-11'
+  retired:
     runs-on: ubuntu-latest
-    timeout-minutes: 10
     steps:
-      - name: Checkout remediation branch
-        uses: actions/checkout@v4
-        with:
-          ref: fix/website-truthfulness-audit-2026-09-11
-          fetch-depth: 0
-
-      - name: Set up Python
-        uses: actions/setup-python@v5
-        with:
-          python-version: '3.12'
-
-      - name: Apply deterministic repairs
+      - name: Retired remediation mechanism
         run: |
-          python tools/apply_baseline_repairs.py
-          python tools/apply_network_hardening.py
-
-      - name: Show repair diff
-        run: git diff --check && git diff
-
-      - name: Commit repairs to remediation branch only
-        shell: bash
-        run: |
-          if git diff --quiet; then
-            echo "No changes required."
-            exit 0
-          fi
-          git config user.name "JakeAI Baseline Bot"
-          git config user.email "actions@users.noreply.github.com"
-          git add main.py index.html terms.html privacy.html
-          git commit -m "Apply deterministic Master Baseline repairs [skip repair]"
-
-          # Another safe branch-only write may have landed while this job ran.
-          # Rebase instead of forcing or overwriting newer work. Any conflict fails closed.
-          git fetch origin fix/website-truthfulness-audit-2026-09-11
-          git rebase origin/fix/website-truthfulness-audit-2026-09-11
-          git push origin HEAD:fix/website-truthfulness-audit-2026-09-11
+          echo "The write-capable Master Baseline repair workflow is retired."
+          echo "No repository mutation, deployment, publication, checkout activation, or production action is performed here."
+          echo "Future changes must use normal reviewable branch commits and the read-only Master Baseline Gate."
