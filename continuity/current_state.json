@@ -1,9 +1,9 @@
 {
   "project": "JakeAI Autonomous Product Factory / JakeAIOfficial.com",
   "checkpoint": {
-    "created_at": "2026-09-11T07:12:00-04:00",
-    "source": "JakeAI master handoff plus verified repository state",
-    "version": 1
+    "created_at": "2026-09-11T11:52:00Z",
+    "source": "JakeAI continuity router local execution and regression tests",
+    "version": 2
   },
   "status_legend": {
     "verified_live": "Confirmed in the real destination",
@@ -24,20 +24,27 @@
       "id": "continuity-branch",
       "summary": "Model continuity implementation is isolated on feature/model-continuity-router.",
       "status": "verified_staged",
-      "evidence": ["GitHub branch created 2026-09-11"],
+      "evidence": ["GitHub branch created 2026-09-11", "Draft PR #9"],
+      "owner": "JakeAI"
+    },
+    {
+      "id": "continuity-local-tests",
+      "summary": "Continuity state validation, handoff generation, and four regression tests executed successfully in a local runtime.",
+      "status": "verified_staged",
+      "evidence": ["router validate returned OK", "handoff generation returned exit code 0", "4 unittest cases passed"],
       "owner": "JakeAI"
     }
   ],
   "active_work": [
     {
       "id": "model-continuity-router",
-      "summary": "Build a provider-neutral continuity layer so JakeAI can switch between AI models without reconstructing project context.",
+      "summary": "Provider-neutral continuity layer is implemented and locally tested; checkpoint writer added for atomic state advancement.",
       "status": "verified_staged",
-      "evidence": ["continuity/README.md", "continuity/state.schema.json", "continuity/current_state.json"],
+      "evidence": ["continuity/README.md", "continuity/state.schema.json", "continuity/current_state.json", "continuity/router.py", "continuity/checkpoint.py", "continuity/test_router.py"],
       "owner": "JakeAI"
     }
   ],
-  "next_action": "Complete and test the deterministic handoff generator, then open a draft PR for review before any merge to main.",
+  "next_action": "Run one external cross-provider acceptance test: give the generated portable handoff to a different AI provider/session and verify it identifies the same next action, status labels, constraints, and no-secret rule without reconstructing the project manually.",
   "constraints": [
     "Canonical brand spelling is JakeAI.",
     "No additional spend beyond the existing domain cost unless explicitly approved.",
