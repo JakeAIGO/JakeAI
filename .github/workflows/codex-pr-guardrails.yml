@@ -28,7 +28,7 @@ jobs:
 
       - name: Compile Python Sources
         run: |
-          python -m py_compile main.py jakeai_mcp_server.py jakeai_audit.py
+          python -m py_compile main.py commerce_app.py jakeai_mcp_server.py jakeai_audit.py
           python -m compileall -q product-discovery
 
       - name: Run Opportunity Clusterer Regression Test
@@ -55,10 +55,12 @@ jobs:
           from pathlib import Path
 
           main = Path("main.py").read_text(encoding="utf-8")
+          commerce = Path("commerce_app.py").read_text(encoding="utf-8")
+          runtime = main + "\n" + commerce
           validation = Path(".github/workflows/product-validation.yml").read_text(encoding="utf-8")
           redirects = Path("_redirects").read_text(encoding="utf-8")
 
-          required_main_markers = [
+          required_runtime_markers = [
               "allow_credentials=False",
               "def is_product_checkout_enabled",
               "if p.get(\"requires_metering\", False)",
@@ -80,7 +82,7 @@ jobs:
               "/api/*  https://agent-commerce-network-production-56e8.up.railway.app/:splat  200",
           ]
 
-          missing = [m for m in required_main_markers if m not in main]
+          missing = [m for m in required_runtime_markers if m not in runtime]
           missing += [m for m in required_validation_markers if m not in validation]
           missing += [m for m in required_redirect_markers if m not in redirects]
 
