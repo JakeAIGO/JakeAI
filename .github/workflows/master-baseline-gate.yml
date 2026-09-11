@@ -1,0 +1,40 @@
+name: Master Baseline Gate
+
+on:
+  push:
+    branches:
+      - fix/website-truthfulness-audit-2026-09-11
+  pull_request:
+    branches:
+      - main
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  baseline-gate:
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Set up Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: '3.12'
+
+      - name: Install test dependencies
+        run: |
+          python -m pip install --upgrade pip
+          pip install -r requirements.txt pytest
+
+      - name: Compile Python
+        run: python -m compileall -q .
+
+      - name: Run Master Baseline repository audit
+        run: python tools/baseline_audit.py
+
+      - name: Run regression tests
+        run: pytest -q tests/test_master_baseline_invariants.py
