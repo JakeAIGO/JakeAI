@@ -8,11 +8,12 @@ import main
 client = TestClient(main.app)
 
 
-def test_health_endpoint_is_healthy():
+def test_health_endpoint_is_liveness_only():
     response = client.get('/health')
     assert response.status_code == 200
     body = response.json()
-    assert body['status'] == 'healthy'
+    assert body['status'] == 'alive'
+    assert body.get('scope') == 'process_liveness_only'
     assert 'JakeAI Core' in body['service']
 
 
