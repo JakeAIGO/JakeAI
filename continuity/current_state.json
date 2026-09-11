@@ -1,9 +1,9 @@
 {
   "project": "JakeAI Autonomous Product Factory / JakeAIOfficial.com",
   "checkpoint": {
-    "created_at": "2026-09-11T11:52:00Z",
-    "source": "JakeAI continuity router local execution and regression tests",
-    "version": 2
+    "created_at": "2026-09-11T12:00:00Z",
+    "source": "Rolling continuity autosave architecture update",
+    "version": 3
   },
   "status_legend": {
     "verified_live": "Confirmed in the real destination",
@@ -33,18 +33,25 @@
       "status": "verified_staged",
       "evidence": ["router validate returned OK", "handoff generation returned exit code 0", "4 unittest cases passed"],
       "owner": "JakeAI"
+    },
+    {
+      "id": "rolling-autosave-design",
+      "summary": "Continuity now uses a rolling state plus append-only event journal so meaningful work is captured during long sessions rather than only in periodic handoff documents.",
+      "status": "verified_staged",
+      "evidence": ["continuity/journal.py", "continuity/AUTOSAVE_POLICY.md"],
+      "owner": "JakeAI"
     }
   ],
   "active_work": [
     {
       "id": "model-continuity-router",
-      "summary": "Provider-neutral continuity layer is implemented and locally tested; checkpoint writer added for atomic state advancement.",
+      "summary": "Provider-neutral continuity layer is implemented and locally tested; rolling autosave policy and append-only event journal added to reduce context loss between providers.",
       "status": "verified_staged",
-      "evidence": ["continuity/README.md", "continuity/state.schema.json", "continuity/current_state.json", "continuity/router.py", "continuity/checkpoint.py", "continuity/test_router.py"],
+      "evidence": ["continuity/README.md", "continuity/state.schema.json", "continuity/current_state.json", "continuity/router.py", "continuity/checkpoint.py", "continuity/test_router.py", "continuity/journal.py", "continuity/AUTOSAVE_POLICY.md"],
       "owner": "JakeAI"
     }
   ],
-  "next_action": "Run one external cross-provider acceptance test: give the generated portable handoff to a different AI provider/session and verify it identifies the same next action, status labels, constraints, and no-secret rule without reconstructing the project manually.",
+  "next_action": "Integrate the rolling event journal into the handoff generator so generated handoffs automatically include the most recent recorded events, then perform the external cross-provider acceptance test.",
   "constraints": [
     "Canonical brand spelling is JakeAI.",
     "No additional spend beyond the existing domain cost unless explicitly approved.",
@@ -52,10 +59,12 @@
     "Do not bypass provider usage limits; design lawful provider-independent failover instead.",
     "Do not include secrets, tokens, credentials, private paid-delivery URLs, proprietary prompts, or trade-secret implementation details in portable handoffs.",
     "Preserve legal, financial, security, and consequential-action approval gates.",
-    "Near-term commercial goal remains the first real independent paid sale."
+    "Near-term commercial goal remains the first real independent paid sale.",
+    "Continuity state must be updated after meaningful state-changing work rather than waiting for the end of a session."
   ],
   "handoff_notes": [
     "The model is not the memory. The model is not the project. JakeAI owns the project state; models are interchangeable compute.",
-    "Resume from the highest-value unresolved checkpoint with less discussion and more verified execution."
+    "Resume from the highest-value unresolved checkpoint with less discussion and more verified execution.",
+    "The handoff should be generated from rolling state and recent journal events, not reconstructed from conversation memory."
   ]
 }
