@@ -8,7 +8,7 @@ on:
   pull_request:
     branches:
       - main
-      - baseline/master-v2-2026-09-11
+      - baseline/master-v3-2026-09-11
   workflow_dispatch:
 
 permissions:
@@ -28,6 +28,7 @@ jobs:
         run: |
           git fetch --no-tags origin baseline/master-2026-09-11:refs/remotes/origin/baseline/master-2026-09-11
           git fetch --no-tags origin baseline/master-v2-2026-09-11:refs/remotes/origin/baseline/master-v2-2026-09-11
+          git fetch --no-tags origin baseline/master-v3-2026-09-11:refs/remotes/origin/baseline/master-v3-2026-09-11
 
       - name: Set up Python
         uses: actions/setup-python@v5
@@ -45,6 +46,9 @@ jobs:
       - name: Run Module Sandbox gate
         run: python tools/module_sandbox.py --base origin/baseline/master-v2-2026-09-11
 
+      - name: Run Commercial Rules Registry gate
+        run: python tools/commercial_rules.py
+
       - name: Compile Python
         run: python -m compileall -q .
 
@@ -59,3 +63,4 @@ jobs:
         run: |
           if [ -f build/change_control_report.json ]; then cat build/change_control_report.json; fi
           if [ -f build/module_sandbox_report.json ]; then cat build/module_sandbox_report.json; fi
+          if [ -f build/commercial_rules_report.json ]; then cat build/commercial_rules_report.json; fi
