@@ -36,5 +36,5 @@ jobs:
       - name: Run Master Baseline repository audit
         run: python tools/baseline_audit.py
 
-      - name: Run regression tests
-        run: pytest -q tests/test_master_baseline_invariants.py
+      - name: Run full baseline regression suite
+        run: pytest -q tests/
