@@ -1,0 +1,37 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "title": "JakeAI Continuity State",
+  "type": "object",
+  "required": ["project", "checkpoint", "status_legend", "verified_facts", "active_work", "next_action", "constraints"],
+  "properties": {
+    "project": {"type": "string"},
+    "checkpoint": {
+      "type": "object",
+      "required": ["created_at", "source", "version"],
+      "properties": {
+        "created_at": {"type": "string"},
+        "source": {"type": "string"},
+        "version": {"type": "integer", "minimum": 1}
+      }
+    },
+    "status_legend": {"type": "object"},
+    "verified_facts": {"type": "array", "items": {"$ref": "#/$defs/item"}},
+    "active_work": {"type": "array", "items": {"$ref": "#/$defs/item"}},
+    "next_action": {"type": "string"},
+    "constraints": {"type": "array", "items": {"type": "string"}},
+    "handoff_notes": {"type": "array", "items": {"type": "string"}}
+  },
+  "$defs": {
+    "item": {
+      "type": "object",
+      "required": ["id", "summary", "status"],
+      "properties": {
+        "id": {"type": "string"},
+        "summary": {"type": "string"},
+        "status": {"enum": ["verified_live", "verified_staged", "pending", "blocked", "proposed"]},
+        "evidence": {"type": "array", "items": {"type": "string"}},
+        "owner": {"type": "string"}
+      }
+    }
+  }
+}
