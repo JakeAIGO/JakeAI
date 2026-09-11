@@ -1,5 +1,5 @@
 #!/usr/bin/env python3
-"""Apply deterministic Jake AI Master Baseline repairs.
+"""Apply deterministic JakeAI Master Baseline repairs.
 
 This script only edits repository files. It does not deploy, call production,
 activate checkout, spend money, or touch credentials.
@@ -70,6 +70,26 @@ def main() -> int:
             "main.py",
             '''    if session.payment_status != "paid":\n        raise HTTPException(status_code=402, detail="Payment not completed. Delivery withheld.")\n    \n    # Payment verified — redirect to private delivery URL\n    delivery_url = prod_data.get("download_url", "").strip()''',
             '''    if session.payment_status != "paid":\n        raise HTTPException(status_code=402, detail="Payment not completed. Delivery withheld.")\n\n    # Bind the verified Stripe session to the exact product and catalog price.\n    # A paid session for one SKU must never unlock another SKU.\n    session_product_id = (getattr(session, "metadata", None) or {}).get("product_id")\n    if session_product_id != product_id:\n        raise HTTPException(status_code=403, detail="Checkout session product mismatch. Delivery withheld.")\n\n    expected_amount = int(round(float(prod_data["price"]) * 100))\n    if getattr(session, "amount_total", None) != expected_amount:\n        raise HTTPException(status_code=403, detail="Checkout session amount mismatch. Delivery withheld.")\n\n    if str(getattr(session, "currency", "")).lower() != "usd":\n        raise HTTPException(status_code=403, detail="Checkout session currency mismatch. Delivery withheld.")\n    \n    # Payment verified and bound to this product — redirect to private delivery URL\n    delivery_url = prod_data.get("download_url", "").strip()''',
+        ),
+        (
+            "main.py",
+            '    client_ip = request.client.host if request.client else "unknown"\n    ua = request.headers.get("user-agent", "unknown")\n    \n    # Background honeypot logging for market telemetry\n    background_tasks.add_task(log_unmet_query, q, client_ip, ua, len(matches))',
+            '    # Privacy-minimized product-demand telemetry: retain the search term and match count,\n    # but do not persist requester IP addresses or user-agent strings.\n    background_tasks.add_task(log_unmet_query, q, "not_collected", "not_collected", len(matches))',
+        ),
+        (
+            "privacy.html",
+            '<li><strong>API Usage Telemetry:</strong> Request timestamps, endpoint routes, response latencies, and IP/user-agent headers strictly for rate limiting, DDoS mitigation, and system debugging.</li>',
+            '<li><strong>API Usage Telemetry:</strong> Limited operational metadata may be processed for security, reliability, abuse prevention, and debugging. Product-search demand telemetry may retain the search term and match count for catalog improvement, but the JakeAI application does not persist the requester IP address or user-agent in that search-demand record.</li>',
+        ),
+        (
+            "privacy.html",
+            '<li><strong>Transactional Data:</strong> Payment details (processed securely via Stripe; JakeAI never stores raw credit card numbers), transaction hashes, and purchased SKU identifiers.</li>',
+            '<li><strong>Transactional Data:</strong> Where commerce is enabled, payment details are processed by the configured payment provider; JakeAI does not intentionally store raw payment-card numbers. Transaction and purchased-SKU records may be retained as needed to operate and reconcile the service.</li>',
+        ),
+        (
+            "privacy.html",
+            '<p>All network traffic is encrypted via TLS 1.3. API transactions support standard Idempotency-Key headers to eliminate duplicate billing during network retry cycles.</p>',
+            '<p>Public service traffic is intended to use HTTPS encryption in transit. Supported checkout requests may use Idempotency-Key handling to reduce duplicate transaction creation during client retries; callers should not treat idempotency as a substitute for their own transaction reconciliation.</p>',
         ),
     ]
 
