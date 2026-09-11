@@ -1,9 +1,9 @@
 {
   "project": "JakeAI Autonomous Product Factory / JakeAIOfficial.com",
   "checkpoint": {
-    "created_at": "2026-09-11T12:00:00Z",
-    "source": "Rolling continuity autosave architecture update",
-    "version": 3
+    "created_at": "2026-09-11T12:10:00Z",
+    "source": "Free-first capacity policy activation",
+    "version": 4
   },
   "status_legend": {
     "verified_live": "Confirmed in the real destination",
@@ -36,22 +36,29 @@
     },
     {
       "id": "rolling-autosave-design",
-      "summary": "Continuity now uses a rolling state plus append-only event journal so meaningful work is captured during long sessions rather than only in periodic handoff documents.",
+      "summary": "Continuity uses rolling state plus an append-only event journal so meaningful work is captured during long sessions rather than only in periodic handoff documents.",
       "status": "verified_staged",
       "evidence": ["continuity/journal.py", "continuity/AUTOSAVE_POLICY.md"],
+      "owner": "JakeAI"
+    },
+    {
+      "id": "free-first-capacity-policy",
+      "summary": "JakeAI now has a documented free-first capacity policy and provider-neutral capacity registry; circumvention is prohibited and paid expansion requires explicit owner approval.",
+      "status": "verified_staged",
+      "evidence": ["continuity/FREE_FIRST_CAPACITY_POLICY.md", "continuity/capacity.json"],
       "owner": "JakeAI"
     }
   ],
   "active_work": [
     {
       "id": "model-continuity-router",
-      "summary": "Provider-neutral continuity layer is implemented and locally tested; rolling autosave policy and append-only event journal added to reduce context loss between providers.",
+      "summary": "Provider-neutral continuity layer is implemented and locally tested; rolling autosave, event journaling, and free-first capacity governance are staged on the continuity branch.",
       "status": "verified_staged",
-      "evidence": ["continuity/README.md", "continuity/state.schema.json", "continuity/current_state.json", "continuity/router.py", "continuity/checkpoint.py", "continuity/test_router.py", "continuity/journal.py", "continuity/AUTOSAVE_POLICY.md"],
+      "evidence": ["continuity/README.md", "continuity/state.schema.json", "continuity/current_state.json", "continuity/router.py", "continuity/checkpoint.py", "continuity/test_router.py", "continuity/journal.py", "continuity/AUTOSAVE_POLICY.md", "continuity/FREE_FIRST_CAPACITY_POLICY.md", "continuity/capacity.json"],
       "owner": "JakeAI"
     }
   ],
-  "next_action": "Integrate the rolling event journal into the handoff generator so generated handoffs automatically include the most recent recorded events, then perform the external cross-provider acceptance test.",
+  "next_action": "Integrate recent journal events and capacity status into generated handoffs, then perform the external cross-provider acceptance test without purchasing capacity.",
   "constraints": [
     "Canonical brand spelling is JakeAI.",
     "No additional spend beyond the existing domain cost unless explicitly approved.",
@@ -60,11 +67,14 @@
     "Do not include secrets, tokens, credentials, private paid-delivery URLs, proprietary prompts, or trade-secret implementation details in portable handoffs.",
     "Preserve legal, financial, security, and consequential-action approval gates.",
     "Near-term commercial goal remains the first real independent paid sale.",
-    "Continuity state must be updated after meaningful state-changing work rather than waiting for the end of a session."
+    "Continuity state must be updated after meaningful state-changing work rather than waiting for the end of a session.",
+    "Optimize first; use only legitimate free capacity; paid capacity requires demonstrated need and explicit owner approval.",
+    "Never evade quotas, rate limits, access controls, account restrictions, or payment requirements."
   ],
   "handoff_notes": [
     "The model is not the memory. The model is not the project. JakeAI owns the project state; models are interchangeable compute.",
     "Resume from the highest-value unresolved checkpoint with less discussion and more verified execution.",
-    "The handoff should be generated from rolling state and recent journal events, not reconstructed from conversation memory."
+    "The handoff should be generated from rolling state and recent journal events, not reconstructed from conversation memory.",
+    "Capacity expansion follows the free-first escalation ladder and does not authorize spending."
   ]
 }
