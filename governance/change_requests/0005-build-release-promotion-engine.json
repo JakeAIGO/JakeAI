@@ -1,0 +1,30 @@
+{
+  "schema_version": "1.1",
+  "id": "CC-0005",
+  "title": "Build JakeAI Release & Promotion Engine",
+  "status": "proposed",
+  "baseline_ref": "baseline/master-2026-09-11",
+  "purpose": "Create a fail-closed, non-executing release and promotion planner that binds promotion approval to an exact production-candidate fingerprint, exact builder head, required review lanes, explicit human approval, and a pre-recorded rollback reference.",
+  "risk_class": "high",
+  "scope_categories": ["brand", "documentation", "governance", "security", "tests"],
+  "reviews": {
+    "architecture": "pending",
+    "security": "pending",
+    "council": "pending",
+    "human": "pending"
+  },
+  "production_authorized": false,
+  "publication_authorized": false,
+  "commercial_authorized": false,
+  "human_approval_record": "",
+  "unresolved_conditions": [
+    "Exact candidate must pass all inherited baseline gates plus Release and Promotion tests before baseline promotion.",
+    "The engine must remain non-executing: no merge, deployment, publication, checkout activation, or commercial activation occurs from the planning gate.",
+    "Any future production promotion requires a separate exact-candidate approval request and explicit human authorization."
+  ],
+  "evidence": [
+    "Development branch starts from baseline/master-v5-2026-09-11.",
+    "Default promotion request is fail-closed with all authorization fields false.",
+    "Rollback reference is recorded before any future release authorization can be considered."
+  ]
+}
