@@ -8,7 +8,7 @@ on:
   pull_request:
     branches:
       - main
-      - baseline/master-2026-09-11
+      - baseline/master-v2-2026-09-11
   workflow_dispatch:
 
 permissions:
@@ -24,8 +24,10 @@ jobs:
         with:
           fetch-depth: 0
 
-      - name: Fetch canonical baseline anchor
-        run: git fetch --no-tags origin baseline/master-2026-09-11:refs/remotes/origin/baseline/master-2026-09-11
+      - name: Fetch canonical baseline anchors
+        run: |
+          git fetch --no-tags origin baseline/master-2026-09-11:refs/remotes/origin/baseline/master-2026-09-11
+          git fetch --no-tags origin baseline/master-v2-2026-09-11:refs/remotes/origin/baseline/master-v2-2026-09-11
 
       - name: Set up Python
         uses: actions/setup-python@v5
@@ -40,6 +42,9 @@ jobs:
       - name: Run deterministic change-control gate
         run: python tools/change_control.py --base origin/baseline/master-2026-09-11
 
+      - name: Run Module Sandbox gate
+        run: python tools/module_sandbox.py --base origin/baseline/master-v2-2026-09-11
+
       - name: Compile Python
         run: python -m compileall -q .
 
@@ -49,9 +54,8 @@ jobs:
       - name: Run full regression suite
         run: python -m pytest -q tests/
 
-      - name: Display change-control report
+      - name: Display gate reports
         if: always()
         run: |
-          if [ -f build/change_control_report.json ]; then
-            cat build/change_control_report.json
-          fi
+          if [ -f build/change_control_report.json ]; then cat build/change_control_report.json; fi
+          if [ -f build/module_sandbox_report.json ]; then cat build/module_sandbox_report.json; fi
