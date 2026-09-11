@@ -75,7 +75,6 @@ def validate_change_request(data: dict, categories: set[str], changed_paths: set
     for field in required_fields:
         if field not in data:
             errors.append(f"missing field: {field}")
-
     if errors:
         return errors
 
@@ -143,6 +142,30 @@ def validate_change_request(data: dict, categories: set[str], changed_paths: set
     return errors
 
 
+def validate_change_request_set(requests: list[dict], actual_categories: set[str], changed_paths: set[str], policy: dict) -> list[str]:
+    errors: list[str] = []
+    declared_union: set[str] = set()
+    review_union: set[str] = set()
+    for data in requests:
+        scopes = data.get("scope_categories") if isinstance(data.get("scope_categories"), list) else []
+        declared = set(scopes)
+        declared_union.update(declared)
+        reviews = data.get("reviews") if isinstance(data.get("reviews"), dict) else {}
+        review_union.update(reviews.keys())
+        scoped_actual = actual_categories & declared
+        errors.extend(f"{data.get('id', 'unknown')}: {e}" for e in validate_change_request(data, scoped_actual, changed_paths, policy))
+
+    missing_scopes = actual_categories - declared_union
+    if missing_scopes:
+        errors.append("no change request declares scopes: " + ", ".join(sorted(missing_scopes)))
+
+    missing_review_lanes = required_reviews(actual_categories, policy) - review_union
+    if missing_review_lanes:
+        errors.append("no change request supplies review lanes: " + ", ".join(sorted(missing_review_lanes)))
+
+    return errors
+
+
 def verify_manifest_fail_closed(policy: dict) -> list[str]:
     errors: list[str] = []
     manifest_path = ROOT / policy["protected_manifest"]
@@ -197,14 +220,17 @@ def main() -> int:
         if changed and not request_paths:
             report["errors"].append("non-empty baseline diff requires a changed governance/change_requests/*.json declaration")
 
+        request_data: list[dict] = []
         for request_path in request_paths:
             try:
                 data = json.loads((ROOT / request_path).read_text(encoding="utf-8"))
-                errors = validate_change_request(data, categories, changed_set, policy)
-                report["change_requests"].append({"path": request_path, "id": data.get("id"), "errors": errors})
-                report["errors"].extend(f"{request_path}: {e}" for e in errors)
+                request_data.append(data)
+                report["change_requests"].append({"path": request_path, "id": data.get("id")})
             except Exception as exc:
                 report["errors"].append(f"{request_path}: invalid change request: {exc}")
+
+        if request_data:
+            report["errors"].extend(validate_change_request_set(request_data, categories, changed_set, policy))
 
         report["errors"].extend(verify_manifest_fail_closed(policy))
     except Exception as exc:
