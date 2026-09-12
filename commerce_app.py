@@ -27,11 +27,21 @@ INVENTORY_PRODUCT_ID = "prod_inventory_replenishment_01"
 INVENTORY_PRODUCT = {"title":"JakeAI Inventory & Replenishment Intelligence Autopilot — Founding Pilot","description":"CSV-based inventory decision-support workflow that identifies stockout risk, reorder candidates, excess or possible-obsolete inventory, and suggested replenishment quantities for authorized buyer review. No purchase orders are placed autonomously.","category":"inventory-replenishment-workflow","price":49.00,"download_url":SECURE_DELIVERY_URL,"delivery_mode":"protected_order","vendor_did":"did:a2a:jakeai_core"}
 POOL_PRODUCT_ID = "prod_pool_coach_autopilot_01"
 POOL_PRODUCT = {"title":"JakeAI Pool Coach Autopilot v1.0","description":"A lightweight pool-practice companion that turns plain-language session notes into recurring-pattern tracking and a focused next-session warmup. Recreational training aid; no wagering, guaranteed shot prediction, or camera analysis in v1.0.","category":"sports-practice-workflow","price":1.00,"download_url":SECURE_DELIVERY_URL,"delivery_mode":"protected_order","vendor_did":"did:a2a:jakeai_core"}
+GLASSES_PRODUCT_ID = "prod_where_the_hell_are_my_glasses_01"
+GLASSES_PRODUCT = {"title":"Where the Hell Are My Glasses? v1.0","description":"Humorous stateful guided-search workflow that remembers checked locations, reconstructs the last-use context, supports opt-in pattern learning, and includes safety guardrails. No camera-based object detection in v1.0.","category":"life-automation-comedy","price":2.99,"download_url":SECURE_DELIVERY_URL,"delivery_mode":"protected_order","vendor_did":"did:a2a:jakeai_core"}
 
-PROMOTED_PRODUCTS={GAME_QA_PRODUCT_ID:GAME_QA_PRODUCT,BOSS_FIGHT_PRODUCT_ID:BOSS_FIGHT_PRODUCT,INVENTORY_PRODUCT_ID:INVENTORY_PRODUCT,POOL_PRODUCT_ID:POOL_PRODUCT}
+PROMOTED_PRODUCTS={GAME_QA_PRODUCT_ID:GAME_QA_PRODUCT,BOSS_FIGHT_PRODUCT_ID:BOSS_FIGHT_PRODUCT,INVENTORY_PRODUCT_ID:INVENTORY_PRODUCT,POOL_PRODUCT_ID:POOL_PRODUCT,GLASSES_PRODUCT_ID:GLASSES_PRODUCT}
 main.GENESIS_CATALOG.update(PROMOTED_PRODUCTS)
 # Pool Coach is intentionally omitted while its checkout/delivery flow is under review.
-COMMERCE_ENABLED={"prod_make_free_00","prod_solar_guide_04",GAME_QA_PRODUCT_ID,BOSS_FIGHT_PRODUCT_ID,INVENTORY_PRODUCT_ID}
+COMMERCE_ENABLED={"prod_make_free_00","prod_solar_guide_04",GAME_QA_PRODUCT_ID,BOSS_FIGHT_PRODUCT_ID,INVENTORY_PRODUCT_ID,GLASSES_PRODUCT_ID}
+
+PRODUCT_PAGE_PATHS={
+    GAME_QA_PRODUCT_ID:"/game-qa-autopilot.html",
+    BOSS_FIGHT_PRODUCT_ID:"/boss-fight-lab.html",
+    INVENTORY_PRODUCT_ID:"/inventory-replenishment-autopilot.html",
+    POOL_PRODUCT_ID:"/pool-coach-autopilot.html",
+    GLASSES_PRODUCT_ID:"/where-the-hell-are-my-glasses.html",
+}
 
 app.user_middleware=[m for m in app.user_middleware if m.cls is not CORSMiddleware]
 app.add_middleware(CORSMiddleware,allow_origins=["https://jakeaiofficial.com","https://www.jakeaiofficial.com"],allow_credentials=False,allow_methods=["GET","POST","OPTIONS"],allow_headers=["Content-Type","Idempotency-Key"])
@@ -114,8 +124,9 @@ async def buy_product(product_id:str,request:Request,source:Optional[str]=None,i
     secret=os.environ.get("STRIPE_SECRET_KEY","").strip()
     if not secret:raise HTTPException(503,"Payment processor is temporarily unavailable")
     stripe.api_key=secret;base="https://jakeaiofficial.com/api"
+    cancel_path=PRODUCT_PAGE_PATHS.get(product_id,"/")
     try:
-        session=stripe.checkout.Session.create(payment_method_types=["card"],line_items=[{"price_data":{"currency":"usd","product_data":{"name":product["title"],"description":product["description"][:250]},"unit_amount":amount_cents},"quantity":1}],mode="payment",success_url=f"{base}/v1/checkout/complete?session_id={{CHECKOUT_SESSION_ID}}&order_id={oid}",cancel_url="https://jakeaiofficial.com/pool-coach-autopilot.html?payment=cancelled",metadata={"jakeai_order_id":oid,"product_id":product_id})
+        session=stripe.checkout.Session.create(payment_method_types=["card"],line_items=[{"price_data":{"currency":"usd","product_data":{"name":product["title"],"description":product["description"][:250]},"unit_amount":amount_cents},"quantity":1}],mode="payment",success_url=f"{base}/v1/checkout/complete?session_id={{CHECKOUT_SESSION_ID}}&order_id={oid}",cancel_url=f"https://jakeaiofficial.com{cancel_path}?payment=cancelled",metadata={"jakeai_order_id":oid,"product_id":product_id})
     except Exception as exc:raise HTTPException(400,f"Checkout could not be created: {exc}")
     try:_set_order_session(oid,session.id)
     except Exception:raise HTTPException(503,"Checkout session was created but the order record could not be finalized")
