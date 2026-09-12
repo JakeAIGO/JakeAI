@@ -82,6 +82,7 @@ func drain_energy(amount: int) -> void:
 
 func take_damage(_amount := 1) -> void:
     GameState.break_pressure()
+    Audio.play("hurt")
     if armor > 0:
         armor -= 1
         armor_changed.emit(armor)
@@ -132,6 +133,7 @@ func use_drill_dash() -> void:
     dash_cooldown = 4.0
     abilities.drill_dash(facing, int(GameState.run.dash_range), 48.0)
     GameState.bump_pressure(0.15)
+    Audio.play("boost")
     Telemetry.record("ability", {"id":"boost"})
     special_used.emit("BOOST")
 
@@ -144,5 +146,6 @@ func use_reactive_shield() -> void:
     armor += 1
     armor_changed.emit(armor)
     shield_cooldown = 8.0
+    Audio.play("shield")
     Telemetry.record("ability", {"id":"shield"})
     special_used.emit("SHIELD")
