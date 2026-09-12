@@ -1,0 +1,85 @@
+name: JakeAI Devvit Malbot Stage
+
+on:
+  push:
+    branches: [main]
+    paths:
+      - 'reddit/malbot-masquerade/**'
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+concurrency:
+  group: devvit-malbot-stage-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  qa-and-stage:
+    runs-on: ubuntu-latest
+    timeout-minutes: 20
+    defaults:
+      run:
+        working-directory: reddit/malbot-masquerade
+    env:
+      DEVVIT_AUTH_TOKEN: ${{ secrets.DEVVIT_TOKEN }}
+    steps:
+      - name: Checkout exact source
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+
+      - name: Setup Node
+        uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+
+      - name: Verify game package exists
+        run: test -f package.json && test -f package-lock.json && test -f devvit.json && test -f public/index.html
+
+      - name: Install project dependencies
+        run: npm ci
+
+      - name: Install pinned Devvit CLI
+        run: npm install --no-save --package-lock=false devvit@0.14.3
+
+      - name: Typecheck
+        run: npm run type-check
+
+      - name: Lint
+        run: npm run lint
+
+      - name: Test
+        run: npm test
+
+      - name: Build
+        run: npm run build
+
+      - name: Verify Devvit authentication
+        run: npx devvit whoami
+
+      - name: Stage private Devvit version
+        run: npx devvit upload
+
+      - name: Write immutable staging receipt
+        working-directory: .
+        shell: bash
+        run: |
+          mkdir -p release-receipt
+          {
+            echo "JAKEAI DEVVIT STAGING RECEIPT"
+            echo "repository=${GITHUB_REPOSITORY}"
+            echo "commit=${GITHUB_SHA}"
+            echo "run_id=${GITHUB_RUN_ID}"
+            echo "run_number=${GITHUB_RUN_NUMBER}"
+            echo "game=malbot-masquerade"
+            echo "status=STAGED_NOT_PUBLIC"
+            echo "public_release_authorized=NO"
+          } > release-receipt/STAGED.txt
+
+      - name: Archive staging receipt
+        uses: actions/upload-artifact@v4
+        with:
+          name: jakeai-malbot-staging-${{ github.sha }}
+          path: release-receipt/STAGED.txt
+          retention-days: 30
