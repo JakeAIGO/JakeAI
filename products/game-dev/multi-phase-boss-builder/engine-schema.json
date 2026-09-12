@@ -1,0 +1,46 @@
+{
+  "engine": "JakeAI Multi-Phase Boss Builder Autopilot",
+  "version": "0.2",
+  "purpose": "Transform an encounter specification into a deterministic multi-phase boss implementation plan and engine-specific scaffold.",
+  "input": {
+    "name": "string",
+    "engine_target": "gamemaker|godot|unity|unreal|engine-agnostic",
+    "genre": "string",
+    "tone": "string",
+    "player_abilities": ["string"],
+    "phase_count": "integer 2-6",
+    "difficulty": "easy|normal|hard|expert|custom",
+    "arena": {
+      "shape": "string",
+      "environmental_mechanics": ["string"]
+    },
+    "core_hook": "string",
+    "victory_model": "hp|objective|hybrid",
+    "accessibility_constraints": ["string"]
+  },
+  "output_contract": {
+    "identity_and_hook": true,
+    "phase_table": true,
+    "state_machine": true,
+    "telegraphs": true,
+    "attacks": true,
+    "recovery_windows": true,
+    "counterplay": true,
+    "arena_changes": true,
+    "difficulty_scaling": true,
+    "reward_logic": true,
+    "engine_scaffold": true,
+    "integration_checklist": true,
+    "qa_plan": true
+  },
+  "hard_gates": [
+    "Every damaging attack has a readable telegraph.",
+    "Every phase has at least one intended player counterplay path.",
+    "State transitions are deterministic and cannot move backward unless explicitly configured.",
+    "Victory condition cannot become impossible after a valid transition.",
+    "Damage windows and invulnerability rules are explicit.",
+    "All major tuning values are centralized.",
+    "Generated code is original and does not copy third-party implementations.",
+    "Generated output requires runtime validation in the target engine before release."
+  ]
+}
