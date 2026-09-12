@@ -125,8 +125,14 @@ async def buy_product(product_id:str,request:Request,source:Optional[str]=None,i
 def complete_checkout(session_id:str,order_id:str):
     order=_get_order(order_id)
     if not order:raise HTTPException(404,"Order not found")
-    if not is_product_checkout_enabled(order["product_id"]):raise HTTPException(409,"Product is not enabled for commerce")
-    product=main.GENESIS_CATALOG.get(order["product_id"]);target=_delivery_target(order["product_id"],product,order_id)
+    # Checkout gating prevents NEW sales. It must not strand customers who already
+    # paid before a product was later disabled for review. Fulfillment is allowed only
+    # when the catalog product and its delivery target are still present and safe.
+    product=main.GENESIS_CATALOG.get(order["product_id"])
+    if not product:raise HTTPException(409,"Product is no longer available for fulfillment")
+    delivery_url=product.get("download_url")
+    if not delivery_url or not is_safe_url(delivery_url):raise HTTPException(409,"Product delivery is not configured safely")
+    target=_delivery_target(order["product_id"],product,order_id)
     if order["status"]=="paid" and order.get("stripe_session_id")==session_id:return RedirectResponse(target,303)
     secret=os.environ.get("STRIPE_SECRET_KEY","").strip()
     if not secret:raise HTTPException(503,"Payment verification is temporarily unavailable")
