@@ -173,7 +173,7 @@ func collect_ore() -> void:
 func request_extract() -> void:
     if waiting_for_upgrade:
         return
-    var requirement := 0 if sector_index == 4 else min(int(sector_data.ore_count), 5 + sector_index)
+    var requirement: int = 0 if sector_index == 4 else int(min(int(sector_data.ore_count), 5 + sector_index))
     if sector_index == 4 and boss_alive:
         hud.set_status("Core Warden still active.")
         return
@@ -201,8 +201,8 @@ func _on_player_destroyed() -> void:
     _finish_run(false)
 
 func _finish_run(success: bool) -> void:
-    var depth := sector_index + 1
-    var tech := max(1, int(depth / 2) + (3 if success else 0) + int(GameState.run.score / 3000))
+    var depth: int = sector_index + 1
+    var tech: int = int(max(1, int(depth / 2) + (3 if success else 0) + int(GameState.run.score / 3000)))
     GameState.career.tech += tech
     if success:
         GameState.career.wins += 1
