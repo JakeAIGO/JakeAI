@@ -58,7 +58,6 @@ def _init_commerce_tables():
     conn=_commerce_conn()
     conn.execute("CREATE TABLE IF NOT EXISTS commerce_orders (id TEXT PRIMARY KEY,product_id TEXT NOT NULL,amount_cents INTEGER NOT NULL,status TEXT NOT NULL,stripe_session_id TEXT,source TEXT,created_at TEXT NOT NULL,completed_at TEXT)")
     conn.commit();conn.close()
-    # Product catalog persistence is best-effort only; checkout reads from the in-memory catalog.
     try:
         catalog=sqlite3.connect(DB_PATH,timeout=5)
         for product_id,p in PROMOTED_PRODUCTS.items(): catalog.execute("INSERT OR REPLACE INTO products (id,title,description,category,price,endpoint_url,vendor_did) VALUES (?,?,?,?,?,?,?)",(product_id,p["title"],p["description"],p["category"],p["price"],p["download_url"],p["vendor_did"]))
@@ -82,6 +81,23 @@ _init_commerce_tables()
 _legacy_paths={"/v1/checkout/buy/{product_id}","/v1/checkout/create-session"}
 app.router.routes[:]=[r for r in app.router.routes if getattr(r,"path",None) not in _legacy_paths]
 
+@app.get("/v1/checkout/health")
+def checkout_health():
+    storage_ok=False
+    try:
+        conn=_commerce_conn()
+        conn.execute("CREATE TABLE IF NOT EXISTS commerce_health (id TEXT PRIMARY KEY, checked_at TEXT NOT NULL)")
+        probe=f"probe_{uuid.uuid4().hex}"
+        conn.execute("INSERT INTO commerce_health (id,checked_at) VALUES (?,?)",(probe,datetime.now(timezone.utc).isoformat()))
+        conn.execute("DELETE FROM commerce_health WHERE id=?",(probe,))
+        conn.commit();conn.close();storage_ok=True
+    except Exception:
+        storage_ok=False
+    stripe_configured=bool(os.environ.get("STRIPE_SECRET_KEY","").strip())
+    ready=storage_ok and stripe_configured and is_product_checkout_enabled(POOL_PRODUCT_ID)
+    if not ready:raise HTTPException(503,"Checkout is not ready")
+    return {"status":"ready","storage":"ready","payment_processor":"configured","pool_product":"enabled"}
+
 @app.get("/v1/checkout/buy/{product_id}")
 async def buy_product(product_id:str,request:Request,source:Optional[str]=None,idempotency_key:Optional[str]=Header(None,alias="Idempotency-Key")):
     product=main.GENESIS_CATALOG.get(product_id)
@@ -96,7 +112,7 @@ async def buy_product(product_id:str,request:Request,source:Optional[str]=None,i
     if amount_cents<=0:return RedirectResponse(_delivery_target(product_id,product,oid),303)
     secret=os.environ.get("STRIPE_SECRET_KEY","").strip()
     if not secret:raise HTTPException(503,"Payment processor is temporarily unavailable")
-    stripe.api_key=secret;public_base="https://jakeaiofficial.com/api";base=public_base
+    stripe.api_key=secret;base="https://jakeaiofficial.com/api"
     try:
         session=stripe.checkout.Session.create(payment_method_types=["card"],line_items=[{"price_data":{"currency":"usd","product_data":{"name":product["title"],"description":product["description"][:250]},"unit_amount":amount_cents},"quantity":1}],mode="payment",success_url=f"{base}/v1/checkout/complete?session_id={{CHECKOUT_SESSION_ID}}&order_id={oid}",cancel_url="https://jakeaiofficial.com/pool-coach-autopilot.html?payment=cancelled",metadata={"jakeai_order_id":oid,"product_id":product_id})
     except Exception as exc:raise HTTPException(400,f"Checkout could not be created: {exc}")
