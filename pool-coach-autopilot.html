@@ -48,7 +48,7 @@
     box.dataset.artworkState='fallback-loading';
     status.textContent='Loading JakeAI memorial edition artwork…';
     try{
-      const urls=Array.from({length:9},(_,i)=>`assets/pool-coach-fallback/part${i}.txt`);
+      const urls=Array.from({length:9},(_,i)=>`assets/pool-coach-fallback/part${i}.txt?v=2`);
       const parts=await Promise.all(urls.map(async url=>{const r=await fetch(url,{cache:'no-store'});if(!r.ok)throw new Error(`asset chunk ${r.status}`);return (await r.text()).trim();}));
       const b64=parts.join('');
       if(!b64.startsWith('/9j/')||!b64.endsWith('/9k='))throw new Error('JPEG integrity markers missing');
@@ -60,5 +60,6 @@
   if(img.complete){if(img.naturalWidth>0)show();else fallback();}
 })();
 </script>
+<!-- JakeAI artwork loader self-test build 2 -->
 </body>
 </html>
