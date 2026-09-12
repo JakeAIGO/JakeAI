@@ -21,7 +21,6 @@ from crypto_payment_adapter import (
     USDC_DECIMALS,
 )
 
-# keccak256("Transfer(address,address,uint256)")
 ERC20_TRANSFER_TOPIC = (
     "0xddf252ad1be2c89b69c2b068fc378daa952ba7f163c4a11628f55a4df523b3ef"
 )
@@ -36,19 +35,11 @@ class ComplianceDecision:
 
 
 class ComplianceProvider(Protocol):
-    """External compliance boundary.
-
-    Implementations must perform the approved sanctions/risk procedure. The
-    payment code deliberately cannot self-certify compliance.
-    """
-
     def screen(self, *, sender_address: str, tx_hash: str) -> ComplianceDecision:
         ...
 
 
 class DenyByDefaultComplianceProvider:
-    """Safe default until an approved screening process is configured."""
-
     def screen(self, *, sender_address: str, tx_hash: str) -> ComplianceDecision:
         return ComplianceDecision(
             clear=False,
@@ -90,14 +81,18 @@ class SqliteTransactionRegistry:
                 """
             )
 
-    def has(self, tx_hash: str) -> bool:
+    def get(self, tx_hash: str) -> dict | None:
         tx_hash = tx_hash.strip().lower()
         with self._connect() as conn:
+            conn.row_factory = sqlite3.Row
             row = conn.execute(
-                "SELECT 1 FROM crypto_consumed_transactions WHERE tx_hash = ?",
+                "SELECT * FROM crypto_consumed_transactions WHERE tx_hash = ?",
                 (tx_hash,),
             ).fetchone()
-        return row is not None
+        return dict(row) if row else None
+
+    def has(self, tx_hash: str) -> bool:
+        return self.get(tx_hash) is not None
 
     def record(
         self,
@@ -154,12 +149,6 @@ def parse_base_usdc_transfer(
     merchant_address: str,
     latest_confirmed_block: int,
 ) -> ObservedTransfer:
-    """Parse exactly one native-USDC Transfer to the merchant from a receipt.
-
-    Fails closed for malformed receipts, failed transactions, multiple matching
-    transfers, the wrong token contract, or future/inconsistent block metadata.
-    """
-
     tx_hash = _hex(receipt.get("transactionHash"), 64, "transaction hash")
     status = receipt.get("status")
     if _quantity(status, "status") != 1:
