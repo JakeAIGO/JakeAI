@@ -88,7 +88,34 @@ CREATE TABLE IF NOT EXISTS commercial_terms_agreements (
 );
 
 -- JakeAI integration extensions. These are not represented as canonical tables in the v1.0 source artifact;
--- they implement the required audit/provenance and permanent human-approval release gate.
+-- they implement deterministic persistence, provenance, and the permanent human-approval release gate.
+CREATE TABLE IF NOT EXISTS opportunity_to_award_opportunities (
+    opportunity_id VARCHAR(255) PRIMARY KEY,
+    agency_name VARCHAR(255) NOT NULL,
+    project_state VARCHAR(2) NOT NULL,
+    estimated_value NUMERIC(15,2),
+    requirement_fingerprint JSONB NOT NULL,
+    source_provenance JSONB NOT NULL DEFAULT '{}'::jsonb,
+    verification_status VARCHAR(50) NOT NULL DEFAULT 'INCOMPLETE',
+    created_at TIMESTAMPTZ DEFAULT CURRENT_TIMESTAMP,
+    updated_at TIMESTAMPTZ DEFAULT CURRENT_TIMESTAMP,
+    CHECK (verification_status IN ('INCOMPLETE','VERIFIED','SUPERSEDED'))
+);
+
+CREATE TABLE IF NOT EXISTS opportunity_to_award_match_runs (
+    match_run_id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
+    opportunity_id VARCHAR(255) REFERENCES opportunity_to_award_opportunities(opportunity_id) ON DELETE RESTRICT,
+    contractor_id UUID REFERENCES contractors(contractor_id) ON DELETE RESTRICT,
+    eligible BOOLEAN NOT NULL,
+    hard_gates JSONB NOT NULL,
+    soft_score NUMERIC(5,2) NOT NULL,
+    legal_fee_gate VARCHAR(100) NOT NULL,
+    release_status VARCHAR(100) NOT NULL DEFAULT 'HOLD_FOR_HUMAN_APPROVAL',
+    algorithm_version VARCHAR(50) NOT NULL DEFAULT 'phase1-v1',
+    run_at TIMESTAMPTZ DEFAULT CURRENT_TIMESTAMP,
+    CHECK (release_status = 'HOLD_FOR_HUMAN_APPROVAL')
+);
+
 CREATE TABLE IF NOT EXISTS opportunity_to_award_release_gates (
     gate_id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
     opportunity_id VARCHAR(255) NOT NULL,
