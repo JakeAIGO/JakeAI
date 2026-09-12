@@ -5,16 +5,37 @@ TODAY = date(2026, 9, 12)
 
 def test_cloudflare_header_detected():
     r = scan_text('headers = {"X-Auth-User-Service-Key": "REDACTED"}', today=TODAY)
-    assert r["findings"][0]["id"] == "cloudflare-service-key"
-    assert r["findings"][0]["days_to_deadline"] == 18
+    finding = r["findings"][0]
+    assert finding["id"] == "cloudflare-service-key"
+    assert finding["days_to_deadline"] == 18
+    assert finding["confidence"] == "confirmed-signature"
+    assert finding["human_verification_required"] is True
 
 def test_google_v22_detected():
     r = scan_text('client = google.ads.googleads.v22.services.GoogleAdsServiceClient()', today=TODAY)
-    assert any(x["id"] == "google-ads-v22" for x in r["findings"])
+    finding = next(x for x in r["findings"] if x["id"] == "google-ads-v22")
+    assert finding["deadline"] == "2026-10-07"
+    assert finding["source_checked"] == "2026-09-12"
 
-def test_ews_detected():
+def test_coralogix_exact_endpoint_is_confirmed():
+    r = scan_text('https://api.eu1.coralogix.com/logs/rest/bulk', today=TODAY)
+    finding = next(x for x in r["findings"] if x["id"] == "coralogix-legacy-ingest")
+    assert finding["confidence"] == "confirmed-signature"
+
+def test_qlik_general_reference_is_candidate_not_confirmed():
+    r = scan_text('Qlik webhook CloudEvent migration notes', today=TODAY)
+    finding = next(x for x in r["findings"] if x["id"] == "qlik-cloudevent-legacy")
+    assert finding["confidence"] == "review-candidate"
+
+def test_ews_online_endpoint_is_confirmed():
     r = scan_text('https://outlook.office365.com/EWS/Exchange.asmx', today=TODAY)
-    assert any(x["id"] == "ews-exchange-online" for x in r["findings"])
+    finding = next(x for x in r["findings"] if x["id"] == "ews-exchange-online")
+    assert finding["confidence"] == "confirmed-signature"
+
+def test_generic_ews_path_is_candidate():
+    r = scan_text('server=https://mail.example.com/EWS/Exchange.asmx', today=TODAY)
+    finding = next(x for x in r["findings"] if x["id"] == "ews-exchange-online")
+    assert finding["confidence"] == "review-candidate"
 
 def test_unknown_is_not_claimed_safe():
     r = scan_text('ordinary_configuration=true', today=TODAY)
@@ -31,9 +52,9 @@ def test_private_key_fails_closed():
     assert r["status"] == "BLOCKED_SECRET_DETECTED"
 
 def test_batch_blocks_if_any_file_has_secret():
-    r = scan_files([('clean.txt','/v22/'), ('secret.txt','password=abcdefghijklmnop1234')], today=TODAY)
+    r = scan_files([('clean.txt','google.ads.googleads.v22'), ('secret.txt','password=abcdefghijklmnop1234')], today=TODAY)
     assert r["status"] == "BLOCKED_SECRET_DETECTED"
 
 def test_evidence_line_number():
-    r = scan_text('one\ntwo\n/EWS/Exchange.asmx\nfour', today=TODAY)
+    r = scan_text('one\ntwo\nhttps://outlook.office365.com/EWS/Exchange.asmx\nfour', today=TODAY)
     assert r["findings"][0]["matches"][0]["line"] == 3
