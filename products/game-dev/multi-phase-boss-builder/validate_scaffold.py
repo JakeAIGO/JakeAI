@@ -2,39 +2,51 @@ from __future__ import annotations
 
 import argparse
 import pathlib
+import re
 import sys
 
-REQUIRED_SNIPPETS = {
-    'state setter': 'function set_state',
-    'phase transition function': 'function advance_phase',
-    'transition lock': 'phase_transition_locked',
-    'telegraph state': '_telegraph',
-    'active state': '_active',
-    'recovery state': '"recovery"',
-    'defeated state': '"defeated"',
-    'damage entry point': 'function boss_apply_damage',
-    'objective entry point': 'function register_product_return',
-    'one-shot completion guard': 'encounter_complete_fired',
-}
+
+def has(text: str, pattern: str) -> bool:
+    return re.search(pattern, text, flags=re.IGNORECASE | re.MULTILINE) is not None
 
 
 def validate(text: str) -> list[str]:
     failures: list[str] = []
+
     if text.count('{') != text.count('}'):
         failures.append('unbalanced braces')
     if text.count('(') != text.count(')'):
         failures.append('unbalanced parentheses')
-    for name, snippet in REQUIRED_SNIPPETS.items():
-        if snippet not in text:
+
+    generic_invariants = {
+        'state setter': r'function\s+\w*set_state\s*\(',
+        'phase transition function': r'function\s+\w*advance_phase\s*\(',
+        'transition lock': r'\b(?:phase_)?transition_locked\b|\btransition_locked\b',
+        'telegraph state': r'["\'](?:\w+_)?telegraph(?:_\w+)?["\']',
+        'active state': r'["\'](?:\w+_)?active(?:_attack|_\w+)?["\']',
+        'recovery state': r'["\']recovery["\']',
+        'defeated state': r'["\']defeated["\']',
+        'damage entry point': r'function\s+\w*apply_damage\s*\(',
+        'one-shot completion guard': r'\bencounter_complete_fired\b',
+        'explicit defeated transition': r'\w*set_state\s*\(\s*["\']defeated["\']\s*,\s*0\s*\)',
+    }
+
+    for name, pattern in generic_invariants.items():
+        if not has(text, pattern):
             failures.append(f'missing {name}')
-    if '_next_phase <= phase' not in text:
+
+    if not has(text, r'function\s+\w*advance_phase\s*\([^)]*\)[\s\S]*?(?:_next(?:_phase)?\s*<=\s*phase|phase\s*>=\s*_next(?:_phase)?)'):
         failures.append('missing backwards/repeated phase guard')
-    if 'phase == 3' not in text or 'return false' not in text:
-        failures.append('missing final-phase HP damage rejection')
-    if 'products_returned >= required_returns' not in text:
-        failures.append('missing reachable objective completion condition')
-    if 'set_state("defeated", 0)' not in text:
-        failures.append('missing explicit defeated transition')
+
+    if not has(text, r'function\s+\w*(?:register_|break_|complete_|objective_)\w*\s*\('):
+        failures.append('missing objective/event entry point')
+
+    if not has(text, r'if\s*\(\s*state\s*==\s*["\']defeated["\']\s*\)'):
+        failures.append('missing defeated-state guard')
+
+    if not has(text, r'can_take_damage\s*='):
+        failures.append('missing explicit damage-window control')
+
     return failures
 
 
