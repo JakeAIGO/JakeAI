@@ -127,6 +127,22 @@ def test_persistent_registry_enforces_unique_tx_and_order(tmp_path):
         )
 
 
+def test_registry_rejects_hash_mismatch(tmp_path):
+    registry = SqliteTransactionRegistry(str(tmp_path / "payments.sqlite3"))
+    transfer = parse_base_usdc_transfer(
+        receipt=receipt(), merchant_address=MERCHANT, latest_confirmed_block=101
+    )
+    clear = ComplianceDecision(clear=True, provider="test")
+    with pytest.raises(ValueError, match="does not match"):
+        registry.record(
+            "0x" + "cd" * 32,
+            order_id="ord_1",
+            transfer=transfer,
+            block_number=100,
+            compliance=clear,
+        )
+
+
 def test_registry_rejects_uncleared_compliance(tmp_path):
     registry = SqliteTransactionRegistry(str(tmp_path / "payments.sqlite3"))
     transfer = parse_base_usdc_transfer(
