@@ -6,6 +6,7 @@ run/main_scene="res://scenes/SmokeTest.tscn"
 [autoload]
 GameState="*res://scripts/GameState.gd"
 ArcadeRuntime="*res://scripts/ArcadeRuntime.gd"
+CabinetInput="*res://scripts/CabinetInput.gd"
 Audio="*res://scripts/AudioStub.gd"
 Telemetry="*res://scripts/TelemetryStub.gd"
 
