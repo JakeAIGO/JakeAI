@@ -30,8 +30,12 @@ def receipt(amount_raw=5_000_000):
 
 
 class FakeRpc:
-    def __init__(self, receipt_value):
+    def __init__(self, receipt_value, chain_id=8453):
         self.receipt_value = receipt_value
+        self._chain_id = chain_id
+
+    def chain_id(self):
+        return self._chain_id
 
     def transaction_receipt(self, tx_hash):
         return self.receipt_value
@@ -62,26 +66,28 @@ def invoice():
 def test_disabled_mode_does_not_query_or_record(tmp_path):
     registry = SqliteTransactionRegistry(str(tmp_path / "db.sqlite3"))
     result = verify_submitted_payment(
-        rpc=FakeRpc(receipt()),
-        config=config(False),
-        invoice=invoice(),
-        tx_hash=TX_HASH,
-        compliance_provider=ClearCompliance(),
-        registry=registry,
+        rpc=FakeRpc(receipt()), config=config(False), invoice=invoice(), tx_hash=TX_HASH,
+        compliance_provider=ClearCompliance(), registry=registry,
     )
     assert result.recorded is False
     assert result.validation.accepted is False
 
 
+def test_wrong_rpc_chain_fails_closed(tmp_path):
+    registry = SqliteTransactionRegistry(str(tmp_path / "db.sqlite3"))
+    result = verify_submitted_payment(
+        rpc=FakeRpc(receipt(), chain_id=1), config=config(), invoice=invoice(), tx_hash=TX_HASH,
+        compliance_provider=ClearCompliance(), registry=registry,
+    )
+    assert result.recorded is False
+    assert result.validation.state.value == "wrong_token_or_network"
+
+
 def test_missing_receipt_stays_awaiting_payment(tmp_path):
     registry = SqliteTransactionRegistry(str(tmp_path / "db.sqlite3"))
     result = verify_submitted_payment(
-        rpc=FakeRpc(None),
-        config=config(),
-        invoice=invoice(),
-        tx_hash=TX_HASH,
-        compliance_provider=ClearCompliance(),
-        registry=registry,
+        rpc=FakeRpc(None), config=config(), invoice=invoice(), tx_hash=TX_HASH,
+        compliance_provider=ClearCompliance(), registry=registry,
     )
     assert result.recorded is False
     assert result.validation.state.value == "awaiting_payment"
@@ -90,12 +96,8 @@ def test_missing_receipt_stays_awaiting_payment(tmp_path):
 def test_compliance_hold_never_records(tmp_path):
     registry = SqliteTransactionRegistry(str(tmp_path / "db.sqlite3"))
     result = verify_submitted_payment(
-        rpc=FakeRpc(receipt()),
-        config=config(),
-        invoice=invoice(),
-        tx_hash=TX_HASH,
-        compliance_provider=DenyByDefaultComplianceProvider(),
-        registry=registry,
+        rpc=FakeRpc(receipt()), config=config(), invoice=invoice(), tx_hash=TX_HASH,
+        compliance_provider=DenyByDefaultComplianceProvider(), registry=registry,
         minimum_confirmations=2,
     )
     assert result.recorded is False
@@ -106,26 +108,17 @@ def test_compliance_hold_never_records(tmp_path):
 def test_clear_payment_records_once(tmp_path):
     registry = SqliteTransactionRegistry(str(tmp_path / "db.sqlite3"))
     result = verify_submitted_payment(
-        rpc=FakeRpc(receipt()),
-        config=config(),
-        invoice=invoice(),
-        tx_hash=TX_HASH,
-        compliance_provider=ClearCompliance(),
-        registry=registry,
-        minimum_confirmations=2,
-        usd_fmv=Decimal("5.00"),
+        rpc=FakeRpc(receipt()), config=config(), invoice=invoice(), tx_hash=TX_HASH,
+        compliance_provider=ClearCompliance(), registry=registry,
+        minimum_confirmations=2, usd_fmv=Decimal("5.00"),
     )
     assert result.recorded is True
     assert result.validation.accepted is True
     assert registry.has(TX_HASH)
 
     again = verify_submitted_payment(
-        rpc=FakeRpc(receipt()),
-        config=config(),
-        invoice=invoice(),
-        tx_hash=TX_HASH,
-        compliance_provider=ClearCompliance(),
-        registry=registry,
+        rpc=FakeRpc(receipt()), config=config(), invoice=invoice(), tx_hash=TX_HASH,
+        compliance_provider=ClearCompliance(), registry=registry,
         minimum_confirmations=2,
     )
     assert again.recorded is False
@@ -135,13 +128,8 @@ def test_clear_payment_records_once(tmp_path):
 def test_wrong_amount_is_not_recorded(tmp_path):
     registry = SqliteTransactionRegistry(str(tmp_path / "db.sqlite3"))
     result = verify_submitted_payment(
-        rpc=FakeRpc(receipt(amount_raw=4_000_000)),
-        config=config(),
-        invoice=invoice(),
-        tx_hash=TX_HASH,
-        compliance_provider=ClearCompliance(),
-        registry=registry,
-        minimum_confirmations=2,
+        rpc=FakeRpc(receipt(amount_raw=4_000_000)), config=config(), invoice=invoice(), tx_hash=TX_HASH,
+        compliance_provider=ClearCompliance(), registry=registry, minimum_confirmations=2,
     )
     assert result.recorded is False
     assert result.validation.state.value == "underpaid"
