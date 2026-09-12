@@ -1,0 +1,16 @@
+{
+  "name": "The Abyssal Bellkeeper",
+  "engine_target": "gamemaker",
+  "genre": "underwater horror action",
+  "tone": "oppressive, strange, readable under pressure",
+  "player_abilities": ["dash", "harpoon shot", "temporary sonar reveal"],
+  "phase_count": 4,
+  "difficulty": "hard",
+  "arena": {
+    "shape": "circular flooded cathedral chamber",
+    "environmental_mechanics": ["rotating current lanes", "darkness pockets", "breakable bell chains"]
+  },
+  "core_hook": "The boss cannot be damaged directly until the player uses sonar to expose resonant weak points and manipulates cathedral bells to interrupt attacks.",
+  "victory_model": "hybrid",
+  "accessibility_constraints": ["telegraphs must not rely on color alone", "audio cues need visual equivalents", "avoid unavoidable full-screen flashes"]
+}

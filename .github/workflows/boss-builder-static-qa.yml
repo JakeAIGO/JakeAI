@@ -1,0 +1,36 @@
+name: Boss Builder Static QA
+
+on:
+  pull_request:
+    paths:
+      - 'products/game-dev/multi-phase-boss-builder/**'
+      - '.github/workflows/boss-builder-static-qa.yml'
+  push:
+    branches:
+      - product/boss-builder-v0.1
+    paths:
+      - 'products/game-dev/multi-phase-boss-builder/**'
+      - '.github/workflows/boss-builder-static-qa.yml'
+
+jobs:
+  validate-boss-scaffolds:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Check out repository
+        uses: actions/checkout@v4
+
+      - name: Set up Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: '3.12'
+
+      - name: Validate Cosmic Vending Machine scaffold
+        run: python products/game-dev/multi-phase-boss-builder/validate_scaffold.py products/game-dev/multi-phase-boss-builder/cosmic_vending_machine.gml
+
+      - name: Validate Abyssal Bellkeeper scaffold
+        run: python products/game-dev/multi-phase-boss-builder/validate_scaffold.py products/game-dev/multi-phase-boss-builder/test-cases/abyssal_bellkeeper.gml
+
+      - name: Confirm runtime gate artifacts exist
+        run: |
+          test -f products/game-dev/multi-phase-boss-builder/igor_compile_gate.ps1
+          test -f products/game-dev/multi-phase-boss-builder/RUNTIME_GATE.md
