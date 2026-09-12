@@ -56,6 +56,7 @@ jobs:
       - name: Verify Core Safety Invariants
         run: |
           python - <<'PY'
+          import re
           from pathlib import Path
 
           main = Path("main.py").read_text(encoding="utf-8")
@@ -68,7 +69,6 @@ jobs:
           required_runtime_markers = [
               "allow_credentials=False",
               "def is_product_checkout_enabled",
-              "if p.get(\"requires_metering\", False)",
               "def is_safe_url",
               '@app.get("/llms.txt"',
               '@app.get("/.well-known/agent.json"',
@@ -94,6 +94,11 @@ jobs:
           missing = [m for m in required_runtime_markers if m not in runtime]
           missing += [m for m in required_validation_markers if m not in validation]
           missing += [m for m in required_redirect_markers if m not in redirects]
+
+          # Formatting-independent check that metered products remain excluded.
+          compact_commerce = re.sub(r"\s+", "", commerce)
+          if 'p.get("requires_metering",False)' not in compact_commerce:
+              missing.append("metered-product checkout exclusion")
 
           if missing:
               raise SystemExit("Safety/truth invariant missing: " + ", ".join(missing))
