@@ -1,0 +1,68 @@
+name: MANTLEBREAK Source Recovery
+
+on:
+  workflow_dispatch:
+  push:
+    branches: ["mantlebreak-arcade"]
+    paths:
+      - ".github/workflows/mantlebreak-source-recovery.yml"
+
+permissions:
+  contents: write
+
+jobs:
+  recover-source:
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    steps:
+      - name: Checkout protected arcade branch
+        uses: actions/checkout@v4
+        with:
+          ref: mantlebreak-arcade
+
+      - name: Reconstruct preserved production source
+        shell: bash
+        run: |
+          set -euo pipefail
+          rm -rf /tmp/mantlebreak-recovered mantlebreak-recovered-source
+          mkdir -p /tmp/mantlebreak-recovered mantlebreak-recovered-source
+          cat deep-shift-ci/full_game_bundle.part01 \
+              deep-shift-ci/full_game_bundle.part02 \
+              deep-shift-ci/full_game_bundle.part03 \
+              deep-shift-ci/full_game_bundle.part04 \
+              deep-shift-ci/full_game_bundle.part05 \
+              deep-shift-ci/full_game_bundle.part06 > /tmp/full.b64
+          base64 -d /tmp/full.b64 > /tmp/full.tar.gz
+          tar -xzf /tmp/full.tar.gz -C /tmp/mantlebreak-recovered
+          test -s /tmp/mantlebreak-recovered/project.godot
+          test -s /tmp/mantlebreak-recovered/scenes/Main.tscn
+          test -s /tmp/mantlebreak-recovered/scenes/Game.tscn
+          test -s /tmp/mantlebreak-recovered/scripts/Game.gd
+          cp -a /tmp/mantlebreak-recovered/. mantlebreak-recovered-source/
+          find mantlebreak-recovered-source -type f | sort > mantlebreak-recovered-source/RECOVERED_FILE_MANIFEST.txt
+          sha256sum /tmp/full.tar.gz > mantlebreak-recovered-source/RECOVERY_BUNDLE_SHA256.txt
+
+      - name: Record provenance
+        shell: bash
+        run: |
+          cat > mantlebreak-recovered-source/RECOVERY_PROVENANCE.md <<'EOF'
+          # MANTLEBREAK production-source recovery
+
+          Reconstructed losslessly from the six preserved `deep-shift-ci/full_game_bundle.partXX` chunks using the exact decode path documented by the historical Pass 11 CI pipeline: concatenate, Base64-decode, then extract the gzip-compressed tar archive.
+
+          This directory is a recovery snapshot. It is not a commercial-release declaration and does not clear the provisional MANTLEBREAK or Blazed Trail Studios names.
+          EOF
+
+      - name: Commit recovered source snapshot
+        shell: bash
+        run: |
+          set -euo pipefail
+          git config user.name "JakeAI Recovery Bot"
+          git config user.email "actions@users.noreply.github.com"
+          git add mantlebreak-recovered-source
+          if git diff --cached --quiet; then
+            echo "Recovery snapshot already present; nothing to commit."
+            exit 0
+          fi
+          git commit -m "Recover preserved MANTLEBREAK production source"
+          git push origin HEAD:mantlebreak-arcade
