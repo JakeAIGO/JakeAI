@@ -1,11 +1,13 @@
 {
-  "schema_version": "1.0",
+  "schema_version": "1.1",
   "generated_at": "2026-09-12",
   "scope_note": "Bootstrap registry containing repository-verified and currently public JakeAI workflow/product records. The lifetime metric is intentionally expressed as a verified minimum until historical chat-origin workflows are reconciled into this registry.",
   "metrics": {
     "lifetime_distinct_workflows_developed_minimum": 19,
-    "active_available_now": 5,
-    "public_product_listings": 17
+    "active_working_workflows": 13,
+    "available_now": 5,
+    "public_product_listings": 17,
+    "active_available_now": 5
   },
   "entries": [
     {"id":"JAI-WF-0001","canonical_name":"Where the Hell Are My Glasses?","category":"Consumer Utility","status":"production","version":"1.0","website_publication_status":"listed"},
