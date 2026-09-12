@@ -41,14 +41,14 @@ func _physics_process(delta: float) -> void:
     dash_cooldown = max(0.0, dash_cooldown - delta)
     shield_cooldown = max(0.0, shield_cooldown - delta)
 
-    if Input.is_action_just_pressed("seismic_charge"):
-        use_seismic_charge()
-    if Input.is_action_just_pressed("shock_pulse"):
-        use_shock_pulse()
-    if Input.is_action_just_pressed("drill_dash"):
-        use_drill_dash()
-    if Input.is_action_just_pressed("reactive_shield"):
-        use_reactive_shield()
+    if Input.is_action_just_pressed("cabinet_drill"):
+        use_drill()
+    if Input.is_action_just_pressed("cabinet_shock"):
+        use_shock()
+    if Input.is_action_just_pressed("cabinet_shield"):
+        use_shield()
+    if Input.is_action_just_pressed("cabinet_boost"):
+        use_boost()
 
 func _attempt_excavate(direction: Vector2) -> void:
     if terrain == null:
@@ -81,14 +81,28 @@ func take_damage(_amount := 1) -> void:
         return
     player_destroyed.emit()
 
+# Arcade vocabulary wrappers. These keep the cabinet contract stable while
+# preserving the proven recovered gameplay implementation underneath.
+func use_drill() -> void:
+    use_seismic_charge()
+
+func use_shock() -> void:
+    use_shock_pulse()
+
+func use_shield() -> void:
+    use_reactive_shield()
+
+func use_boost() -> void:
+    use_drill_dash()
+
 func use_seismic_charge() -> void:
     if GameState.run.bombs <= 0 or abilities == null:
         return
     GameState.run.bombs -= 1
     abilities.seismic_charge()
     Audio.play("charge")
-    Telemetry.record("ability", {"id":"seismic_charge"})
-    special_used.emit("seismic_charge")
+    Telemetry.record("ability", {"id":"drill"})
+    special_used.emit("DRILL")
 
 func use_shock_pulse() -> void:
     if pulse_cooldown > 0 or abilities == null:
@@ -99,8 +113,8 @@ func use_shock_pulse() -> void:
     pulse_cooldown = 5.0
     abilities.shock_pulse(float(GameState.run.pulse_range) * 64.0)
     Audio.play("pulse")
-    Telemetry.record("ability", {"id":"shock_pulse"})
-    special_used.emit("shock_pulse")
+    Telemetry.record("ability", {"id":"shock"})
+    special_used.emit("SHOCK")
 
 func use_drill_dash() -> void:
     if dash_cooldown > 0 or abilities == null:
@@ -110,7 +124,8 @@ func use_drill_dash() -> void:
         return
     dash_cooldown = 4.0
     abilities.drill_dash(facing, int(GameState.run.dash_range), 48.0)
-    special_used.emit("drill_dash")
+    Telemetry.record("ability", {"id":"boost"})
+    special_used.emit("BOOST")
 
 func use_reactive_shield() -> void:
     if shield_cooldown > 0:
@@ -121,4 +136,5 @@ func use_reactive_shield() -> void:
     armor += 1
     armor_changed.emit(armor)
     shield_cooldown = 8.0
-    special_used.emit("reactive_shield")
+    Telemetry.record("ability", {"id":"shield"})
+    special_used.emit("SHIELD")
