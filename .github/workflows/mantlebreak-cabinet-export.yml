@@ -1,0 +1,93 @@
+name: MANTLEBREAK Cabinet Export
+
+on:
+  workflow_dispatch:
+  push:
+    branches: ["mantlebreak-arcade"]
+    paths:
+      - "mantlebreak-recovered-source/**"
+      - ".github/workflows/mantlebreak-cabinet-export.yml"
+
+permissions:
+  contents: read
+
+jobs:
+  export-windows:
+    runs-on: ubuntu-latest
+    timeout-minutes: 20
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Install Godot 4.3
+        shell: bash
+        run: |
+          set -euo pipefail
+          wget -q https://github.com/godotengine/godot/releases/download/4.3-stable/Godot_v4.3-stable_linux.x86_64.zip
+          unzip -q Godot_v4.3-stable_linux.x86_64.zip
+          sudo mv Godot_v4.3-stable_linux.x86_64 /usr/local/bin/godot
+          godot --version
+
+      - name: Parse and boot gate
+        shell: bash
+        run: |
+          set -o pipefail
+          godot --headless --path mantlebreak-recovered-source --editor --quit 2>&1 | tee cabinet-import.log
+          ! grep -E "SCRIPT ERROR|Parse Error|ERROR:" cabinet-import.log
+          godot --headless --path mantlebreak-recovered-source --quit-after 5 2>&1 | tee cabinet-startup.log
+          ! grep -E "SCRIPT ERROR|Parse Error|Invalid get index|Invalid call|Failed to load|Cannot open" cabinet-startup.log
+
+      - name: Install Windows export templates
+        shell: bash
+        run: |
+          set -euo pipefail
+          mkdir -p ~/.local/share/godot/export_templates/4.3.stable
+          wget -q https://github.com/godotengine/godot/releases/download/4.3-stable/Godot_v4.3-stable_export_templates.tpz
+          unzip -q Godot_v4.3-stable_export_templates.tpz -d /tmp/godot-templates
+          cp -r /tmp/godot-templates/templates/* ~/.local/share/godot/export_templates/4.3.stable/
+
+      - name: Export cabinet candidate
+        shell: bash
+        run: |
+          set -euo pipefail
+          mkdir -p mantlebreak-recovered-source/build/windows
+          godot --headless --path mantlebreak-recovered-source --export-release "Windows Desktop" build/windows/MANTLEBREAK.exe 2>&1 | tee cabinet-export.log
+          test -s mantlebreak-recovered-source/build/windows/MANTLEBREAK.exe
+          sha256sum mantlebreak-recovered-source/build/windows/MANTLEBREAK.exe > mantlebreak-recovered-source/build/windows/SHA256.txt
+          cat > mantlebreak-recovered-source/build/windows/CABINET_BUILD.txt <<'EOF'
+          JakeAI Arcade
+          Blazed Trail Studios
+          MANTLEBREAK
+          Cabinet Candidate v0.1
+
+          Development controls:
+          F1 = CREDIT
+          ENTER = START
+          F2 = OPERATOR
+          Arrow keys = joystick
+          J = DRILL
+          K = SHOCK
+          L = SHIELD
+          I = BOOST
+
+          This is a test candidate, not a commercial release.
+          Trademark/name clearance and physical-cabinet validation remain required.
+          EOF
+
+      - name: Upload cabinet candidate
+        uses: actions/upload-artifact@v4
+        with:
+          name: MANTLEBREAK-Windows-Cabinet-v0.1
+          path: mantlebreak-recovered-source/build/windows/
+          retention-days: 30
+
+      - name: Upload QA logs
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: MANTLEBREAK-Cabinet-QA-Logs
+          path: |
+            cabinet-import.log
+            cabinet-startup.log
+            cabinet-export.log
+          retention-days: 14
