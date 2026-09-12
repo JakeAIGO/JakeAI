@@ -1,6 +1,7 @@
 [application]
-config/name="Deep Shift"
-run/main_scene="res://scenes/Main.tscn"
+config/name="MANTLEBREAK"
+config/description="MANTLEBREAK — a JakeAI Arcade / Blazed Trail Studios game"
+run/main_scene="res://scenes/ArcadeMain.tscn"
 config/features=PackedStringArray("4.3")
 
 [display]
@@ -8,6 +9,7 @@ window/size/viewport_width=1280
 window/size/viewport_height=720
 window/size/window_width_override=1280
 window/size/window_height_override=720
+window/size/mode=2
 window/stretch/mode="canvas_items"
 
 [rendering]
@@ -57,9 +59,7 @@ pause={
 GameState="*res://scripts/GameState.gd"
 SaveSystem="*res://scripts/SaveSystem.gd"
 Settings="*res://scripts/AccessibilitySettings.gd"
+ArcadeRuntime="*res://scripts/ArcadeRuntime.gd"
+CabinetInput="*res://scripts/CabinetInput.gd"
 Audio="*res://scripts/AudioStub.gd"
 Telemetry="*res://scripts/TelemetryStub.gd"
-
-
-# Controller mappings are intentionally duplicated here as a production-ready expansion point.
-# Godot's Input Map can be further tuned per platform during controller QA.
