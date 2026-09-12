@@ -1,0 +1,31 @@
+{
+  "schema_version": "1.0",
+  "generated_at": "2026-09-12",
+  "scope_note": "Bootstrap registry containing repository-verified and currently public JakeAI workflow/product records. The lifetime metric is intentionally expressed as a verified minimum until historical chat-origin workflows are reconciled into this registry.",
+  "metrics": {
+    "lifetime_distinct_workflows_developed_minimum": 19,
+    "active_available_now": 5,
+    "public_product_listings": 17
+  },
+  "entries": [
+    {"id":"JAI-WF-0001","canonical_name":"Where the Hell Are My Glasses?","category":"Consumer Utility","status":"production","version":"1.0","website_publication_status":"listed"},
+    {"id":"JAI-WF-0002","canonical_name":"Make the Damn Thing for Free™","category":"Production Orchestration","status":"production","version":"1.0","website_publication_status":"listed"},
+    {"id":"JAI-WF-0003","canonical_name":"Game QA Autopilot","category":"Game Development","status":"production","version":"1.0","website_publication_status":"listed"},
+    {"id":"JAI-WF-0004","canonical_name":"Pool Coach Autopilot","category":"Sports Practice","status":"production","version":"1.0","website_publication_status":"listed"},
+    {"id":"JAI-WF-0005","canonical_name":"Commercial Solar & BESS Guide","category":"Energy","status":"production","version":"1.0","website_publication_status":"listed"},
+    {"id":"JAI-WF-0006","canonical_name":"IRA / Section 48 Calculator API","category":"Energy / Tax Modeling","status":"working","version":"1.0","website_publication_status":"listed_gated"},
+    {"id":"JAI-WF-0007","canonical_name":"Web-to-Markdown Extraction API","category":"Data Tools","status":"working","version":"1.0","website_publication_status":"listed_gated"},
+    {"id":"JAI-WF-0008","canonical_name":"Agent Readability Auditor","category":"AI Agent Operations","status":"working","version":"1.0","website_publication_status":"listed_gated"},
+    {"id":"JAI-WF-0009","canonical_name":"PJM Demonstration Tariff & 4CP API","category":"Energy","status":"prototype","version":"1.0","website_publication_status":"listed_gated"},
+    {"id":"JAI-WF-0010","canonical_name":"Utility Tariff Normalizer API","category":"Energy / Data Tools","status":"working","version":"1.0","website_publication_status":"listed_gated"},
+    {"id":"JAI-WF-0011","canonical_name":"Multi-Model Advisory Council Audit API","category":"AI Governance","status":"working","version":"1.0","website_publication_status":"listed_gated"},
+    {"id":"JAI-WF-0012","canonical_name":"22-DoF Tendon Grasp Solver API","category":"Robotics","status":"prototype","version":"1.0","website_publication_status":"listed_gated"},
+    {"id":"JAI-WF-0013","canonical_name":"Boss Fight Lab","category":"Games","status":"prototype","version":"1.0","website_publication_status":"public_demo"},
+    {"id":"JAI-WF-0014","canonical_name":"NPC Spark","category":"Games / Storytelling","status":"candidate","version":"1.0","website_publication_status":"listed_gated"},
+    {"id":"JAI-WF-0015","canonical_name":"QuestForge Mini","category":"Games / Content Creation","status":"candidate","version":"1.0","website_publication_status":"listed_gated"},
+    {"id":"JAI-WF-0016","canonical_name":"Game Night Chaos","category":"Entertainment","status":"candidate","version":"1.0","website_publication_status":"listed_gated"},
+    {"id":"JAI-WF-0017","canonical_name":"Inventory Replenishment Autopilot","category":"Business Operations","status":"working","version":"1.0","website_publication_status":"public_page"},
+    {"id":"JAI-WF-0018","canonical_name":"Supplier Quote Compare","category":"Procurement","status":"working","version":"1.0","website_publication_status":"public_page"},
+    {"id":"JAI-WF-0019","canonical_name":"Workflow Rescue","category":"AI Agent Operations","status":"working","version":"1.0","website_publication_status":"public_page"}
+  ]
+}
