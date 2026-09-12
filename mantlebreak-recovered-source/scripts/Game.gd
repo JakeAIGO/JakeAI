@@ -49,6 +49,10 @@ func start_sector(index: int) -> void:
     _spawn_enemies_and_boss()
     ore_collected = 0
     boss_alive = index == 4
+    if index == 4:
+        ArcadeRuntime.begin_boss()
+    elif ArcadeRuntime.state != "PLAY":
+        ArcadeRuntime.begin_play()
     hud.set_status("%s  •  Secure ore, survive, reach extraction." % sector_data.get("briefing", "Begin the expedition."))
     hud.refresh()
 
@@ -203,5 +207,6 @@ func _finish_run(success: bool) -> void:
     GameState.career.best_score = max(GameState.career.best_score, GameState.run.score)
     SaveSystem.save_career()
     Telemetry.finish(success, GameState.run.score)
-    if success: Audio.play("extract")
+    if success:
+        Audio.play("extract")
     expedition_finished.emit(success, GameState.run.score)
