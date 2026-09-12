@@ -1,0 +1,62 @@
+{
+  "name": "JakeAI Comic Story Ledger",
+  "purpose": "Capture real JakeAI moments as possible future comic material without automatically making them public canon.",
+  "rules": {
+    "default_visibility": "private-candidate",
+    "publish_only_after_review": true,
+    "protect_trade_secrets": true,
+    "protect_credentials_and_private_customer_data": true,
+    "prefer_real_history_over_invented_easter_eggs": true,
+    "canonical_brand": "JakeAI"
+  },
+  "classifications": [
+    "canon-event",
+    "possible-story",
+    "easter-egg",
+    "character-world-development",
+    "private-do-not-publish"
+  ],
+  "entries": [
+    {
+      "id": "origin-domain-1299",
+      "classification": "canon-event",
+      "title": "The $12.99 Question",
+      "summary": "JakeAI begins with a $12.99 domain, curiosity, and the question of what could be built.",
+      "public_safe": true,
+      "used_in": ["Issue #0"]
+    },
+    {
+      "id": "visual-text-jki",
+      "classification": "easter-egg",
+      "title": "JKI",
+      "summary": "An AI-generated visual accidentally renders JKI instead of JakeAI, becoming both a visual QA lesson and a recurring comic Easter egg.",
+      "public_safe": true,
+      "used_in": ["Issue #0"],
+      "future_use": ["Issue #3"]
+    },
+    {
+      "id": "pool-artwork-deployment-gauntlet",
+      "classification": "possible-story",
+      "title": "Nine Ways to Load One Picture",
+      "summary": "A simple memorial artwork deployment turns into repeated broken-image failures, fallback paths, hash checks, and an asset deployment gate.",
+      "public_safe": true,
+      "notes": "Fictionalize details; do not expose credentials or private implementation secrets."
+    },
+    {
+      "id": "checkout-monster",
+      "classification": "canon-event",
+      "title": "The Checkout Monster",
+      "summary": "A real customer attempt exposes the gap between a product being built and a complete commerce path being ready.",
+      "public_safe": true,
+      "future_use": ["Issue #2"],
+      "notes": "Do not publish customer-identifying information or payment data."
+    },
+    {
+      "id": "build-public-engine-private",
+      "classification": "character-world-development",
+      "title": "Build in Public. Keep the Engine Private.",
+      "summary": "The JakeAI universe shows products, outcomes, mistakes, and lessons while keeping protected internal architecture and trade-secret-like methods private.",
+      "public_safe": true
+    }
+  ]
+}
