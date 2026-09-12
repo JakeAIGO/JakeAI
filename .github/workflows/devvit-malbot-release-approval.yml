@@ -1,0 +1,103 @@
+name: JakeAI Devvit Malbot Release Approval
+
+on:
+  workflow_dispatch:
+    inputs:
+      release_ref:
+        description: 'Exact 40-character commit SHA that was staged and approved'
+        required: true
+        type: string
+      release_version:
+        description: 'Stable version, e.g. 1.0.0'
+        required: true
+        type: string
+      approval_phrase:
+        description: 'Type exactly: APPROVE JAKEAI RELEASE'
+        required: true
+        type: string
+
+permissions:
+  contents: read
+
+jobs:
+  verify-human-approval:
+    runs-on: ubuntu-latest
+    environment: reddit-public-release
+    outputs:
+      approved_ref: ${{ steps.guard.outputs.approved_ref }}
+      approved_version: ${{ steps.guard.outputs.approved_version }}
+    steps:
+      - name: Enforce explicit approval
+        id: guard
+        shell: bash
+        env:
+          PHRASE: ${{ inputs.approval_phrase }}
+          REF: ${{ inputs.release_ref }}
+          VERSION: ${{ inputs.release_version }}
+        run: |
+          set -euo pipefail
+          [ "$PHRASE" = "APPROVE JAKEAI RELEASE" ] || { echo "Approval phrase mismatch."; exit 1; }
+          [[ "$REF" =~ ^[0-9a-fA-F]{40}$ ]] || { echo "release_ref must be a full commit SHA."; exit 1; }
+          [[ "$VERSION" =~ ^[0-9]+\.[0-9]+\.[0-9]+$ ]] || { echo "release_version must be stable semantic versioning."; exit 1; }
+          echo "approved_ref=$REF" >> "$GITHUB_OUTPUT"
+          echo "approved_version=$VERSION" >> "$GITHUB_OUTPUT"
+
+  rebuild-approved-source:
+    needs: verify-human-approval
+    runs-on: ubuntu-latest
+    timeout-minutes: 20
+    defaults:
+      run:
+        working-directory: reddit/malbot-masquerade
+    steps:
+      - name: Checkout approved commit only
+        uses: actions/checkout@v4
+        with:
+          ref: ${{ needs.verify-human-approval.outputs.approved_ref }}
+
+      - name: Setup Node
+        uses: actions/setup-node@v4
+        with:
+          node-version: '24.18.0'
+
+      - name: Install dependencies
+        run: npm ci
+
+      - name: Typecheck
+        run: npm run type-check --if-present
+
+      - name: Lint
+        run: npm run lint --if-present
+
+      - name: Test
+        run: npm test --if-present
+
+      - name: Build
+        run: npm run build --if-present
+
+      - name: Create release authorization receipt
+        working-directory: .
+        shell: bash
+        run: |
+          mkdir -p release-authorization
+          cat > release-authorization/APPROVED_RELEASE.txt <<TXT
+          JAKEAI PUBLIC RELEASE AUTHORIZATION
+          game=malbot-masquerade
+          commit=${{ needs.verify-human-approval.outputs.approved_ref }}
+          version=${{ needs.verify-human-approval.outputs.approved_version }}
+          approved_by=${{ github.actor }}
+          approval_run=${{ github.run_id }}
+          public_release_authorized=YES
+
+          FINAL REDDIT SUBMISSION COMMAND:
+          cd reddit/malbot-masquerade && npx devvit publish --version ${{ needs.verify-human-approval.outputs.approved_version }}
+
+          RULE: Publish only this exact approved commit. Any code change voids approval.
+          TXT
+
+      - name: Archive approval receipt
+        uses: actions/upload-artifact@v4
+        with:
+          name: jakeai-malbot-approved-${{ needs.verify-human-approval.outputs.approved_version }}
+          path: release-authorization/APPROVED_RELEASE.txt
+          retention-days: 90
