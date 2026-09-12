@@ -14,6 +14,9 @@ import main
 
 app = main.app
 DB_PATH = main.DB_PATH
+# Commerce writes use a dedicated writable runtime database by default. This avoids
+# checkout failures when the application bundle/database path is read-only or locked.
+COMMERCE_DB_PATH = os.environ.get("COMMERCE_DATABASE_PATH", "/tmp/jakeai-commerce.db")
 SECURE_DELIVERY_URL = "https://jakeai-secure-delivery-z0syg0.v2.appdeploy.ai/"
 
 GAME_QA_PRODUCT_ID = "prod_game_qa_autopilot_01"
@@ -46,20 +49,34 @@ def _delivery_target(product_id,product,order_id):
     if product.get("delivery_mode")!="protected_order":return url
     return f"{url}{'&' if '?' in url else '?'}{urlencode({'order_id':order_id,'product_id':product_id})}"
 
+def _commerce_conn():
+    conn=sqlite3.connect(COMMERCE_DB_PATH,timeout=10)
+    conn.row_factory=sqlite3.Row
+    return conn
+
 def _init_commerce_tables():
-    conn=sqlite3.connect(DB_PATH)
+    conn=_commerce_conn()
     conn.execute("CREATE TABLE IF NOT EXISTS commerce_orders (id TEXT PRIMARY KEY,product_id TEXT NOT NULL,amount_cents INTEGER NOT NULL,status TEXT NOT NULL,stripe_session_id TEXT,source TEXT,created_at TEXT NOT NULL,completed_at TEXT)")
-    for product_id,p in PROMOTED_PRODUCTS.items(): conn.execute("INSERT OR REPLACE INTO products (id,title,description,category,price,endpoint_url,vendor_did) VALUES (?,?,?,?,?,?,?)",(product_id,p["title"],p["description"],p["category"],p["price"],p["download_url"],p["vendor_did"]))
     conn.commit();conn.close()
+    # Product catalog persistence is best-effort only; checkout reads from the in-memory catalog.
+    try:
+        catalog=sqlite3.connect(DB_PATH,timeout=5)
+        for product_id,p in PROMOTED_PRODUCTS.items(): catalog.execute("INSERT OR REPLACE INTO products (id,title,description,category,price,endpoint_url,vendor_did) VALUES (?,?,?,?,?,?,?)",(product_id,p["title"],p["description"],p["category"],p["price"],p["download_url"],p["vendor_did"]))
+        catalog.commit();catalog.close()
+    except Exception:
+        pass
 
 def _create_order(product_id,amount_cents,status,source=None):
-    oid=f"ord_{uuid.uuid4().hex}"; now=datetime.now(timezone.utc).isoformat();conn=sqlite3.connect(DB_PATH);conn.execute("INSERT INTO commerce_orders (id,product_id,amount_cents,status,source,created_at) VALUES (?,?,?,?,?,?)",(oid,product_id,amount_cents,status,source,now));conn.commit();conn.close();return oid
+    oid=f"ord_{uuid.uuid4().hex}"; now=datetime.now(timezone.utc).isoformat();conn=_commerce_conn();conn.execute("INSERT INTO commerce_orders (id,product_id,amount_cents,status,source,created_at) VALUES (?,?,?,?,?,?)",(oid,product_id,amount_cents,status,source,now));conn.commit();conn.close();return oid
 
 def _mark_order_paid(order_id,session_id):
-    conn=sqlite3.connect(DB_PATH);conn.execute("UPDATE commerce_orders SET status='paid',stripe_session_id=?,completed_at=? WHERE id=?",(session_id,datetime.now(timezone.utc).isoformat(),order_id));conn.commit();conn.close()
+    conn=_commerce_conn();conn.execute("UPDATE commerce_orders SET status='paid',stripe_session_id=?,completed_at=? WHERE id=?",(session_id,datetime.now(timezone.utc).isoformat(),order_id));conn.commit();conn.close()
+
+def _set_order_session(order_id,session_id):
+    conn=_commerce_conn();conn.execute("UPDATE commerce_orders SET stripe_session_id=? WHERE id=?",(session_id,order_id));conn.commit();conn.close()
 
 def _get_order(order_id):
-    conn=sqlite3.connect(DB_PATH);conn.row_factory=sqlite3.Row;row=conn.execute("SELECT * FROM commerce_orders WHERE id=?",(order_id,)).fetchone();conn.close();return dict(row) if row else None
+    conn=_commerce_conn();row=conn.execute("SELECT * FROM commerce_orders WHERE id=?",(order_id,)).fetchone();conn.close();return dict(row) if row else None
 
 _init_commerce_tables()
 _legacy_paths={"/v1/checkout/buy/{product_id}","/v1/checkout/create-session"}
@@ -72,15 +89,20 @@ async def buy_product(product_id:str,request:Request,source:Optional[str]=None,i
     if not is_product_checkout_enabled(product_id):raise HTTPException(409,"Checkout is not active for this product yet")
     amount_cents=int(round(float(product.get("price",0))*100));delivery_url=product.get("download_url")
     if not delivery_url or not is_safe_url(delivery_url):raise HTTPException(409,"Product delivery is not configured safely")
-    if amount_cents<=0:
-        oid=_create_order(product_id,0,"free_claim_complete",source or "direct");return RedirectResponse(_delivery_target(product_id,product,oid),303)
+    try:
+        oid=_create_order(product_id,amount_cents,"free_claim_complete" if amount_cents<=0 else "pending_payment",source or "direct")
+    except Exception:
+        raise HTTPException(503,"Checkout order storage is temporarily unavailable")
+    if amount_cents<=0:return RedirectResponse(_delivery_target(product_id,product,oid),303)
     secret=os.environ.get("STRIPE_SECRET_KEY","").strip()
     if not secret:raise HTTPException(503,"Payment processor is temporarily unavailable")
-    stripe.api_key=secret;oid=_create_order(product_id,amount_cents,"pending_payment",source or "direct");base=str(request.base_url).rstrip("/")
+    stripe.api_key=secret;public_base="https://jakeaiofficial.com/api";base=public_base
     try:
-        session=stripe.checkout.Session.create(payment_method_types=["card"],line_items=[{"price_data":{"currency":"usd","product_data":{"name":product["title"],"description":product["description"][:250]},"unit_amount":amount_cents},"quantity":1}],mode="payment",success_url=f"{base}/v1/checkout/complete?session_id={{CHECKOUT_SESSION_ID}}&order_id={oid}",cancel_url="https://www.jakeaiofficial.com/?payment=cancelled",metadata={"jakeai_order_id":oid,"product_id":product_id},**({"idempotency_key":idempotency_key} if idempotency_key else {}))
+        session=stripe.checkout.Session.create(payment_method_types=["card"],line_items=[{"price_data":{"currency":"usd","product_data":{"name":product["title"],"description":product["description"][:250]},"unit_amount":amount_cents},"quantity":1}],mode="payment",success_url=f"{base}/v1/checkout/complete?session_id={{CHECKOUT_SESSION_ID}}&order_id={oid}",cancel_url="https://jakeaiofficial.com/pool-coach-autopilot.html?payment=cancelled",metadata={"jakeai_order_id":oid,"product_id":product_id})
     except Exception as exc:raise HTTPException(400,f"Checkout could not be created: {exc}")
-    conn=sqlite3.connect(DB_PATH);conn.execute("UPDATE commerce_orders SET stripe_session_id=? WHERE id=?",(session.id,oid));conn.commit();conn.close();return RedirectResponse(session.url,303)
+    try:_set_order_session(oid,session.id)
+    except Exception:raise HTTPException(503,"Checkout session was created but the order record could not be finalized")
+    return RedirectResponse(session.url,303)
 
 @app.get("/v1/checkout/complete")
 def complete_checkout(session_id:str,order_id:str):
