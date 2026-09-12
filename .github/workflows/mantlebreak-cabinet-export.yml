@@ -53,7 +53,11 @@ jobs:
           mkdir -p mantlebreak-recovered-source/build/windows
           godot --headless --path mantlebreak-recovered-source --export-release "Windows Desktop" build/windows/MANTLEBREAK.exe 2>&1 | tee cabinet-export.log
           test -s mantlebreak-recovered-source/build/windows/MANTLEBREAK.exe
-          sha256sum mantlebreak-recovered-source/build/windows/MANTLEBREAK.exe > mantlebreak-recovered-source/build/windows/SHA256.txt
+          (
+            cd mantlebreak-recovered-source/build/windows
+            sha256sum MANTLEBREAK.exe > SHA256.txt
+            sha256sum -c SHA256.txt
+          )
           cat > mantlebreak-recovered-source/build/windows/CABINET_BUILD.txt <<'EOF'
           JakeAI Arcade
           Blazed Trail Studios
@@ -72,6 +76,25 @@ jobs:
 
           This is a test candidate, not a commercial release.
           Trademark/name clearance and physical-cabinet validation remain required.
+          EOF
+          cat > mantlebreak-recovered-source/build/windows/PLAYTEST_GATE.txt <<'EOF'
+          MANTLEBREAK CABINET PLAYTEST GATE
+
+          1. Verify SHA256.txt before launch.
+          2. Launch MANTLEBREAK.exe on Windows 10/11 x64.
+          3. Confirm boot reaches JakeAI Arcade attract mode without exposing desktop UI.
+          4. Confirm F1 adds credit when free play is disabled.
+          5. Confirm ENTER starts a run.
+          6. Confirm arrows move/dig; J DRILL; K SHOCK; L SHIELD; I BOOST.
+          7. Confirm procedural audio is audible for dig, ore, DRILL, SHOCK, SHIELD, BOOST, hurt, boss warning, extraction.
+          8. Confirm PRESSURE rises with aggressive scoring/BOOST, decays over time, and breaks on damage.
+          9. Confirm F2 opens operator mode outside active play; test free play, credits/game, difficulty, attract audio, volume, diagnostics, high-score reset.
+          10. Complete or intentionally lose a run; confirm score/initials flow returns to attract mode.
+          11. Relaunch; confirm settings and high scores persist.
+          12. Record any crash, stuck state, inaudible cue, control ambiguity, or pacing issue.
+
+          PASS requires all functional checks above with no crash or unrecoverable state.
+          Physical USB encoder/joystick validation is a separate gate.
           EOF
 
       - name: Upload cabinet candidate
