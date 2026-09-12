@@ -1,16 +1,18 @@
 [application]
-config/name="Deep Shift"
-config/description="Deep Shift by Shiftforge Games"
+config/name="MANTLEBREAK"
+config/description="MANTLEBREAK — a JakeAI Arcade / Blazed Trail Studios game"
 run/main_scene="res://scenes/SmokeTest.tscn"
 
 [autoload]
 GameState="*res://scripts/GameState.gd"
+ArcadeRuntime="*res://scripts/ArcadeRuntime.gd"
 Audio="*res://scripts/AudioStub.gd"
 Telemetry="*res://scripts/TelemetryStub.gd"
 
 [display]
 window/size/viewport_width=1280
 window/size/viewport_height=720
+window/size/mode=2
 
 [rendering]
 renderer/rendering_method="gl_compatibility"
