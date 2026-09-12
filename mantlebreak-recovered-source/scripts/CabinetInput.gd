@@ -4,6 +4,8 @@ signal credit_pressed
 signal start_pressed
 signal operator_pressed
 
+# Cabinet-facing vocabulary is intentionally stable even if the underlying
+# MANTLEBREAK game module changes implementation details later.
 const ACTION_KEYS := {
     "cabinet_credit": KEY_F1,
     "cabinet_start": KEY_ENTER,
@@ -12,10 +14,10 @@ const ACTION_KEYS := {
     "move_right": KEY_RIGHT,
     "move_up": KEY_UP,
     "move_down": KEY_DOWN,
-    "seismic_charge": KEY_J,
-    "shock_pulse": KEY_K,
-    "reactive_shield": KEY_L,
-    "drill_dash": KEY_I
+    "cabinet_drill": KEY_J,
+    "cabinet_shock": KEY_K,
+    "cabinet_shield": KEY_L,
+    "cabinet_boost": KEY_I
 }
 
 func _ready() -> void:
