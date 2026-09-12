@@ -30,7 +30,8 @@ POOL_PRODUCT = {"title":"JakeAI Pool Coach Autopilot v1.0","description":"A ligh
 
 PROMOTED_PRODUCTS={GAME_QA_PRODUCT_ID:GAME_QA_PRODUCT,BOSS_FIGHT_PRODUCT_ID:BOSS_FIGHT_PRODUCT,INVENTORY_PRODUCT_ID:INVENTORY_PRODUCT,POOL_PRODUCT_ID:POOL_PRODUCT}
 main.GENESIS_CATALOG.update(PROMOTED_PRODUCTS)
-COMMERCE_ENABLED={"prod_make_free_00","prod_solar_guide_04",GAME_QA_PRODUCT_ID,BOSS_FIGHT_PRODUCT_ID,INVENTORY_PRODUCT_ID,POOL_PRODUCT_ID}
+# Pool Coach is intentionally omitted while its checkout/delivery flow is under review.
+COMMERCE_ENABLED={"prod_make_free_00","prod_solar_guide_04",GAME_QA_PRODUCT_ID,BOSS_FIGHT_PRODUCT_ID,INVENTORY_PRODUCT_ID}
 
 app.user_middleware=[m for m in app.user_middleware if m.cls is not CORSMiddleware]
 app.add_middleware(CORSMiddleware,allow_origins=["https://jakeaiofficial.com","https://www.jakeaiofficial.com"],allow_credentials=False,allow_methods=["GET","POST","OPTIONS"],allow_headers=["Content-Type","Idempotency-Key"])
@@ -94,9 +95,9 @@ def checkout_health():
     except Exception:
         storage_ok=False
     stripe_configured=bool(os.environ.get("STRIPE_SECRET_KEY","").strip())
-    ready=storage_ok and stripe_configured and is_product_checkout_enabled(POOL_PRODUCT_ID)
+    ready=storage_ok and stripe_configured
     if not ready:raise HTTPException(503,"Checkout is not ready")
-    return {"status":"ready","storage":"ready","payment_processor":"configured","pool_product":"enabled"}
+    return {"status":"ready","storage":"ready","payment_processor":"configured"}
 
 @app.get("/v1/checkout/buy/{product_id}")
 async def buy_product(product_id:str,request:Request,source:Optional[str]=None,idempotency_key:Optional[str]=Header(None,alias="Idempotency-Key")):
