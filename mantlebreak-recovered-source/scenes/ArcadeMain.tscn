@@ -54,6 +54,12 @@ text = "SOMETHING WAS BURIED FOR A REASON."
 horizontal_alignment = 1
 theme_override_font_sizes/font_size = 18
 
+[node name="Controls" type="Label" parent="CanvasLayer/Attract/Center/VBox"]
+layout_mode = 2
+text = "JOYSTICK MOVE / DIG   •   DRILL   •   SHOCK   •   SHIELD   •   BOOST"
+horizontal_alignment = 1
+theme_override_font_sizes/font_size = 14
+
 [node name="State" type="Label" parent="CanvasLayer/Attract/Center/VBox"]
 custom_minimum_size = Vector2(560, 50)
 layout_mode = 2
