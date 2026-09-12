@@ -1,20 +1,22 @@
 """Read-only Base RPC verification for JakeAI merchant USDC payments.
 
-This module never signs or broadcasts transactions. It only reads public
-blockchain data, parses a Base native-USDC receipt, validates it against a JakeAI
-invoice, requires an external compliance clearance, and then records the
-transaction once. Live checkout remains separately feature-gated.
+No signing or broadcasting capability exists here. RPC configuration is deploy-
+controlled, HTTPS-only, host-allowlisted, response-size-limited, and verified to
+be Base Mainnet before payment data is trusted.
 """
 
 from __future__ import annotations
 
 import json
+import os
 from dataclasses import dataclass
 from decimal import Decimal
 from typing import Callable
 from urllib import request
+from urllib.parse import urlparse
 
 from crypto_payment_adapter import (
+    BASE_MAINNET_CHAIN_ID,
     CryptoPaymentConfig,
     DuplicateTransactionRegistry,
     PaymentInvoice,
@@ -31,6 +33,8 @@ from crypto_payment_integration import (
 
 
 JsonRpcCaller = Callable[[str, list], object]
+DEFAULT_ALLOWED_RPC_HOSTS = {"mainnet.base.org"}
+MAX_RPC_RESPONSE_BYTES = 1_000_000
 
 
 @dataclass(frozen=True)
@@ -43,19 +47,28 @@ class RpcVerificationResult:
 
 
 class BaseRpcClient:
-    """Minimal read-only JSON-RPC client.
-
-    The endpoint is supplied at runtime. No wallet key or signing capability is
-    accepted by this class.
-    """
+    """Minimal read-only JSON-RPC client with deployment-time host controls."""
 
     def __init__(self, rpc_url: str, timeout_seconds: int = 10) -> None:
         self.rpc_url = str(rpc_url).strip()
         self.timeout_seconds = int(timeout_seconds)
-        if not self.rpc_url.startswith("https://"):
+        parsed = urlparse(self.rpc_url)
+        if parsed.scheme != "https" or not parsed.hostname:
             raise ValueError("Base RPC URL must use HTTPS")
+        configured = {
+            h.strip().lower()
+            for h in os.environ.get("BASE_RPC_ALLOWED_HOSTS", "mainnet.base.org").split(",")
+            if h.strip()
+        }
+        allowed_hosts = configured or DEFAULT_ALLOWED_RPC_HOSTS
+        if parsed.hostname.lower() not in allowed_hosts:
+            raise ValueError("Base RPC host is not allowlisted")
+        if parsed.username or parsed.password:
+            raise ValueError("Base RPC URL must not embed credentials")
 
     def call(self, method: str, params: list) -> object:
+        if method not in {"eth_getTransactionReceipt", "eth_blockNumber", "eth_chainId"}:
+            raise ValueError("RPC method is not allowed")
         payload = json.dumps(
             {"jsonrpc": "2.0", "id": 1, "method": method, "params": params}
         ).encode("utf-8")
@@ -66,12 +79,26 @@ class BaseRpcClient:
             method="POST",
         )
         with request.urlopen(req, timeout=self.timeout_seconds) as response:
-            body = json.loads(response.read().decode("utf-8"))
+            raw = response.read(MAX_RPC_RESPONSE_BYTES + 1)
+        if len(raw) > MAX_RPC_RESPONSE_BYTES:
+            raise RuntimeError("Base RPC response exceeded size limit")
+        try:
+            body = json.loads(raw.decode("utf-8"))
+        except (UnicodeDecodeError, json.JSONDecodeError) as exc:
+            raise RuntimeError("Base RPC returned invalid JSON") from exc
+        if not isinstance(body, dict):
+            raise RuntimeError("Base RPC returned unexpected response")
         if body.get("error"):
             raise RuntimeError(f"Base RPC error: {body['error']}")
         if "result" not in body:
             raise RuntimeError("Base RPC response missing result")
         return body["result"]
+
+    def chain_id(self) -> int:
+        result = self.call("eth_chainId", [])
+        if not isinstance(result, str) or not result.startswith("0x"):
+            raise RuntimeError("unexpected chain ID response")
+        return int(result, 16)
 
     def transaction_receipt(self, tx_hash: str) -> dict | None:
         result = self.call("eth_getTransactionReceipt", [tx_hash])
@@ -99,16 +126,20 @@ def verify_submitted_payment(
     minimum_confirmations: int = 2,
     usd_fmv: Decimal | None = None,
 ) -> RpcVerificationResult:
-    """Verify one customer-supplied transaction hash, fail-closed.
-
-    Payment is never recorded unless receipt validation and the independent
-    compliance decision both pass.
-    """
+    """Verify one customer-supplied transaction hash, fail-closed."""
 
     if not config.enabled:
         return RpcVerificationResult(
             validation=ValidationResult(False, PaymentState.FAILED, "crypto payments are disabled"),
             compliance=ComplianceDecision(False, provider="not-run", reason="payments disabled"),
+            tx_hash=tx_hash,
+            block_number=None,
+            recorded=False,
+        )
+    if rpc.chain_id() != BASE_MAINNET_CHAIN_ID:
+        return RpcVerificationResult(
+            validation=ValidationResult(False, PaymentState.WRONG_TOKEN_OR_NETWORK, "RPC endpoint is not Base Mainnet"),
+            compliance=ComplianceDecision(False, provider="not-run", reason="wrong RPC chain"),
             tx_hash=tx_hash,
             block_number=None,
             recorded=False,
@@ -131,7 +162,6 @@ def verify_submitted_payment(
         latest_confirmed_block=latest_block,
     )
 
-    # Require the receipt itself to be for the submitted hash.
     normalized_submitted = str(tx_hash).strip().lower()
     if transfer.tx_hash != normalized_submitted:
         return RpcVerificationResult(
@@ -151,8 +181,6 @@ def verify_submitted_payment(
             recorded=False,
         )
 
-    # Use an in-memory guard inside validation, then rely on SQLite uniqueness as
-    # the authoritative persistent replay protection when recording.
     transient_registry = DuplicateTransactionRegistry()
     compliance = compliance_provider.screen(
         sender_address=transfer.sender,
