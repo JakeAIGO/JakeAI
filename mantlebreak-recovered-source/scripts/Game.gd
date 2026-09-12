@@ -53,7 +53,10 @@ func start_sector(index: int) -> void:
         ArcadeRuntime.begin_boss()
     elif ArcadeRuntime.state != "PLAY":
         ArcadeRuntime.begin_play()
-    hud.set_status("%s  •  Secure ore, survive, reach extraction." % sector_data.get("briefing", "Begin the expedition."))
+    if index == 0:
+        hud.set_status("JOYSTICK moves and digs  •  DRILL breaks through  •  SHOCK clears space  •  SHIELD protects  •  BOOST escapes")
+    else:
+        hud.set_status("%s  •  Secure ore, survive, reach extraction." % sector_data.get("briefing", "Begin the expedition."))
     hud.refresh()
 
 func _clear_entities() -> void:
