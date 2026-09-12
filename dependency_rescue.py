@@ -46,6 +46,13 @@ RULES: tuple[Rule, ...] = (
         "Send a controlled test event and verify it is searchable at the destination before retiring the legacy path.",
         "https://coralogix.com/docs/user-guides/latest-updates/deprecations/endpoints/", "2026-09-12"),
     Rule(
+        "databricks-supervisor-api", "Databricks", "Supervisor API (Beta) end of life", "2026-09-30",
+        (r"(?i)databricks.{0,120}supervisor.{0,40}api", r"(?i)supervisor[_ -]?api"),
+        (r"(?i)supervisor.{0,120}databricks",),
+        "Inventory Supervisor API callers and migrate the affected agent workflow to custom agents on Databricks Apps after validating feature and deployment requirements.",
+        "Run representative agent tasks against the replacement in a non-production environment and confirm the retired Supervisor API is no longer called.",
+        "https://docs.databricks.com/aws/en/release-notes/whats-coming", "2026-09-12"),
+    Rule(
         "google-ads-v22", "Google Ads", "Google Ads API v22 dependency", "2026-10-07",
         (r"google\.ads\.googleads\.v22", r"(?i)googleads/v22", r"(?i)googleads\.v22"),
         (r"(?i)google.?ads.{0,80}\bv22\b",),
