@@ -1,0 +1,80 @@
+[gd_scene load_steps=14 format=3]
+
+[ext_resource path="res://scripts/Game.gd" type="Script" id="1"]
+[ext_resource path="res://scenes/Player.tscn" type="PackedScene" id="2"]
+[ext_resource path="res://scenes/Enemy.tscn" type="PackedScene" id="3"]
+[ext_resource path="res://scripts/SectorGenerator.gd" type="Script" id="4"]
+[ext_resource path="res://scripts/HUD.gd" type="Script" id="5"]
+[ext_resource path="res://scenes/Ore.tscn" type="PackedScene" id="6"]
+[ext_resource path="res://scenes/Hazard.tscn" type="PackedScene" id="7"]
+[ext_resource path="res://scenes/ExtractionBeacon.tscn" type="PackedScene" id="8"]
+[ext_resource path="res://scenes/Rock.tscn" type="PackedScene" id="9"]
+[ext_resource path="res://scenes/UpgradePanel.tscn" type="PackedScene" id="10"]
+[ext_resource path="res://scenes/TerrainManager.tscn" type="PackedScene" id="11"]
+[ext_resource path="res://scenes/AbilityController.tscn" type="PackedScene" id="12"]
+[ext_resource path="res://scenes/Boss.tscn" type="PackedScene" id="13"]
+
+[node name="Game" type="Node2D"]
+script = ExtResource("1")
+player_scene = ExtResource("2")
+enemy_scene = ExtResource("3")
+ore_scene = ExtResource("6")
+hazard_scene = ExtResource("7")
+extraction_scene = ExtResource("8")
+rock_scene = ExtResource("9")
+boss_scene = ExtResource("13")
+
+[node name="SectorGenerator" type="Node" parent="."]
+script = ExtResource("4")
+
+[node name="World" type="Node2D" parent="."]
+
+[node name="TerrainManager" parent="World" instance=ExtResource("11")]
+
+[node name="Entities" type="Node2D" parent="World"]
+
+[node name="Effects" type="Node2D" parent="World"]
+
+[node name="AbilityController" parent="." instance=ExtResource("12")]
+
+[node name="HUD" type="CanvasLayer" parent="."]
+script = ExtResource("5")
+
+[node name="Panel" type="PanelContainer" parent="HUD"]
+offset_left = 16.0
+offset_top = 16.0
+offset_right = 1264.0
+offset_bottom = 84.0
+
+[node name="HBox" type="HBoxContainer" parent="HUD/Panel"]
+layout_mode = 2
+theme_override_constants/separation = 24
+
+[node name="Sector" type="Label" parent="HUD/Panel/HBox"]
+layout_mode = 2
+text = "Sector 1/5"
+
+[node name="Score" type="Label" parent="HUD/Panel/HBox"]
+layout_mode = 2
+text = "Score 0"
+
+[node name="Ore" type="Label" parent="HUD/Panel/HBox"]
+layout_mode = 2
+text = "Ore 0/0"
+
+[node name="Energy" type="Label" parent="HUD/Panel/HBox"]
+layout_mode = 2
+text = "Energy 100"
+
+[node name="Armor" type="Label" parent="HUD/Panel/HBox"]
+layout_mode = 2
+text = "Armor 0"
+
+[node name="Status" type="Label" parent="HUD"]
+offset_left = 16.0
+offset_top = 96.0
+offset_right = 1180.0
+offset_bottom = 130.0
+text = "Begin the expedition."
+
+[node name="UpgradePanel" parent="." instance=ExtResource("10")]

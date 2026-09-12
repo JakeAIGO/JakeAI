@@ -1,0 +1,34 @@
+{
+  "title": "Deep Shift",
+  "version": "0.3-production-skeleton",
+  "sectors": [
+    {
+      "name": "Rust Veins",
+      "modifier": "Low Visibility"
+    },
+    {
+      "name": "Crystal Fault",
+      "modifier": "Rich Ore"
+    },
+    {
+      "name": "Magma Shelf",
+      "modifier": "Hot Zone"
+    },
+    {
+      "name": "Ancient Works",
+      "modifier": "Enemy Surge"
+    },
+    {
+      "name": "Core Nest",
+      "modifier": "Boss Sector"
+    }
+  ],
+  "abilities": [
+    "Seismic Charge",
+    "Shock Pulse",
+    "Drill Dash",
+    "Reactive Shield"
+  ],
+  "commercial_target": "small premium Steam roguelite",
+  "working_price_usd": 4.99
+}

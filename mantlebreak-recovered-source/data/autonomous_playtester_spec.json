@@ -1,0 +1,20 @@
+{
+  "name": "Jake AI Autonomous Game Playtester",
+  "version": "0.1",
+  "purpose": "Run deterministic batches, identify balance failures, retain failing seeds, recommend parameter changes, then regression-test.",
+  "batch_metrics": [
+    "win_rate",
+    "average_score",
+    "death_reason",
+    "sector_reached",
+    "ability_usage",
+    "energy_depletion",
+    "failure_seeds"
+  ],
+  "initial_acceptance_ranges": {
+    "prototype_win_rate": "20%-60%",
+    "energy_depletion_share": "<45% of deaths",
+    "ability_usage": "no ability should remain near-zero across large batches"
+  },
+  "safety_gate": "Bot may recommend balance changes automatically; production promotion requires QA gate and human play validation."
+}

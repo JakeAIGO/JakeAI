@@ -1,0 +1,22 @@
+{
+  "system": "Deep Shift Autonomous Balance & Fairness Gate",
+  "version": "0.1",
+  "checks": [
+    "spawn-to-extraction tunnel path exists",
+    "ore requirement can be satisfied",
+    "enemy path graph uses excavated/open cells",
+    "rock support state changes after excavation",
+    "boss attacks emit a warning before damage/hazards",
+    "same run seed reproduces placements"
+  ],
+  "telemetry_to_capture_later": [
+    "time per sector",
+    "energy spent digging",
+    "damage sources",
+    "ability usage frequency",
+    "upgrade pick rate",
+    "death location",
+    "boss phase reached",
+    "seed"
+  ]
+}

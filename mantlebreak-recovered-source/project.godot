@@ -1,0 +1,65 @@
+[application]
+config/name="Deep Shift"
+run/main_scene="res://scenes/Main.tscn"
+config/features=PackedStringArray("4.3")
+
+[display]
+window/size/viewport_width=1280
+window/size/viewport_height=720
+window/size/window_width_override=1280
+window/size/window_height_override=720
+window/stretch/mode="canvas_items"
+
+[rendering]
+renderer/rendering_method="gl_compatibility"
+renderer/rendering_method.mobile="gl_compatibility"
+textures/default_filters/use_nearest_mipmap_filter=false
+
+[input]
+move_up={
+"deadzone": 0.5,
+"events": [Object(InputEventKey,"physical_keycode":87), Object(InputEventKey,"keycode":4194320), Object(InputEventJoypadMotion,"axis":1,"axis_value":-1.0)]
+}
+move_down={
+"deadzone": 0.5,
+"events": [Object(InputEventKey,"physical_keycode":83), Object(InputEventKey,"keycode":4194322), Object(InputEventJoypadMotion,"axis":1,"axis_value":1.0)]
+}
+move_left={
+"deadzone": 0.5,
+"events": [Object(InputEventKey,"physical_keycode":65), Object(InputEventKey,"keycode":4194319), Object(InputEventJoypadMotion,"axis":0,"axis_value":-1.0)]
+}
+move_right={
+"deadzone": 0.5,
+"events": [Object(InputEventKey,"physical_keycode":68), Object(InputEventKey,"keycode":4194321), Object(InputEventJoypadMotion,"axis":0,"axis_value":1.0)]
+}
+seismic_charge={
+"deadzone": 0.5,
+"events": [Object(InputEventKey,"physical_keycode":66), Object(InputEventJoypadButton,"button_index":2)]
+}
+shock_pulse={
+"deadzone": 0.5,
+"events": [Object(InputEventKey,"physical_keycode":32), Object(InputEventJoypadButton,"button_index":0)]
+}
+drill_dash={
+"deadzone": 0.5,
+"events": [Object(InputEventKey,"physical_keycode":4194325), Object(InputEventJoypadButton,"button_index":1)]
+}
+reactive_shield={
+"deadzone": 0.5,
+"events": [Object(InputEventKey,"physical_keycode":81), Object(InputEventJoypadButton,"button_index":3)]
+}
+pause={
+"deadzone": 0.5,
+"events": [Object(InputEventKey,"physical_keycode":4194305)]
+}
+
+[autoload]
+GameState="*res://scripts/GameState.gd"
+SaveSystem="*res://scripts/SaveSystem.gd"
+Settings="*res://scripts/AccessibilitySettings.gd"
+Audio="*res://scripts/AudioStub.gd"
+Telemetry="*res://scripts/TelemetryStub.gd"
+
+
+# Controller mappings are intentionally duplicated here as a production-ready expansion point.
+# Godot's Input Map can be further tuned per platform during controller QA.

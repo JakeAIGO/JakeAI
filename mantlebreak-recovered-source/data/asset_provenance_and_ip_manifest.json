@@ -1,0 +1,37 @@
+{
+  "project": "Deep Shift",
+  "commercial_status": "pre-release",
+  "identity_rule": "Original underground salvage/extraction game. Do not reproduce Dig Dug characters, names, enemy designs, inflation mechanic, maps, audio, art, or trade dress.",
+  "assets": {
+    "audio": {
+      "status": "original procedural placeholders generated specifically for Deep Shift",
+      "files": [
+        "boss_warning.wav",
+        "charge.wav",
+        "dig.wav",
+        "extract.wav",
+        "hurt.wav",
+        "ore.wav",
+        "pulse.wav"
+      ]
+    },
+    "visuals": {
+      "status": "Godot primitive placeholder geometry; production art pending",
+      "third_party_assets": []
+    }
+  },
+  "dependencies": {
+    "engine": "Godot 4.x",
+    "paid_assets": [],
+    "third_party_game_assets": []
+  },
+  "release_gate": [
+    "runtime tests pass",
+    "Windows export succeeds",
+    "human play/fun review",
+    "original production art review",
+    "audio review",
+    "IP/trademark/store-copy review",
+    "Steam requirements rechecked at release time"
+  ]
+}

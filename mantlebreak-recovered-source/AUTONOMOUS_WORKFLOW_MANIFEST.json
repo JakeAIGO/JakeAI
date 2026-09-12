@@ -1,0 +1,170 @@
+{
+  "workflow_name": "Jake AI Autonomous Indie Game Studio",
+  "project": "Deep Shift",
+  "current_stage": "Production Pass 8 \u2014 live Godot compile, occupancy and balance gates",
+  "completed": [
+    "concept selection",
+    "IP differentiation strategy",
+    "browser mechanics prototype",
+    "visual prototype pass",
+    "combat and skill-system prototype",
+    "procedural run structure",
+    "meta progression",
+    "achievements and retention loop",
+    "boss prototype",
+    "Godot production skeleton",
+    "reusable ore scene",
+    "reusable hazard scene",
+    "reusable extraction beacon scene",
+    "reusable rock scene",
+    "manual three-choice upgrade draft UI",
+    "deterministic sector seeding",
+    "headless smoke-test scene",
+    "static resource-reference QA",
+    "runtime-generated destructible terrain",
+    "earth collision removal on excavation",
+    "player drill-to-excavate integration",
+    "real Seismic Charge terrain/combat effect",
+    "real Shock Pulse damage radius",
+    "real Drill Dash excavation/damage path",
+    "dedicated Core Warden boss controller",
+    "boss phase hazard spawning",
+    "expanded terrain smoke tests",
+    "unsupported rock detection",
+    "terrain-event-driven rock falling",
+    "tunnel-aware enemy pathfinding",
+    "boss attack telegraph system",
+    "boss seismic burst attack",
+    "accessibility settings foundation",
+    "balance/fairness gate manifest",
+    "expanded pathfinding and rock-support smoke tests",
+    "original generated SFX pack",
+    "audio manager",
+    "gamepad mappings",
+    "persistent accessibility settings",
+    "run telemetry recorder",
+    "autonomous deterministic playtest simulator",
+    "playtest report runner",
+    "Windows export preset",
+    "GitHub Actions Godot runtime QA workflow",
+    "automated Windows export job",
+    "release-gate Godot scene",
+    "release-candidate checklist",
+    "asset provenance/IP manifest",
+    "live Godot 4.3 strict runtime validation",
+    "production gameplay script compile gate",
+    "500-layout procedural occupancy stress test",
+    "hard autonomous balance acceptance gate",
+    "false-green prevention via log scanning and PASS sentinels"
+  ],
+  "next_automatable_modules": [
+    "validate full Main/Game scene tree under Godot",
+    "upload/restore binary audio assets through a binary-capable path",
+    "full Windows export in CI",
+    "artifact launch/smoke validation",
+    "real-input gameplay bot",
+    "production art and animation pipeline",
+    "human fun gate",
+    "Steam integration only after executable validation"
+  ],
+  "gates": {
+    "ip_legal": "Original audiovisual identity and mechanics expression must be reviewed before commercial publication.",
+    "qa": "No release build without automated smoke tests plus human play validation.",
+    "steam_cost": "Delay Steam Direct payment until production vertical slice validates.",
+    "safety": "No destructive or external actions without explicit deployment authorization."
+  },
+  "qa_status": {
+    "static_structure_pass": true,
+    "missing_required_files": [],
+    "broken_resource_references": [],
+    "godot_runtime_test_executed": false,
+    "runtime_note": "Godot executable is not installed in this environment. A headless SmokeTest scene is included for the first environment where Godot 4 is available.",
+    "deterministic_seed_test_included": true,
+    "upgrade_test_included": true,
+    "game_state_test_included": true
+  },
+  "qa_status_pass3": {
+    "static_structure_pass": true,
+    "missing_required_files": [],
+    "broken_resource_references": [],
+    "production_pass": 3,
+    "runtime_godot_test_executed": false,
+    "runtime_note": "Godot executable still unavailable in this environment; expanded headless smoke tests are included.",
+    "new_test_coverage": [
+      "terrain excavation state",
+      "deterministic generation",
+      "run initialization",
+      "upgrade application"
+    ]
+  },
+  "qa_status_pass4": {
+    "production_pass": 4,
+    "static_structure_pass": true,
+    "missing_required_files": [],
+    "broken_resource_references": [],
+    "runtime_godot_test_executed": false,
+    "runtime_note": "Godot runtime is unavailable in this environment. Headless tests were expanded for pathfinding and rock support and are ready to execute externally.",
+    "new_systems": [
+      "unsupported-rock detection",
+      "rock fall trigger after excavation",
+      "tunnel-graph BFS pathfinding",
+      "enemy path following",
+      "boss attack telegraphs",
+      "boss seismic burst",
+      "accessibility settings foundation"
+    ]
+  },
+  "qa_status_pass5": {
+    "production_pass": 5,
+    "static_structure_pass": true,
+    "missing": [],
+    "broken_refs": [],
+    "runtime_godot_test_executed": false,
+    "new_systems": [
+      "original procedural SFX",
+      "audio pool",
+      "controller mappings",
+      "persistent accessibility settings",
+      "telemetry recorder",
+      "autonomous abstract playtest bot",
+      "Windows export preset"
+    ],
+    "runtime_note": "Godot runtime remains unavailable here; runtime smoke/playtest scenes are packaged for execution on a Godot 4 machine or CI runner."
+  },
+  "latest_live_ci": {
+    "stage": "Production Pass 8",
+    "github_branch": "deep-shift-ci",
+    "live_godot_version": "4.3.stable.official.77dcf97d8",
+    "latest_verified_run_id": 34503574025,
+    "latest_verified_commit": "013dfe4657134846a47908dadea0e8e654dfb5ef",
+    "verified_gates": {
+      "strict_import_log_gate": "PASS",
+      "production_gameplay_script_compile_gate": "PASS",
+      "deterministic_smoke_gate": "PASS",
+      "occupancy_stress_test": "PASS \u2014 100 seeds x 5 sectors = 500 layouts",
+      "autonomous_balance_gate": "PASS"
+    },
+    "latest_balance_baseline": {
+      "runs": 250,
+      "wins": 54,
+      "win_rate": 0.216,
+      "average_score": 2596.4,
+      "enemy_or_hazard_deaths": 192,
+      "energy_depletion_deaths": 4,
+      "ability_usage": {
+        "charge": 370,
+        "dash": 357,
+        "pulse": 351,
+        "shield": 360
+      }
+    },
+    "important_qa_lessons": [
+      "Do not trust engine process exit code alone; scan logs for SCRIPT ERROR/ERROR.",
+      "Require an explicit PASS sentinel for every gate.",
+      "A pass path must return immediately so it cannot fall through into failure logic.",
+      "Compile production gameplay scripts in CI before export.",
+      "Stress procedural occupancy across many deterministic seeds."
+    ],
+    "scope_boundary": "These results validate the CI harness and production gameplay scripts included in that harness. They do not yet prove the complete visual/audio game scene exports and plays correctly as a Windows executable."
+  }
+}
