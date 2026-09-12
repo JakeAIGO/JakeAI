@@ -8,12 +8,13 @@ class OpportunityRequirementFingerprint(BaseModel):
     project_id: str
     project_state: str = Field(min_length=2, max_length=2)
     agency_name: str
-    estimated_value: float = Field(gt=0)
+    estimated_value: Optional[float] = Field(default=None, gt=0)
     mandatory_prequalification: bool = True
     mandatory_prebid_meeting: bool = False
     required_manufacturer: Optional[str] = None
     facility_type: Optional[str] = None
     construction_window: Optional[str] = None
+    source_notes: List[str] = Field(default_factory=list)
 
 
 class ContractorCapabilityFingerprint(BaseModel):
