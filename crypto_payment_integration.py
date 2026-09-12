@@ -58,7 +58,7 @@ class DenyByDefaultComplianceProvider:
 
 
 class SqliteTransactionRegistry:
-    """Persistent replay guard with a database-enforced unique tx hash."""
+    """Persistent replay guard with database-enforced unique tx/order IDs."""
 
     def __init__(self, db_path: str) -> None:
         self.db_path = db_path
@@ -112,6 +112,11 @@ class SqliteTransactionRegistry:
         if not compliance.clear:
             raise ValueError("cannot consume transaction without compliance clearance")
         t = transfer.normalized()
+        supplied_tx = tx_hash.strip().lower()
+        if supplied_tx != t.tx_hash:
+            raise ValueError("transaction hash does not match normalized transfer")
+        if not order_id.strip():
+            raise ValueError("order_id is required")
         now = datetime.now(timezone.utc).isoformat()
         try:
             with self._connect() as conn:
@@ -125,8 +130,8 @@ class SqliteTransactionRegistry:
                     ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
                     """,
                     (
-                        tx_hash.strip().lower(),
-                        order_id,
+                        t.tx_hash,
+                        order_id.strip(),
                         t.chain_id,
                         t.token_contract,
                         t.sender,
