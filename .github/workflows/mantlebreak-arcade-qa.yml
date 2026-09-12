@@ -32,12 +32,12 @@ jobs:
         shell: bash
         run: |
           set -euo pipefail
-          grep -q 'run/main_scene="res://scenes/ArcadeMain.tscn"' mantlebreak-recovered-source/project.godot
-          grep -q 'ArcadeRuntime="*res://scripts/ArcadeRuntime.gd"' mantlebreak-recovered-source/project.godot
-          grep -q 'CabinetInput="*res://scripts/CabinetInput.gd"' mantlebreak-recovered-source/project.godot
-          grep -q 'JAKEAI ARCADE' mantlebreak-recovered-source/scenes/ArcadeMain.tscn
-          grep -q 'MANTLEBREAK' mantlebreak-recovered-source/scenes/ArcadeMain.tscn
-          grep -q 'ArcadeRuntime.begin_boss()' mantlebreak-recovered-source/scripts/Game.gd
+          grep -Fq 'run/main_scene="res://scenes/ArcadeMain.tscn"' mantlebreak-recovered-source/project.godot
+          grep -Fq 'ArcadeRuntime="*res://scripts/ArcadeRuntime.gd"' mantlebreak-recovered-source/project.godot
+          grep -Fq 'CabinetInput="*res://scripts/CabinetInput.gd"' mantlebreak-recovered-source/project.godot
+          grep -Fq 'JAKEAI ARCADE' mantlebreak-recovered-source/scenes/ArcadeMain.tscn
+          grep -Fq 'MANTLEBREAK' mantlebreak-recovered-source/scenes/ArcadeMain.tscn
+          grep -Fq 'ArcadeRuntime.begin_boss()' mantlebreak-recovered-source/scripts/Game.gd
           echo 'MANTLEBREAK_ARCADE_ARCHITECTURE_GATE: PASS'
 
       - name: Godot import and parse gate
