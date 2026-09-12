@@ -28,7 +28,7 @@ jobs:
 
       - name: Compile Python Sources
         run: |
-          python -m py_compile main.py commerce_app.py jakeai_mcp_server.py jakeai_audit.py
+          python -m py_compile main.py commerce_app.py jakeai_mcp_server.py jakeai_audit.py crypto_payment_adapter.py crypto_payment_integration.py
           python -m compileall -q product-discovery
 
       - name: Run Opportunity Clusterer Regression Test
@@ -36,6 +36,10 @@ jobs:
 
       - name: Run Public Claim Consistency Tests
         run: python -m pytest -q tests/test_claim_consistency.py
+
+      - name: Run Crypto Payment Fail-Closed Tests
+        run: |
+          python -m pytest -q tests/test_crypto_payment_adapter.py tests/test_crypto_payment_integration.py
 
       - name: Validate Machine-Readable JSON
         run: |
