@@ -115,7 +115,7 @@ func _refresh_scores() -> void:
         score_label.text = "TOP SCORES\n---"
         return
     var lines := PackedStringArray(["TOP SCORES"])
-    var count := min(5, ArcadeRuntime.high_scores.size())
+    var count: int = int(min(5, ArcadeRuntime.high_scores.size()))
     for i in range(count):
         var entry: Dictionary = ArcadeRuntime.high_scores[i]
         lines.append("%d.  %s   %07d" % [i + 1, String(entry.get("initials", "---")), int(entry.get("score", 0))])
@@ -161,29 +161,29 @@ func _activate_operator_item() -> void:
     _refresh_operator_menu()
 
 func _refresh_operator_menu() -> void:
-    var difficulty_names := ["EASY", "STANDARD", "HARD"]
-    var values := [
+    var difficulty_names := PackedStringArray(["EASY", "STANDARD", "HARD"])
+    var values := PackedStringArray([
         "ON" if ArcadeRuntime.free_play else "OFF",
         str(ArcadeRuntime.credits_per_game),
-        difficulty_names[ArcadeRuntime.difficulty],
+        difficulty_names[int(ArcadeRuntime.difficulty)],
         "ON" if ArcadeRuntime.attract_audio else "OFF",
         "%d%%" % int(round(ArcadeRuntime.master_volume * 100.0)),
         "LIVE",
         "PRESS START"
-    ]
+    ])
     var lines := PackedStringArray()
     for i in range(OPERATOR_ITEMS.size()):
-        var marker := ">" if i == operator_index else " "
+        var marker: String = ">" if i == operator_index else " "
         lines.append("%s %-20s  %s" % [marker, OPERATOR_ITEMS[i], values[i]])
     operator_menu.text = "\n".join(lines)
 
 func _refresh_diagnostics() -> void:
     var active := PackedStringArray()
-    var actions := [
+    var actions := PackedStringArray([
         "move_up", "move_down", "move_left", "move_right",
         "cabinet_drill", "cabinet_shock", "cabinet_shield", "cabinet_boost",
         "cabinet_start", "cabinet_credit", "cabinet_operator"
-    ]
+    ])
     for action in actions:
         if InputMap.has_action(action) and Input.is_action_pressed(action):
             active.append(action.replace("cabinet_", "").to_upper())
@@ -204,7 +204,7 @@ func _process_initials_input() -> void:
         ArcadeRuntime.submit_initials("".join(initials))
 
 func _shift_letter(delta: int) -> void:
-    var code := initials[initials_index].unicode_at(0) - 65
+    var code: int = int(initials[initials_index].unicode_at(0)) - 65
     code = posmod(code + delta, 26)
     initials[initials_index] = String.chr(65 + code)
     _refresh_initials()
