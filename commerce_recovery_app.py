@@ -8,6 +8,21 @@ import commerce_app
 from crypto_commerce_app import app
 
 
+def _metadata_dict(session):
+    metadata = getattr(session, "metadata", None)
+    if metadata is None:
+        return {}
+    if isinstance(metadata, dict):
+        return metadata
+    try:
+        return metadata.to_dict()
+    except Exception:
+        try:
+            return dict(metadata)
+        except Exception:
+            return {}
+
+
 def _recover_paid_order_from_stripe(order_id: str, session_id: str) -> bool:
     """Rebuild a lost local commerce order only from a fully verified paid Stripe session."""
     secret = os.environ.get("STRIPE_SECRET_KEY", "").strip()
@@ -20,7 +35,7 @@ def _recover_paid_order_from_stripe(order_id: str, session_id: str) -> bool:
     except Exception:
         return False
 
-    metadata = getattr(session, "metadata", {}) or {}
+    metadata = _metadata_dict(session)
     product_id = metadata.get("product_id")
     product = commerce_app.main.GENESIS_CATALOG.get(product_id) if product_id else None
     if not product:
@@ -60,13 +75,6 @@ def _recover_paid_order_from_stripe(order_id: str, session_id: str) -> bool:
 
 
 def _recover_recent_paid_orders_from_stripe(limit: int = 50) -> int:
-    """Restore recent paid JakeAI orders after an ephemeral filesystem reset.
-
-    Only completed, paid Stripe Checkout sessions with JakeAI order/product metadata,
-    matching catalog price and USD currency are accepted. This is safe to run on every
-    startup and lets fulfillment survive deploys even when the buyer never revisits the
-    original success callback.
-    """
     secret = os.environ.get("STRIPE_SECRET_KEY", "").strip()
     if not secret:
         return 0
@@ -78,27 +86,33 @@ def _recover_recent_paid_orders_from_stripe(limit: int = 50) -> int:
         return 0
 
     for session in getattr(sessions, "data", []) or []:
-        if getattr(session, "payment_status", None) != "paid":
-            continue
-        metadata = getattr(session, "metadata", {}) or {}
-        order_id = metadata.get("jakeai_order_id")
-        product_id = metadata.get("product_id")
-        if not order_id or not product_id:
-            continue
         try:
-            if commerce_app._get_order(order_id) is not None:
+            if getattr(session, "payment_status", None) != "paid":
                 continue
+            metadata = _metadata_dict(session)
+            order_id = metadata.get("jakeai_order_id")
+            product_id = metadata.get("product_id")
+            if not order_id or not product_id:
+                continue
+            try:
+                if commerce_app._get_order(order_id) is not None:
+                    continue
+            except Exception:
+                pass
+            if _recover_paid_order_from_stripe(order_id, getattr(session, "id", "")):
+                recovered += 1
         except Exception:
-            pass
-        if _recover_paid_order_from_stripe(order_id, getattr(session, "id", "")):
-            recovered += 1
+            continue
     return recovered
 
 
 @app.on_event("startup")
 def recover_paid_orders_on_startup():
-    recovered = _recover_recent_paid_orders_from_stripe()
-    print(f"Recovered {recovered} verified paid Stripe order(s) from recent checkout history")
+    try:
+        recovered = _recover_recent_paid_orders_from_stripe()
+        print(f"Recovered {recovered} verified paid Stripe order(s) from recent checkout history")
+    except Exception as exc:
+        print(f"Stripe order recovery skipped safely: {exc}")
 
 
 @app.middleware("http")
