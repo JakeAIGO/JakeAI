@@ -9,14 +9,7 @@ from crypto_commerce_app import app
 
 
 def _recover_paid_order_from_stripe(order_id: str, session_id: str) -> bool:
-    """Rebuild a lost local commerce order only from a fully verified paid Stripe session.
-
-    Railway's container filesystem is ephemeral. If a deploy/restart happens after a
-    Checkout Session is created, the /tmp SQLite order can disappear before Stripe
-    redirects the buyer back. This recovery path treats Stripe's signed server-side
-    session as the source of truth and recreates only the minimum order record needed
-    for fulfillment.
-    """
+    """Rebuild a lost local commerce order only from a fully verified paid Stripe session."""
     secret = os.environ.get("STRIPE_SECRET_KEY", "").strip()
     if not secret or not order_id or not session_id:
         return False
@@ -66,10 +59,50 @@ def _recover_paid_order_from_stripe(order_id: str, session_id: str) -> bool:
         return False
 
 
+def _recover_recent_paid_orders_from_stripe(limit: int = 50) -> int:
+    """Restore recent paid JakeAI orders after an ephemeral filesystem reset.
+
+    Only completed, paid Stripe Checkout sessions with JakeAI order/product metadata,
+    matching catalog price and USD currency are accepted. This is safe to run on every
+    startup and lets fulfillment survive deploys even when the buyer never revisits the
+    original success callback.
+    """
+    secret = os.environ.get("STRIPE_SECRET_KEY", "").strip()
+    if not secret:
+        return 0
+    stripe.api_key = secret
+    recovered = 0
+    try:
+        sessions = stripe.checkout.Session.list(status="complete", limit=limit)
+    except Exception:
+        return 0
+
+    for session in getattr(sessions, "data", []) or []:
+        if getattr(session, "payment_status", None) != "paid":
+            continue
+        metadata = getattr(session, "metadata", {}) or {}
+        order_id = metadata.get("jakeai_order_id")
+        product_id = metadata.get("product_id")
+        if not order_id or not product_id:
+            continue
+        try:
+            if commerce_app._get_order(order_id) is not None:
+                continue
+        except Exception:
+            pass
+        if _recover_paid_order_from_stripe(order_id, getattr(session, "id", "")):
+            recovered += 1
+    return recovered
+
+
+@app.on_event("startup")
+def recover_paid_orders_on_startup():
+    recovered = _recover_recent_paid_orders_from_stripe()
+    print(f"Recovered {recovered} verified paid Stripe order(s) from recent checkout history")
+
+
 @app.middleware("http")
 async def recover_checkout_order_after_ephemeral_storage_loss(request: Request, call_next):
-    # Recovery is deliberately restricted to Stripe's success callback. We do not
-    # synthesize orders for arbitrary status/redeem requests.
     if request.url.path == "/v1/checkout/complete":
         order_id = request.query_params.get("order_id", "")
         session_id = request.query_params.get("session_id", "")
