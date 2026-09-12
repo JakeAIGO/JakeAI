@@ -1,0 +1,67 @@
+name: MANTLEBREAK Arcade QA
+
+on:
+  workflow_dispatch:
+  push:
+    branches: ["mantlebreak-arcade"]
+    paths:
+      - "mantlebreak-recovered-source/**"
+      - ".github/workflows/mantlebreak-arcade-qa.yml"
+
+permissions:
+  contents: read
+
+jobs:
+  arcade-qa:
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Install Godot 4.3
+        shell: bash
+        run: |
+          set -euo pipefail
+          wget -q https://github.com/godotengine/godot/releases/download/4.3-stable/Godot_v4.3-stable_linux.x86_64.zip
+          unzip -q Godot_v4.3-stable_linux.x86_64.zip
+          sudo mv Godot_v4.3-stable_linux.x86_64 /usr/local/bin/godot
+          godot --version
+
+      - name: Verify arcade architecture
+        shell: bash
+        run: |
+          set -euo pipefail
+          grep -q 'run/main_scene="res://scenes/ArcadeMain.tscn"' mantlebreak-recovered-source/project.godot
+          grep -q 'ArcadeRuntime="*res://scripts/ArcadeRuntime.gd"' mantlebreak-recovered-source/project.godot
+          grep -q 'CabinetInput="*res://scripts/CabinetInput.gd"' mantlebreak-recovered-source/project.godot
+          grep -q 'JAKEAI ARCADE' mantlebreak-recovered-source/scenes/ArcadeMain.tscn
+          grep -q 'MANTLEBREAK' mantlebreak-recovered-source/scenes/ArcadeMain.tscn
+          grep -q 'ArcadeRuntime.begin_boss()' mantlebreak-recovered-source/scripts/Game.gd
+          echo 'MANTLEBREAK_ARCADE_ARCHITECTURE_GATE: PASS'
+
+      - name: Godot import and parse gate
+        shell: bash
+        run: |
+          set -o pipefail
+          godot --headless --path mantlebreak-recovered-source --editor --quit 2>&1 | tee arcade-import.log
+          ! grep -E "SCRIPT ERROR|Parse Error|ERROR:" arcade-import.log
+          echo 'MANTLEBREAK_ARCADE_PARSE_GATE: PASS'
+
+      - name: Arcade boot smoke
+        shell: bash
+        run: |
+          set -o pipefail
+          godot --headless --path mantlebreak-recovered-source --quit-after 5 2>&1 | tee arcade-startup.log
+          ! grep -E "SCRIPT ERROR|Parse Error|Invalid get index|Invalid call|Failed to load|Cannot open" arcade-startup.log
+          echo 'MANTLEBREAK_ARCADE_BOOT_GATE: PASS'
+
+      - name: Preserve logs
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: MANTLEBREAK-Arcade-QA-Logs
+          path: |
+            arcade-import.log
+            arcade-startup.log
+          retention-days: 14
