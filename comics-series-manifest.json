@@ -1,0 +1,42 @@
+{
+  "series": "JakeAI Comics",
+  "canonical_brand": "JakeAI",
+  "format": "mobile-first graphic serial",
+  "public_url": "/comics.html",
+  "current_issue": {
+    "number": 0,
+    "title": "The $12.99 Question",
+    "reader_url": "/comics-origin-00.html",
+    "status": "launch-candidate",
+    "price": 0,
+    "artwork_url": "https://cdn.creativeclaw.co/u/7a5f511f/images/6f56e664-0ca1-402e-977c-09d13c58fc0c.png",
+    "intentional_text_exceptions": [
+      {
+        "text": "JKI",
+        "location": "Panel 4 robot chest plate",
+        "reason": "Intentional story beat preserving a real visual-text generation failure."
+      }
+    ]
+  },
+  "season_1": [
+    {"issue": 0, "title": "The $12.99 Question", "status": "launch-candidate"},
+    {"issue": 1, "title": "The First Product", "status": "next"},
+    {"issue": 2, "title": "The Checkout Monster", "status": "planned"},
+    {"issue": 3, "title": "JKI", "status": "planned"},
+    {"issue": 4, "title": "The Discovery Engine", "status": "planned"},
+    {"issue": 5, "title": "Bigger Tomorrow", "status": "planned"}
+  ],
+  "publication_gates": [
+    "character continuity",
+    "world continuity",
+    "canonical JakeAI spelling",
+    "visual text verification",
+    "brand consistency",
+    "safety and legal review",
+    "mobile rendering",
+    "desktop rendering",
+    "asset retrievability",
+    "intentional-error manifest review"
+  ],
+  "public_boundary": "Stories may show outcomes, products, personalities, failures, lessons, and fictionalized world-building, but must not disclose protected prompts, orchestration logic, proprietary engine architecture, credentials, private customer data, or trade-secret-like implementation details."
+}
