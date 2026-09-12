@@ -58,22 +58,25 @@ jobs:
       - name: Setup Node
         uses: actions/setup-node@v4
         with:
-          node-version: '24.18.0'
+          node-version: '22'
 
-      - name: Install dependencies
+      - name: Install project dependencies
         run: npm ci
 
+      - name: Install pinned Devvit CLI
+        run: npm install --no-save --package-lock=false devvit@0.14.3
+
       - name: Typecheck
-        run: npm run type-check --if-present
+        run: npm run type-check
 
       - name: Lint
-        run: npm run lint --if-present
+        run: npm run lint
 
       - name: Test
-        run: npm test --if-present
+        run: npm test
 
       - name: Build
-        run: npm run build --if-present
+        run: npm run build
 
       - name: Create release authorization receipt
         working-directory: .
