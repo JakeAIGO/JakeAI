@@ -3,5 +3,6 @@
 /.well-known/agent.json  https://agent-commerce-network-production-56e8.up.railway.app/.well-known/agent.json  200!
 /api/*  https://agent-commerce-network-production-56e8.up.railway.app/:splat  200
 
-# Same-origin proxy for the Pool Coach memorial artwork
-/pool-coach-jakeai-hero.jpg  https://jakeai-pool-coach-artwork-95l3lw.v2.appdeploy.ai/resources/pool-coach-jakeai-hero.jpg  200!
+# Same-origin proxy for the Pool Coach memorial artwork host
+/pool-coach-artwork-host/  https://jakeai-pool-coach-artwork-95l3lw.v2.appdeploy.ai/  200!
+/pool-coach-artwork-host/*  https://jakeai-pool-coach-artwork-95l3lw.v2.appdeploy.ai/:splat  200!
