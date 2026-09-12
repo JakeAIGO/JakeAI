@@ -16,7 +16,7 @@ Examples: `I lost my glasses`, `Where the hell are my glasses?`, `Help me find m
 1. **Dignity Check™** — Ask the user to check: (a) currently on face, (b) top of head, (c) shirt collar/front of shirt. If found: `Case closed. No authorities were notified.`
 2. **Last-use context** — Ask one useful question: `What were you doing the last time you remember having them?`
 3. **Generate prioritized route** from supplied context:
-   - reading → chair/recliner → end table → couch cushions → bed → nightstand
+   - reading → chair/recliner → end table → couch cushions → bed surface → under sheets/blankets → between mattress/headboard → floor beside bed → nightstand
    - driving → vehicle → cupholder/console → pockets → entryway
    - bathroom → sink/counter → medicine-cabinet area → bedroom
    - working → desk → workbench → paperwork → pockets
@@ -26,7 +26,7 @@ Examples: `I lost my glasses`, `Where the hell are my glasses?`, `Help me find m
 5. **Reconstruction Mode** — After several failures ask: `Think about the first thing you did after you stopped needing the glasses.` Trace the movement path rather than continuing random suggestions.
 6. **Expanded Search** — If the route is exhausted, expand logically from the user's movements and environment without fabricating facts.
 7. **Recovery** — `Found them` / `Found 'em` ends the active search. Ask `Where?`
-8. **Optional learning** — With explicit permission, record successful location plus relevant activity/context and use repeated recoveries to rank likely locations in future searches.
+8. **Optional learning** — With explicit permission, record successful location plus relevant activity/context and use repeated recoveries to rank likely locations in future searches. A single novel recovery location is evidence, not a strong pattern; do not over-rank it until repeated recoveries support that change.
 9. **Prevention** — After a meaningful repeated pattern, optionally suggest a designated glasses location.
 
 ## Phone Assist
@@ -81,6 +81,10 @@ Persistent learning is off unless the user explicitly opts in. Starting a new se
 10. User cannot see/navigate safely → safe-search guidance activates.
 11. Irrelevant answer → workflow recovers without breaking.
 12. User says glasses are on face/head → search does not continue.
+
+## Live recovery evidence
+
+A first-party real-world recovery during product development found the glasses **under the bed sheets**, a location not previously encountered by that tester. Product lesson: treat `bed` as a searchable zone rather than one location. The route now expands bed searches into surface, sheets/blankets, mattress/headboard gap, floor beside bed, and nightstand. Novel one-off recoveries remain low-weight until repetition establishes a personal pattern.
 
 ## Marketplace copy
 
