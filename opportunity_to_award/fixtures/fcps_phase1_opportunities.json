@@ -1,0 +1,40 @@
+{
+  "source": "JakeAI Master Council Handoff Packet / Phase 1 artifacts",
+  "human_approval_required": true,
+  "opportunities": [
+    {
+      "project_id": "MMB-006-27",
+      "project_state": "VA",
+      "agency_name": "Fairfax County Public Schools (FCPS)",
+      "estimated_value": null,
+      "mandatory_prequalification": true,
+      "mandatory_prebid_meeting": false,
+      "required_manufacturer": null,
+      "facility_type": "K-12 public institutional",
+      "construction_window": null,
+      "source_notes": [
+        "Woodson High School",
+        "Phase 1 handoff identifies 60-mil fully adhered TPO, R-30 polyiso, ANSI/SPRI ES-1 edge metal, and 20-year NDL warranty requirements.",
+        "Estimated project value was not supplied in the Council artifacts; bonding gate must remain unsatisfied until verified.",
+        "Manufacturer brand was not supplied in the Council artifacts; no manufacturer-specific score may be claimed."
+      ]
+    },
+    {
+      "project_id": "MMB-007-27",
+      "project_state": "VA",
+      "agency_name": "Fairfax County Public Schools (FCPS)",
+      "estimated_value": null,
+      "mandatory_prequalification": true,
+      "mandatory_prebid_meeting": false,
+      "required_manufacturer": null,
+      "facility_type": "K-12 public institutional",
+      "construction_window": null,
+      "source_notes": [
+        "Burke School",
+        "Phase 1 handoff identifies 60-mil fully adhered TPO, R-30 polyiso, ANSI/SPRI ES-1 edge metal, and 20-year NDL warranty requirements.",
+        "Estimated project value was not supplied in the Council artifacts; bonding gate must remain unsatisfied until verified.",
+        "Manufacturer brand was not supplied in the Council artifacts; no manufacturer-specific score may be claimed."
+      ]
+    }
+  ]
+}
