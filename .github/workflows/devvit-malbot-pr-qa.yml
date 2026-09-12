@@ -1,0 +1,43 @@
+name: JakeAI Devvit Malbot PR QA
+
+on:
+  pull_request:
+    paths:
+      - 'reddit/malbot-masquerade/**'
+      - '.github/workflows/devvit-malbot-*.yml'
+
+permissions:
+  contents: read
+
+jobs:
+  validate:
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    defaults:
+      run:
+        working-directory: reddit/malbot-masquerade
+    steps:
+      - name: Checkout PR source
+        uses: actions/checkout@v4
+
+      - name: Setup Node
+        uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+
+      - name: Install project dependencies
+        run: npm ci
+
+      - name: Install pinned Devvit CLI
+        run: npm install --no-save --package-lock=false devvit@0.14.3
+
+      - name: Run JakeAI validation
+        run: npm test
+
+      - name: Validate Devvit project shape
+        run: npx devvit version
+
+      - name: Confirm public release is disabled in PR QA
+        run: |
+          echo 'PUBLIC RELEASE: DISABLED'
+          echo 'This workflow never runs devvit upload or devvit publish.'
