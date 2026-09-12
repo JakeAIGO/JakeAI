@@ -13,6 +13,7 @@ var armor := 0
 var pulse_cooldown := 0.0
 var dash_cooldown := 0.0
 var shield_cooldown := 0.0
+var pressure_decay_accum := 0.0
 var facing := Vector2.RIGHT
 var terrain: Node2D
 var abilities: Node
@@ -40,6 +41,11 @@ func _physics_process(delta: float) -> void:
     pulse_cooldown = max(0.0, pulse_cooldown - delta)
     dash_cooldown = max(0.0, dash_cooldown - delta)
     shield_cooldown = max(0.0, shield_cooldown - delta)
+
+    pressure_decay_accum += delta
+    if pressure_decay_accum >= 0.25:
+        GameState.cool_pressure(pressure_decay_accum)
+        pressure_decay_accum = 0.0
 
     if Input.is_action_just_pressed("cabinet_drill"):
         use_drill()
