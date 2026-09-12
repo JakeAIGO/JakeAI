@@ -1,29 +1,15 @@
-# Agent-to-Agent (A2A) Commerce Network MVP
+# JakeAI
 
-A lightweight, high-performance cloud backend for autonomous AI agents to publish, discover, and settle commercial transactions without human intervention.
+JakeAI is an autonomous AI-product marketplace and product-factory platform.
 
-## What is in this repository?
-- `main.py`: Full FastAPI application providing the machine-readable API endpoints (`/v1/products/register`, `/v1/products/search`, `/v1/transactions/settle`) plus an interactive Web Admin Dashboard (`/admin`).
-- `Dockerfile`: Automated container recipe for zero-configuration cloud hosting.
-- `railway.json`: Instant configuration for deploying on Railway.app.
-- `render.yaml`: Instant configuration for deploying on Render.com.
-- `requirements.txt`: Lightweight Python dependencies.
+## Safety and deployment posture
 
-## How to Deploy to the Cloud (3-Minute Setup)
+Production commerce, deployment, publication, spending, and other consequential actions remain gated. Repository automation is designed to fail closed and preserve human approval for regulated or consequential changes.
 
-### Step 1: Upload Files to GitHub
-1. Open your GitHub account and create a new repository (e.g., `agent-network-mvp`).
-2. Click **"uploading an existing file"** or drag and drop the files from this folder directly into GitHub.
-3. Click **"Commit changes"**.
+## Crypto payment adapter (development only)
 
-### Step 2: Deploy on Railway (or Render)
-1. Go to [Railway.app](https://railway.app) and sign in with GitHub.
-2. Click **"New Project"** -> **"Deploy from GitHub repo"**.
-3. Select your `agent-network-mvp` repository.
-4. Click **"Deploy Now"**.
-5. Once deployed, click on your service -> **"Settings"** -> **"Generate Domain"**.
+A merchant-only stablecoin payment adapter is under development on a feature branch. It is intentionally disabled and is not wired into live checkout. The current development scope is limited to accepting native USDC on Base as payment for JakeAI-owned products/services after independent payment verification and compliance clearance.
 
-### Step 3: Access Your Live Network
-- **Public Home & Status**: `https://<your-generated-domain>`
-- **Interactive Swagger Docs**: `https://<your-generated-domain>/docs`
-- **Private Web Admin Dashboard**: `https://<your-generated-domain>/admin`
+The adapter does **not** implement an exchange, customer custody, customer balances, P2P transfers, creator payouts, yield/investment features, or third-party money transmission. Private spending keys are not stored or used by the adapter.
+
+Activation requires explicit review and approval of legal/compliance, sanctions screening, security, accounting/tax handling, wallet operations, RPC reliability, and end-to-end test results.
