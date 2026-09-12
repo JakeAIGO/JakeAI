@@ -4,6 +4,7 @@ var failures: Array[String] = []
 
 func _ready() -> void:
     _test_game_state()
+    _test_arcade_runtime()
     _test_sector_generation()
     _test_occupancy_safety()
     _test_upgrade_application()
@@ -11,12 +12,12 @@ func _ready() -> void:
     _test_pathfinding()
     _test_rock_support()
     if failures.is_empty():
-        print("DEEP_SHIFT_SMOKE_TEST: PASS")
+        print("MANTLEBREAK_ARCADE_SMOKE_TEST: PASS")
         get_tree().quit(0)
     else:
         for failure in failures:
             push_error(failure)
-        print("DEEP_SHIFT_SMOKE_TEST: FAIL (%d)" % failures.size())
+        print("MANTLEBREAK_ARCADE_SMOKE_TEST: FAIL (%d)" % failures.size())
         get_tree().quit(1)
 
 func expect(condition: bool, message: String) -> void:
@@ -28,6 +29,33 @@ func _test_game_state() -> void:
     expect(GameState.run.max_energy >= 100, "Run must begin with at least 100 max energy.")
     expect(GameState.run.bombs >= 2, "Run must begin with at least two seismic charges.")
     expect(GameState.run.sector == 0, "Run must begin in sector zero.")
+
+func _test_arcade_runtime() -> void:
+    var old_free_play := ArcadeRuntime.free_play
+    var old_credits := ArcadeRuntime.credits
+    var old_scores := ArcadeRuntime.high_scores.duplicate(true)
+    ArcadeRuntime.free_play = false
+    ArcadeRuntime.credits = 0
+    ArcadeRuntime.set_operator_mode(false)
+    ArcadeRuntime.transition_to("ATTRACT")
+    expect(not ArcadeRuntime.can_start_run(), "Paid cabinet mode must reject START without credit.")
+    ArcadeRuntime.add_credit(1)
+    expect(ArcadeRuntime.state == "CREDIT", "Credit input must leave attract mode.")
+    expect(ArcadeRuntime.request_start(), "One credit must authorize a run.")
+    expect(ArcadeRuntime.credits == 0, "Starting paid play must consume one credit.")
+    ArcadeRuntime.begin_play()
+    expect(ArcadeRuntime.state == "PLAY", "Authorized run must enter PLAY.")
+    ArcadeRuntime.begin_boss()
+    expect(ArcadeRuntime.state == "BOSS", "Boss notification must enter BOSS.")
+    ArcadeRuntime.end_run(12345, {"sector": 4, "result": "qa"})
+    expect(ArcadeRuntime.state == "GAME_OVER", "End run must enter GAME_OVER.")
+    expect(not ArcadeRuntime.high_scores.is_empty(), "End run must record a score.")
+    ArcadeRuntime.submit_initials("QAT")
+    expect(ArcadeRuntime.state == "ATTRACT", "Initials submission must return to ATTRACT.")
+    ArcadeRuntime.free_play = old_free_play
+    ArcadeRuntime.credits = old_credits
+    ArcadeRuntime.high_scores = old_scores
+    ArcadeRuntime.save_settings()
 
 func _test_sector_generation() -> void:
     var generator := preload("res://scripts/SectorGenerator.gd").new()
