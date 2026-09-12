@@ -21,7 +21,17 @@ def match_contractor(
     license_ok = contractor.license_active and state in {s.upper() for s in contractor.license_states}
     prequal_status = contractor.agency_prequalifications.get(opportunity.agency_name)
     prequal_ok = (not opportunity.mandatory_prequalification) or _active_prequal_status(prequal_status)
-    bond_ok = contractor.single_project_bonding_limit >= opportunity.estimated_value
+
+    if opportunity.estimated_value is None:
+        bond_ok = False
+        bond_reason = "Estimated project value is unverified; bonding gate cannot be satisfied"
+    else:
+        bond_ok = contractor.single_project_bonding_limit >= opportunity.estimated_value
+        bond_reason = (
+            "Bonding capacity covers estimated value"
+            if bond_ok
+            else "Bonding capacity below estimated value"
+        )
 
     hard_gates = [
         GateResult(
@@ -37,7 +47,7 @@ def match_contractor(
         GateResult(
             gate="SINGLE_PROJECT_BONDING",
             passed=bond_ok,
-            reason=("Bonding capacity covers estimated value" if bond_ok else "Bonding capacity below estimated value"),
+            reason=bond_reason,
         ),
     ]
 
