@@ -1,0 +1,29 @@
+name: Customer Evidence Intake
+
+on:
+  push:
+    branches:
+      - feature/customer-evidence-intake-v1
+    paths:
+      - 'customer-evidence-intake/**'
+      - '.github/workflows/customer-evidence-intake.yml'
+  pull_request:
+    paths:
+      - 'customer-evidence-intake/**'
+      - '.github/workflows/customer-evidence-intake.yml'
+
+permissions:
+  contents: read
+
+jobs:
+  test:
+    runs-on: ubuntu-latest
+    timeout-minutes: 5
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.12'
+      - name: Run fail-closed intake tests
+        working-directory: customer-evidence-intake
+        run: python -m unittest -v
