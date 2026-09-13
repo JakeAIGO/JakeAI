@@ -14,11 +14,21 @@ MAX_FIELD = 2000
 MAX_TOTAL = 8000
 
 SECRET_PATTERNS = [
-    re.compile(r"(?i)(api[_ -]?key|access[_ -]?token|secret[_ -]?key|password|passwd)\s*[:=]\s*\S+"),
+    # Named secrets using assignment-like or natural-language separators.
+    re.compile(r"(?i)\b(api[_ -]?key|access[_ -]?token|secret[_ -]?key|password|passwd|client[_ -]?secret)\b\s*(?::|=|is)\s*\S+"),
+    # Authorization headers/tokens.
+    re.compile(r"(?i)\bauthorization\s*:\s*(?:bearer|basic)\s+\S+"),
+    # PEM private keys.
     re.compile(r"-----BEGIN (?:RSA |EC |OPENSSH )?PRIVATE KEY-----"),
-    re.compile(r"\bsk_(?:live|test)_[A-Za-z0-9]{12,}\b"),
+    # Stripe secret/restricted keys.
+    re.compile(r"\b(?:sk|rk)_(?:live|test)_[A-Za-z0-9]{12,}\b"),
+    # GitHub classic and fine-grained token forms.
     re.compile(r"\bgh[pousr]_[A-Za-z0-9]{20,}\b"),
+    re.compile(r"\bgithub_pat_[A-Za-z0-9_]{20,}\b"),
+    # AWS access key IDs.
     re.compile(r"\bAKIA[0-9A-Z]{16}\b"),
+    # JWT-like bearer material. Conservative because intake should not need JWTs.
+    re.compile(r"\beyJ[A-Za-z0-9_-]{8,}\.[A-Za-z0-9_-]{8,}\.[A-Za-z0-9_-]{8,}\b"),
 ]
 SENSITIVE_PATTERNS = [
     re.compile(r"\b\d{3}-\d{2}-\d{4}\b"),
@@ -26,7 +36,8 @@ SENSITIVE_PATTERNS = [
 ]
 HIGH_CONSEQUENCE = re.compile(
     r"(?i)\b(medical|patient|diagnos|prescription|tax return|bank account|wire transfer|"
-    r"hire|fire|terminate employee|legal advice|court filing|safety-critical|life safety)\b"
+    r"payroll payment|payroll disbursement|hire|fire|terminate employee|legal advice|court filing|"
+    r"safety-critical|life safety)\b"
 )
 
 REQUIRED = (
