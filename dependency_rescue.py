@@ -29,6 +29,7 @@ class Rule:
     source_url: str
     source_checked: str
     severity: str = "high"
+    timing_note: str = ""
 
 RULES: tuple[Rule, ...] = (
     Rule(
@@ -67,12 +68,13 @@ RULES: tuple[Rule, ...] = (
         "Replay representative webhook payloads and verify conditions, templates and outbound payloads end-to-end.",
         "https://community.qlik.com/t5/Official-Support-Articles/Qlik-Cloud-webhooks-Migrate-Qlik-Automate-workflows-to/ta-p/2549672", "2026-09-12"),
     Rule(
-        "ews-exchange-online", "Microsoft Exchange Online", "Exchange Web Services dependency", "2026-10-01",
+        "ews-exchange-online", "Microsoft Exchange Online", "Exchange Web Services phased disablement", "2026-10-01",
         (r"(?i)https://outlook\.office365\.com/EWS/Exchange\.asmx", r"(?i)Microsoft\.Exchange\.WebServices"),
         (r"(?i)ExchangeService\b", r"(?i)/EWS/Exchange\.asmx"),
         "Classify the caller as Exchange Online, on-premises, vendor-owned, Graph-replaceable, or parity-gap/manual-review required before changing it.",
         "Verify required behavior against the replacement interface; do not assume Microsoft Graph feature parity.",
-        "https://learn.microsoft.com/en-us/exchange/clients-and-mobile-in-exchange-online/deprecation-of-ews-exchange-online", "2026-09-12"),
+        "https://learn.microsoft.com/en-us/exchange/clients-and-mobile-in-exchange-online/deprecation-of-ews-exchange-online", "2026-09-13", "high",
+        "Phased Exchange Online EWS disablement begins 2026-10-01; permanent retirement is 2027-04-01. Applicability can differ by workload and tenant configuration; on-premises Exchange EWS is not covered by this retirement."),
 )
 
 def contains_secret(text: str) -> bool:
