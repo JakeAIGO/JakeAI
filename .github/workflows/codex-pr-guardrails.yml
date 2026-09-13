@@ -44,7 +44,7 @@ jobs:
 
       - name: Run Move the Damn Data Foundry Tests
         working-directory: foundry/move_the_damn_data
-        run: python -m pytest -q test_engine.py test_adversarial.py test_integration_sandbox.py test_approval_gate.py
+        run: python -m pytest -q test_engine.py test_adversarial.py test_integration_sandbox.py test_approval_gate.py test_workflow_chain.py
 
       - name: Validate Machine-Readable JSON
         run: |
@@ -100,7 +100,6 @@ jobs:
           missing += [m for m in required_validation_markers if m not in validation]
           missing += [m for m in required_redirect_markers if m not in redirects]
 
-          # Formatting-independent check that metered products remain excluded.
           compact_commerce = re.sub(r"\s+", "", commerce)
           if 'p.get("requires_metering",False)' not in compact_commerce:
               missing.append("metered-product checkout exclusion")
