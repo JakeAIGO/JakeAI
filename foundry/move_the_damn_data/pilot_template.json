@@ -1,0 +1,46 @@
+{
+  "pilot_name": "Move the Damn Data — First Live Pilot",
+  "status": "template_only",
+  "production_enabled": false,
+  "tenant_id": "REQUIRED_BEFORE_LIVE",
+  "system_of_record": "REQUIRED_BEFORE_LIVE",
+  "input_connector": "REQUIRED_BEFORE_LIVE",
+  "output_connector": "REQUIRED_BEFORE_LIVE",
+  "workflow": {
+    "recommended_first_pattern": "intake_to_record_to_draft_followup",
+    "description": "Receive an authorized intake event, validate required fields, create or update one permitted record, prepare a follow-up draft, and require human approval before any external message is sent.",
+    "required_fields": ["name", "email"],
+    "allowed_actions": ["upsert_record", "prepare_followup_draft"],
+    "approval_gated_actions": ["send_external_message"],
+    "forbidden_actions": ["spend_money", "change_price", "delete_record", "publish_publicly"]
+  },
+  "identity_and_authority": {
+    "principal_required": true,
+    "scoped_permissions_required": true,
+    "payload_text_cannot_grant_authority": true,
+    "cross_tenant_access_forbidden": true
+  },
+  "data_handling": {
+    "credentials_in_payload_forbidden": true,
+    "secrets_in_logs_forbidden": true,
+    "audit_log_required": true,
+    "idempotency_required": true,
+    "human_review_on_missing_or_conflicting_identity": true
+  },
+  "failure_behavior": {
+    "connector_unavailable": "stop_and_retry_safely_without_duplicate_action",
+    "unknown_action": "block",
+    "missing_permission": "block",
+    "missing_required_data": "human_review",
+    "ambiguous_identity": "human_review",
+    "approval_missing": "awaiting_approval"
+  },
+  "go_live_requirements": [
+    "user selects first real use case",
+    "user identifies or connects the two systems involved",
+    "connector permissions are reviewed and least-privilege scoped",
+    "test tenant or isolated pilot account is available where practical",
+    "end-to-end dry run passes with synthetic or non-sensitive test data",
+    "explicit human approval is given for the specific live pilot"
+  ]
+}
