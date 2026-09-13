@@ -7,9 +7,9 @@ human review instead of guessing.
 
 from __future__ import annotations
 
-from dataclasses import dataclass, field
+from dataclasses import asdict, dataclass, field
 from hashlib import sha256
-from typing import Any, Dict, Iterable, Mapping, MutableMapping, Optional, Set
+from typing import Any, Dict, Iterable, Mapping, MutableMapping, Optional, Protocol, Set
 
 
 GATED_ACTIONS = {
@@ -43,12 +43,19 @@ class RelayResult:
     audit_id: Optional[str] = None
 
 
+class IdempotencyStore(Protocol):
+    def get(self, event_id: str) -> Optional[Dict[str, Any]]: ...
+
+    def put(self, event_id: str, result: Mapping[str, Any]) -> None: ...
+
+
 class RelayEngine:
     """Deterministic administrative relay with fail-closed safety behavior."""
 
-    def __init__(self) -> None:
+    def __init__(self, *, idempotency_store: IdempotencyStore | None = None) -> None:
         self._processed: MutableMapping[str, RelayResult] = {}
         self._audit: list[Dict[str, Any]] = []
+        self._idempotency_store = idempotency_store
 
     @property
     def audit_log(self) -> tuple[Dict[str, Any], ...]:
@@ -63,8 +70,8 @@ class RelayEngine:
         field_map: Mapping[str, str],
         allowed_actions: Set[str],
     ) -> RelayResult:
-        if event.event_id in self._processed:
-            original = self._processed[event.event_id]
+        original = self._lookup_processed(event.event_id)
+        if original is not None:
             return RelayResult(
                 status="duplicate",
                 event_id=event.event_id,
@@ -127,6 +134,22 @@ class RelayEngine:
         )
         return self._record(event, result)
 
+    def _lookup_processed(self, event_id: str) -> RelayResult | None:
+        cached = self._processed.get(event_id)
+        if cached is not None:
+            return cached
+        if self._idempotency_store is None:
+            return None
+        stored = self._idempotency_store.get(event_id)
+        if stored is None:
+            return None
+        try:
+            restored = RelayResult(**stored)
+        except TypeError as exc:
+            raise RuntimeError("persisted idempotency record is invalid") from exc
+        self._processed[event_id] = restored
+        return restored
+
     def _record(self, event: RelayEvent, result: RelayResult) -> RelayResult:
         audit_id = sha256(f"{event.event_id}|{event.source}|{event.subject_id}".encode()).hexdigest()[:16]
         result = RelayResult(
@@ -138,6 +161,8 @@ class RelayEngine:
             reason=result.reason,
             audit_id=audit_id,
         )
+        if self._idempotency_store is not None:
+            self._idempotency_store.put(event.event_id, asdict(result))
         self._processed[event.event_id] = result
         self._audit.append(
             {
