@@ -11,54 +11,7 @@
 .deckframe img[alt]{color:transparent;}
 
 
-/* === MOBILE DECK FIX <=760px === */
-@media (max-width: 760px) {
-  body { overflow-x: hidden; }
-  .deck-viewport {
-    width: 100vw;
-    overflow-x: auto;
-    overflow-y: visible;
-    -webkit-overflow-scrolling: touch;
-    scroll-snap-type: x mandatory;
-  }
-  .deckframe {
-    min-width: 880px !important;
-    width: 880px !important;
-    height: auto !important;
-    aspect-ratio: 1226 / 760;
-    position: relative;
-    flex-shrink: 0;
-  }
-  .deckframe img, .deckframe .deck-image {
-    width: 880px !important;
-    min-width: 880px !important;
-    height: auto !important;
-    display: block;
-  }
-  .hotspots {
-    position: absolute;
-    top: 0; left: 0;
-    width: 880px;
-    height: auto;
-  }
-  .hotspot {
-    padding-top: 14px !important;
-    padding-bottom: 14px !important;
-  }
-  .hotspot:active, .hotspot:focus {
-    outline: 2px solid #00ffcc;
-    box-shadow: 0 0 12px #00ffcc88;
-  }
-  .deck-hint {
-    display: block;
-    text-align: center;
-    font-size: 12px;
-    color: #aaa;
-    padding: 6px 0 2px 0;
-    letter-spacing: 0.04em;
-  }
-}
-/* === END MOBILE DECK FIX === */
+
 
 
 @media (max-width: 760px) {
