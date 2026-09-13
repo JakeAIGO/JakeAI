@@ -54,6 +54,14 @@ RULES: tuple[Rule, ...] = (
         "Run representative agent tasks against the replacement in a non-production environment and confirm the retired Supervisor API is no longer called.",
         "https://docs.databricks.com/aws/en/release-notes/whats-coming", "2026-09-12"),
     Rule(
+        "aws-app-mesh", "AWS", "AWS App Mesh end of support", "2026-09-30",
+        (r"AWS::AppMesh::", r"(?i)appmesh\.k8s\.aws/", r"(?i)appmesh-controller"),
+        (r"(?i)\bappmesh\b", r"(?i)AWS App Mesh"),
+        "Inventory every App Mesh resource and caller, classify the workload (for example ECS versus EKS), and plan migration using the AWS-supported replacement path appropriate to the workload before removing mesh dependencies.",
+        "Validate service discovery, routing, health checks, observability and traffic behavior on the replacement in a non-production environment; confirm no App Mesh resources or sidecar dependencies remain before cutover.",
+        "https://docs.aws.amazon.com/app-mesh/latest/userguide/what-is-app-mesh.html", "2026-09-13", "high",
+        "AWS states that after 2026-09-30 customers will no longer be able to access the App Mesh console or App Mesh resources. Replacement architecture depends on the workload; do not assume a universal one-to-one migration."),
+    Rule(
         "google-ads-v22", "Google Ads", "Google Ads API v22 dependency", "2026-10-07",
         (r"google\.ads\.googleads\.v22", r"(?i)googleads/v22", r"(?i)googleads\.v22"),
         (r"(?i)google.?ads.{0,80}\bv22\b",),
