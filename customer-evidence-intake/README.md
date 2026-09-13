@@ -55,10 +55,22 @@ Any gate may terminate in KILLED or HUMAN_REVIEW. Unknown/ambiguous safety state
 One submission is evidence, not a product. A reusable skill may be proposed only after materially equivalent residual work recurs across independent customers and survives the Product Factory gates. Acceptance requires both reduced human intervention and escaped/false-accept errors at or below the frozen baseline/tolerance.
 
 ## Data handling principles
-Collect the minimum necessary. Separate customer-specific raw text from derived non-sensitive recurrence signatures. Define and enforce retention/deletion before public launch. Do not silently publish customer material, expose it in marketplace listings, or treat it as permission to train/publicize. Access must be scoped and auditable.
+Collect the minimum necessary. Separate customer-specific raw text from derived non-sensitive recurrence signatures. Raw prototype evidence is bounded by configurable retention (default 30 days in the local store). Do not silently publish customer material, expose it in marketplace listings, or treat it as permission to train/publicize. Access must be scoped and auditable.
 
-## Public-launch blockers
-Before any public intake endpoint is enabled, implement and test: authentication/abuse controls as appropriate; CSRF/origin controls where relevant; strict request/content validation; size/rate limits; secret/sensitive-data detection; logging redaction; encrypted transport/storage as applicable; tenant/access isolation; retention/deletion; incident/abuse handling; privacy notice/consent language; deterministic failure behavior; monitoring without recording sensitive payloads; and legal/privacy review.
+## Private HTTP boundary
+The unreleased HTTP boundary now includes strict origin allowlisting, Bearer authentication, JSON-only input, bounded request size, explicit processing consent, explicit no-secrets/sensitive-data acknowledgement, rate limiting, and non-payload audit metadata. Rejected/high-risk input is not persisted through the service boundary.
+
+## Production-adapter hardening completed privately
+- Secrets are required from deploy-time environment configuration; no production secret is stored in source.
+- Public origins must be explicit HTTPS origins; wildcard and plain HTTP origins fail closed.
+- Forwarded client addresses are trusted only when the immediate peer belongs to an explicitly configured trusted-proxy CIDR.
+- A durable SQLite-backed rate limiter prototype persists hashed actor identifiers rather than plaintext client IDs.
+- A durable audit prototype stores only event type, actor fingerprint, outcome, and timestamp — not request bodies, authorization headers, contact text, or evidence payloads.
+- In-memory databases are rejected by the production configuration adapter.
+- No network socket, route, deployment, checkout, or public intake is activated by these modules.
+
+## Remaining public-launch blockers
+Before any public intake endpoint is enabled, still implement/verify: production-grade encrypted and access-isolated evidence storage; authenticated deletion/data-subject controls; secret rotation/operational key management; production-grade shared rate limiting if horizontally scaled; real reverse-proxy integration tests; abuse/incident handling; privacy notice/consent language and legal/privacy review; monitoring without sensitive payloads; backup/restore and retention guarantees; rollback procedure; deployment configuration review; and a final security review of the concrete hosting adapter.
 
 ## Release gate
 This specification may be built and tested privately. No merge to main, production deployment, public intake, checkout activation, or public release without explicit human approval for that specific release.
