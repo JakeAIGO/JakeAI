@@ -62,12 +62,21 @@ RULES: tuple[Rule, ...] = (
         "https://docs.aws.amazon.com/app-mesh/latest/userguide/what-is-app-mesh.html", "2026-09-13", "high",
         "AWS states that after 2026-09-30 customers will no longer be able to access the App Mesh console or App Mesh resources. Replacement architecture depends on the workload; do not assume a universal one-to-one migration."),
     Rule(
-        "google-ads-v22", "Google Ads", "Google Ads API v22 dependency", "2026-10-07",
+        "google-ads-v22", "Google Ads", "Google Ads API v22 dependency", "2026-10-31",
         (r"google\.ads\.googleads\.v22", r"(?i)googleads/v22", r"(?i)googleads\.v22"),
         (r"(?i)google.?ads.{0,80}\bv22\b",),
         "Upgrade the client/API surface after reviewing version-specific breaking changes; update affected service/method usage.",
         "Run representative read/write regression tests in a non-destructive environment and confirm no v22 requests remain.",
-        "https://ads-developers.googleblog.com/2026/09/", "2026-09-12"),
+        "https://developers.google.com/google-ads/api/docs/sunset-dates", "2026-09-13", "high",
+        "Google currently lists the v22 sunset as October 2026 (tentative), without a confirmed day. The internal 2026-10-31 date is a conservative sort placeholder representing the month, not a vendor-confirmed deadline; customer-facing output must describe the timing as tentative October 2026 until Google publishes an exact date."),
+    Rule(
+        "twilio-functions-http-webhook", "Twilio", "HTTP webhook/callback to Twilio Functions or Assets", "2026-09-24",
+        (r"(?i)http://[A-Za-z0-9.-]+\.twil\.io(?:/|\b)",),
+        (r"(?i)http://[^\s'\"]*(?:twilio|functions|assets)[^\s'\"]*",),
+        "Update affected webhook or callback subscriptions that target Twilio Functions/Assets from HTTP to HTTPS; verify the destination and do not mechanically rewrite unrelated URLs.",
+        "Exercise each affected webhook/callback over HTTPS and confirm the expected Twilio Function/Asset behavior before the enforcement date.",
+        "https://www.twilio.com/en-us/changelog/https-required-for-twilio-functions-and-assets-webhooks-starting", "2026-09-13", "high",
+        "Twilio states that starting 2026-09-24 HTTP traffic to Functions and Assets will receive a 301 redirect and can disrupt Functions. This rule detects artifact-visible HTTP callback URLs; it does not prove that every matched URL is an active Twilio subscription."),
     Rule(
         "qlik-cloudevent-legacy", "Qlik", "Qlik webhook CloudEvent migration candidate", "2026-10-06",
         (),
