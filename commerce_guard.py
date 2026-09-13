@@ -1,26 +1,19 @@
 import os
-import stripe
 from fastapi import FastAPI, HTTPException, Header, Request
 from fastapi.responses import RedirectResponse, PlainTextResponse
 from fastapi.middleware.cors import CORSMiddleware
 from main import app as legacy_app
 
 PUBLIC_BASE_URL = os.environ.get("PUBLIC_BASE_URL", "https://jakeaiofficial.com").rstrip("/")
-STRIPE_SECRET_KEY = os.environ.get("STRIPE_SECRET_KEY", "").strip()
-SOLAR_GUIDE_DELIVERY_URL = os.environ.get("SOLAR_GUIDE_DELIVERY_URL", "").strip()
 FREE_DELIVERY_URL = "https://docs.google.com/document/d/14Ayw4pxjnYy5MddTGdLSZEeQGKJGU3CRSmW7384Lfhk/edit?usp=sharing"
-
-if STRIPE_SECRET_KEY:
-    stripe.api_key = STRIPE_SECRET_KEY
 
 PUBLIC_PRODUCTS = {
     "prod_make_free_00": {"id":"prod_make_free_00","title":"Make the Damn Thing for Free™","description":"Zero-budget production orchestration workflow.","category":"autonomous-workflow-skills","price":0.0,"status":"live"},
-    "prod_solar_guide_04": {"id":"prod_solar_guide_04","title":"Commercial Solar & BESS Guide","description":"Technical reference for commercial solar and battery-storage sizing concepts.","category":"digital-guide","price":3.0,"status":"live" if SOLAR_GUIDE_DELIVERY_URL else "gated"},
     "prod_game_qa_autopilot_01": {"id":"prod_game_qa_autopilot_01","title":"Game QA Autopilot v1.0","description":"Structured game QA workflow kit.","category":"gaming-qa","price":9.99,"status":"gated"},
     "prod_where_the_hell_are_my_glasses_01": {"id":"prod_where_the_hell_are_my_glasses_01","title":"Where the Hell Are My Glasses?","description":"Guided lost-object recovery workflow.","category":"personal-productivity","price":2.99,"status":"gated"},
 }
 
-app = FastAPI(title="JakeAI Commerce Guard", version="1.2.0")
+app = FastAPI(title="JakeAI Commerce Guard", version="1.3.0")
 app.add_middleware(
     CORSMiddleware,
     allow_origins=["https://jakeaiofficial.com", "https://www.jakeaiofficial.com"],
@@ -31,7 +24,7 @@ app.add_middleware(
 
 @app.get("/health")
 def health():
-    return {"status":"healthy","service":"JakeAI Commerce Guard","commerce_mode":"fail_closed","version":"1.2.0"}
+    return {"status":"healthy","service":"JakeAI Commerce Guard","commerce_mode":"fail_closed","version":"1.3.0"}
 
 @app.get("/v1/products/list")
 @app.get("/api/v1/products/list")
@@ -59,26 +52,7 @@ def _create_checkout(product_id: str, idempotency_key: str | None):
         raise HTTPException(status_code=503, detail="Checkout is temporarily gated until delivery and QA are verified")
     if product_id == "prod_make_free_00":
         return RedirectResponse(FREE_DELIVERY_URL, status_code=303)
-    if product_id != "prod_solar_guide_04" or not SOLAR_GUIDE_DELIVERY_URL:
-        raise HTTPException(status_code=503, detail="Paid fulfillment is not configured")
-    if not STRIPE_SECRET_KEY:
-        raise HTTPException(status_code=503, detail="Payment processor is not configured")
-    kwargs = {}
-    if idempotency_key:
-        kwargs["idempotency_key"] = idempotency_key
-    try:
-        session = stripe.checkout.Session.create(
-            mode="payment",
-            payment_method_types=["card"],
-            line_items=[{"price_data":{"currency":"usd","product_data":{"name":product["title"]},"unit_amount":int(round(product["price"]*100))},"quantity":1}],
-            metadata={"product_id":product_id},
-            success_url=f"{PUBLIC_BASE_URL}/api/v1/checkout/success?session_id={{CHECKOUT_SESSION_ID}}",
-            cancel_url=f"{PUBLIC_BASE_URL}/?payment=cancelled",
-            **kwargs,
-        )
-    except Exception as exc:
-        raise HTTPException(status_code=502, detail="Unable to create checkout session") from exc
-    return RedirectResponse(session.url, status_code=303)
+    raise HTTPException(status_code=503, detail="Paid fulfillment is not configured for this public product")
 
 @app.get("/v1/checkout/buy/{product_id}")
 @app.get("/api/v1/checkout/buy/{product_id}")
@@ -93,30 +67,16 @@ def create_session(product_id: str, idempotency_key: str | None = Header(default
 @app.get("/v1/checkout/success")
 @app.get("/api/v1/checkout/success")
 def checkout_success(session_id: str):
-    if not STRIPE_SECRET_KEY:
-        raise HTTPException(status_code=503, detail="Payment verification is unavailable")
-    try:
-        session = stripe.checkout.Session.retrieve(session_id)
-    except Exception as exc:
-        raise HTTPException(status_code=400, detail="Unable to verify checkout session") from exc
-    if session.payment_status != "paid":
-        raise HTTPException(status_code=402, detail="Payment has not been verified")
-    if (session.metadata or {}).get("product_id") != "prod_solar_guide_04":
-        raise HTTPException(status_code=403, detail="Session is not entitled to this delivery")
-    if not SOLAR_GUIDE_DELIVERY_URL:
-        raise HTTPException(status_code=503, detail="Delivery is temporarily unavailable")
-    return RedirectResponse(SOLAR_GUIDE_DELIVERY_URL, status_code=303)
+    raise HTTPException(status_code=410, detail="This legacy paid-delivery route is retired. No public paid product currently uses it.")
 
 @app.get("/llms.txt", response_class=PlainTextResponse)
 def llms_txt():
-    solar_status = "LIVE" if SOLAR_GUIDE_DELIVERY_URL else "GATED"
     return f"""# JakeAI Universe — Machine-Readable Public Catalog
 > Human release authority remains required for public releases.
 > Public commerce is fail-closed when fulfillment is not verified.
 
 ## LIVE
 - Make the Damn Thing for Free™ — $0 — Product ID: prod_make_free_00
-- Commercial Solar & BESS Guide — $3.00 — Status: {solar_status}
 
 ## GATED / NOT FOR SALE
 - Game QA Autopilot v1.0 — delivery QA pending
@@ -155,8 +115,6 @@ def legal_privacy():
 def legal_refunds():
     return {"document":"Refund Policy","version":"3.0","effective_date":"2026-09-13","human_url":f"{PUBLIC_BASE_URL}/refunds.html","key_provisions":{"duplicate_or_failed_delivery":"Contact support for review and correction/refund where appropriate or legally required.","consumer_rights":"Non-waivable consumer rights are preserved.","contact":"support@jakeaiofficial.com"}}
 
-# Production safety gates override legacy proof-of-concept routes until their data,
-# security, entitlement, and claims controls are independently verified.
 def _gated(feature: str, reason: str):
     raise HTTPException(status_code=503, detail={"status":"gated","feature":feature,"reason":reason})
 
