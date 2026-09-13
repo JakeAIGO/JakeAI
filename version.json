@@ -1,9 +1,12 @@
 {
   "project": "JakeAI",
-  "release": "v2.3-security-commerce-audit",
-  "date": "2026-09-09",
-  "version": "2.3.0",
+  "release": "jakeai-universe-2026-09-13",
+  "date": "2026-09-13",
+  "version": "3.0.0",
   "frontend_host_target": "Netlify",
   "backend_host": "https://agent-commerce-network-production-56e8.up.railway.app",
-  "checkout_strategy": "direct-backend-links-with-netlify-proxy-fallback"
+  "checkout_strategy": "fail-closed public commerce with verified fulfillment",
+  "arcade_games_live": 3,
+  "media_rights_gate": true,
+  "human_release_gate": true
 }

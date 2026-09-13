@@ -1,18 +1,32 @@
 {
-  "schema_version": "1.0",
-  "name": "JakeAI Services",
-  "description": "Production endpoints for telemetry demand tracking and physical AI robotics solvers.",
+  "schema_version": "2.0",
+  "name": "JakeAI Universe",
+  "description": "Public machine-readable surface for JakeAI workflows, games, media destinations, and fail-closed commerce.",
+  "url": "https://jakeaiofficial.com",
+  "release": "jakeai-universe-2026-09-13",
   "endpoints": [
+    {
+      "path": "/api/v1/products/list",
+      "method": "GET",
+      "description": "Return the current public product catalog."
+    },
     {
       "path": "/api/v1/products/search",
       "method": "POST",
-      "description": "Search product catalog and log unmet demand telemetry."
-    },
-    {
-      "path": "/v1/robotics/grasp-impedance-solver",
-      "method": "POST",
-      "description": "Calculate optimal tendon tensions and normal forces for 22-DoF robotic grasping."
+      "description": "Search the current public product catalog."
     }
   ],
-  "contact_email": "admin@jakeaiofficial.com"
+  "commerce": {
+    "mode": "fail_closed",
+    "public_paid_products_verified": false,
+    "live_free_product_ids": ["prod_make_free_00"]
+  },
+  "release_controls": {
+    "human_approval_required": true,
+    "public_audio_rights_gate": true,
+    "unverified_safety_sensitive_tools_gated": true
+  },
+  "manifest": "/release-manifest.json",
+  "workflow_registry": "/workflow-registry.json",
+  "contact_email": "support@jakeaiofficial.com"
 }
