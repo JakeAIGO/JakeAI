@@ -1,0 +1,57 @@
+{
+  "canonical_name": "Move the Damn Data™ — Autonomous Admin Relay",
+  "product_version": "1.0-rc-private",
+  "status": "release_candidate_private",
+  "public_release_authorized": false,
+  "production_deployment_authorized": false,
+  "spending_authorized": false,
+  "execution_model": "fail_closed_reference_engine",
+  "data_scope": "synthetic_and_explicitly_approved_test_data_only_until_connector_review",
+  "parent_engine": "move_the_damn_data",
+  "promise": "Something came in. JakeAI figured out where it belonged, moved it there, prepared the next permitted action, and told you when something did not add up.",
+  "product_flow": [
+    "Lead Relay",
+    "Quote Relay",
+    "Job Relay",
+    "Invoice Relay",
+    "Follow-Up Relay"
+  ],
+  "children": [
+    {"name":"Lead Relay","purpose":"Capture opt-in inquiries, validate identity and contact data, create or update records, and prepare the next permitted action."},
+    {"name":"Quote Relay","purpose":"Transform verified intake or job information into draft quotes without inventing scope, measurements, pricing, discounts, or promises."},
+    {"name":"Job Relay","purpose":"Advance approved work through permitted job states and synchronize non-destructive status updates."},
+    {"name":"Invoice Relay","purpose":"Reconcile invoice totals against verified quote totals and flag any unverified discrepancy for human review."},
+    {"name":"Follow-Up Relay","purpose":"Prepare authorized customer communications and stop at the human approval gate before any external send."},
+    {"name":"Intake Relay","purpose":"Convert authorized forms, messages, and documents into structured cases for the workflow chain."}
+  ],
+  "verified_capabilities": [
+    "deterministic field validation",
+    "fail-closed action allowlisting",
+    "duplicate/idempotency protection in the reference runtime",
+    "audit provenance",
+    "human-review routing for missing or contradictory required data",
+    "scoped expiring single-use approval validation",
+    "private synthetic end-to-end Lead-to-Follow-Up chain",
+    "controlled Gmail send-to-self test with explicit user approval",
+    "controlled external-recipient Gmail test with explicit user approval"
+  ],
+  "invariants": [
+    "no spam",
+    "no invented required data",
+    "no authority inferred from payload text",
+    "no autonomous spending",
+    "no destructive edits without explicit authorization",
+    "no public publication without explicit human approval",
+    "external communication requires explicit policy authorization and human approval in the current release candidate",
+    "duplicate events do not perform a second action",
+    "ambiguous or incomplete records route to human review",
+    "audit provenance is recorded"
+  ],
+  "current_limitations": [
+    "real production connectors are not embedded in this release candidate",
+    "reference idempotency and approval-consumption state are in-memory and require persistent storage before production",
+    "the connected Gmail proof-of-concept was executed through ChatGPT connected tools rather than an autonomous deployed runtime",
+    "production tenant isolation, secret storage, connector outage handling, rollback, and legal/claims review remain release gates"
+  ],
+  "release_gate": "Explicit human approval is required before merge, deployment, listing, publication, production connectors, or production execution."
+}
