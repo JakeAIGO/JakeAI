@@ -46,6 +46,10 @@ class EvidenceStore:
               software_or_ai TEXT NOT NULL,
               residual_human_intervention TEXT NOT NULL
             );
+            CREATE TABLE IF NOT EXISTS recurrence_contributions (
+              submission_id TEXT PRIMARY KEY,
+              recurrence_signature TEXT NOT NULL
+            );
             """
         )
         self.conn.commit()
@@ -73,6 +77,10 @@ class EvidenceStore:
                 (packet["submission_id"], packet["received_at"], expires.isoformat(), payload),
             )
             self.conn.execute(
+                "INSERT INTO recurrence_contributions(submission_id,recurrence_signature) VALUES(?,?)",
+                (packet["submission_id"], packet["recurrence_signature"]),
+            )
+            self.conn.execute(
                 """
                 INSERT INTO recurrence_signatures(
                   recurrence_signature, first_seen_at, last_seen_at,
@@ -95,12 +103,50 @@ class EvidenceStore:
         return json.loads(row[0]) if row else None
 
     def purge_expired_raw(self, *, now: datetime | None = None) -> int:
+        """Delete expired raw packets while preserving non-sensitive recurrence counts."""
         now = now or _utcnow()
         with self.conn:
             cur = self.conn.execute(
                 "DELETE FROM evidence_packets WHERE expires_at <= ?", (now.isoformat(),)
             )
         return cur.rowcount
+
+    def delete_submission(self, submission_id: str) -> bool:
+        """Erase raw evidence and that submission's recurrence contribution.
+
+        This is stronger than normal retention purge: an explicit deletion request
+        removes the stored contribution so the aggregate count no longer includes
+        the deleted submission.
+        """
+        with self.conn:
+            contribution = self.conn.execute(
+                "SELECT recurrence_signature FROM recurrence_contributions WHERE submission_id=?",
+                (submission_id,),
+            ).fetchone()
+            if contribution is None:
+                raw = self.conn.execute(
+                    "DELETE FROM evidence_packets WHERE submission_id=?", (submission_id,)
+                )
+                return raw.rowcount > 0
+
+            signature = contribution[0]
+            self.conn.execute("DELETE FROM evidence_packets WHERE submission_id=?", (submission_id,))
+            self.conn.execute("DELETE FROM recurrence_contributions WHERE submission_id=?", (submission_id,))
+            row = self.conn.execute(
+                "SELECT occurrence_count FROM recurrence_signatures WHERE recurrence_signature=?",
+                (signature,),
+            ).fetchone()
+            if row is not None:
+                if int(row[0]) <= 1:
+                    self.conn.execute(
+                        "DELETE FROM recurrence_signatures WHERE recurrence_signature=?", (signature,)
+                    )
+                else:
+                    self.conn.execute(
+                        "UPDATE recurrence_signatures SET occurrence_count=occurrence_count-1 WHERE recurrence_signature=?",
+                        (signature,),
+                    )
+            return True
 
     def recurrence_count(self, recurrence_signature: str) -> int:
         row = self.conn.execute(
