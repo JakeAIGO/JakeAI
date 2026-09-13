@@ -30,6 +30,7 @@ jobs:
         run: |
           python -m py_compile main.py commerce_app.py crypto_commerce_app.py jakeai_mcp_server.py jakeai_audit.py crypto_payment_adapter.py crypto_payment_integration.py crypto_payment_rpc.py
           python -m compileall -q product-discovery
+          python -m compileall -q foundry/move_the_damn_data
 
       - name: Run Opportunity Clusterer Regression Test
         run: python product-discovery/test_opportunity_clusterer.py
@@ -41,13 +42,17 @@ jobs:
         run: |
           python -m pytest -q tests/test_crypto_payment_adapter.py tests/test_crypto_payment_integration.py tests/test_crypto_payment_rpc.py tests/test_crypto_commerce_app.py
 
+      - name: Run Move the Damn Data Foundry Tests
+        working-directory: foundry/move_the_damn_data
+        run: python -m pytest -q test_engine.py test_adversarial.py test_integration_sandbox.py
+
       - name: Validate Machine-Readable JSON
         run: |
           python - <<'PY'
           import json
           from pathlib import Path
 
-          for name in ("agent_card.json",):
+          for name in ("agent_card.json", "foundry/move_the_damn_data/product_manifest.json"):
               path = Path(name)
               json.loads(path.read_text(encoding="utf-8"))
               print(f"valid json: {name}")
