@@ -44,7 +44,7 @@ jobs:
 
       - name: Run Move the Damn Data Foundry Tests
         working-directory: foundry/move_the_damn_data
-        run: python -m pytest -q test_engine.py test_adversarial.py test_integration_sandbox.py test_approval_gate.py test_workflow_chain.py test_restart_safety.py test_recovery.py test_durable_state.py
+        run: python -m pytest -q test_engine.py test_adversarial.py test_integration_sandbox.py test_approval_gate.py test_workflow_chain.py test_restart_safety.py test_recovery.py test_durable_state.py test_durable_runtime.py
 
       - name: Validate Machine-Readable JSON
         run: |
