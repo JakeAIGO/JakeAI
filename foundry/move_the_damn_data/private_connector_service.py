@@ -12,7 +12,7 @@ from pathlib import Path
 from typing import Any
 
 from fastapi import FastAPI, Header, HTTPException
-from pydantic import BaseModel, ConfigDict, EmailStr, Field
+from pydantic import BaseModel, ConfigDict, Field
 
 from durable_state import DurableState, DurableStateError
 from workflow_chain import MoveTheDamnDataChain
@@ -30,7 +30,7 @@ class LeadIntake(BaseModel):
     model_config = ConfigDict(extra="forbid")
     event_id: str = Field(min_length=1, max_length=200)
     name: str = Field(min_length=1, max_length=200)
-    email: EmailStr
+    email: str = Field(min_length=3, max_length=320)
     request: str = Field(min_length=1, max_length=5000)
     opt_in: bool
 
@@ -92,7 +92,7 @@ def prepare_lead(
         intake.event_id,
         {
             "name": intake.name,
-            "email": str(intake.email),
+            "email": intake.email,
             "request": intake.request,
             "opt_in": intake.opt_in,
         },
@@ -116,7 +116,7 @@ def prepare_lead(
         )
 
     draft = {
-        "to": str(intake.email),
+        "to": intake.email.strip(),
         "subject": "We received your request",
         "body": (
             f"Hello {intake.name.strip()},\n\n"
@@ -133,7 +133,7 @@ def prepare_lead(
             "stage": "follow_up",
             "status": "awaiting_approval",
             "audit_id": lead.audit_id,
-            "recipient": str(intake.email),
+            "recipient": intake.email.strip(),
             "connector_execution": "none",
         },
     )
@@ -149,7 +149,6 @@ def prepare_lead(
 @app.post("/v1/connectors/execute")
 def execute_connector(x_jakeai_operator_token: str | None = Header(default=None)) -> dict[str, Any]:
     _authorized(x_jakeai_operator_token)
-    # Deliberately no implementation. A reviewed provider adapter must replace this gate.
     raise HTTPException(
         status_code=503,
         detail="live connector execution is not installed; external action remains disabled",
