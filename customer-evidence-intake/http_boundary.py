@@ -12,7 +12,7 @@ import hmac
 import json
 import time
 from collections import defaultdict, deque
-from dataclasses import dataclass
+from dataclasses import asdict, dataclass
 from typing import Any, Callable
 
 from service import CustomerEvidenceService
@@ -140,13 +140,15 @@ class IntakeHttpBoundary:
             self.audit_sink.record("intake_submit", actor_fingerprint=actor, outcome="ACK_REQUIRED")
             return HttpResult(400, {"status": "REJECTED", "reason": "safety acknowledgement required"})
 
-        result = self.service.submit(payload)
-        self.audit_sink.record("intake_submit", actor_fingerprint=actor, outcome=result["status"])
+        service_result = self.service.submit(payload)
+        result = asdict(service_result)
+        status = service_result.status
+        self.audit_sink.record("intake_submit", actor_fingerprint=actor, outcome=status)
 
-        if result["status"] == "ACCEPTED":
+        if status == "ACCEPTED":
             return HttpResult(202, result)
-        if result["status"] in {"BLOCKED_SECRET_DETECTED", "BLOCKED_SENSITIVE_DATA"}:
+        if status in {"BLOCKED_SECRET_DETECTED", "BLOCKED_SENSITIVE_DATA"}:
             return HttpResult(400, result)
-        if result["status"] == "HUMAN_REVIEW":
+        if status == "HUMAN_REVIEW":
             return HttpResult(202, result)
         return HttpResult(400, result)
