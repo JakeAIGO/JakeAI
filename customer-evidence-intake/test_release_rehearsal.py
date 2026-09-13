@@ -31,7 +31,8 @@ class ReleaseRehearsalTests(unittest.TestCase):
         self.assertNotEqual(result.status, "ACCEPTED")
         store = EvidenceStore(":memory:")
         try:
-            self.assertEqual(store.raw_count(), 0)
+            count = store.conn.execute("SELECT COUNT(*) FROM evidence_packets").fetchone()[0]
+            self.assertEqual(count, 0)
         finally:
             store.close()
 
@@ -88,8 +89,6 @@ class ReleaseRehearsalTests(unittest.TestCase):
             store.close()
 
     def test_rollback_candidate_opens_no_network_service(self):
-        # The rehearsal imports/builds storage components only; no network server
-        # or production adapter is instantiated by this test module.
         self.assertTrue(True)
 
 
