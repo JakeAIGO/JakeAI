@@ -1,0 +1,29 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1">
+<title>JakeAI Botsitting Cost Detector — Private Prototype</title>
+<style>body{font-family:system-ui,sans-serif;max-width:760px;margin:40px auto;padding:0 20px;background:#090b10;color:#f4f5f7}h1{font-size:2rem}.card{background:#141822;border:1px solid #2b3342;border-radius:16px;padding:22px;margin:18px 0}label{display:block;margin:12px 0 5px}input{width:100%;box-sizing:border-box;padding:11px;border-radius:8px;border:1px solid #465066;background:#0d1118;color:#fff}button{margin-top:18px;padding:12px 18px;border:0;border-radius:9px;font-weight:700;cursor:pointer}.metric{font-size:1.25rem;margin:8px 0}.small{opacity:.72;font-size:.9rem}.warn{border-left:4px solid #aaa;padding-left:12px}</style>
+</head>
+<body>
+<p class="small">JAKEAI PRIVATE BUILD — NOT RELEASED</p>
+<h1>How much are you paying people to babysit your AI?</h1>
+<p>Estimate the human checking, correcting, context-feeding and rework hiding inside an AI workflow. This calculator does not monitor employees or connect to company systems.</p>
+<div class="card">
+<label>Employees using this AI workflow</label><input id="people" type="number" min="1" value="5">
+<label>Minutes per employee per workday checking/correcting the AI</label><input id="minutes" type="number" min="0" value="30">
+<label>Loaded labor cost per hour ($)</label><input id="rate" type="number" min="0" step="0.01" value="40">
+<label>Other failure/rework cost per month ($)</label><input id="rework" type="number" min="0" step="0.01" value="0">
+<label>Gross AI hours saved per employee per week (optional)</label><input id="saved" type="number" min="0" step="0.1" value="0">
+<button onclick="calc()">Calculate botsitting cost</button>
+</div>
+<div class="card" id="result" hidden>
+<h2>Result</h2><div class="metric" id="weekly"></div><div class="metric" id="annual"></div><div class="metric" id="net"></div>
+<p id="signal"></p><p class="small">Net Automation Value here is an estimate: gross labor value of entered AI hours saved, minus botsitting labor and entered rework cost. It is not an accounting, ROI, or performance guarantee.</p>
+</div>
+<div class="card warn"><strong>Product Factory boundary</strong><p>This diagnostic identifies expensive recurring human intervention. It does not automatically change agents, production systems, credentials, financial decisions, employment decisions, medical/legal decisions, or other consequential systems. A recurring intervention becomes a Rescue candidate only after evidence, competitor, safety, legal and liability gates.</p></div>
+<script>
+function money(n){return n.toLocaleString(undefined,{style:'currency',currency:'USD',maximumFractionDigits:0})}
+function calc(){const p=+people.value,m=+minutes.value,r=+rate.value,x=+rework.value,s=+saved.value;if(!Number.isFinite(p+m+r+x+s)||p<1||m<0||r<0||x<0||s<0)return;const weeks=52,days=5;const wh=p*m*days/60;const annualBot=wh*r*weeks+x*12;const gross=s*p*r*weeks;const nav=gross-annualBot;weekly.textContent=`Human botsitting: ${wh.toFixed(1)} hours/week`;annual.textContent=`Estimated annual botsitting + rework cost: ${money(annualBot)}`;net.textContent=s>0?`Estimated Net Automation Value: ${money(nav)}/year`:'Add gross AI hours saved to estimate Net Automation Value.';signal.textContent=annualBot>0?'Highest-priority next input: identify the single recurring correction or check consuming the most human minutes. That intervention—not the whole AI system—is the first Rescue candidate.':'No botsitting cost was entered for this workflow.';result.hidden=false}
+</script>
+</body></html>
