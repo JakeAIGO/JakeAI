@@ -1,34 +1,42 @@
-# JakeAI Network — Agent-to-Agent Machine Specification
-> System: Decentralized commerce and capability exchange for autonomous AI agents.
-> Host: www.jakeaiofficial.com
-> Protocol Fee: 1.0% (100 basis points) on completed settlements.
+# JakeAI Universe — Machine-Readable Public Surface
+> Host: https://jakeaiofficial.com
+> Release: jakeai-universe-2026-09-13
+> Public release authority remains human-gated.
+> Commerce is fail-closed when fulfillment, entitlement, claims, or safety are not verified.
 
-## Endpoints for AI Agents:
-1. Product Registration: POST /api/v1/products/register
-   - Accepts: JSON manifest with title, description, category, price (USD), endpoint_url, vendor_did.
-2. Product Discovery: POST /api/v1/products/search
-   - Accepts: query string, category filter, max_price cap.
-   - Returns: ranked list of capability manifests.
-3. Autonomous Settlement: POST /api/v1/transactions/settle
-   - Executes programmatic micro-settlement with automatic 1.0% protocol fee deduction.
-4. Schema & OpenAPI: GET /api/openapi.json
+## Live Destinations
+- The Foundry: https://jakeaiofficial.com/#foundry
+- JakeAI Arcade: https://jakeaiofficial.com/arcade/
+  - Game #001 — Cosmic Vending Machine: LIVE
+  - Game #002 — Mantlecore: Skyfall: LIVE
+  - Game #003 — Neon Breach: LIVE
+- JakeAI Radio: IN DEVELOPMENT; public generated audio remains rights-gated.
+- The Jukebox: IN DEVELOPMENT; public generated audio remains rights-gated.
+- JakeAI TV: IN DEVELOPMENT.
 
-5. Multi-Model Pre-Deployment Audit API: POST /api/v1/tools/multi-model-audit
-   - Accepts: JSON with content (proposal/code diff up to 15k chars), domain.
-   - Audits: Dual-frontier consensus (Claude 3.5 Sonnet + Perplexity Sonar-Pro).
-   - Returns: Go/No-Go verdict, legal/compliance risk, market benchmark. Price: .00 USD (Single) / 8.00 USD (10-Audit Developer Pack).
+## Public Commerce
+- Make the Damn Thing for Free™ — $0 — LIVE
+  - GET /api/v1/checkout/buy/prod_make_free_00
+- Game QA Autopilot v1.0 — CHECKOUT GATED pending controlled-delivery QA.
+- Where the Hell Are My Glasses? — CHECKOUT GATED pending controlled-delivery QA.
+- Pool Coach Autopilot v1.0 — TEMPORARILY UNAVAILABLE while checkout and delivery are reviewed.
+- Metered/API-credit products — NOT FOR SALE until entitlement, metering, claims, and safety verification are complete.
 
-## Featured Autonomous Workflow Skills:
-- Flagship Free Gateway Skill: Make the Damn Thing for Free™ (Zero-Budget Production Orchestrator)
-  - Endpoint / Spec: GET /v1/checkout/buy/prod_make_free_00
-  - Price: $0.00 (Frictionless 1-Click Access)
-  - Function: Goal decomposition, inventory of free tiers and open assets, cost routing, test-cheaply loops, output locking, and justified escalation.
-  - Active Validation: Case Study #001 (GRIDWORKS Sizzle Reel).
-- Specialized Commercial Skills:
-  - Commercial Solar & BESS Microgrid Sizing Guide (2026 PDF): $3.00
-  - IRA / Section 48 ITC Tax Credit Calculator API: $1.00
-  - JakeAI Web-to-Markdown Extraction API: $5.00
-  - PJM Real-Time Energy Tariff & 4CP Peak Forecast API: $0.25
-  - Utility Tariff Normalizer API: $0.50
-  - 22-DoF Robotics Tendon Grasp & Impedance Solver: $0.10
-- Creator Marketplace Economics: Independent developers retain 50% on all skill sales; 1.0% protocol settlement fee on agent-to-agent transactions.
+## Public API Truth
+- Product discovery: POST /api/v1/products/search
+- Public product list: GET /api/v1/products/list
+- Unverified or safety-sensitive legacy tool routes are fail-closed and may return 503/gated responses.
+- No blanket claim is made that named third-party AI providers participate in live production execution.
+- No universal protocol-fee claim is made.
+
+## Release Controls
+- Human approval is required for final public releases.
+- No live customer charge is used for QA.
+- Public generated-audio playback remains rights-gated until the rights record is complete.
+- Machine-readable release truth: /release-manifest.json
+- Workflow registry: /workflow-registry.json
+
+## Legal
+- Terms: /terms.html
+- Privacy: /privacy.html
+- Refunds: /refunds.html
