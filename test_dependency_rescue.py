@@ -22,15 +22,24 @@ def test_coralogix_exact_endpoint_is_confirmed():
     finding = next(x for x in r["findings"] if x["id"] == "coralogix-legacy-ingest")
     assert finding["confidence"] == "confirmed-signature"
 
+def test_databricks_supervisor_rule_is_present():
+    r = scan_text('Databricks Supervisor API', today=TODAY)
+    finding = next(x for x in r["findings"] if x["id"] == "databricks-supervisor-api")
+    assert finding["deadline"] == "2026-09-30"
+
 def test_qlik_general_reference_is_candidate_not_confirmed():
     r = scan_text('Qlik webhook CloudEvent migration notes', today=TODAY)
     finding = next(x for x in r["findings"] if x["id"] == "qlik-cloudevent-legacy")
     assert finding["confidence"] == "review-candidate"
 
-def test_ews_online_endpoint_is_confirmed():
+def test_ews_online_endpoint_is_confirmed_and_timing_is_qualified():
     r = scan_text('https://outlook.office365.com/EWS/Exchange.asmx', today=TODAY)
     finding = next(x for x in r["findings"] if x["id"] == "ews-exchange-online")
     assert finding["confidence"] == "confirmed-signature"
+    assert finding["deadline"] == "2026-10-01"
+    assert "phased" in finding["timing_note"].lower()
+    assert "2027-04-01" in finding["timing_note"]
+    assert finding["source_checked"] == "2026-09-13"
 
 def test_generic_ews_path_is_candidate():
     r = scan_text('server=https://mail.example.com/EWS/Exchange.asmx', today=TODAY)
