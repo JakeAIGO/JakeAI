@@ -32,3 +32,23 @@ def test_findings_report_contains_source_and_no_execution_claim():
     assert "https://developers.cloudflare.com/example" in text
     assert "No production changes were made" in text
     assert "not a guarantee" in text
+
+
+def test_report_renders_phased_timing_context():
+    finding = {
+        "vendor": "Microsoft Exchange Online",
+        "title": "Exchange Web Services phased disablement",
+        "deadline": "2026-10-01",
+        "days_to_deadline": 19,
+        "timing_note": "Phased disablement begins 2026-10-01; permanent retirement is 2027-04-01.",
+        "confidence": "confirmed-signature",
+        "source_checked": "2026-09-13",
+        "source_url": "https://learn.microsoft.com/example",
+        "matches": [{"line": 2, "evidence": "EWS"}],
+        "remediation": "Classify the caller before migration.",
+        "verification": "Verify required behavior against the replacement.",
+    }
+    text = render_markdown({"status": "COMPLETE", "results": [{"filename": "ews.py", "findings": [finding]}]}, "T-4")
+    assert "Vendor date" in text
+    assert "Timing context" in text
+    assert "2027-04-01" in text
