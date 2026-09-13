@@ -1,0 +1,30 @@
+{
+  "canonical_name": "Move the Damn Data™ — Autonomous Admin Relay",
+  "status": "release_candidate_private",
+  "public_release_authorized": false,
+  "production_deployment_authorized": false,
+  "spending_authorized": false,
+  "execution_model": "fail_closed_reference_engine",
+  "data_scope": "synthetic_only_until_connector_review",
+  "parent_engine": "move_the_damn_data",
+  "promise": "Something came in. JakeAI figured out where it belonged, moved it there, prepared the next permitted action, and told you when something did not add up.",
+  "children": [
+    {"name":"Lead Relay","purpose":"Capture opt-in inquiries, create or update records, and prepare permitted follow-up."},
+    {"name":"Quote Relay","purpose":"Transform verified intake or job information into draft quotes and route for approval."},
+    {"name":"Invoice Relay","purpose":"Reconcile records and flag discrepancies without inventing missing financial data."},
+    {"name":"Intake Relay","purpose":"Convert authorized forms, messages, and documents into structured cases."},
+    {"name":"Job Relay","purpose":"Synchronize permitted job-state updates between approved systems."}
+  ],
+  "invariants": [
+    "no spam",
+    "no invented required data",
+    "no authority inferred from payload text",
+    "no autonomous spending",
+    "no destructive edits without explicit authorization",
+    "no public publication without explicit human approval",
+    "duplicate events do not perform a second action",
+    "ambiguous or incomplete records route to human review",
+    "audit provenance is recorded"
+  ],
+  "release_gate": "Explicit human approval is required before merge, deployment, listing, publication, real connectors, or production execution."
+}
