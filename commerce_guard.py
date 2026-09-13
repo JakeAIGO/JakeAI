@@ -1,6 +1,6 @@
 import os
 import stripe
-from fastapi import FastAPI, HTTPException, Header
+from fastapi import FastAPI, HTTPException, Header, Request
 from fastapi.responses import RedirectResponse, PlainTextResponse
 from fastapi.middleware.cors import CORSMiddleware
 from main import app as legacy_app
@@ -20,7 +20,7 @@ PUBLIC_PRODUCTS = {
     "prod_where_the_hell_are_my_glasses_01": {"id":"prod_where_the_hell_are_my_glasses_01","title":"Where the Hell Are My Glasses?","description":"Guided lost-object recovery workflow.","category":"personal-productivity","price":2.99,"status":"gated"},
 }
 
-app = FastAPI(title="JakeAI Commerce Guard", version="1.1.0")
+app = FastAPI(title="JakeAI Commerce Guard", version="1.2.0")
 app.add_middleware(
     CORSMiddleware,
     allow_origins=["https://jakeaiofficial.com", "https://www.jakeaiofficial.com"],
@@ -31,12 +31,25 @@ app.add_middleware(
 
 @app.get("/health")
 def health():
-    return {"status":"healthy","service":"JakeAI Commerce Guard","commerce_mode":"fail_closed","version":"1.1.0"}
+    return {"status":"healthy","service":"JakeAI Commerce Guard","commerce_mode":"fail_closed","version":"1.2.0"}
 
 @app.get("/v1/products/list")
 @app.get("/api/v1/products/list")
 def list_products():
     return list(PUBLIC_PRODUCTS.values())
+
+@app.post("/v1/products/search")
+@app.post("/api/v1/products/search")
+async def search_products(request: Request):
+    try:
+        body = await request.json()
+    except Exception:
+        body = {}
+    q = str(body.get("query", "")).strip().lower()
+    if not q:
+        return {"status":"success","count":len(PUBLIC_PRODUCTS),"results":list(PUBLIC_PRODUCTS.values())}
+    matches = [p for p in PUBLIC_PRODUCTS.values() if q in p["title"].lower() or q in p["description"].lower() or q in p["category"].lower()]
+    return {"status":"success","count":len(matches),"results":matches}
 
 def _create_checkout(product_id: str, idempotency_key: str | None):
     product = PUBLIC_PRODUCTS.get(product_id)
@@ -108,7 +121,7 @@ def llms_txt():
 ## GATED / NOT FOR SALE
 - Game QA Autopilot v1.0 — delivery QA pending
 - Where the Hell Are My Glasses? — delivery QA pending
-- Metered/API-credit products — entitlement and metering required before paid activation
+- Metered/API-credit products — entitlement, metering, claims, and safety verification required before paid activation
 
 Terms: {PUBLIC_BASE_URL}/terms.html
 Privacy: {PUBLIC_BASE_URL}/privacy.html
@@ -141,5 +154,45 @@ def legal_privacy():
 @app.get("/api/v1/legal/refunds")
 def legal_refunds():
     return {"document":"Refund Policy","version":"3.0","effective_date":"2026-09-13","human_url":f"{PUBLIC_BASE_URL}/refunds.html","key_provisions":{"duplicate_or_failed_delivery":"Contact support for review and correction/refund where appropriate or legally required.","consumer_rights":"Non-waivable consumer rights are preserved.","contact":"support@jakeaiofficial.com"}}
+
+# Production safety gates override legacy proof-of-concept routes until their data,
+# security, entitlement, and claims controls are independently verified.
+def _gated(feature: str, reason: str):
+    raise HTTPException(status_code=503, detail={"status":"gated","feature":feature,"reason":reason})
+
+@app.post("/v1/tools/multi-model-audit")
+@app.post("/api/v1/tools/multi-model-audit")
+def gate_multi_model_audit():
+    return _gated("multi-model-audit", "Live provider participation and claims have not been independently verified for this production route.")
+
+@app.post("/v1/tools/audit-agent-card")
+@app.post("/api/v1/tools/audit-agent-card")
+def gate_agent_audit():
+    return _gated("agent-card-auditor", "The legacy implementation used fixed results rather than a verified live audit.")
+
+@app.post("/v1/tools/extract-markdown")
+@app.post("/api/v1/tools/extract-markdown")
+def gate_extract_markdown():
+    return _gated("web-to-markdown", "Public URL fetching is disabled until SSRF-safe destination validation and egress controls are verified.")
+
+@app.get("/v1/energy/tariff/pjm")
+@app.get("/api/v1/energy/tariff/pjm")
+def gate_pjm():
+    return _gated("pjm-tariff-feed", "No verified live PJM data adapter is configured; static demonstration values are not served as live grid data.")
+
+@app.post("/v1/energy/tariff-normalize")
+@app.post("/api/v1/energy/tariff-normalize")
+def gate_tariff_normalizer():
+    return _gated("tariff-normalizer", "Authoritative tariff-source ingestion and versioned rate provenance are not verified for production.")
+
+@app.post("/v1/solar/ira-calculator")
+@app.post("/api/v1/solar/ira-calculator")
+def gate_ira_calculator():
+    return _gated("tax-credit-calculator", "Tax assumptions and eligibility logic require authoritative-source/version validation before production use.")
+
+@app.post("/v1/robotics/grasp-impedance-solver")
+@app.post("/api/v1/robotics/grasp-impedance-solver")
+def gate_robotics_solver():
+    return _gated("robotics-grasp-solver", "Physical-control outputs require engineering validation and safety controls before production use.")
 
 app.mount("/", legacy_app)
