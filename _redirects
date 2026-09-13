@@ -6,3 +6,7 @@
 # Same-origin proxy for the Pool Coach memorial artwork host
 /pool-coach-artwork-host/  https://jakeai-pool-coach-artwork-95l3lw.v2.appdeploy.ai/  200!
 /pool-coach-artwork-host/*  https://jakeai-pool-coach-artwork-95l3lw.v2.appdeploy.ai/:splat  200!
+
+# Same-origin proxy for Chuck Cooper approved commemorative artwork
+/chuck-cooper-artwork-host/  https://chuck-motocross-companion-qutgyy.v2.appdeploy.ai/  200!
+/chuck-cooper-artwork-host/*  https://chuck-motocross-companion-qutgyy.v2.appdeploy.ai/:splat  200!
