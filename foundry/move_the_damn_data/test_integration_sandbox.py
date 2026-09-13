@@ -1,5 +1,8 @@
 """End-to-end synthetic integration tests for the fake connector sandbox."""
 
+from datetime import datetime, timedelta, timezone
+
+from approval_gate import ApprovalGrant
 from fake_connector import FakeConnectorSandbox, SandboxEnvelope
 
 
@@ -15,6 +18,17 @@ def env(**overrides):
     )
     data.update(overrides)
     return SandboxEnvelope(**data)
+
+
+def grant(*, event_id="evt-100", principal_id="principal-synthetic", actions=frozenset({"send_external_message"}), expires_delta=timedelta(minutes=10), nonce="n-1"):
+    return ApprovalGrant(
+        grant_id="grant-1",
+        principal_id=principal_id,
+        event_id=event_id,
+        allowed_actions=actions,
+        expires_at=datetime.now(timezone.utc) + expires_delta,
+        nonce=nonce,
+    )
 
 
 def test_form_to_crm_happy_path():
@@ -48,19 +62,93 @@ def test_credentials_in_payload_are_rejected():
 def test_payload_cannot_self_grant_permissions():
     s = FakeConnectorSandbox()
     r = s.submit(env(payload={"name":"Ada","email":"ada@example.invalid","permission":"action:send_external_message"}, requested_action="send_external_message"), permissions=set())
-    assert r.status == "blocked"
+    assert r.status == "awaiting_approval"
 
 
 def test_outbound_message_requires_approval():
     s = FakeConnectorSandbox()
     r = s.submit(env(requested_action="send_external_message"), permissions={"action:send_external_message"})
     assert r.status == "awaiting_approval"
+    assert r.reason == "approval_missing"
 
 
-def test_outbound_message_with_approval_is_prepared_not_sent():
+def test_outbound_message_with_scoped_approval_is_prepared_not_sent():
     s = FakeConnectorSandbox()
-    r = s.submit(env(requested_action="send_external_message"), permissions={"action:send_external_message"}, approval_token="synthetic-human-approval")
+    r = s.submit(
+        env(requested_action="send_external_message"),
+        permissions={"action:send_external_message"},
+        approval_grant=grant(),
+    )
     assert r.status == "prepared"
+
+
+def test_wrong_principal_approval_is_blocked():
+    s = FakeConnectorSandbox()
+    r = s.submit(
+        env(requested_action="send_external_message"),
+        permissions={"action:send_external_message"},
+        approval_grant=grant(principal_id="principal-other"),
+    )
+    assert r.status == "blocked"
+    assert r.reason == "principal_mismatch"
+
+
+def test_wrong_event_approval_is_blocked():
+    s = FakeConnectorSandbox()
+    r = s.submit(
+        env(requested_action="send_external_message"),
+        permissions={"action:send_external_message"},
+        approval_grant=grant(event_id="evt-other"),
+    )
+    assert r.status == "blocked"
+    assert r.reason == "event_mismatch"
+
+
+def test_wrong_action_approval_is_blocked():
+    s = FakeConnectorSandbox()
+    r = s.submit(
+        env(requested_action="send_external_message"),
+        permissions={"action:send_external_message"},
+        approval_grant=grant(actions=frozenset({"create_record"})),
+    )
+    assert r.status == "blocked"
+    assert r.reason == "action_out_of_scope"
+
+
+def test_expired_approval_does_not_prepare_message():
+    s = FakeConnectorSandbox()
+    r = s.submit(
+        env(requested_action="send_external_message"),
+        permissions={"action:send_external_message"},
+        approval_grant=grant(expires_delta=timedelta(seconds=-1)),
+    )
+    assert r.status == "awaiting_approval"
+    assert r.reason == "approval_expired"
+
+
+def test_approval_grant_is_single_use():
+    s = FakeConnectorSandbox()
+    g = grant()
+    first = s.submit(
+        env(requested_action="send_external_message"),
+        permissions={"action:send_external_message"},
+        approval_grant=g,
+    )
+    second = s.submit(
+        env(event_id="evt-101", requested_action="send_external_message"),
+        permissions={"action:send_external_message"},
+        approval_grant=ApprovalGrant(
+            grant_id=g.grant_id,
+            principal_id=g.principal_id,
+            event_id="evt-101",
+            allowed_actions=g.allowed_actions,
+            expires_at=g.expires_at,
+            nonce=g.nonce,
+        ),
+    )
+    assert first.status == "prepared"
+    assert second.status == "blocked"
+    assert second.reason == "approval_replayed"
 
 
 def test_retry_is_idempotent():
