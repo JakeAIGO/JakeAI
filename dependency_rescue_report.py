@@ -6,12 +6,11 @@ It intentionally omits internal regex/rule implementation details.
 from __future__ import annotations
 
 from datetime import datetime, timezone
-from typing import Iterable
 
 
 def _risk_label(days: int) -> str:
     if days < 0:
-        return "PAST DEADLINE"
+        return "PAST DATE"
     if days <= 7:
         return "CRITICAL"
     if days <= 30:
@@ -59,10 +58,15 @@ def render_markdown(scan_result: dict, report_id: str = "UNASSIGNED") -> str:
 
     for index, (filename, finding) in enumerate(sorted(all_findings, key=lambda x: x[1].get("days_to_deadline", 99999)), 1):
         days = int(finding.get("days_to_deadline", 99999))
+        timing_note = finding.get("timing_note") or ""
         lines.extend([
             f"## {index}. {_risk_label(days)} — {finding.get('vendor')}: {finding.get('title')}",
             f"- Artifact: `{filename}`",
-            f"- Deadline: **{finding.get('deadline')}** ({days} days from scan date)",
+            f"- Vendor date: **{finding.get('deadline')}** ({days} days from scan date)",
+        ])
+        if timing_note:
+            lines.append(f"- Timing context: {timing_note}")
+        lines.extend([
             f"- Classification: **{finding.get('confidence')}**",
             f"- Evidence source checked: {finding.get('source_checked')}",
             f"- Source: {finding.get('source_url')}",
