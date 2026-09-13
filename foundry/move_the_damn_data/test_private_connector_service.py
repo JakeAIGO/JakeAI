@@ -68,9 +68,11 @@ def test_no_opt_in_blocks_preparation(tmp_path, monkeypatch):
     assert body.prepared_draft is None
 
 
-def test_invalid_email_is_rejected_by_schema():
-    with pytest.raises(ValidationError):
-        make_intake(email="not-an-email")
+def test_invalid_email_routes_to_review(tmp_path, monkeypatch):
+    configure(tmp_path, monkeypatch)
+    body = service.prepare_lead(make_intake(email="not-an-email"), x_jakeai_operator_token="test-operator-token")
+    assert body.status == "human_review"
+    assert body.prepared_draft is None
 
 
 def test_extra_payload_authority_is_rejected():
