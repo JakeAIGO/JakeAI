@@ -10,7 +10,8 @@ from __future__ import annotations
 from dataclasses import dataclass
 from typing import Any, Mapping, Set
 
-from engine import RelayEngine, RelayEvent, RelayResult
+from approval_gate import ApprovalGate, ApprovalGrant
+from engine import GATED_ACTIONS, RelayEngine, RelayEvent, RelayResult
 
 
 FORBIDDEN_PAYLOAD_KEYS = {
@@ -38,9 +39,11 @@ class SandboxEnvelope:
 class FakeConnectorSandbox:
     """Validates connector boundaries before invoking the reference relay engine."""
 
-    def __init__(self, *, tenant_id: str = "tenant-synthetic") -> None:
+    def __init__(self, *, tenant_id: str = "tenant-synthetic", principal_id: str = "principal-synthetic") -> None:
         self.tenant_id = tenant_id
+        self.principal_id = principal_id
         self.engine = RelayEngine()
+        self.approval_gate = ApprovalGate()
         self.registered_connectors = {"synthetic_form", "synthetic_crm", "synthetic_accounting"}
 
     def submit(
@@ -48,7 +51,7 @@ class FakeConnectorSandbox:
         envelope: SandboxEnvelope,
         *,
         permissions: Set[str],
-        approval_token: str | None = None,
+        approval_grant: ApprovalGrant | None = None,
         required_fields: Set[str] | None = None,
         destination: str = "synthetic_crm",
         field_map: Mapping[str, str] | None = None,
@@ -76,6 +79,19 @@ class FakeConnectorSandbox:
                 reason=f"secret/authority fields forbidden in payload: {', '.join(forbidden)}",
             )
 
+        approval_marker = None
+        if envelope.requested_action in GATED_ACTIONS:
+            decision = self.approval_gate.validate(
+                grant=approval_grant,
+                principal_id=self.principal_id,
+                event_id=envelope.event_id,
+                action=envelope.requested_action,
+            )
+            if not decision.allowed:
+                status = "awaiting_approval" if decision.reason in {"approval_missing", "approval_expired"} else "blocked"
+                return RelayResult(status=status, event_id=envelope.event_id, reason=decision.reason)
+            approval_marker = f"validated:{approval_grant.grant_id}"
+
         relay_event = RelayEvent(
             event_id=f"{envelope.tenant_id}:{envelope.event_id}",
             source=envelope.source,
@@ -83,7 +99,7 @@ class FakeConnectorSandbox:
             payload=envelope.payload,
             requested_action=envelope.requested_action,
             permissions=set(permissions),
-            approval_token=approval_token,
+            approval_token=approval_marker,
         )
         return self.engine.process(
             relay_event,
