@@ -11,12 +11,14 @@ import concurrent.futures
 import hashlib
 import json
 import os
+import random
 import time
+import urllib.error
 import urllib.parse
 import urllib.request
 from pathlib import Path
 
-BASE_SYSTEM = """You are one independent member of the JakeAI Multi-Model Advisory Council. Analyze only the supplied frozen review package. Do not infer another council member's opinion and do not attempt consensus. Attack weak assumptions. Identify material risks, missing evidence, required mitigations, and questions for qualified counsel or operator verification. Do not claim legal approval. Return JSON only with: verdict (PASS_WITH_GATES|HOLD|REJECT), risks (array), mitigations (array), counsel_questions (array), confidence (0-1), rationale (string)."""
+BASE_SYSTEM = """You are one independent member of the JakeAI Multi-Model Advisory Council. Analyze only the supplied frozen review package. Do not infer another council member's opinion and do not attempt consensus. Attack weak assumptions. Identify material risks, missing evidence, required mitigations, and questions for qualified counsel or operator verification. Do not claim legal approval. Return one complete JSON object only, with no markdown or commentary, containing: verdict (PASS_WITH_GATES|HOLD|REJECT), risks (array), mitigations (array), counsel_questions (array), confidence (0-1), rationale (string). Keep the complete response under 1800 tokens."""
 
 SEAT_FOCUS = {
     "openai": "Focus on architecture, evidence quality, safety boundaries, failure modes, and synthesis-readiness.",
@@ -29,21 +31,51 @@ SEAT_FOCUS = {
 PROVIDERS = {
     "openai": {"key": "OPENAI_API_KEY", "model_env": "OPENAI_COUNCIL_MODEL", "model": "gpt-5.6-sol"},
     "anthropic": {"key": "ANTHROPIC_API_KEY", "model_env": "ANTHROPIC_COUNCIL_MODEL", "model": "claude-sonnet-5"},
-    "gemini": {"key": "GEMINI_API_KEY", "model_env": "GEMINI_COUNCIL_MODEL", "model": "gemini-2.5-pro"},
+    "gemini": {"key": "GEMINI_API_KEY", "model_env": "GEMINI_COUNCIL_MODEL", "model": "gemini-3.8-flash"},
     "perplexity": {"key": "PERPLEXITY_API_KEY", "model_env": "PERPLEXITY_COUNCIL_MODEL", "model": "sonar-pro"},
     "grok": {"key": "XAI_API_KEY", "model_env": "XAI_COUNCIL_MODEL", "model": "grok-4.6"},
 }
 
+RETRYABLE_HTTP = {408, 409, 429, 500, 502, 503, 504}
+MAX_ATTEMPTS = 4
+
+
+def _retry_after_seconds(exc, attempt):
+    raw = None
+    if getattr(exc, "headers", None):
+        raw = exc.headers.get("Retry-After")
+    if raw:
+        try:
+            return min(max(float(raw), 0.0), 30.0)
+        except ValueError:
+            pass
+    return min((2 ** attempt) + random.random(), 20.0)
+
 
 def _post(url, body, headers):
-    req = urllib.request.Request(
-        url,
-        data=json.dumps(body).encode(),
-        headers={"Content-Type": "application/json", **headers},
-        method="POST",
-    )
-    with urllib.request.urlopen(req, timeout=120) as r:
-        return json.loads(r.read().decode())
+    payload = json.dumps(body).encode()
+    last = None
+    for attempt in range(MAX_ATTEMPTS):
+        req = urllib.request.Request(
+            url,
+            data=payload,
+            headers={"Content-Type": "application/json", **headers},
+            method="POST",
+        )
+        try:
+            with urllib.request.urlopen(req, timeout=120) as r:
+                return json.loads(r.read().decode())
+        except urllib.error.HTTPError as exc:
+            last = exc
+            if exc.code not in RETRYABLE_HTTP or attempt == MAX_ATTEMPTS - 1:
+                raise
+            time.sleep(_retry_after_seconds(exc, attempt))
+        except (urllib.error.URLError, TimeoutError) as exc:
+            last = exc
+            if attempt == MAX_ATTEMPTS - 1:
+                raise
+            time.sleep(min((2 ** attempt) + random.random(), 20.0))
+    raise last
 
 
 def _system_for(name):
@@ -57,7 +89,7 @@ def _prompt(name, package):
 def _openai(name, package, key, model):
     d = _post(
         "https://api.openai.com/v1/responses",
-        {"model": model, "input": _prompt(name, package), "store": False},
+        {"model": model, "input": _prompt(name, package), "store": False, "max_output_tokens": 2200},
         {"Authorization": f"Bearer {key}"},
     )
     texts = []
@@ -73,7 +105,8 @@ def _anthropic(name, package, key, model):
         "https://api.anthropic.com/v1/messages",
         {
             "model": model,
-            "max_tokens": 2500,
+            "max_tokens": 4000,
+            "temperature": 0,
             "system": _system_for(name),
             "messages": [{"role": "user", "content": package}],
         },
@@ -89,7 +122,7 @@ def _gemini(name, package, key, model):
         {
             "systemInstruction": {"parts": [{"text": _system_for(name)}]},
             "contents": [{"role": "user", "parts": [{"text": package}]}],
-            "generationConfig": {"responseMimeType": "application/json"},
+            "generationConfig": {"responseMimeType": "application/json", "temperature": 0, "maxOutputTokens": 3000},
         },
         {},
     )
@@ -108,6 +141,7 @@ def _chat_compatible(name, url, package, key, model):
                 {"role": "system", "content": _system_for(name)},
                 {"role": "user", "content": package},
             ],
+            "temperature": 0,
         },
         {"Authorization": f"Bearer {key}"},
     )
@@ -131,26 +165,46 @@ ADAPTERS = {
 }
 
 
-def _parse(text):
+def _extract_json_object(text):
     s = text.strip()
     if s.startswith("```"):
         s = s.split("\n", 1)[1].rsplit("```", 1)[0].strip()
         if s.startswith("json"):
             s = s[4:].lstrip()
-    obj = json.loads(s)
+    try:
+        return json.loads(s)
+    except json.JSONDecodeError as first:
+        decoder = json.JSONDecoder()
+        starts = [i for i, ch in enumerate(s) if ch == "{"]
+        for start in starts:
+            try:
+                obj, _ = decoder.raw_decode(s[start:])
+                if isinstance(obj, dict):
+                    return obj
+            except json.JSONDecodeError:
+                continue
+        raise first
+
+
+def _parse(text):
+    obj = _extract_json_object(text)
     if obj.get("verdict") not in {"PASS_WITH_GATES", "HOLD", "REJECT"}:
         raise ValueError("invalid verdict")
     if not isinstance(obj.get("risks"), list) or not isinstance(obj.get("mitigations"), list):
         raise ValueError("risks and mitigations must be arrays")
+    if not isinstance(obj.get("counsel_questions", []), list):
+        raise ValueError("counsel_questions must be an array")
     confidence = obj.get("confidence")
     if not isinstance(confidence, (int, float)) or not 0 <= confidence <= 1:
         raise ValueError("confidence must be between 0 and 1")
+    if not isinstance(obj.get("rationale"), str):
+        raise ValueError("rationale must be a string")
     return obj
 
 
 def _run_member(name, cfg, package, live):
     key = os.getenv(cfg["key"])
-    model = os.getenv(cfg["model_env"], cfg["model"])
+    model = os.getenv(cfg["model_env"]) or cfg["model"]
     base = {
         "provider": name,
         "model_requested": model,
@@ -218,15 +272,12 @@ def run(package, out_path="product-discovery/run-output/council-latest.json", li
         "members": {},
     }
 
-    # Parallel calls reduce anchoring-by-order and ensure all seats receive the
-    # identical frozen package before any synthesis is performed.
     with concurrent.futures.ThreadPoolExecutor(max_workers=len(PROVIDERS)) as pool:
         futures = [pool.submit(_run_member, name, cfg, package, live) for name, cfg in PROVIDERS.items()]
         for future in concurrent.futures.as_completed(futures):
             name, result = future.result()
             report["members"][name] = result
 
-    # Stable member ordering for reproducible reports.
     report["members"] = {name: report["members"][name] for name in PROVIDERS}
     successful = [v for v in report["members"].values() if v.get("participated")]
     report["participating_count"] = len(successful)
