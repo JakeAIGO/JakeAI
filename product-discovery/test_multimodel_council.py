@@ -66,6 +66,21 @@ class CouncilTests(unittest.TestCase):
         with patch.dict(os.environ,env,clear=True),patch.object(council,"ADAPTERS",adapters),tempfile.TemporaryDirectory() as d: council.run("packet",out_path=f"{d}/r.json",live=True)
         self.assertEqual(seen["model"],council.PROVIDERS["openai"]["model"])
 
+    def test_anthropic_uses_structured_output_schema(self):
+        captured={}
+        def fake_post(url,body,headers):
+            captured["url"]=url; captured["body"]=body; captured["headers"]=headers
+            return {"id":"req-claude","content":[{"type":"text","text":GOOD}]}
+        with patch.object(council,"_post",fake_post):
+            text,request_id=council._anthropic("anthropic","packet","secret","claude-sonnet-5")
+        self.assertEqual(text,GOOD)
+        self.assertEqual(request_id,"req-claude")
+        self.assertNotIn("temperature",captured["body"])
+        fmt=captured["body"]["output_config"]["format"]
+        self.assertEqual(fmt["type"],"json_schema")
+        self.assertEqual(fmt["schema"],council.COUNCIL_OUTPUT_SCHEMA)
+        self.assertFalse(fmt["schema"]["additionalProperties"])
+
     def test_safe_error_detail_keeps_metadata_and_redacts_credentials(self):
         raw=json.dumps({"error":{"type":"invalid_request_error","code":"bad","message":"API key: supersecret was rejected"}}).encode()
         detail=council._safe_error_detail(raw)
