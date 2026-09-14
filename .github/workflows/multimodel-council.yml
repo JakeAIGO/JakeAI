@@ -33,11 +33,11 @@ jobs:
           GEMINI_API_KEY: ${{ secrets.GEMINI_API_KEY }}
           PERPLEXITY_API_KEY: ${{ secrets.PERPLEXITY_API_KEY }}
           XAI_API_KEY: ${{ secrets.XAI_API_KEY }}
-          OPENAI_COUNCIL_MODEL: ${{ vars.OPENAI_COUNCIL_MODEL }}
-          ANTHROPIC_COUNCIL_MODEL: ${{ vars.ANTHROPIC_COUNCIL_MODEL }}
-          GEMINI_COUNCIL_MODEL: ${{ vars.GEMINI_COUNCIL_MODEL }}
-          PERPLEXITY_COUNCIL_MODEL: ${{ vars.PERPLEXITY_COUNCIL_MODEL }}
-          XAI_COUNCIL_MODEL: ${{ vars.XAI_COUNCIL_MODEL }}
+          OPENAI_COUNCIL_MODEL: ${{ vars.OPENAI_COUNCIL_MODEL || 'gpt-5.6-sol' }}
+          ANTHROPIC_COUNCIL_MODEL: ${{ vars.ANTHROPIC_COUNCIL_MODEL || 'claude-sonnet-5' }}
+          GEMINI_COUNCIL_MODEL: ${{ vars.GEMINI_COUNCIL_MODEL || 'gemini-3.8-flash' }}
+          PERPLEXITY_COUNCIL_MODEL: ${{ vars.PERPLEXITY_COUNCIL_MODEL || 'sonar-pro' }}
+          XAI_COUNCIL_MODEL: ${{ vars.XAI_COUNCIL_MODEL || 'grok-4.6' }}
         run: python product-discovery/multimodel_council.py "${{ inputs.package_path }}"
       - name: Verify provenance and fail-closed synthesis invariants
         run: |
