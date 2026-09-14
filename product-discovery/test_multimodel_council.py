@@ -16,6 +16,8 @@ class CouncilTests(unittest.TestCase):
             report=council.run("packet",out_path=f"{d}/r.json",live=True)
         self.assertEqual(report["status"],"HOLD_NO_VERIFIED_RESPONSES")
         self.assertEqual(report["participating_count"],0)
+        self.assertIn("provider_health",report)
+        self.assertIn("cost_summary",report)
 
     def test_keys_without_live_authorization_do_not_call_providers(self):
         env={cfg["key"]:"secret" for cfg in council.PROVIDERS.values()}
@@ -31,6 +33,21 @@ class CouncilTests(unittest.TestCase):
         self.assertEqual(report["status"],"COUNCIL_COMPLETE")
         self.assertEqual(report["participating_count"],5)
         self.assertEqual(report["synthesis"]["decision"],"PASS_WITH_GATES_ALL_SEATS")
+        self.assertEqual(report["provider_health"]["healthy_count"],5)
+        self.assertEqual(report["cost_summary"]["status"],"PARTIAL_OR_UNPRICED")
+
+    def test_exact_usage_and_operator_rates_produce_cost(self):
+        env={
+            council.PROVIDERS["openai"]["key"]:"secret",
+            "OPENAI_COUNCIL_INPUT_USD_PER_MILLION":"2",
+            "OPENAI_COUNCIL_OUTPUT_USD_PER_MILLION":"4",
+        }
+        adapters={"openai":lambda n,p,k,m:(GOOD,"req-openai",{"input_tokens":1_000_000,"output_tokens":500_000,"total_tokens":1_500_000}),**{k:v for k,v in council.ADAPTERS.items() if k!="openai"}}
+        with patch.dict(os.environ,env,clear=True),patch.object(council,"ADAPTERS",adapters),tempfile.TemporaryDirectory() as d:
+            report=council.run("packet",out_path=f"{d}/r.json",live=True)
+        self.assertEqual(report["members"]["openai"]["cost"]["status"],"PRICED")
+        self.assertEqual(report["members"]["openai"]["cost"]["usd"],4.0)
+        self.assertEqual(report["cost_summary"]["known_usd"],4.0)
 
     def test_any_reject_blocks(self):
         env={cfg["key"]:"secret" for cfg in council.PROVIDERS.values()}
@@ -55,6 +72,7 @@ class CouncilTests(unittest.TestCase):
         with patch.dict(os.environ,env,clear=True),patch.object(council,"ADAPTERS",adapters),tempfile.TemporaryDirectory() as d:
             report=council.run("packet",out_path=f"{d}/r.json",live=True)
         self.assertFalse(report["members"]["openai"]["participated"])
+        self.assertEqual(report["members"]["openai"]["health"],"RESPONSE_FORMAT_FAILURE")
 
     def test_json_extraction_accepts_fenced_response(self): self.assertEqual(council._parse("```json\n"+GOOD+"\n```")["verdict"],"PASS_WITH_GATES")
     def test_json_extraction_accepts_surrounding_commentary(self): self.assertEqual(council._parse("Here:\n"+GOOD+"\nEnd.")["verdict"],"PASS_WITH_GATES")
@@ -66,15 +84,16 @@ class CouncilTests(unittest.TestCase):
         with patch.dict(os.environ,env,clear=True),patch.object(council,"ADAPTERS",adapters),tempfile.TemporaryDirectory() as d: council.run("packet",out_path=f"{d}/r.json",live=True)
         self.assertEqual(seen["model"],council.PROVIDERS["openai"]["model"])
 
-    def test_anthropic_uses_structured_output_schema(self):
+    def test_anthropic_uses_structured_output_schema_and_captures_usage(self):
         captured={}
         def fake_post(url,body,headers):
             captured["url"]=url; captured["body"]=body; captured["headers"]=headers
-            return {"id":"req-claude","content":[{"type":"text","text":GOOD}]}
+            return {"id":"req-claude","usage":{"input_tokens":100,"output_tokens":25},"content":[{"type":"text","text":GOOD}]}
         with patch.object(council,"_post",fake_post):
-            text,request_id=council._anthropic("anthropic","packet","secret","claude-sonnet-5")
+            text,request_id,usage=council._anthropic("anthropic","packet","secret","claude-sonnet-5")
         self.assertEqual(text,GOOD)
         self.assertEqual(request_id,"req-claude")
+        self.assertEqual(usage["total_tokens"],125)
         self.assertNotIn("temperature",captured["body"])
         fmt=captured["body"]["output_config"]["format"]
         self.assertEqual(fmt["type"],"json_schema")
