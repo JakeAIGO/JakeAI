@@ -19,6 +19,8 @@ import urllib.parse
 import urllib.request
 from pathlib import Path
 
+from council_accounting import normalize_usage, provider_health, summarize_health, usage_cost_usd
+
 BASE_SYSTEM = """You are one independent member of the JakeAI Multi-Model Advisory Council. Analyze only the supplied frozen review package. Do not infer another council member's opinion and do not attempt consensus. Attack weak assumptions. Identify material risks, missing evidence, required mitigations, and questions for qualified counsel or operator verification. Do not claim legal approval. Return one complete JSON object only, with no markdown or commentary, containing: verdict (PASS_WITH_GATES|HOLD|REJECT), risks (array), mitigations (array), counsel_questions (array), confidence (0-1), rationale (string). Keep the complete response under 1800 tokens."""
 
 SEAT_FOCUS = {
@@ -64,7 +66,6 @@ class ProviderHTTPError(RuntimeError):
 
 
 def _safe_error_detail(raw):
-    """Extract only provider-declared error metadata; discard arbitrary bodies."""
     try:
         obj = json.loads(raw.decode("utf-8", errors="replace"))
     except Exception:
@@ -83,9 +84,7 @@ def _safe_error_detail(raw):
 
 
 def _retry_after_seconds(exc, attempt):
-    raw = None
-    if getattr(exc, "headers", None):
-        raw = exc.headers.get("Retry-After")
+    raw = exc.headers.get("Retry-After") if getattr(exc, "headers", None) else None
     if raw:
         try:
             return min(max(float(raw), 0.0), 30.0)
@@ -126,6 +125,10 @@ def _prompt(name, package):
     return f"{_system_for(name)}\n\nFROZEN REVIEW PACKAGE:\n{package}"
 
 
+def _result(provider, d, text, request_id):
+    return text, request_id, normalize_usage(provider, d).as_dict()
+
+
 def _openai(name, package, key, model):
     d = _post("https://api.openai.com/v1/responses", {"model": model, "input": _prompt(name, package), "store": False, "max_output_tokens": 2200}, {"Authorization": f"Bearer {key}"})
     texts = []
@@ -133,12 +136,10 @@ def _openai(name, package, key, model):
         for c in item.get("content", []):
             if c.get("type") in ("output_text", "text") and c.get("text"):
                 texts.append(c["text"])
-    return "\n".join(texts), d.get("id")
+    return _result("openai", d, "\n".join(texts), d.get("id"))
 
 
 def _anthropic(name, package, key, model):
-    # Sonnet 5 rejects legacy temperature. Structured outputs guarantee JSON
-    # shape without changing the council's substantive verdict or safety gates.
     d = _post(
         "https://api.anthropic.com/v1/messages",
         {
@@ -150,7 +151,8 @@ def _anthropic(name, package, key, model):
         },
         {"x-api-key": key, "anthropic-version": "2023-06-01"},
     )
-    return "\n".join(x.get("text", "") for x in d.get("content", []) if x.get("type") == "text"), d.get("id")
+    text = "\n".join(x.get("text", "") for x in d.get("content", []) if x.get("type") == "text")
+    return _result("anthropic", d, text, d.get("id"))
 
 
 def _gemini(name, package, key, model):
@@ -163,12 +165,12 @@ def _gemini(name, package, key, model):
     texts = []
     for cand in d.get("candidates", []):
         texts += [p.get("text", "") for p in cand.get("content", {}).get("parts", []) if p.get("text")]
-    return "\n".join(texts), d.get("responseId")
+    return _result("gemini", d, "\n".join(texts), d.get("responseId"))
 
 
 def _chat_compatible(name, url, package, key, model):
     d = _post(url, {"model": model, "messages": [{"role": "system", "content": _system_for(name)}, {"role": "user", "content": package}], "temperature": 0}, {"Authorization": f"Bearer {key}"})
-    return d["choices"][0]["message"]["content"], d.get("id")
+    return _result(name, d, d["choices"][0]["message"]["content"], d.get("id"))
 
 
 def _perplexity(name, package, key, model):
@@ -218,20 +220,50 @@ def _parse(text):
     return obj
 
 
+def _cost_for(name, usage_dict):
+    from council_accounting import Usage
+    usage = Usage(**usage_dict)
+    prefix = name.upper()
+    return usage_cost_usd(
+        usage,
+        os.getenv(f"{prefix}_COUNCIL_INPUT_USD_PER_MILLION"),
+        os.getenv(f"{prefix}_COUNCIL_OUTPUT_USD_PER_MILLION"),
+    )
+
+
 def _run_member(name, cfg, package, live):
     key = os.getenv(cfg["key"])
     model = os.getenv(cfg["model_env"]) or cfg["model"]
     base = {"provider": name, "model_requested": model, "seat_focus": SEAT_FOCUS[name], "participated": False}
     if not key:
-        return name, {**base, "status": "NOT_CONFIGURED"}
+        result = {**base, "status": "NOT_CONFIGURED"}
+        return name, {**result, "health": provider_health(result)}
     if not live:
-        return name, {**base, "status": "LIVE_CALL_NOT_AUTHORIZED"}
+        result = {**base, "status": "LIVE_CALL_NOT_AUTHORIZED"}
+        return name, {**result, "health": provider_health(result)}
     try:
-        text, request_id = ADAPTERS[name](name, package, key, model)
+        raw = ADAPTERS[name](name, package, key, model)
+        if len(raw) == 2:  # Backward-compatible test/custom adapter path; no usage guessed.
+            text, request_id = raw
+            usage = {"input_tokens": None, "output_tokens": None, "total_tokens": None}
+        else:
+            text, request_id, usage = raw
         analysis = _parse(text)
-        return name, {**base, "status": "SUCCESS", "participated": True, "request_id": request_id, "received_at": int(time.time()), "response_sha256": hashlib.sha256(text.encode()).hexdigest(), "analysis": analysis}
+        result = {
+            **base,
+            "status": "SUCCESS",
+            "participated": True,
+            "request_id": request_id,
+            "received_at": int(time.time()),
+            "response_sha256": hashlib.sha256(text.encode()).hexdigest(),
+            "usage": usage,
+            "cost": _cost_for(name, usage),
+            "analysis": analysis,
+        }
+        return name, {**result, "health": provider_health(result)}
     except Exception as e:
-        return name, {**base, "status": "ERROR", "error_type": type(e).__name__, "error": str(e)[:500]}
+        result = {**base, "status": "ERROR", "error_type": type(e).__name__, "error": str(e)[:500]}
+        return name, {**result, "health": provider_health(result)}
 
 
 def _deterministic_synthesis(members):
@@ -251,9 +283,21 @@ def _deterministic_synthesis(members):
     return {"decision_rule": "Any REJECT blocks; otherwise any HOLD blocks; PASS requires all configured council seats to return PASS_WITH_GATES.", "decision": decision, "verdict_counts": counts, "unanimous": bool(verdicts) and len(set(verdicts)) == 1, "all_five_participated": len(successful) == len(PROVIDERS)}
 
 
+def _cost_summary(members):
+    priced = [m.get("cost", {}).get("usd") for m in members.values() if m.get("cost", {}).get("status") == "PRICED"]
+    successful = [m for m in members.values() if m.get("participated")]
+    all_successful_priced = bool(successful) and all(m.get("cost", {}).get("status") == "PRICED" for m in successful)
+    return {
+        "status": "PRICED" if all_successful_priced else "PARTIAL_OR_UNPRICED",
+        "known_usd": round(sum(x for x in priced if isinstance(x, (int, float))), 8),
+        "complete_for_participating_seats": all_successful_priced,
+        "note": "Dollar cost is reported only from exact provider usage plus operator-configured per-million-token rates; missing prices are never guessed.",
+    }
+
+
 def run(package, out_path="product-discovery/run-output/council-latest.json", live=None):
     live = (os.getenv("COUNCIL_LIVE_CALLS") == "1") if live is None else live
-    report = {"schema": "jakeai.council.v3", "created_at": int(time.time()), "advisory_only": True, "package_sha256": hashlib.sha256(package.encode()).hexdigest(), "live_calls_authorized": bool(live), "independence_rule": "Each provider receives only the same frozen package plus its seat focus; no provider receives peer responses before voting.", "members": {}}
+    report = {"schema": "jakeai.council.v4", "created_at": int(time.time()), "advisory_only": True, "package_sha256": hashlib.sha256(package.encode()).hexdigest(), "live_calls_authorized": bool(live), "independence_rule": "Each provider receives only the same frozen package plus its seat focus; no provider receives peer responses before voting.", "members": {}}
     with concurrent.futures.ThreadPoolExecutor(max_workers=len(PROVIDERS)) as pool:
         futures = [pool.submit(_run_member, name, cfg, package, live) for name, cfg in PROVIDERS.items()]
         for future in concurrent.futures.as_completed(futures):
@@ -263,6 +307,8 @@ def run(package, out_path="product-discovery/run-output/council-latest.json", li
     successful = [v for v in report["members"].values() if v.get("participated")]
     report["participating_count"] = len(successful)
     report["status"] = "COUNCIL_COMPLETE" if len(successful) == len(PROVIDERS) else ("COUNCIL_PARTIAL" if successful else "HOLD_NO_VERIFIED_RESPONSES")
+    report["provider_health"] = summarize_health(report["members"])
+    report["cost_summary"] = _cost_summary(report["members"])
     report["synthesis"] = _deterministic_synthesis(report["members"])
     Path(out_path).parent.mkdir(parents=True, exist_ok=True)
     Path(out_path).write_text(json.dumps(report, indent=2), encoding="utf-8")
