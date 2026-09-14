@@ -30,7 +30,7 @@ class CouncilTests(unittest.TestCase):
 
     def test_keys_without_live_authorization_do_not_call_providers(self):
         env = {cfg["key"]: "secret" for cfg in council.PROVIDERS.values()}
-        with patch.dict(os.environ, env, clear=True), patch.object(council, "ADAPTERS", {}) , tempfile.TemporaryDirectory() as d:
+        with patch.dict(os.environ, env, clear=True), patch.object(council, "ADAPTERS", {}), tempfile.TemporaryDirectory() as d:
             report = council.run("packet", out_path=f"{d}/r.json", live=False)
         self.assertTrue(all(m["status"] == "LIVE_CALL_NOT_AUTHORIZED" for m in report["members"].values()))
 
@@ -75,6 +75,28 @@ class CouncilTests(unittest.TestCase):
             report = council.run("packet", out_path=f"{d}/r.json", live=True)
         self.assertFalse(report["members"]["openai"]["participated"])
         self.assertEqual(report["members"]["openai"]["status"], "ERROR")
+
+    def test_json_extraction_accepts_fenced_response(self):
+        parsed = council._parse("```json\n" + GOOD + "\n```")
+        self.assertEqual(parsed["verdict"], "PASS_WITH_GATES")
+
+    def test_json_extraction_accepts_surrounding_commentary(self):
+        parsed = council._parse("Here is the result:\n" + GOOD + "\nEnd.")
+        self.assertEqual(parsed["verdict"], "PASS_WITH_GATES")
+
+    def test_empty_model_environment_falls_back_to_provider_default(self):
+        env = {
+            council.PROVIDERS["openai"]["key"]: "secret",
+            council.PROVIDERS["openai"]["model_env"]: "",
+        }
+        seen = {}
+        def adapter(name, package, key, model):
+            seen["model"] = model
+            return GOOD, "req-openai"
+        adapters = {"openai": adapter, **{k: v for k, v in council.ADAPTERS.items() if k != "openai"}}
+        with patch.dict(os.environ, env, clear=True), patch.object(council, "ADAPTERS", adapters), tempfile.TemporaryDirectory() as d:
+            council.run("packet", out_path=f"{d}/r.json", live=True)
+        self.assertEqual(seen["model"], council.PROVIDERS["openai"]["model"])
 
 
 if __name__ == "__main__":
