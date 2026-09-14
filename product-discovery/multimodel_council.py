@@ -12,6 +12,7 @@ import hashlib
 import json
 import os
 import random
+import re
 import time
 import urllib.error
 import urllib.parse
@@ -40,6 +41,33 @@ RETRYABLE_HTTP = {408, 409, 429, 500, 502, 503, 504}
 MAX_ATTEMPTS = 4
 
 
+class ProviderHTTPError(RuntimeError):
+    """Sanitized provider failure safe for CI artifacts; never stores headers/keys."""
+    def __init__(self, status, detail="provider_error"):
+        self.status = int(status)
+        self.detail = detail
+        super().__init__(f"HTTP {self.status}: {detail}"[:500])
+
+
+def _safe_error_detail(raw):
+    """Extract only provider-declared error metadata; discard arbitrary bodies."""
+    try:
+        obj = json.loads(raw.decode("utf-8", errors="replace"))
+    except Exception:
+        return "provider_error"
+    err = obj.get("error", obj) if isinstance(obj, dict) else {}
+    if not isinstance(err, dict):
+        return "provider_error"
+    fields = []
+    for key in ("type", "code", "status", "message"):
+        value = err.get(key)
+        if isinstance(value, (str, int, float)) and str(value).strip():
+            text = str(value).strip()
+            text = re.sub(r"(?i)(api[_ -]?key|token|authorization|bearer)\s*[:=]\s*\S+", r"\1=[REDACTED]", text)
+            fields.append(f"{key}={text[:240]}")
+    return "; ".join(fields)[:420] or "provider_error"
+
+
 def _retry_after_seconds(exc, attempt):
     raw = None
     if getattr(exc, "headers", None):
@@ -54,7 +82,6 @@ def _retry_after_seconds(exc, attempt):
 
 def _post(url, body, headers):
     payload = json.dumps(body).encode()
-    last = None
     for attempt in range(MAX_ATTEMPTS):
         req = urllib.request.Request(
             url,
@@ -66,16 +93,22 @@ def _post(url, body, headers):
             with urllib.request.urlopen(req, timeout=120) as r:
                 return json.loads(r.read().decode())
         except urllib.error.HTTPError as exc:
-            last = exc
-            if exc.code not in RETRYABLE_HTTP or attempt == MAX_ATTEMPTS - 1:
-                raise
-            time.sleep(_retry_after_seconds(exc, attempt))
-        except (urllib.error.URLError, TimeoutError) as exc:
-            last = exc
+            status = exc.code
+            if status in RETRYABLE_HTTP and attempt < MAX_ATTEMPTS - 1:
+                time.sleep(_retry_after_seconds(exc, attempt))
+                continue
+            # Read only after retries are exhausted (or for a non-retryable error),
+            # then retain a strict allowlist of provider error metadata.
+            try:
+                raw = exc.read(4096)
+            except Exception:
+                raw = b""
+            raise ProviderHTTPError(status, _safe_error_detail(raw)) from None
+        except (urllib.error.URLError, TimeoutError):
             if attempt == MAX_ATTEMPTS - 1:
                 raise
             time.sleep(min((2 ** attempt) + random.random(), 20.0))
-    raise last
+    raise RuntimeError("provider request exhausted without response")
 
 
 def _system_for(name):
@@ -103,28 +136,19 @@ def _openai(name, package, key, model):
 def _anthropic(name, package, key, model):
     d = _post(
         "https://api.anthropic.com/v1/messages",
-        {
-            "model": model,
-            "max_tokens": 4000,
-            "temperature": 0,
-            "system": _system_for(name),
-            "messages": [{"role": "user", "content": package}],
-        },
+        {"model": model, "max_tokens": 4000, "temperature": 0, "system": _system_for(name), "messages": [{"role": "user", "content": package}]},
         {"x-api-key": key, "anthropic-version": "2023-06-01"},
     )
     return "\n".join(x.get("text", "") for x in d.get("content", []) if x.get("type") == "text"), d.get("id")
 
 
 def _gemini(name, package, key, model):
-    url = f"https://generativelanguage.googleapis.com/v1beta/models/{urllib.parse.quote(model, safe='')}:generateContent?key={urllib.parse.quote(key, safe='')}"
+    # Keep the API key in a header rather than the URL so failures/logging cannot expose it.
+    url = f"https://generativelanguage.googleapis.com/v1beta/models/{urllib.parse.quote(model, safe='')}:generateContent"
     d = _post(
         url,
-        {
-            "systemInstruction": {"parts": [{"text": _system_for(name)}]},
-            "contents": [{"role": "user", "parts": [{"text": package}]}],
-            "generationConfig": {"responseMimeType": "application/json", "temperature": 0, "maxOutputTokens": 3000},
-        },
-        {},
+        {"systemInstruction": {"parts": [{"text": _system_for(name)}]}, "contents": [{"role": "user", "parts": [{"text": package}]}], "generationConfig": {"responseMimeType": "application/json", "temperature": 0, "maxOutputTokens": 3000}},
+        {"x-goog-api-key": key},
     )
     texts = []
     for cand in d.get("candidates", []):
@@ -133,18 +157,7 @@ def _gemini(name, package, key, model):
 
 
 def _chat_compatible(name, url, package, key, model):
-    d = _post(
-        url,
-        {
-            "model": model,
-            "messages": [
-                {"role": "system", "content": _system_for(name)},
-                {"role": "user", "content": package},
-            ],
-            "temperature": 0,
-        },
-        {"Authorization": f"Bearer {key}"},
-    )
+    d = _post(url, {"model": model, "messages": [{"role": "system", "content": _system_for(name)}, {"role": "user", "content": package}], "temperature": 0}, {"Authorization": f"Bearer {key}"})
     return d["choices"][0]["message"]["content"], d.get("id")
 
 
@@ -156,13 +169,7 @@ def _grok(name, package, key, model):
     return _chat_compatible(name, "https://api.x.ai/v1/chat/completions", package, key, model)
 
 
-ADAPTERS = {
-    "openai": _openai,
-    "anthropic": _anthropic,
-    "gemini": _gemini,
-    "perplexity": _perplexity,
-    "grok": _grok,
-}
+ADAPTERS = {"openai": _openai, "anthropic": _anthropic, "gemini": _gemini, "perplexity": _perplexity, "grok": _grok}
 
 
 def _extract_json_object(text):
@@ -175,8 +182,7 @@ def _extract_json_object(text):
         return json.loads(s)
     except json.JSONDecodeError as first:
         decoder = json.JSONDecoder()
-        starts = [i for i, ch in enumerate(s) if ch == "{"]
-        for start in starts:
+        for start in (i for i, ch in enumerate(s) if ch == "{"):
             try:
                 obj, _ = decoder.raw_decode(s[start:])
                 if isinstance(obj, dict):
@@ -205,12 +211,7 @@ def _parse(text):
 def _run_member(name, cfg, package, live):
     key = os.getenv(cfg["key"])
     model = os.getenv(cfg["model_env"]) or cfg["model"]
-    base = {
-        "provider": name,
-        "model_requested": model,
-        "seat_focus": SEAT_FOCUS[name],
-        "participated": False,
-    }
+    base = {"provider": name, "model_requested": model, "seat_focus": SEAT_FOCUS[name], "participated": False}
     if not key:
         return name, {**base, "status": "NOT_CONFIGURED"}
     if not live:
@@ -218,22 +219,9 @@ def _run_member(name, cfg, package, live):
     try:
         text, request_id = ADAPTERS[name](name, package, key, model)
         analysis = _parse(text)
-        return name, {
-            **base,
-            "status": "SUCCESS",
-            "participated": True,
-            "request_id": request_id,
-            "received_at": int(time.time()),
-            "response_sha256": hashlib.sha256(text.encode()).hexdigest(),
-            "analysis": analysis,
-        }
+        return name, {**base, "status": "SUCCESS", "participated": True, "request_id": request_id, "received_at": int(time.time()), "response_sha256": hashlib.sha256(text.encode()).hexdigest(), "analysis": analysis}
     except Exception as e:
-        return name, {
-            **base,
-            "status": "ERROR",
-            "error_type": type(e).__name__,
-            "error": str(e)[:500],
-        }
+        return name, {**base, "status": "ERROR", "error_type": type(e).__name__, "error": str(e)[:500]}
 
 
 def _deterministic_synthesis(members):
@@ -250,44 +238,22 @@ def _deterministic_synthesis(members):
         decision = "PASS_WITH_GATES_ALL_SEATS"
     else:
         decision = "HOLD_INCOMPLETE_COUNCIL"
-    return {
-        "decision_rule": "Any REJECT blocks; otherwise any HOLD blocks; PASS requires all configured council seats to return PASS_WITH_GATES.",
-        "decision": decision,
-        "verdict_counts": counts,
-        "unanimous": bool(verdicts) and len(set(verdicts)) == 1,
-        "all_five_participated": len(successful) == len(PROVIDERS),
-    }
+    return {"decision_rule": "Any REJECT blocks; otherwise any HOLD blocks; PASS requires all configured council seats to return PASS_WITH_GATES.", "decision": decision, "verdict_counts": counts, "unanimous": bool(verdicts) and len(set(verdicts)) == 1, "all_five_participated": len(successful) == len(PROVIDERS)}
 
 
 def run(package, out_path="product-discovery/run-output/council-latest.json", live=None):
     live = (os.getenv("COUNCIL_LIVE_CALLS") == "1") if live is None else live
-    digest = hashlib.sha256(package.encode()).hexdigest()
-    report = {
-        "schema": "jakeai.council.v3",
-        "created_at": int(time.time()),
-        "advisory_only": True,
-        "package_sha256": digest,
-        "live_calls_authorized": bool(live),
-        "independence_rule": "Each provider receives only the same frozen package plus its seat focus; no provider receives peer responses before voting.",
-        "members": {},
-    }
-
+    report = {"schema": "jakeai.council.v3", "created_at": int(time.time()), "advisory_only": True, "package_sha256": hashlib.sha256(package.encode()).hexdigest(), "live_calls_authorized": bool(live), "independence_rule": "Each provider receives only the same frozen package plus its seat focus; no provider receives peer responses before voting.", "members": {}}
     with concurrent.futures.ThreadPoolExecutor(max_workers=len(PROVIDERS)) as pool:
         futures = [pool.submit(_run_member, name, cfg, package, live) for name, cfg in PROVIDERS.items()]
         for future in concurrent.futures.as_completed(futures):
             name, result = future.result()
             report["members"][name] = result
-
     report["members"] = {name: report["members"][name] for name in PROVIDERS}
     successful = [v for v in report["members"].values() if v.get("participated")]
     report["participating_count"] = len(successful)
-    report["status"] = (
-        "COUNCIL_COMPLETE"
-        if len(successful) == len(PROVIDERS)
-        else ("COUNCIL_PARTIAL" if successful else "HOLD_NO_VERIFIED_RESPONSES")
-    )
+    report["status"] = "COUNCIL_COMPLETE" if len(successful) == len(PROVIDERS) else ("COUNCIL_PARTIAL" if successful else "HOLD_NO_VERIFIED_RESPONSES")
     report["synthesis"] = _deterministic_synthesis(report["members"])
-
     Path(out_path).parent.mkdir(parents=True, exist_ok=True)
     Path(out_path).write_text(json.dumps(report, indent=2), encoding="utf-8")
     return report
@@ -295,7 +261,6 @@ def run(package, out_path="product-discovery/run-output/council-latest.json", li
 
 if __name__ == "__main__":
     import sys
-
     if len(sys.argv) < 2:
         raise SystemExit("usage: multimodel_council.py <review-package>")
     package = Path(sys.argv[1]).read_text(encoding="utf-8")
