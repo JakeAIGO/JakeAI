@@ -37,6 +37,20 @@ PROVIDERS = {
     "grok": {"key": "XAI_API_KEY", "model_env": "XAI_COUNCIL_MODEL", "model": "grok-4.6"},
 }
 
+COUNCIL_OUTPUT_SCHEMA = {
+    "type": "object",
+    "properties": {
+        "verdict": {"type": "string", "enum": ["PASS_WITH_GATES", "HOLD", "REJECT"]},
+        "risks": {"type": "array", "items": {"type": "string"}},
+        "mitigations": {"type": "array", "items": {"type": "string"}},
+        "counsel_questions": {"type": "array", "items": {"type": "string"}},
+        "confidence": {"type": "number"},
+        "rationale": {"type": "string"},
+    },
+    "required": ["verdict", "risks", "mitigations", "counsel_questions", "confidence", "rationale"],
+    "additionalProperties": False,
+}
+
 RETRYABLE_HTTP = {408, 409, 429, 500, 502, 503, 504}
 MAX_ATTEMPTS = 4
 
@@ -123,10 +137,17 @@ def _openai(name, package, key, model):
 
 
 def _anthropic(name, package, key, model):
-    # Claude's current API/model rejects the legacy temperature parameter.
+    # Sonnet 5 rejects legacy temperature. Structured outputs guarantee JSON
+    # shape without changing the council's substantive verdict or safety gates.
     d = _post(
         "https://api.anthropic.com/v1/messages",
-        {"model": model, "max_tokens": 4000, "system": _system_for(name), "messages": [{"role": "user", "content": package}]},
+        {
+            "model": model,
+            "max_tokens": 4000,
+            "system": _system_for(name),
+            "messages": [{"role": "user", "content": package}],
+            "output_config": {"format": {"type": "json_schema", "schema": COUNCIL_OUTPUT_SCHEMA}},
+        },
         {"x-api-key": key, "anthropic-version": "2023-06-01"},
     )
     return "\n".join(x.get("text", "") for x in d.get("content", []) if x.get("type") == "text"), d.get("id")
