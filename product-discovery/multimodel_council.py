@@ -83,12 +83,7 @@ def _retry_after_seconds(exc, attempt):
 def _post(url, body, headers):
     payload = json.dumps(body).encode()
     for attempt in range(MAX_ATTEMPTS):
-        req = urllib.request.Request(
-            url,
-            data=payload,
-            headers={"Content-Type": "application/json", **headers},
-            method="POST",
-        )
+        req = urllib.request.Request(url, data=payload, headers={"Content-Type": "application/json", **headers}, method="POST")
         try:
             with urllib.request.urlopen(req, timeout=120) as r:
                 return json.loads(r.read().decode())
@@ -97,8 +92,6 @@ def _post(url, body, headers):
             if status in RETRYABLE_HTTP and attempt < MAX_ATTEMPTS - 1:
                 time.sleep(_retry_after_seconds(exc, attempt))
                 continue
-            # Read only after retries are exhausted (or for a non-retryable error),
-            # then retain a strict allowlist of provider error metadata.
             try:
                 raw = exc.read(4096)
             except Exception:
@@ -120,11 +113,7 @@ def _prompt(name, package):
 
 
 def _openai(name, package, key, model):
-    d = _post(
-        "https://api.openai.com/v1/responses",
-        {"model": model, "input": _prompt(name, package), "store": False, "max_output_tokens": 2200},
-        {"Authorization": f"Bearer {key}"},
-    )
+    d = _post("https://api.openai.com/v1/responses", {"model": model, "input": _prompt(name, package), "store": False, "max_output_tokens": 2200}, {"Authorization": f"Bearer {key}"})
     texts = []
     for item in d.get("output", []):
         for c in item.get("content", []):
@@ -134,16 +123,16 @@ def _openai(name, package, key, model):
 
 
 def _anthropic(name, package, key, model):
+    # Claude's current API/model rejects the legacy temperature parameter.
     d = _post(
         "https://api.anthropic.com/v1/messages",
-        {"model": model, "max_tokens": 4000, "temperature": 0, "system": _system_for(name), "messages": [{"role": "user", "content": package}]},
+        {"model": model, "max_tokens": 4000, "system": _system_for(name), "messages": [{"role": "user", "content": package}]},
         {"x-api-key": key, "anthropic-version": "2023-06-01"},
     )
     return "\n".join(x.get("text", "") for x in d.get("content", []) if x.get("type") == "text"), d.get("id")
 
 
 def _gemini(name, package, key, model):
-    # Keep the API key in a header rather than the URL so failures/logging cannot expose it.
     url = f"https://generativelanguage.googleapis.com/v1beta/models/{urllib.parse.quote(model, safe='')}:generateContent"
     d = _post(
         url,
