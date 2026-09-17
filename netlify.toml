@@ -1,6 +1,6 @@
 [build]
   publish = "."
-  command = ""
+  command = "cat assets/portrait/00.txt assets/portrait/01.txt assets/portrait/02.txt assets/portrait/03.txt assets/portrait/04.txt assets/portrait/05.txt assets/portrait/06.txt | tr -d '\\r\\n\\t ' | base64 -d > assets/jakeai-portrait.webp && test -s assets/jakeai-portrait.webp"
 
 [[redirects]]
   from = "/v1/*"
