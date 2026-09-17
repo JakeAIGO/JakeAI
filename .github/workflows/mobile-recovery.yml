@@ -1,0 +1,36 @@
+name: JakeAI Mobile Recovery
+on:
+  push:
+    paths:
+      - '.github/workflows/mobile-recovery.yml'
+  workflow_dispatch:
+permissions:
+  contents: write
+jobs:
+  recover:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - name: Restore known-working hero on portrait screens
+        shell: bash
+        run: |
+          python - <<'PY'
+          from pathlib import Path
+          p=Path('index.html')
+          s=p.read_text()
+          old='@media(orientation:portrait){.landscapeScene{display:none}.portraitScene{display:block;object-fit:cover;object-position:center}'
+          new='@media(orientation:portrait){.landscapeScene{display:block;object-fit:cover;object-position:center}.portraitScene{display:none}'
+          if old not in s:
+              raise SystemExit('portrait CSS signature not found')
+          s=s.replace(old,new,1)
+          s=s.replace('portrait-hotfix-20260917-3','mobile-recovery-20260917-1',1)
+          p.write_text(s)
+          PY
+      - name: Commit recovery
+        shell: bash
+        run: |
+          git config user.name 'JakeAI Build Bot'
+          git config user.email 'actions@users.noreply.github.com'
+          git add index.html
+          git commit -m 'Restore known-working JakeAI hero on mobile'
+          git push
