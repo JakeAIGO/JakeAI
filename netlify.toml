@@ -2,6 +2,14 @@
   publish = "."
   command = ""
 
+# Private commerce simulation route. This path intentionally targets the isolated
+# feature-branch Railway service; real payment routes below remain unchanged.
+[[redirects]]
+  from = "/commerce-preview-api/*"
+  to = "https://commerce-wallet-preview-production.up.railway.app/:splat"
+  status = 200
+  force = true
+
 [[redirects]]
   from = "/v1/*"
   to = "https://agent-commerce-network-production-56e8.up.railway.app/v1/:splat"
