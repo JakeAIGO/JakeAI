@@ -190,3 +190,18 @@ def commerce_receipt(order_id:str):
     receipt=_get_receipt(order_id)
     if not receipt:raise HTTPException(404,"Receipt is not available")
     return {"receipt_id":receipt["id"],"order_id":receipt["order_id"],"product_id":receipt["product_id"],"payment_rail":receipt["payment_rail"],"amount_cents":receipt["amount_cents"],"payment_reference":receipt["payment_reference"],"entitlement":{"id":receipt["entitlement_id"],"status":receipt["entitlement_status"],"buyer_type":receipt["buyer_type"],"principal":receipt["principal"],"authorized_by":receipt["authorized_by"],"activated_at":receipt["activated_at"]},"created_at":receipt["created_at"]}
+
+
+@app.post("/v1/commerce/dry-run/{product_id}")
+def commerce_dry_run(product_id:str):
+    if os.environ.get("JAKEAI_COMMERCE_DRY_RUN_ENABLED","").strip().lower() not in {"1","true","yes","on"}:
+        raise HTTPException(404,"Dry run is not enabled")
+    product=main.GENESIS_CATALOG.get(product_id)
+    if not product:raise HTTPException(404,"Product not found")
+    amount_cents=int(round(float(product.get("price",0))*100))
+    oid=_create_order(product_id,amount_cents,"pending_payment","private-dry-run")
+    simulation_reference=f"sim_{uuid.uuid4().hex}"
+    _mark_order_paid(oid,simulation_reference)
+    issued=_issue_entitlement_and_receipt(oid,"simulation",simulation_reference)
+    receipt=_get_receipt(oid)
+    return {"mode":"simulation","money_moved":False,"external_payment_processor_contacted":False,"blockchain_contacted":False,"order":{"id":oid,"product_id":product_id,"amount_cents":amount_cents,"status":"paid"},"payment":{"rail":"simulation","reference":simulation_reference,"status":"verified_simulation"},"entitlement":{"id":issued["entitlement_id"],"status":receipt["entitlement_status"]},"receipt":{"id":issued["receipt_id"],"endpoint":f"/v1/commerce/receipt/{oid}"}}
