@@ -18,7 +18,7 @@
 <button class="method" id="usdc"><strong>USDC · Base</strong><small>Activation-gated merchant rail</small></button>
 </div>
 <div id="cryptoInfo" class="hidden notice">Native USDC on Base Mainnet only. Crypto remains unavailable unless JakeAI's independent legal/compliance and runtime gates are enabled. No custody or signing occurs in this page.</div>
-<button class="action" id="continue">Continue with card</button>
+<button class="action" id="continue" disabled>Payment rails disabled in private simulation</button>
 <div class="status" id="status"></div>
 <div id="dryrun" class="notice">
 <strong>Safe dry run</strong><br>
@@ -31,7 +31,7 @@ Exercises JakeAI order → entitlement → receipt without contacting Stripe, Ba
 <script>
 const q=new URLSearchParams(location.search), productId=q.get('product_id')||'prod_where_the_hell_are_my_glasses_01';
 const card=document.getElementById('card'),usdc=document.getElementById('usdc'),dryrunBtn=document.getElementById('dryrunBtn'),dryrunOut=document.getElementById('dryrunOut');
-const previewKey=new URLSearchParams(location.search).get('preview_key')||'';
+const previewKey='';
 let method='card';
 const product=document.getElementById('product'),price=document.getElementById('price'),status=document.getElementById('status'),go=document.getElementById('continue'),cryptoInfo=document.getElementById('cryptoInfo');
 const known={
@@ -41,17 +41,17 @@ const known={
 'prod_inventory_replenishment_01':['Inventory & Replenishment Intelligence Autopilot','$49.00']
 };
 const meta=known[productId]||[productId,'Server verified'];product.textContent=meta[0];price.textContent=meta[1];
-function select(m){method=m;card.classList.toggle('active',m==='card');usdc.classList.toggle('active',m==='usdc');cryptoInfo.classList.toggle('hidden',m!=='usdc');go.textContent=m==='card'?'Continue with card':'Create USDC invoice';status.textContent=''}
+function select(m){method=m;card.classList.toggle('active',m==='card');usdc.classList.toggle('active',m==='usdc');cryptoInfo.classList.toggle('hidden',m!=='usdc');go.textContent='Payment rails disabled in private simulation';status.textContent=''}
 card.onclick=()=>select('card');usdc.onclick=()=>select('usdc');
 dryrunBtn.onclick=async()=>{
  dryrunBtn.disabled=true;dryrunOut.textContent='Running isolated simulation…';
  try{
-  const r=await fetch('/api/v1/commerce/dry-run/'+encodeURIComponent(productId),{method:'POST',headers:{'X-JakeAI-Preview-Key':previewKey}});
+  const r=await fetch('/commerce-preview-api/v1/commerce/dry-run/'+encodeURIComponent(productId),{method:'POST',headers:{'X-JakeAI-Preview-Key':previewKey}});
   const j=await r.json();if(!r.ok)throw new Error(j?.detail||'Dry run unavailable.');
   dryrunOut.textContent=JSON.stringify(j,null,2);
  }catch(e){dryrunOut.textContent=e.message}finally{dryrunBtn.disabled=false}
 };
-go.onclick=async()=>{
+go.onclick=async()=>{ return; /* payment rails intentionally inert in private simulation */
  go.disabled=true;status.textContent='Creating JakeAI order…';
  try{
   if(method==='card'){location.href='/api/v1/checkout/buy/'+encodeURIComponent(productId)+'?source=commerce-preview';return}
