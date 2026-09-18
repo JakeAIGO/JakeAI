@@ -68,6 +68,8 @@ def _commerce_conn():
 def _init_commerce_tables():
     conn=_commerce_conn()
     conn.execute("CREATE TABLE IF NOT EXISTS commerce_orders (id TEXT PRIMARY KEY,product_id TEXT NOT NULL,amount_cents INTEGER NOT NULL,status TEXT NOT NULL,stripe_session_id TEXT,source TEXT,created_at TEXT NOT NULL,completed_at TEXT)")
+    conn.execute("CREATE TABLE IF NOT EXISTS commerce_entitlements (id TEXT PRIMARY KEY,order_id TEXT NOT NULL UNIQUE,product_id TEXT NOT NULL,status TEXT NOT NULL,buyer_type TEXT NOT NULL DEFAULT 'human',principal TEXT,authorized_by TEXT,created_at TEXT NOT NULL,activated_at TEXT)")
+    conn.execute("CREATE TABLE IF NOT EXISTS commerce_receipts (id TEXT PRIMARY KEY,order_id TEXT NOT NULL UNIQUE,product_id TEXT NOT NULL,payment_rail TEXT NOT NULL,amount_cents INTEGER NOT NULL,payment_reference TEXT,entitlement_id TEXT NOT NULL,created_at TEXT NOT NULL)")
     conn.commit();conn.close()
     try:
         catalog=sqlite3.connect(DB_PATH,timeout=5)
@@ -81,6 +83,24 @@ def _create_order(product_id,amount_cents,status,source=None):
 
 def _mark_order_paid(order_id,session_id):
     conn=_commerce_conn();conn.execute("UPDATE commerce_orders SET status='paid',stripe_session_id=?,completed_at=? WHERE id=?",(session_id,datetime.now(timezone.utc).isoformat(),order_id));conn.commit();conn.close()
+
+def _issue_entitlement_and_receipt(order_id:str,payment_rail:str,payment_reference:Optional[str]=None,buyer_type:str="human",principal:Optional[str]=None,authorized_by:Optional[str]=None):
+    order=_get_order(order_id)
+    if not order or order["status"]!="paid":raise HTTPException(409,"Verified payment is required before entitlement")
+    now=datetime.now(timezone.utc).isoformat();conn=_commerce_conn()
+    existing=conn.execute("SELECT r.id AS receipt_id,e.id AS entitlement_id FROM commerce_receipts r JOIN commerce_entitlements e ON e.id=r.entitlement_id WHERE r.order_id=?",(order_id,)).fetchone()
+    if existing:conn.close();return dict(existing)
+    eid=f"ent_{uuid.uuid4().hex}";rid=f"rcpt_{uuid.uuid4().hex}"
+    try:
+        conn.execute("BEGIN IMMEDIATE")
+        conn.execute("INSERT INTO commerce_entitlements (id,order_id,product_id,status,buyer_type,principal,authorized_by,created_at,activated_at) VALUES (?,?,?,?,?,?,?,?,?)",(eid,order_id,order["product_id"],"active",buyer_type,principal,authorized_by,now,now))
+        conn.execute("INSERT INTO commerce_receipts (id,order_id,product_id,payment_rail,amount_cents,payment_reference,entitlement_id,created_at) VALUES (?,?,?,?,?,?,?,?)",(rid,order_id,order["product_id"],payment_rail,order["amount_cents"],payment_reference,eid,now))
+        conn.commit()
+    except Exception:conn.rollback();conn.close();raise
+    conn.close();return {"receipt_id":rid,"entitlement_id":eid}
+
+def _get_receipt(order_id:str):
+    conn=_commerce_conn();row=conn.execute("SELECT r.*,e.status AS entitlement_status,e.buyer_type,e.principal,e.authorized_by,e.activated_at FROM commerce_receipts r JOIN commerce_entitlements e ON e.id=r.entitlement_id WHERE r.order_id=?",(order_id,)).fetchone();conn.close();return dict(row) if row else None
 
 def _set_order_session(order_id,session_id):
     conn=_commerce_conn();conn.execute("UPDATE commerce_orders SET stripe_session_id=? WHERE id=?",(session_id,order_id));conn.commit();conn.close()
@@ -152,10 +172,21 @@ def complete_checkout(session_id:str,order_id:str):
     except Exception as exc:raise HTTPException(400,f"Payment verification failed: {exc}")
     md=getattr(session,"metadata",{}) or {}
     if getattr(session,"payment_status",None)!="paid" or md.get("jakeai_order_id")!=order_id or md.get("product_id")!=order["product_id"] or int(getattr(session,"amount_total",-1) or -1)!=int(order["amount_cents"]) or str(getattr(session,"currency","")).lower()!="usd":raise HTTPException(402,"Payment has not been verified for this order")
-    _mark_order_paid(order_id,session_id);return RedirectResponse(target,303)
+    _mark_order_paid(order_id,session_id)
+    _issue_entitlement_and_receipt(order_id,"card",session_id)
+    return RedirectResponse(target,303)
 
 @app.get("/v1/commerce/status/{order_id}")
 def commerce_status(order_id:str):
     order=_get_order(order_id)
     if not order:raise HTTPException(404,"Order not found")
     return {k:order[k] for k in ["id","product_id","amount_cents","status","created_at","completed_at"]}
+
+
+@app.get("/v1/commerce/receipt/{order_id}")
+def commerce_receipt(order_id:str):
+    order=_get_order(order_id)
+    if not order:raise HTTPException(404,"Order not found")
+    receipt=_get_receipt(order_id)
+    if not receipt:raise HTTPException(404,"Receipt is not available")
+    return {"receipt_id":receipt["id"],"order_id":receipt["order_id"],"product_id":receipt["product_id"],"payment_rail":receipt["payment_rail"],"amount_cents":receipt["amount_cents"],"payment_reference":receipt["payment_reference"],"entitlement":{"id":receipt["entitlement_id"],"status":receipt["entitlement_status"],"buyer_type":receipt["buyer_type"],"principal":receipt["principal"],"authorized_by":receipt["authorized_by"],"activated_at":receipt["activated_at"]},"created_at":receipt["created_at"]}
