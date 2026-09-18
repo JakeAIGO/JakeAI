@@ -33,8 +33,8 @@ GLASSES_PRODUCT = {"title":"Where the Hell Are My Glasses? v1.0","description":"
 
 PROMOTED_PRODUCTS={GAME_QA_PRODUCT_ID:GAME_QA_PRODUCT,BOSS_FIGHT_PRODUCT_ID:BOSS_FIGHT_PRODUCT,INVENTORY_PRODUCT_ID:INVENTORY_PRODUCT,POOL_PRODUCT_ID:POOL_PRODUCT,GLASSES_PRODUCT_ID:GLASSES_PRODUCT}
 main.GENESIS_CATALOG.update(PROMOTED_PRODUCTS)
-# Pool Coach is intentionally omitted while its checkout/delivery flow is under review.
-COMMERCE_ENABLED={"prod_make_free_00","prod_solar_guide_04",GAME_QA_PRODUCT_ID,BOSS_FIGHT_PRODUCT_ID,INVENTORY_PRODUCT_ID,GLASSES_PRODUCT_ID}
+# Pool Coach is enabled only on the isolated commerce feature branch as the $1 controlled purchase test product.
+COMMERCE_ENABLED={"prod_make_free_00","prod_solar_guide_04",GAME_QA_PRODUCT_ID,BOSS_FIGHT_PRODUCT_ID,INVENTORY_PRODUCT_ID,POOL_PRODUCT_ID,GLASSES_PRODUCT_ID}
 
 PRODUCT_PAGE_PATHS={
     GAME_QA_PRODUCT_ID:"/game-qa-autopilot.html",
