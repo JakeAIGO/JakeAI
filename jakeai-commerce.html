@@ -31,6 +31,7 @@ Exercises JakeAI order → entitlement → receipt without contacting Stripe, Ba
 <script>
 const q=new URLSearchParams(location.search), productId=q.get('product_id')||'prod_where_the_hell_are_my_glasses_01';
 const card=document.getElementById('card'),usdc=document.getElementById('usdc'),dryrunBtn=document.getElementById('dryrunBtn'),dryrunOut=document.getElementById('dryrunOut');
+const previewKey=new URLSearchParams(location.search).get('preview_key')||'';
 let method='card';
 const product=document.getElementById('product'),price=document.getElementById('price'),status=document.getElementById('status'),go=document.getElementById('continue'),cryptoInfo=document.getElementById('cryptoInfo');
 const known={
@@ -45,7 +46,7 @@ card.onclick=()=>select('card');usdc.onclick=()=>select('usdc');
 dryrunBtn.onclick=async()=>{
  dryrunBtn.disabled=true;dryrunOut.textContent='Running isolated simulation…';
  try{
-  const r=await fetch('/api/v1/commerce/dry-run/'+encodeURIComponent(productId),{method:'POST'});
+  const r=await fetch('/api/v1/commerce/dry-run/'+encodeURIComponent(productId),{method:'POST',headers:{'X-JakeAI-Preview-Key':previewKey}});
   const j=await r.json();if(!r.ok)throw new Error(j?.detail||'Dry run unavailable.');
   dryrunOut.textContent=JSON.stringify(j,null,2);
  }catch(e){dryrunOut.textContent=e.message}finally{dryrunBtn.disabled=false}
