@@ -32,6 +32,9 @@ def setup_temp_db(monkeypatch, tmp_path):
             )
             """
         )
+    # Apply the shared commerce schema/migrations before crypto tables so this
+    # fixture represents an existing pre-migration database being upgraded.
+    commerce_app._init_commerce_tables()
     crypto._init_crypto_checkout_tables()
     return db
 
