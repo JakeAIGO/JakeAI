@@ -69,3 +69,35 @@ def test_dry_run_requires_private_preview_key(monkeypatch,tmp_path):
     with pytest.raises(HTTPException) as exc:
         commerce_app.commerce_dry_run("prod_dry_test","wrong-key")
     assert exc.value.status_code==403
+
+
+def test_receipt_requires_per_order_authorization(monkeypatch,tmp_path):
+    setup_db(monkeypatch,tmp_path)
+    oid=commerce_app._create_order("prod_test",500,"pending_payment","test")
+    commerce_app._mark_order_paid(oid,"cs_test")
+    commerce_app._issue_entitlement_and_receipt(oid,"card","cs_test")
+    order=commerce_app._get_order(oid)
+    with pytest.raises(HTTPException) as missing:
+        commerce_app.commerce_receipt(oid,None)
+    assert missing.value.status_code==403
+    with pytest.raises(HTTPException) as wrong:
+        commerce_app.commerce_receipt(oid,"wrong-token")
+    assert wrong.value.status_code==403
+    result=commerce_app.commerce_receipt(oid,order["receipt_access_token"])
+    assert result["order_id"]==oid
+    assert result["entitlement"]["status"]=="active"
+
+
+def test_atomic_reissue_keeps_single_entitlement_and_receipt(monkeypatch,tmp_path):
+    db=setup_db(monkeypatch,tmp_path)
+    oid=commerce_app._create_order("prod_test",500,"pending_payment","test")
+    commerce_app._mark_order_paid(oid,"cs_test")
+    first=commerce_app._issue_entitlement_and_receipt(oid,"card","cs_test")
+    for _ in range(5):
+        assert commerce_app._issue_entitlement_and_receipt(oid,"card","cs_test")==first
+    conn=sqlite3.connect(db)
+    entitlement_count=conn.execute("SELECT COUNT(*) FROM commerce_entitlements WHERE order_id=?",(oid,)).fetchone()[0]
+    receipt_count=conn.execute("SELECT COUNT(*) FROM commerce_receipts WHERE order_id=?",(oid,)).fetchone()[0]
+    conn.close()
+    assert entitlement_count==1
+    assert receipt_count==1
