@@ -2,7 +2,8 @@ import os
 from datetime import datetime, timezone
 
 import stripe
-from fastapi import Request
+from fastapi import Request, HTTPException
+from fastapi.responses import HTMLResponse
 
 import commerce_app
 from crypto_commerce_app import app
@@ -129,3 +130,10 @@ async def recover_checkout_order_after_ephemeral_storage_loss(request: Request, 
                 _recover_paid_order_from_stripe(order_id, session_id)
 
     return await call_next(request)
+
+
+@app.get("/", response_class=HTMLResponse)
+def private_commerce_preview():
+    if os.environ.get("JAKEAI_COMMERCE_DRY_RUN_ENABLED","").strip().lower() not in {"1","true","yes","on"}:
+        raise HTTPException(404,"Not Found")
+    return """<!doctype html><html><head><meta name="viewport" content="width=device-width,initial-scale=1"><title>JakeAI Commerce — Isolated Preview</title><style>:root{color-scheme:dark}*{box-sizing:border-box}body{margin:0;background:#05070c;color:#eef5ff;font:16px/1.5 system-ui,sans-serif}main{max-width:720px;margin:auto;padding:28px 18px}.brand{font-weight:900;font-size:30px}.brand b{color:#62e7ff}.eyebrow{letter-spacing:.16em;text-transform:uppercase;color:#8fa8bf;font-size:12px}.panel{margin-top:22px;padding:22px;border:1px solid #203047;border-radius:20px;background:#0c1320}h1{font-size:34px;line-height:1.08}p{color:#b8c7d8}.notice{margin-top:16px;padding:13px;border:1px solid #263b51;border-radius:12px;color:#9fb4c8}.action,input{width:100%;margin-top:12px;padding:15px;border-radius:14px;font:inherit}.action{border:0;background:#eef5ff;color:#07101a;font-weight:850}.action:disabled{opacity:.45}input{border:1px solid #2b405a;background:#080b12;color:#eef5ff}pre{white-space:pre-wrap;word-break:break-word;color:#a8efff}</style></head><body><main><div class="brand">Jake<b>AI</b></div><div class="eyebrow">Commerce · Isolated Railway Preview</div><section class="panel"><h1>Zero-money commerce simulation.</h1><p>This surface exercises JakeAI order → entitlement → receipt. Card, USDC, Stripe and blockchain execution are not available here.</p><div class="notice"><strong>Private preview authorization</strong><input id="key" type="password" autocomplete="off" placeholder="Paste temporary preview password"><button class="action" id="run">Run zero-money simulation</button><pre id="out"></pre></div><div class="notice">SIMULATION ONLY — money moved: false. External payment processors contacted: false. Blockchain contacted: false.</div></section><script>const run=document.getElementById('run'),out=document.getElementById('out'),key=document.getElementById('key');run.onclick=async()=>{run.disabled=true;out.textContent='Running isolated simulation…';try{const r=await fetch('/v1/commerce/dry-run/prod_where_the_hell_are_my_glasses_01',{method:'POST',headers:{'X-JakeAI-Preview-Key':key.value}});const j=await r.json();if(!r.ok)throw new Error(j.detail||'Simulation unavailable');out.textContent=JSON.stringify(j,null,2)}catch(e){out.textContent=e.message}finally{run.disabled=false}};</script></main></body></html>"""
