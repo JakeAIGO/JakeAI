@@ -1,4 +1,5 @@
 import os
+import hmac
 import sqlite3
 import uuid
 from datetime import datetime, timezone
@@ -193,9 +194,14 @@ def commerce_receipt(order_id:str):
 
 
 @app.post("/v1/commerce/dry-run/{product_id}")
-def commerce_dry_run(product_id:str):
+def commerce_dry_run(product_id:str,preview_key:Optional[str]=Header(None,alias="X-JakeAI-Preview-Key")):
     if os.environ.get("JAKEAI_COMMERCE_DRY_RUN_ENABLED","").strip().lower() not in {"1","true","yes","on"}:
         raise HTTPException(404,"Dry run is not enabled")
+    expected_key=os.environ.get("JAKEAI_COMMERCE_PREVIEW_KEY","").strip()
+    if not expected_key:
+        raise HTTPException(404,"Dry run is not enabled")
+    if not preview_key or not hmac.compare_digest(preview_key,expected_key):
+        raise HTTPException(403,"Private preview authorization required")
     product=main.GENESIS_CATALOG.get(product_id)
     if not product:raise HTTPException(404,"Product not found")
     amount_cents=int(round(float(product.get("price",0))*100))
