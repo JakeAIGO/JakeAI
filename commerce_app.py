@@ -68,7 +68,10 @@ def _commerce_conn():
 
 def _init_commerce_tables():
     conn=_commerce_conn()
-    conn.execute("CREATE TABLE IF NOT EXISTS commerce_orders (id TEXT PRIMARY KEY,product_id TEXT NOT NULL,amount_cents INTEGER NOT NULL,status TEXT NOT NULL,stripe_session_id TEXT,source TEXT,created_at TEXT NOT NULL,completed_at TEXT)")
+    conn.execute("CREATE TABLE IF NOT EXISTS commerce_orders (id TEXT PRIMARY KEY,product_id TEXT NOT NULL,amount_cents INTEGER NOT NULL,status TEXT NOT NULL,stripe_session_id TEXT,source TEXT,created_at TEXT NOT NULL,completed_at TEXT,receipt_access_token TEXT)")
+    order_columns={row[1] for row in conn.execute("PRAGMA table_info(commerce_orders)").fetchall()}
+    if "receipt_access_token" not in order_columns:
+        conn.execute("ALTER TABLE commerce_orders ADD COLUMN receipt_access_token TEXT")
     conn.execute("CREATE TABLE IF NOT EXISTS commerce_entitlements (id TEXT PRIMARY KEY,order_id TEXT NOT NULL UNIQUE,product_id TEXT NOT NULL,status TEXT NOT NULL,buyer_type TEXT NOT NULL DEFAULT 'human',principal TEXT,authorized_by TEXT,created_at TEXT NOT NULL,activated_at TEXT)")
     conn.execute("CREATE TABLE IF NOT EXISTS commerce_receipts (id TEXT PRIMARY KEY,order_id TEXT NOT NULL UNIQUE,product_id TEXT NOT NULL,payment_rail TEXT NOT NULL,amount_cents INTEGER NOT NULL,payment_reference TEXT,entitlement_id TEXT NOT NULL,created_at TEXT NOT NULL)")
     conn.commit();conn.close()
@@ -80,7 +83,7 @@ def _init_commerce_tables():
         pass
 
 def _create_order(product_id,amount_cents,status,source=None):
-    oid=f"ord_{uuid.uuid4().hex}"; now=datetime.now(timezone.utc).isoformat();conn=_commerce_conn();conn.execute("INSERT INTO commerce_orders (id,product_id,amount_cents,status,source,created_at) VALUES (?,?,?,?,?,?)",(oid,product_id,amount_cents,status,source,now));conn.commit();conn.close();return oid
+    oid=f"ord_{uuid.uuid4().hex}"; token=f"rct_{uuid.uuid4().hex}{uuid.uuid4().hex}"; now=datetime.now(timezone.utc).isoformat();conn=_commerce_conn();conn.execute("INSERT INTO commerce_orders (id,product_id,amount_cents,status,source,created_at,receipt_access_token) VALUES (?,?,?,?,?,?,?)",(oid,product_id,amount_cents,status,source,now,token));conn.commit();conn.close();return oid
 
 def _mark_order_paid(order_id,session_id):
     conn=_commerce_conn();conn.execute("UPDATE commerce_orders SET status='paid',stripe_session_id=?,completed_at=? WHERE id=?",(session_id,datetime.now(timezone.utc).isoformat(),order_id));conn.commit();conn.close()
@@ -89,11 +92,12 @@ def _issue_entitlement_and_receipt(order_id:str,payment_rail:str,payment_referen
     order=_get_order(order_id)
     if not order or order["status"]!="paid":raise HTTPException(409,"Verified payment is required before entitlement")
     now=datetime.now(timezone.utc).isoformat();conn=_commerce_conn()
-    existing=conn.execute("SELECT r.id AS receipt_id,e.id AS entitlement_id FROM commerce_receipts r JOIN commerce_entitlements e ON e.id=r.entitlement_id WHERE r.order_id=?",(order_id,)).fetchone()
-    if existing:conn.close();return dict(existing)
     eid=f"ent_{uuid.uuid4().hex}";rid=f"rcpt_{uuid.uuid4().hex}"
     try:
         conn.execute("BEGIN IMMEDIATE")
+        existing=conn.execute("SELECT r.id AS receipt_id,e.id AS entitlement_id FROM commerce_receipts r JOIN commerce_entitlements e ON e.id=r.entitlement_id WHERE r.order_id=?",(order_id,)).fetchone()
+        if existing:
+            conn.commit();conn.close();return dict(existing)
         conn.execute("INSERT INTO commerce_entitlements (id,order_id,product_id,status,buyer_type,principal,authorized_by,created_at,activated_at) VALUES (?,?,?,?,?,?,?,?,?)",(eid,order_id,order["product_id"],"active",buyer_type,principal,authorized_by,now,now))
         conn.execute("INSERT INTO commerce_receipts (id,order_id,product_id,payment_rail,amount_cents,payment_reference,entitlement_id,created_at) VALUES (?,?,?,?,?,?,?,?)",(rid,order_id,order["product_id"],payment_rail,order["amount_cents"],payment_reference,eid,now))
         conn.commit()
@@ -185,9 +189,12 @@ def commerce_status(order_id:str):
 
 
 @app.get("/v1/commerce/receipt/{order_id}")
-def commerce_receipt(order_id:str):
+def commerce_receipt(order_id:str,receipt_key:Optional[str]=Header(None,alias="X-JakeAI-Receipt-Key")):
     order=_get_order(order_id)
     if not order:raise HTTPException(404,"Order not found")
+    expected=order.get("receipt_access_token") or ""
+    if not expected or not receipt_key or not hmac.compare_digest(receipt_key,expected):
+        raise HTTPException(403,"Receipt authorization required")
     receipt=_get_receipt(order_id)
     if not receipt:raise HTTPException(404,"Receipt is not available")
     return {"receipt_id":receipt["id"],"order_id":receipt["order_id"],"product_id":receipt["product_id"],"payment_rail":receipt["payment_rail"],"amount_cents":receipt["amount_cents"],"payment_reference":receipt["payment_reference"],"entitlement":{"id":receipt["entitlement_id"],"status":receipt["entitlement_status"],"buyer_type":receipt["buyer_type"],"principal":receipt["principal"],"authorized_by":receipt["authorized_by"],"activated_at":receipt["activated_at"]},"created_at":receipt["created_at"]}
@@ -210,4 +217,4 @@ def commerce_dry_run(product_id:str,preview_key:Optional[str]=Header(None,alias=
     _mark_order_paid(oid,simulation_reference)
     issued=_issue_entitlement_and_receipt(oid,"simulation",simulation_reference)
     receipt=_get_receipt(oid)
-    return {"mode":"simulation","money_moved":False,"external_payment_processor_contacted":False,"blockchain_contacted":False,"order":{"id":oid,"product_id":product_id,"amount_cents":amount_cents,"status":"paid"},"payment":{"rail":"simulation","reference":simulation_reference,"status":"verified_simulation"},"entitlement":{"id":issued["entitlement_id"],"status":receipt["entitlement_status"]},"receipt":{"id":issued["receipt_id"],"endpoint":f"/v1/commerce/receipt/{oid}"}}
+    return {"mode":"simulation","money_moved":False,"external_payment_processor_contacted":False,"blockchain_contacted":False,"order":{"id":oid,"product_id":product_id,"amount_cents":amount_cents,"status":"paid"},"payment":{"rail":"simulation","reference":simulation_reference,"status":"verified_simulation"},"entitlement":{"id":issued["entitlement_id"],"status":receipt["entitlement_status"]},"receipt":{"id":issued["receipt_id"],"endpoint":f"/v1/commerce/receipt/{oid}","access_token":_get_order(oid)["receipt_access_token"]}}
