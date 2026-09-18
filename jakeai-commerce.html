@@ -24,6 +24,7 @@
 </section>
 <script>
 const q=new URLSearchParams(location.search), productId=q.get('product_id')||'prod_where_the_hell_are_my_glasses_01';
+const card=document.getElementById('card'),usdc=document.getElementById('usdc');
 let method='card';
 const product=document.getElementById('product'),price=document.getElementById('price'),status=document.getElementById('status'),go=document.getElementById('continue'),cryptoInfo=document.getElementById('cryptoInfo');
 const known={
