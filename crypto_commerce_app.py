@@ -396,6 +396,11 @@ def verify_crypto_checkout(req: CryptoVerifyRequest):
     )
     if result.recorded and result.validation.accepted:
         _mark_crypto_paid(req.order_id, result.tx_hash, result.compliance)
+        commerce_app._issue_entitlement_and_receipt(
+            req.order_id,
+            "usdc_base",
+            result.tx_hash,
+        )
 
     return {
         "order_id": req.order_id,
