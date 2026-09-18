@@ -1,0 +1,10 @@
+{
+  "schema_version": "1.0",
+  "id": "bid-foundry",
+  "name": "Bid Foundry",
+  "publisher": "JakeAI",
+  "status": "controlled_release_candidate",
+  "version": "rc4",
+  "safety": {"human_review_required": true, "autonomous_submission": false},
+  "agent_gateway": {"invocation": "local-controlled", "allowed": ["analyze", "extract_requirements", "build_compliance_matrix", "package_results"], "human_release_required": true}
+}
