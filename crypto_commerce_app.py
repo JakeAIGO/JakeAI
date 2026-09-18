@@ -42,7 +42,7 @@ from crypto_payment_integration import (
 from crypto_payment_rpc import BaseRpcClient, verify_submitted_payment
 
 app = commerce_app.app
-DB_PATH = commerce_app.DB_PATH
+DB_PATH = commerce_app.COMMERCE_DB_PATH
 
 
 class CryptoCheckoutRequest(BaseModel):
