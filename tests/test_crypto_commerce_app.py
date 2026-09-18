@@ -16,6 +16,7 @@ def setup_temp_db(monkeypatch, tmp_path):
     db = str(tmp_path / "commerce.sqlite3")
     monkeypatch.setattr(crypto, "DB_PATH", db)
     monkeypatch.setattr(commerce_app, "DB_PATH", db)
+    monkeypatch.setattr(commerce_app, "COMMERCE_DB_PATH", db)
     with sqlite3.connect(db) as conn:
         conn.execute(
             """
