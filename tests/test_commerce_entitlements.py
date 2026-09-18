@@ -43,14 +43,15 @@ def test_machine_receipt_preserves_agent_authority(monkeypatch,tmp_path):
 def test_dry_run_is_disabled_by_default(monkeypatch):
     monkeypatch.delenv("JAKEAI_COMMERCE_DRY_RUN_ENABLED",raising=False)
     with pytest.raises(HTTPException) as exc:
-        commerce_app.commerce_dry_run("prod_test")
+        commerce_app.commerce_dry_run("prod_test",None)
     assert exc.value.status_code==404
 
 def test_dry_run_moves_no_money_and_issues_receipt(monkeypatch,tmp_path):
     setup_db(monkeypatch,tmp_path)
     monkeypatch.setenv("JAKEAI_COMMERCE_DRY_RUN_ENABLED","true")
+    monkeypatch.setenv("JAKEAI_COMMERCE_PREVIEW_KEY","test-preview-secret")
     monkeypatch.setitem(commerce_app.main.GENESIS_CATALOG,"prod_dry_test",{"title":"Dry Test","price":5.00})
-    result=commerce_app.commerce_dry_run("prod_dry_test")
+    result=commerce_app.commerce_dry_run("prod_dry_test","test-preview-secret")
     assert result["mode"]=="simulation"
     assert result["money_moved"] is False
     assert result["external_payment_processor_contacted"] is False
@@ -58,3 +59,13 @@ def test_dry_run_moves_no_money_and_issues_receipt(monkeypatch,tmp_path):
     assert result["payment"]["rail"]=="simulation"
     assert result["entitlement"]["status"]=="active"
     assert result["receipt"]["id"].startswith("rcpt_")
+
+
+def test_dry_run_requires_private_preview_key(monkeypatch,tmp_path):
+    setup_db(monkeypatch,tmp_path)
+    monkeypatch.setenv("JAKEAI_COMMERCE_DRY_RUN_ENABLED","true")
+    monkeypatch.setenv("JAKEAI_COMMERCE_PREVIEW_KEY","test-preview-secret")
+    monkeypatch.setitem(commerce_app.main.GENESIS_CATALOG,"prod_dry_test",{"title":"Dry Test","price":5.00})
+    with pytest.raises(HTTPException) as exc:
+        commerce_app.commerce_dry_run("prod_dry_test","wrong-key")
+    assert exc.value.status_code==403
