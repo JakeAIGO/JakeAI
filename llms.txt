@@ -1,11 +1,14 @@
 # JakeAI Universe — Machine-Readable Public Surface
 > Host: https://jakeaiofficial.com
-> Release: jakeai-universe-2026-09-13
+> Release: jakeai-universe-launch-candidate-2026-09-18
 > Public release authority remains human-gated.
 > Commerce is fail-closed when fulfillment, entitlement, claims, or safety are not verified.
 
 ## Live Destinations
 - The Foundry: https://jakeaiofficial.com/#foundry
+- Autonomous Product Factory + Factory Brain: https://jakeaiofficial.com/product-factory/
+- Bid Foundry: https://jakeaiofficial.com/bid-foundry/
+- Commission Bay: https://jakeaiofficial.com/#commission
 - JakeAI Arcade: https://jakeaiofficial.com/arcade/
   - Game #001 — Cosmic Vending Machine: LIVE
   - Game #002 — Mantlecore: Skyfall: LIVE
