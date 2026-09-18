@@ -1,0 +1,47 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1">
+<title>JakeAI Commerce — Private Preview</title>
+<style>
+:root{color-scheme:dark}*{box-sizing:border-box}body{margin:0;background:#05070c;color:#eef5ff;font:16px/1.5 system-ui,sans-serif}main{max-width:760px;margin:auto;padding:28px 18px}.brand{font-weight:900;font-size:30px}.brand b{color:#62e7ff}.eyebrow{letter-spacing:.18em;text-transform:uppercase;color:#8fa8bf;font-size:12px}.panel{margin-top:22px;padding:22px;border:1px solid #203047;border-radius:20px;background:linear-gradient(180deg,#0c1320,#080b12)}h1{font-size:38px;line-height:1.05;margin:8px 0 12px}p{color:#b8c7d8}.methods{display:grid;grid-template-columns:1fr 1fr;gap:12px;margin:20px 0}.method{padding:18px;border:1px solid #2b405a;border-radius:15px;background:#0b111c;color:#eef5ff;text-align:left;font:inherit;cursor:pointer}.method strong{display:block;font-size:18px}.method small{color:#91a5ba}.method.active{outline:2px solid #62e7ff}.row{display:flex;justify-content:space-between;gap:15px;padding:12px 0;border-bottom:1px solid #1b2839}.value{text-align:right}.action{width:100%;margin-top:18px;padding:15px;border:0;border-radius:14px;background:#eef5ff;color:#07101a;font-weight:850;font-size:16px;cursor:pointer}.action:disabled{opacity:.45;cursor:not-allowed}.notice{margin-top:16px;padding:13px;border:1px solid #263b51;border-radius:12px;color:#9fb4c8;font-size:13px}.status{margin-top:14px;min-height:24px;color:#9fe8c7}.hidden{display:none}code{word-break:break-all;color:#a8efff}@media(max-width:560px){.methods{grid-template-columns:1fr}h1{font-size:32px}}</style>
+</head>
+<body><main>
+<div class="brand">Jake<b>AI</b></div><div class="eyebrow">Commerce · Private Preview · v0.1</div>
+<section class="panel">
+<h1>One order.<br>Replaceable payment rails.</h1>
+<p>JakeAI owns the order, entitlement and receipt. Payment processors are adapters.</p>
+<div class="row"><span>Product</span><strong class="value" id="product">Loading…</strong></div>
+<div class="row"><span>Total</span><strong class="value" id="price">—</strong></div>
+<div class="methods">
+<button class="method active" id="card"><strong>Card</strong><small>Existing processor adapter</small></button>
+<button class="method" id="usdc"><strong>USDC · Base</strong><small>Activation-gated merchant rail</small></button>
+</div>
+<div id="cryptoInfo" class="hidden notice">Native USDC on Base Mainnet only. Crypto remains unavailable unless JakeAI's independent legal/compliance and runtime gates are enabled. No custody or signing occurs in this page.</div>
+<button class="action" id="continue">Continue with card</button>
+<div class="status" id="status"></div>
+<div class="notice">PRIVATE TEST SURFACE — no public promotion. Never send funds unless this page displays a server-created order and exact payment instructions.</div>
+</section>
+<script>
+const q=new URLSearchParams(location.search), productId=q.get('product_id')||'prod_where_the_hell_are_my_glasses_01';
+let method='card';
+const product=document.getElementById('product'),price=document.getElementById('price'),status=document.getElementById('status'),go=document.getElementById('continue'),cryptoInfo=document.getElementById('cryptoInfo');
+const known={
+'prod_where_the_hell_are_my_glasses_01':['Where the Hell Are My Glasses? v1.0','$2.99'],
+'prod_game_qa_autopilot_01':['Game QA Autopilot v1.0','$9.99'],
+'prod_boss_fight_lab_01':['Boss Fight Lab v1.0','$3.99'],
+'prod_inventory_replenishment_01':['Inventory & Replenishment Intelligence Autopilot','$49.00']
+};
+const meta=known[productId]||[productId,'Server verified'];product.textContent=meta[0];price.textContent=meta[1];
+function select(m){method=m;card.classList.toggle('active',m==='card');usdc.classList.toggle('active',m==='usdc');cryptoInfo.classList.toggle('hidden',m!=='usdc');go.textContent=m==='card'?'Continue with card':'Create USDC invoice';status.textContent=''}
+card.onclick=()=>select('card');usdc.onclick=()=>select('usdc');
+go.onclick=async()=>{
+ go.disabled=true;status.textContent='Creating JakeAI order…';
+ try{
+  if(method==='card'){location.href='/api/v1/checkout/buy/'+encodeURIComponent(productId)+'?source=commerce-preview';return}
+  const r=await fetch('/api/v1/checkout/crypto/create/'+encodeURIComponent(productId),{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({acknowledge_irreversible_payment:true,source:'crypto-test'})});
+  const j=await r.json();if(!r.ok)throw new Error(j?.error?.message||j?.detail||'Crypto checkout is not enabled.');
+  status.innerHTML='Order <code>'+j.order_id+'</code><br>Send exactly <strong>'+j.amount_usdc+' USDC</strong> on '+j.network+' to <code>'+j.merchant_address+'</code>. Then verify the transaction through the controlled test flow.';
+ }catch(e){status.textContent=e.message}finally{go.disabled=false}
+};
+</script></main></body></html>
