@@ -71,6 +71,14 @@ def init_direct_db():
 def _stripe_secret():
     return os.environ.get("DIRECT_STRIPE_SECRET_KEY", "").strip() or os.environ.get("STRIPE_SECRET_KEY", "").strip()
 
+def _stripe_key_mode():
+    key = _stripe_secret()
+    if "_test_" in key or key.startswith("sk_test") or key.startswith("rk_test"):
+        return "test"
+    if "_live_" in key or key.startswith("sk_live") or key.startswith("rk_live"):
+        return "live"
+    return "unknown" if key else "missing"
+
 def _webhook_secret():
     return os.environ.get("DIRECT_STRIPE_WEBHOOK_SECRET", "").strip()
 
@@ -216,7 +224,7 @@ def register_direct_routes(app):
             "billing_enabled":_billing_enabled(),
             "storage":storage,
             "price_configured":bool(_price_id()),
-            "payment_processor_configured":bool(_stripe_secret()),
+            "payment_processor_configured":bool(_stripe_secret()),\n            "payment_processor_mode":_stripe_key_mode(),
             "webhook_configured":bool(_webhook_secret()),
             "expected_livemode":_expected_livemode(),
             "plan":DIRECT_PLAN_ID,
