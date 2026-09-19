@@ -1,0 +1,147 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8" />
+<meta name="viewport" content="width=device-width,initial-scale=1" />
+<title>JakeAI Direct — Founding Edition</title>
+<meta name="description" content="JakeAI Direct routes work across approved AI providers, tools and autonomous workflows with human approval gates." />
+<style>
+:root{
+  --bg:#060812; --panel:#0d1320cc; --panel2:#10192acc; --text:#f5f8ff; --muted:#9aa9bc;
+  --cyan:#58ebff; --violet:#a475ff; --green:#66f5b4; --amber:#ffd36a; --red:#ff728a;
+  --line:#6eeaff2b; --shadow:0 24px 80px #0009;
+}
+*{box-sizing:border-box} html{scroll-behavior:smooth} body{margin:0;background:
+radial-gradient(circle at 50% -10%,#183058 0,#0b1020 27%,transparent 52%),
+radial-gradient(circle at 95% 20%,#482a7c55 0,transparent 28%),
+radial-gradient(circle at 0 58%,#0a6e8150 0,transparent 30%),var(--bg);color:var(--text);font-family:Inter,ui-sans-serif,system-ui,-apple-system,Segoe UI,Roboto,Arial,sans-serif;overflow-x:hidden}
+body:before{content:"";position:fixed;inset:0;pointer-events:none;opacity:.25;background-image:linear-gradient(#fff1 1px,transparent 1px),linear-gradient(90deg,#fff1 1px,transparent 1px);background-size:52px 52px;mask-image:linear-gradient(to bottom,#0008,transparent 75%)}
+a{color:inherit;text-decoration:none}.wrap{width:min(1180px,calc(100% - 36px));margin:auto}.top{display:flex;align-items:center;justify-content:space-between;padding:20px 0;position:relative;z-index:5}.brand{font-weight:900;letter-spacing:.08em}.brand b{color:var(--cyan)}.badge{border:1px solid #7ef5ff45;background:#07111caa;border-radius:999px;padding:8px 12px;font-size:12px;letter-spacing:.13em;color:#c6f9ff}.nav{display:flex;gap:12px;align-items:center}.nav a{font-size:13px;color:var(--muted)}.nav .cta{color:#071018;background:linear-gradient(135deg,var(--cyan),#b7fbff);font-weight:800;padding:10px 15px;border-radius:999px}
+.hero{display:grid;grid-template-columns:1.12fr .88fr;gap:52px;align-items:center;padding:72px 0 72px;min-height:680px}.eyebrow{color:var(--green);font-size:12px;font-weight:800;letter-spacing:.18em}.hero h1{font-size:clamp(52px,7vw,94px);line-height:.92;letter-spacing:-.055em;margin:16px 0 24px;max-width:820px}.hero h1 span{background:linear-gradient(92deg,#fff 18%,var(--cyan) 58%,#c8a7ff);-webkit-background-clip:text;color:transparent}.lead{font-size:20px;line-height:1.55;color:#c4cfdb;max-width:720px}.actions{display:flex;gap:12px;flex-wrap:wrap;margin:32px 0 18px}.btn{display:inline-flex;align-items:center;gap:9px;border-radius:14px;padding:15px 20px;font-weight:800;border:1px solid #ffffff1d;background:#101827}.btn.primary{background:linear-gradient(135deg,var(--cyan),#bff9ff);color:#051019;box-shadow:0 0 36px #49e5ff2d}.smallprint{color:#76889b;font-size:12px;max-width:710px}
+.portal{position:relative;min-height:520px;display:grid;place-items:center}.ring{width:min(420px,82vw);aspect-ratio:1;border-radius:50%;position:absolute;border:2px solid #6cecff90;box-shadow:0 0 20px #5be8ff,0 0 90px #5be8ff44,inset 0 0 70px #8e68ff33;animation:pulse 4s ease-in-out infinite}.ring:before,.ring:after{content:"";position:absolute;border-radius:50%;inset:28px;border:1px dashed #d7fbff66;animation:spin 17s linear infinite}.ring:after{inset:60px;border-style:solid;border-color:#b084ff55;animation-direction:reverse;animation-duration:11s}.core{position:relative;width:270px;aspect-ratio:1;border-radius:50%;background:radial-gradient(circle at 45% 38%,#d4fdff 0,#67e8f9 8%,#7457e8 28%,#0c1831 60%,#03060b 74%);box-shadow:0 0 70px #7deaff99,0 0 160px #6a4aff55;display:grid;place-items:center;text-align:center;padding:42px}.core strong{font-size:28px;letter-spacing:.05em}.core small{display:block;color:#c9ebf4;font-size:11px;letter-spacing:.15em;margin-top:8px}.orbit{position:absolute;width:100%;height:100%;animation:spin 12s linear infinite}.node{position:absolute;border:1px solid #80efff66;background:#09111ddd;backdrop-filter:blur(10px);border-radius:14px;padding:9px 12px;font-size:11px;color:#d9faff;box-shadow:0 12px 30px #0007}.n1{top:6%;left:47%}.n2{right:0;top:45%}.n3{bottom:5%;left:43%}.n4{left:0;top:48%}@keyframes spin{to{transform:rotate(360deg)}}@keyframes pulse{50%{transform:scale(1.025);filter:brightness(1.18)}}
+.strip{display:grid;grid-template-columns:repeat(4,1fr);gap:1px;border:1px solid var(--line);background:var(--line);border-radius:18px;overflow:hidden;margin-bottom:86px}.metric{background:#0a111d;padding:20px}.metric strong{display:block;font-size:21px}.metric span{font-size:12px;color:var(--muted)}
+.section{padding:86px 0}.section h2{font-size:clamp(36px,5vw,58px);letter-spacing:-.04em;margin:0 0 14px}.section .intro{color:var(--muted);font-size:18px;max-width:760px;line-height:1.6}.grid3{display:grid;grid-template-columns:repeat(3,1fr);gap:16px;margin-top:34px}.card{background:linear-gradient(180deg,#121b2bcc,#0a101acc);border:1px solid var(--line);border-radius:20px;padding:25px;box-shadow:var(--shadow);min-height:220px}.ico{width:42px;height:42px;border-radius:12px;display:grid;place-items:center;background:#15304a;border:1px solid #6be7ff3d;font-weight:900;color:var(--cyan)}.card h3{margin:22px 0 10px;font-size:20px}.card p{color:#97a9bc;line-height:1.55;margin:0}.flow{display:grid;grid-template-columns:repeat(5,1fr);gap:10px;margin-top:38px}.step{background:#0c1421;border:1px solid var(--line);border-radius:16px;padding:18px;position:relative}.step em{font-style:normal;font-size:11px;color:var(--cyan);letter-spacing:.12em}.step b{display:block;margin-top:8px}.step span{display:block;margin-top:7px;color:#8093a8;font-size:12px;line-height:1.45}.step:not(:last-child):after{content:"→";position:absolute;right:-9px;top:45%;color:var(--cyan);z-index:2}
+.compare{overflow:auto;margin-top:34px;border:1px solid var(--line);border-radius:18px;background:#08101a}table{border-collapse:collapse;width:100%;min-width:760px}th,td{text-align:left;padding:16px;border-bottom:1px solid #ffffff0d}th{font-size:12px;letter-spacing:.12em;color:#94a8ba}td{font-size:14px}.yes{color:var(--green);font-weight:800}.partial{color:var(--amber)}
+.pricing{display:grid;grid-template-columns:1fr 1fr;gap:18px;margin-top:34px}.price{padding:30px;border-radius:22px;background:linear-gradient(180deg,#111a2b,#090f19);border:1px solid var(--line);position:relative;overflow:hidden}.price.featured{box-shadow:0 0 55px #5ceeff18;border-color:#68e9ff62}.price .tag{font-size:11px;letter-spacing:.14em;color:var(--green)}.price h3{font-size:25px;margin:12px 0 8px}.money{font-size:52px;font-weight:900;letter-spacing:-.04em}.money small{font-size:15px;color:var(--muted);font-weight:600}.price ul{padding-left:20px;color:#aebdcb;line-height:1.9}.cap{border-top:1px solid #ffffff10;padding-top:15px;margin-top:18px;color:#73879a;font-size:12px}
+.council{display:grid;grid-template-columns:.9fr 1.1fr;gap:24px;margin-top:36px}.status{display:flex;align-items:center;gap:9px;padding:10px 0;border-bottom:1px solid #ffffff0c}.dot{width:9px;height:9px;border-radius:50%;background:var(--green);box-shadow:0 0 10px currentColor}.dot.yellow{background:var(--amber)}.dot.red{background:var(--red)}.status b{min-width:150px}.status span{color:#94a8ba;font-size:13px}.note{background:#0b1420;border-left:3px solid var(--cyan);padding:18px 20px;border-radius:0 14px 14px 0;color:#b6c7d7;line-height:1.6}
+.final-cta{margin:70px 0 90px;border:1px solid #6cecff50;background:radial-gradient(circle at 50% 0,#263d684d,transparent 60%),#08101a;border-radius:28px;padding:44px;text-align:center;box-shadow:0 0 90px #4cdfff13}.final-cta h2{font-size:clamp(38px,6vw,70px);margin:0;letter-spacing:-.05em}.final-cta p{color:#9fb1c3;font-size:18px;max-width:740px;margin:18px auto 28px}.footer{padding:26px 0 46px;border-top:1px solid #ffffff10;color:#73879a;font-size:12px;display:flex;justify-content:space-between;gap:20px;flex-wrap:wrap}
+@media(max-width:900px){.hero{grid-template-columns:1fr;padding-top:36px}.portal{min-height:430px}.grid3{grid-template-columns:1fr}.flow{grid-template-columns:1fr}.step:not(:last-child):after{content:"↓";right:50%;top:auto;bottom:-14px}.pricing,.council{grid-template-columns:1fr}.strip{grid-template-columns:1fr 1fr}.nav a:not(.cta){display:none}}@media(max-width:520px){.wrap{width:min(100% - 24px,1180px)}.hero h1{font-size:49px}.lead{font-size:17px}.strip{grid-template-columns:1fr}.portal{min-height:360px}.core{width:210px}.final-cta{padding:28px 18px}}
+</style>
+</head>
+<body><div style="position:fixed;z-index:9999;top:10px;left:50%;transform:translateX(-50%);padding:8px 12px;border:1px solid #ffd36a66;border-radius:999px;background:#130f08ee;color:#ffd36a;font:800 11px/1 Inter,system-ui,sans-serif;letter-spacing:.12em;box-shadow:0 10px 35px #0008">PRIVATE PREVIEW · CHECKOUT DISABLED</div>
+<div class="wrap">
+  <header class="top">
+    <div class="brand">JAKE<b>AI</b> // DIRECT</div>
+    <nav class="nav"><a href="#how">How it works</a><a href="#pricing">Plans</a><a href="#council">Trust</a><a class="cta" href="#pricing">FOUNDING EDITION</a></nav>
+  </header>
+
+  <main>
+    <section class="hero">
+      <div>
+        <div class="eyebrow">MULTI-MODEL ORCHESTRATION // HUMAN GATED</div>
+        <h1>DON'T CHOOSE AN AI. <span>TELL JAKEAI WHAT YOU NEED DONE.</span></h1>
+        <p class="lead">One command. JakeAI breaks the job into steps, routes each step to the best approved model or tool, keeps the project context together, and stops for your approval before consequential external actions.</p>
+        <div class="actions"><a class="btn primary" href="#pricing">Founding Edition — $29/mo →</a><a class="btn" href="#how">See the routing system</a></div>
+        <p class="smallprint">JakeAI Direct is an independent orchestration product. AI providers are replaceable service adapters, not the product being sold. Model availability varies by workflow, provider terms, region and account configuration.</p>
+      </div>
+      <div class="portal" aria-label="JakeAI routing core visualization">
+        <div class="ring"></div>
+        <div class="orbit"><div class="node n1">RESEARCH</div><div class="node n2">CODE</div><div class="node n3">CREATE</div><div class="node n4">OPERATE</div></div>
+        <div class="core"><div><strong>JakeAI</strong><small>ROUTING CORE</small></div></div>
+      </div>
+    </section>
+
+    <div class="strip">
+      <div class="metric"><strong>1 workspace</strong><span>Projects, files, context and history</span></div>
+      <div class="metric"><strong>Multiple models</strong><span>Provider-neutral routing behind the scenes</span></div>
+      <div class="metric"><strong>1 approval gate</strong><span>Review before consequential external actions</span></div>
+      <div class="metric"><strong>1 run receipt</strong><span>Provider, tools, cost and provenance</span></div>
+    </div>
+
+
+    <section class="section" style="padding-top:10px">
+      <div class="eyebrow">PRIMARY PRODUCT ART</div>
+      <h2>Direct is the control center.</h2>
+      <p class="intro">This is the hero treatment intended for the /direct landing page and the homepage Direct gateway. Provider logos stay out of the main art; JakeAI remains the product identity.</p>
+      <img src="/jakeai-direct-hero-preview.webp" alt="JakeAI Direct cinematic control-center concept" style="width:100%;margin-top:28px;border-radius:24px;border:1px solid #6eeaff42;box-shadow:0 30px 90px #000b;display:block" />
+    </section>
+    <section class="section" id="how">
+      <div class="eyebrow">NOT ANOTHER MODEL PICKER</div>
+      <h2>JakeAI sells the outcome layer.</h2>
+      <p class="intro">Ordinary AI bundles put four model buttons in one window. JakeAI Direct turns the models into infrastructure and gives the user one operating interface.</p>
+      <div class="grid3">
+        <article class="card"><div class="ico">R</div><h3>Smart Router</h3><p>Classifies the task, budget, privacy needs and required tools, then selects the best currently approved provider for each step.</p></article>
+        <article class="card"><div class="ico">C</div><h3>Council Mode</h3><p>For difficult work, multiple independent passes can challenge assumptions, verify evidence and synthesize a final answer instead of simply displaying competing chats.</p></article>
+        <article class="card"><div class="ico">W</div><h3>Workflow Bay</h3><p>Turn repeatable work into reusable skills: RFP discovery, research, proposals, marketing drafts, data analysis, site changes and more.</p></article>
+        <article class="card"><div class="ico">A</div><h3>Approval Gates</h3><p>Draft freely; act carefully. External sends, publishing, purchases and destructive operations can require explicit human approval.</p></article>
+        <article class="card"><div class="ico">P</div><h3>Privacy Routing</h3><p>Routes sensitive work only through configurations permitted for that data class. No blanket “zero retention” promise unless the actual provider configuration qualifies.</p></article>
+        <article class="card"><div class="ico">↗</div><h3>Run Receipts</h3><p>Every completed run can disclose which provider class was used, tools invoked, estimated model cost, citations and approval events.</p></article>
+      </div>
+      <div class="flow">
+        <div class="step"><em>01</em><b>Ask</b><span>“Find three roofing RFPs and build a bid brief.”</span></div>
+        <div class="step"><em>02</em><b>Decompose</b><span>JakeAI creates research, qualification and drafting steps.</span></div>
+        <div class="step"><em>03</em><b>Route</b><span>Each step goes to the best eligible model/tool under budget.</span></div>
+        <div class="step"><em>04</em><b>Verify</b><span>Evidence, policies and output checks run before completion.</span></div>
+        <div class="step"><em>05</em><b>Approve</b><span>External action waits for the human gate when required.</span></div>
+      </div>
+    </section>
+
+    <section class="section">
+      <div class="eyebrow">WHY IT'S DIFFERENT</div>
+      <h2>From “which model?” to “done.”</h2>
+      <div class="compare"><table>
+        <thead><tr><th>Capability</th><th>Ordinary multi-model bundle</th><th>JakeAI Direct</th></tr></thead>
+        <tbody>
+          <tr><td>Multiple providers</td><td class="yes">Yes</td><td class="yes">Yes, provider-neutral</td></tr>
+          <tr><td>User must select the model</td><td>Usually</td><td class="yes">No — smart routing</td></tr>
+          <tr><td>Multi-step workflows</td><td class="partial">Limited</td><td class="yes">Core product</td></tr>
+          <tr><td>Persistent project context</td><td class="partial">Varies</td><td class="yes">Yes</td></tr>
+          <tr><td>Human approval before actions</td><td class="partial">Varies</td><td class="yes">Default for consequential actions</td></tr>
+          <tr><td>Model/tool cost receipt</td><td class="partial">Rare</td><td class="yes">Designed in</td></tr>
+          <tr><td>Marketplace workflows</td><td class="partial">Agent library</td><td class="yes">JakeAI workflow marketplace</td></tr>
+        </tbody>
+      </table></div>
+    </section>
+
+    <section class="section" id="pricing">
+      <div class="eyebrow">FOUNDING EDITION // $29 PER MONTH</div>
+      <h2>One plan. One clear promise.</h2>
+      <p class="intro">JakeAI Direct launches as a professional/business beta with the orchestration layer, five useful workflows, human approval gates and a visible provider-usage allowance.</p>
+      <div class="pricing" style="grid-template-columns:minmax(0,760px);justify-content:center">
+        <article class="price featured"><div class="tag">FOUNDING EDITION</div><h3>JakeAI Direct</h3><div class="money">$29<small>/month</small></div><ul><li>Smart multi-model routing</li><li>Persistent projects and files</li><li>Council Lite verification</li><li>5 founding workflows</li><li>$10 included provider-usage allowance</li><li>Hard usage stop on by default</li><li>Run receipts + approval history</li><li>Online cancellation — no sales call required</li></ul><a class="btn primary" href="#checkout-disclosure">START FOUNDING EDITION →</a><div class="cap">Subscription renews monthly until canceled. Additional provider usage is not charged unless explicitly enabled by the account owner. Review build: checkout remains disabled until payment → entitlement → metering → cancellation passes final QA.</div></article>
+      </div>
+      <div id="checkout-disclosure" class="note" style="margin:24px auto 0;max-width:960px"><b>Checkout disclosure:</b> $29/month, automatically renewing monthly until canceled. Founding Edition includes a $10 monthly provider-usage allowance. A hard stop applies when that allowance is exhausted unless the account owner affirmatively enables an eligible additional-usage option after seeing its price. By subscribing, the customer accepts the JakeAI Terms, Privacy Policy, Refund Policy and Direct Subscription Terms.</div>
+    </section>
+
+    <section class="section" id="council">
+      <div class="eyebrow">COUNCIL REVIEW</div>
+      <h2>Designed to survive contact with reality.</h2>
+      <p class="intro">Product, legal, security, privacy, finance and UX gates are part of the design, not a footnote after launch.</p>
+      <div class="council">
+        <div class="card">
+          <div class="status"><span class="dot"></span><b>Product</b><span>Distinct value proposition</span></div>
+          <div class="status"><span class="dot"></span><b>Unit economics</b><span>Usage caps + router protect margin</span></div>
+          <div class="status"><span class="dot"></span><b>Security</b><span>Server-side secrets; scoped adapters</span></div>
+          <div class="status"><span class="dot"></span><b>Human control</b><span>Approval ledger built in</span></div>
+          <div class="status"><span class="dot yellow"></span><b>Provider legal</b><span>Enable adapters only where terms permit</span></div>
+          <div class="status"><span class="dot yellow"></span><b>Commercial launch</b><span>Needs JakeAI terms/privacy/refund + tax setup</span></div>
+        </div>
+        <div>
+          <div class="note"><b>Launch architecture:</b> sell access to JakeAI Direct, not access to third-party accounts. Avoid provider logos in the hero. Provider names belong in transparent run receipts, privacy disclosures and subprocessor documentation only where permitted.</div>
+          <div class="note" style="margin-top:14px;border-left-color:var(--green)"><b>Initial adapter posture:</b> OpenAI API + paid Gemini API are the cleanest initial public routing pair. Hold generic Claude and Grok routing behind feature flags until the exact intended implementation has written provider clearance or a contract that clearly authorizes it.</div>
+          <div class="note" style="margin-top:14px;border-left-color:var(--amber)"><b>Privacy posture:</b> never advertise “zero retention,” “end-to-end encrypted AI,” or “no third-party exposure” unless the deployed architecture actually satisfies those claims for that run.</div>
+        </div>
+      </div>
+    </section>
+
+    <section class="final-cta">
+      <div class="eyebrow">THE FRONT DOOR TO THE JAKEAI UNIVERSE</div>
+      <h2>One command.<br/>The right machine answers.</h2>
+      <p>Direct is not another destination inside the Universe. It is the control interface that can reach the Foundry, workflows, tools and approved model providers.</p>
+      <a class="btn primary" href="#pricing">Founding Edition — $29/mo →</a>
+    </section>
+  </main>
+  <footer class="footer"><span>JakeAI Direct // Independent orchestration layer</span><span>Human gated • Provider neutral • Usage controlled</span></footer>
+</div>
+</body>
+</html>
