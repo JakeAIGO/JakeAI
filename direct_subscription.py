@@ -97,6 +97,28 @@ def _configure_stripe():
         raise HTTPException(503, "Direct payment processor is not configured")
     stripe.api_key = key
 
+def _verify_price_read_only():
+    if not _price_id() or not _stripe_secret():
+        return {"verified":False,"reason":"not_configured"}
+    try:
+        _configure_stripe()
+        price = stripe.Price.retrieve(_price_id())
+        recurring = getattr(price, "recurring", None)
+        verified = bool(
+            bool(getattr(price, "active", False))
+            and bool(getattr(price, "livemode", False)) == _expected_livemode()
+            and int(getattr(price, "unit_amount", -1) or -1) == DIRECT_PRICE_CENTS
+            and getattr(recurring, "interval", None) == "month"
+        )
+        return {
+            "verified":verified,
+            "livemode":bool(getattr(price, "livemode", False)),
+            "amount_cents":int(getattr(price, "unit_amount", -1) or -1),
+            "interval":getattr(recurring, "interval", None),
+        }
+    except Exception:
+        return {"verified":False,"reason":"price_not_visible_to_configured_key"}
+
 def _assert_billing_config():
     if not _billing_enabled():
         raise HTTPException(503, "JakeAI Direct billing is gated")
@@ -219,11 +241,10 @@ def register_direct_routes(app):
             conn = _conn(); conn.execute("SELECT 1").fetchone(); conn.close()
         except Exception:
             storage = "error"
-        return {
-            "status":"ready" if storage=="ready" else "degraded",
+        price_check = _verify_price_read_only()\n        return {\n            "status":"ready" if storage=="ready" else "degraded",
             "billing_enabled":_billing_enabled(),
             "storage":storage,
-            "price_configured":bool(_price_id()),
+            "price_configured":bool(_price_id()),\n            "price_verified":bool(price_check.get("verified")),\n            "price_verification":price_check,
             "payment_processor_configured":bool(_stripe_secret()),
             "payment_processor_mode":_stripe_key_mode(),
             "webhook_configured":bool(_webhook_secret()),
