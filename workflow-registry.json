@@ -10,7 +10,7 @@
     "unknown_origin_dates_must_remain_null_until_verified": true
   },
   "metrics": {
-    "lifetime_distinct_workflows_developed_minimum": 20,
+    "lifetime_distinct_workflows_developed_minimum": 21,
     "active_working_workflows": 13,
     "available_now": 4,
     "public_product_listings": 17,
@@ -377,6 +377,25 @@
         "verification_basis": "repository_public_record",
         "historical_reconciliation": "not_required",
         "notes": "Founding pilot intake open; checkout and automated fulfillment remain gated pending controlled delivery QA."
+      }
+    },
+    {
+      "id": "JAI-WF-0021",
+      "distinct_key": "pilot-concierge",
+      "canonical_name": "Pilot Concierge",
+      "date_originated": "2026-09-19",
+      "category": "AI Agent Operations / Sales Operations",
+      "status": "prototype",
+      "version": "0.1",
+      "website_publication_status": "internal_not_public",
+      "relationships": {
+        "parent_id": "JAI-WF-0020",
+        "child_ids": []
+      },
+      "provenance": {
+        "verification_basis": "repository_branch_record",
+        "historical_reconciliation": "not_required",
+        "notes": "Internal founding-pilot qualification, scope-draft and approval-queue workflow. No automated customer contact or consequential action."
       }
     }
   ]

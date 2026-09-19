@@ -1,18 +1,23 @@
 User-agent: *
 Allow: /
+Disallow: /pilot-concierge-operator.html
 
 # Dedicated AI Agent Crawlers
 User-agent: GPTBot
 Allow: /
+Disallow: /pilot-concierge-operator.html
 
 User-agent: ClaudeBot
 Allow: /
+Disallow: /pilot-concierge-operator.html
 
 User-agent: PerplexityBot
 Allow: /
+Disallow: /pilot-concierge-operator.html
 
 User-agent: Google-Extended
 Allow: /
+Disallow: /pilot-concierge-operator.html
 
 Sitemap: https://www.jakeaiofficial.com/sitemap.xml
 LLMs-Txt: https://www.jakeaiofficial.com/llms.txt
