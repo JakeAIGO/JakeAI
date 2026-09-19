@@ -94,6 +94,22 @@ def init_direct_db():
       usage_cents INTEGER NOT NULL DEFAULT 0,
       response_id TEXT,
       status TEXT NOT NULL)""")
+    conn.execute("""CREATE TABLE IF NOT EXISTS direct_meta(
+      key TEXT PRIMARY KEY,
+      value TEXT NOT NULL,
+      updated_at TEXT NOT NULL)""")
+    if os.environ.get("DIRECT_ENVIRONMENT", "sandbox").strip().lower() == "live":
+        marker = conn.execute("SELECT value FROM direct_meta WHERE key='live_cutover_v1'").fetchone()
+        if marker is None:
+            conn.execute("DELETE FROM direct_sessions")
+            conn.execute("DELETE FROM direct_checkout_sessions")
+            conn.execute("DELETE FROM direct_entitlements")
+            conn.execute("DELETE FROM direct_stripe_events")
+            conn.execute("DELETE FROM direct_runs")
+            conn.execute(
+                "INSERT INTO direct_meta(key,value,updated_at) VALUES ('live_cutover_v1','sandbox_state_cleared',?)",
+                (_now_iso(),),
+            )
     conn.commit()
     conn.close()
 
