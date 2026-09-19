@@ -53,8 +53,8 @@
 <p>Plain English is enough. We are looking for repetitive work with a clear outcome and sensible boundaries—not a science-fiction job description.</p>
 <p class="fine">Intake is currently reviewed before any payment or tool connection. We will not ask for passwords in this form.</p>
 </div>
-<form class="formBox" name="autonomous-employee-intake" method="POST" action="/autonomous-employee.html?submitted=1" data-netlify="true" netlify-honeypot="bot-field">
-<div id="success" class="success" role="status">Pilot request received. JakeAI will review the job, boundaries and likely build path before any commercial commitment.</div>
+<form class="formBox" id="pilotForm" name="autonomous-employee-intake" method="POST" action="/autonomous-employee.html?submitted=1" data-netlify="true" netlify-honeypot="bot-field">
+<div id="success" class="success" role="status">Pilot request received. Pilot Concierge has opened the case for human scope review. No customer-facing action or commercial commitment has been authorized.</div>
 <input type="hidden" name="form-name" value="autonomous-employee-intake">
 <p style="display:none"><label>Do not fill this out: <input name="bot-field"></label></p>
 
@@ -94,8 +94,36 @@
 </main>
 <footer>JakeAI · Learn. Discover. Create. Provide value. · Founding Pilot intake only; checkout remains gated until fulfillment is verified.</footer>
 <script>
+(()=>{
+const form=document.getElementById('pilotForm');
+const success=document.getElementById('success');
 const p=new URLSearchParams(location.search);
-if(p.get('submitted')==='1'){const s=document.getElementById('success');s.classList.add('show');s.scrollIntoView({behavior:'smooth',block:'center'});}
+if(p.get('submitted')==='1'){success.classList.add('show');success.textContent='Pilot request captured by the fallback intake. Human scope review is required before any action.';success.scrollIntoView({behavior:'smooth',block:'center'});}
+async function conciergeSubmit(event){
+  event.preventDefault();
+  const button=form.querySelector('button[type="submit"]');
+  const original=button.textContent;
+  button.disabled=true;button.textContent='OPENING CASE…';
+  const payload=Object.fromEntries(new FormData(form).entries());
+  try{
+    const res=await fetch('/pilot-concierge-api',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify(payload)});
+    const data=await res.json().catch(()=>({}));
+    if(!res.ok) throw new Error(data.error||'Pilot Concierge intake failed');
+    success.classList.add('show');
+    success.textContent='Case '+data.id+' received. Pilot Concierge completed first-pass qualification and placed it in the human review queue. No external action has been authorized.';
+    form.reset();
+    success.scrollIntoView({behavior:'smooth',block:'center'});
+  }catch(err){
+    button.textContent='FALLBACK CAPTURE…';
+    form.removeEventListener('submit',conciergeSubmit);
+    HTMLFormElement.prototype.submit.call(form);
+    return;
+  }finally{
+    button.disabled=false;button.textContent=original;
+  }
+}
+form.addEventListener('submit',conciergeSubmit);
+})();
 </script>
 </body>
 </html>
