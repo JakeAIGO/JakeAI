@@ -205,3 +205,10 @@ def genesis_review_decline_refund_runtime(
     x_genesis_admin_token: Optional[str] = Header(None, alias="X-Genesis-Admin-Token"),
 ):
     return _review_handler("genesis_001_decline_refund")(req, x_genesis_admin_token)
+
+
+# ---------------------------------------------------------------------------
+# JakeAI Direct subscription / entitlement routes (gated by environment vars)
+# ---------------------------------------------------------------------------
+from direct_subscription import register_direct_routes
+register_direct_routes(app)
