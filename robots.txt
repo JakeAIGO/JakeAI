@@ -1,5 +1,6 @@
 User-agent: *
 Allow: /
+Disallow: /pilot-concierge-operator.html
 
 # Dedicated AI Agent Crawlers
 User-agent: GPTBot
