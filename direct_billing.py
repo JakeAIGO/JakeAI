@@ -209,7 +209,7 @@ def _persist_checkout(session_id, sub_id, customer_id, email, payment_status):
         "SELECT stripe_customer_id,status FROM direct_entitlements WHERE stripe_subscription_id=?",
         (sub_id,),
     ).fetchone()
-    if not entitlement or entitlement["stripe_customer_id"] != customer_id:
+    if entitlement and entitlement["stripe_customer_id"] != customer_id:
         conn.close()
         return False
     conn.execute(
@@ -218,10 +218,11 @@ def _persist_checkout(session_id, sub_id, customer_id, email, payment_status):
         VALUES (?,?,?,?,?,?)""",
         (session_id, sub_id, customer_id, email, payment_status, _now_iso()),
     )
-    conn.execute(
-        "UPDATE direct_entitlements SET customer_email=COALESCE(customer_email,?),updated_at=? WHERE stripe_subscription_id=?",
-        (email, _now_iso(), sub_id),
-    )
+    if entitlement:
+        conn.execute(
+            "UPDATE direct_entitlements SET customer_email=COALESCE(customer_email,?),updated_at=? WHERE stripe_subscription_id=?",
+            (email, _now_iso(), sub_id),
+        )
     conn.commit()
     conn.close()
     return True
