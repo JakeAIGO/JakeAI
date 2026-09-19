@@ -374,6 +374,10 @@ def register_direct_routes(app):
                FROM direct_entitlements
                ORDER BY updated_at DESC LIMIT 10"""
         ).fetchall()
+        events = conn.execute(
+            """SELECT event_id,event_type,created_at FROM direct_stripe_events
+               ORDER BY created_at DESC LIMIT 20"""
+        ).fetchall()
         conn.close()
         def tail(value, n=8):
             value = str(value or "")
@@ -390,6 +394,10 @@ def register_direct_routes(app):
                     "payment_status": r["payment_status"],
                     "created_at": r["created_at"],
                 } for r in checkouts
+            ],
+            "events": [
+                {"event_tail": tail(r["event_id"]), "event_type": r["event_type"], "created_at": r["created_at"]}
+                for r in events
             ],
             "entitlements": [
                 {
