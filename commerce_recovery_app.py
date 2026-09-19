@@ -129,3 +129,79 @@ async def recover_checkout_order_after_ephemeral_storage_loss(request: Request, 
                 _recover_paid_order_from_stripe(order_id, session_id)
 
     return await call_next(request)
+
+# ---------------------------------------------------------------------------
+# Genesis #001 private human-review routes
+# ---------------------------------------------------------------------------
+# Railway boots this module directly (see Dockerfile). Register the review
+# surface here so it is guaranteed to exist in the production ASGI app even
+# though the underlying review logic remains owned by main.py.
+from typing import Optional
+from fastapi import Header, HTTPException
+from pydantic import BaseModel, Field
+
+legacy_main = commerce_app.main
+
+class GenesisReviewProxyRequest(BaseModel):
+    session_id: str = Field(min_length=5, max_length=200)
+
+_REVIEW_PATHS = {
+    "/v1/genesis/001/review/health",
+    "/v1/genesis/001/review/pending",
+    "/v1/genesis/001/review/accept",
+    "/v1/genesis/001/review/decline-refund",
+    "/api/v1/genesis/001/review/health",
+    "/api/v1/genesis/001/review/pending",
+    "/api/v1/genesis/001/review/accept",
+    "/api/v1/genesis/001/review/decline-refund",
+}
+# Remove any earlier copies of these routes from the shared FastAPI app and
+# re-register them at the actual Railway entrypoint.
+app.router.routes[:] = [
+    route for route in app.router.routes
+    if getattr(route, "path", None) not in _REVIEW_PATHS
+]
+
+def _review_handler(name: str):
+    handler = getattr(legacy_main, name, None)
+    if not callable(handler):
+        raise HTTPException(status_code=503, detail="Genesis review backend is not loaded in this deployment")
+    return handler
+
+@app.get("/v1/genesis/001/review/health")
+@app.get("/api/v1/genesis/001/review/health")
+def genesis_review_health_runtime():
+    names = (
+        "genesis_001_pending_review",
+        "genesis_001_accept",
+        "genesis_001_decline_refund",
+    )
+    handlers = {name: callable(getattr(legacy_main, name, None)) for name in names}
+    return {
+        "status": "ready" if all(handlers.values()) else "incomplete",
+        "runtime": "commerce_recovery_app",
+        "handlers": handlers,
+    }
+
+@app.get("/v1/genesis/001/review/pending")
+@app.get("/api/v1/genesis/001/review/pending")
+def genesis_review_pending_runtime(
+    x_genesis_admin_token: Optional[str] = Header(None, alias="X-Genesis-Admin-Token"),
+):
+    return _review_handler("genesis_001_pending_review")(x_genesis_admin_token)
+
+@app.post("/v1/genesis/001/review/accept")
+@app.post("/api/v1/genesis/001/review/accept")
+def genesis_review_accept_runtime(
+    req: GenesisReviewProxyRequest,
+    x_genesis_admin_token: Optional[str] = Header(None, alias="X-Genesis-Admin-Token"),
+):
+    return _review_handler("genesis_001_accept")(req, x_genesis_admin_token)
+
+@app.post("/v1/genesis/001/review/decline-refund")
+@app.post("/api/v1/genesis/001/review/decline-refund")
+def genesis_review_decline_refund_runtime(
+    req: GenesisReviewProxyRequest,
+    x_genesis_admin_token: Optional[str] = Header(None, alias="X-Genesis-Admin-Token"),
+):
+    return _review_handler("genesis_001_decline_refund")(req, x_genesis_admin_token)

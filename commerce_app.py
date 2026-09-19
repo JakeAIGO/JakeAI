@@ -28,6 +28,7 @@ INVENTORY_PRODUCT = {"title":"JakeAI Inventory & Replenishment Intelligence Auto
 POOL_PRODUCT_ID = "prod_pool_coach_autopilot_01"
 POOL_PRODUCT = {"title":"JakeAI Pool Coach Autopilot v1.0","description":"A lightweight pool-practice companion that turns plain-language session notes into recurring-pattern tracking and a focused next-session warmup. Recreational training aid; no wagering, guaranteed shot prediction, or camera analysis in v1.0.","category":"sports-practice-workflow","price":1.00,"download_url":SECURE_DELIVERY_URL,"delivery_mode":"protected_order","vendor_did":"did:a2a:jakeai_core"}
 GLASSES_PRODUCT_ID = "prod_where_the_hell_are_my_glasses_01"
+GENESIS_PRODUCT_ID = "prod_genesis_commission_001"
 GLASSES_PRODUCT = {"title":"Where the Hell Are My Glasses? v1.0","description":"Humorous stateful guided-search workflow that remembers checked locations, reconstructs the last-use context, supports opt-in pattern learning, and includes safety guardrails. No camera-based object detection in v1.0.","category":"life-automation-comedy","price":2.99,"download_url":SECURE_DELIVERY_URL,"delivery_mode":"protected_order","vendor_did":"did:a2a:jakeai_core"}
 
 PROMOTED_PRODUCTS={GAME_QA_PRODUCT_ID:GAME_QA_PRODUCT,BOSS_FIGHT_PRODUCT_ID:BOSS_FIGHT_PRODUCT,INVENTORY_PRODUCT_ID:INVENTORY_PRODUCT,POOL_PRODUCT_ID:POOL_PRODUCT,GLASSES_PRODUCT_ID:GLASSES_PRODUCT}
@@ -44,7 +45,7 @@ PRODUCT_PAGE_PATHS={
 }
 
 app.user_middleware=[m for m in app.user_middleware if m.cls is not CORSMiddleware]
-app.add_middleware(CORSMiddleware,allow_origins=["https://jakeaiofficial.com","https://www.jakeaiofficial.com"],allow_credentials=False,allow_methods=["GET","POST","OPTIONS"],allow_headers=["Content-Type","Idempotency-Key"])
+app.add_middleware(CORSMiddleware,allow_origins=["https://jakeaiofficial.com","https://www.jakeaiofficial.com"],allow_credentials=False,allow_methods=["GET","POST","OPTIONS"],allow_headers=["Content-Type","Idempotency-Key","X-Genesis-Admin-Token"])
 
 def is_safe_url(url:str)->bool:
     try: parsed=urlparse(url)
@@ -113,6 +114,11 @@ def checkout_health():
 async def buy_product(product_id:str,request:Request,source:Optional[str]=None,idempotency_key:Optional[str]=Header(None,alias="Idempotency-Key")):
     product=main.GENESIS_CATALOG.get(product_id)
     if not product:raise HTTPException(404,"Product not found")
+    # Genesis #001 has its own single-slot reservation + human-review checkout
+    # state machine in main.py. Delegate to it before the generic commerce
+    # allowlist so the generic order layer cannot bypass or block that logic.
+    if product_id == GENESIS_PRODUCT_ID:
+        return main.create_checkout_session(product_id, idempotency_key)
     if not is_product_checkout_enabled(product_id):raise HTTPException(409,"Checkout is not active for this product yet")
     amount_cents=int(round(float(product.get("price",0))*100));delivery_url=product.get("download_url")
     if not delivery_url or not is_safe_url(delivery_url):raise HTTPException(409,"Product delivery is not configured safely")
