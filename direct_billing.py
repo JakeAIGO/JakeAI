@@ -1,19 +1,30 @@
 import hashlib
+import json
+import math
 import os
 import secrets
 import sqlite3
+import urllib.error
+import urllib.request
 from datetime import datetime, timezone
 from typing import Optional
 
 import stripe
 from fastapi import Header, HTTPException, Request
 from fastapi.responses import HTMLResponse, JSONResponse, RedirectResponse
+from pydantic import BaseModel
 
 DIRECT_PLAN_ID = "direct_founding_edition"
 DIRECT_PRICE_CENTS = 2900
 DEFAULT_ALLOWANCE_CENTS = 1000
 COOKIE_NAME = "jakeai_direct_session"
 ACTIVE_STATUSES = {"active", "trialing"}
+ALLOWED_WORKFLOWS = {"general", "research", "rfp", "proposal", "campaign", "site"}
+
+class DirectRunRequest(BaseModel):
+    prompt: str
+    workflow: Optional[str] = "general"
+
 
 def _now_iso():
     return datetime.now(timezone.utc).isoformat()
@@ -71,6 +82,18 @@ def init_direct_db():
       event_id TEXT PRIMARY KEY,
       event_type TEXT NOT NULL,
       created_at TEXT NOT NULL)""")
+    conn.execute("""CREATE TABLE IF NOT EXISTS direct_runs(
+      run_id TEXT PRIMARY KEY,
+      stripe_subscription_id TEXT NOT NULL,
+      created_at TEXT NOT NULL,
+      workflow TEXT NOT NULL,
+      model TEXT NOT NULL,
+      prompt_chars INTEGER NOT NULL,
+      input_tokens INTEGER NOT NULL DEFAULT 0,
+      output_tokens INTEGER NOT NULL DEFAULT 0,
+      usage_cents INTEGER NOT NULL DEFAULT 0,
+      response_id TEXT,
+      status TEXT NOT NULL)""")
     conn.commit()
     conn.close()
 
@@ -323,6 +346,125 @@ def _consume_usage(subscription_id, amount_cents):
     conn.close()
     return {"usage_cents": new_usage, "allowance_cents": allowance, "remaining_cents": allowance - new_usage}
 
+def _openai_key():
+    return os.environ.get("OPENAI_API_KEY", "").strip()
+
+def _direct_model():
+    return os.environ.get("DIRECT_OPENAI_MODEL", "gpt-5.6-luna").strip() or "gpt-5.6-luna"
+
+def _refund_usage(subscription_id, amount_cents):
+    if amount_cents <= 0:
+        return
+    conn = _conn()
+    conn.execute("BEGIN IMMEDIATE")
+    row = conn.execute(
+        "SELECT usage_cents FROM direct_entitlements WHERE stripe_subscription_id=?",
+        (subscription_id,),
+    ).fetchone()
+    if not row:
+        conn.execute("ROLLBACK")
+        conn.close()
+        return
+    next_usage = max(0, int(row["usage_cents"]) - int(amount_cents))
+    conn.execute(
+        "UPDATE direct_entitlements SET usage_cents=?,updated_at=? WHERE stripe_subscription_id=?",
+        (next_usage, _now_iso(), subscription_id),
+    )
+    conn.commit()
+    conn.close()
+
+def _record_run(run_id, subscription_id, workflow, model, prompt_chars, input_tokens, output_tokens, usage_cents, response_id, status):
+    conn = _conn()
+    conn.execute(
+        """INSERT OR REPLACE INTO direct_runs
+        (run_id,stripe_subscription_id,created_at,workflow,model,prompt_chars,input_tokens,output_tokens,usage_cents,response_id,status)
+        VALUES (?,?,?,?,?,?,?,?,?,?,?)""",
+        (
+            run_id, subscription_id, _now_iso(), workflow, model, int(prompt_chars),
+            int(input_tokens or 0), int(output_tokens or 0), int(usage_cents or 0),
+            response_id, status,
+        ),
+    )
+    conn.commit()
+    conn.close()
+
+def _extract_output_text(data):
+    parts = []
+    for item in data.get("output", []) or []:
+        if item.get("type") != "message":
+            continue
+        for content in item.get("content", []) or []:
+            if content.get("type") == "output_text" and content.get("text"):
+                parts.append(str(content["text"]))
+    return "\n".join(parts).strip()
+
+def _workflow_instructions(workflow):
+    base = (
+        "You are JakeAI Direct, a professional AI orchestration workspace. "
+        "Be concise, concrete, and useful. Never claim that you sent, posted, purchased, deployed, "
+        "contacted anyone, or changed an external system. External actions always require explicit human approval. "
+        "Do not request or expose passwords, API keys, private keys, or access tokens. "
+        "When an external action would be useful, prepare a draft or staged plan and clearly label the approval gate."
+    )
+    modes = {
+        "research": " Produce a structured research brief from the information available in the prompt; clearly label unknowns and do not invent sources.",
+        "rfp": " Act as an RFP/RFQ analyst. Extract requirements, risks, deadlines, qualification questions, and a packaging checklist.",
+        "proposal": " Produce a professional proposal draft with assumptions, scope, evidence gaps, and a clear next-step section.",
+        "campaign": " Produce campaign copy and creative direction only. Do not send or publish anything; mark outbound material as awaiting human approval.",
+        "site": " Produce a staged website change plan or code-oriented implementation brief. Do not claim deployment; mark release as awaiting human approval.",
+        "general": " Solve the user's request directly while respecting the approval gate.",
+    }
+    return base + modes.get(workflow, modes["general"])
+
+def _call_openai(prompt, workflow):
+    key = _openai_key()
+    if not key:
+        raise HTTPException(503, "JakeAI Direct model runtime is not configured")
+    model = _direct_model()
+    payload = {
+        "model": model,
+        "instructions": _workflow_instructions(workflow),
+        "input": prompt,
+        "max_output_tokens": 1400,
+        "reasoning": {"effort": "low"},
+        "store": False,
+        "metadata": {"product": "jakeai_direct", "workflow": workflow},
+    }
+    req = urllib.request.Request(
+        "https://api.openai.com/v1/responses",
+        data=json.dumps(payload).encode("utf-8"),
+        headers={
+            "Authorization": "Bearer " + key,
+            "Content-Type": "application/json",
+            "User-Agent": "JakeAI-Direct/1.0",
+        },
+        method="POST",
+    )
+    try:
+        with urllib.request.urlopen(req, timeout=45) as response:
+            data = json.loads(response.read().decode("utf-8"))
+    except urllib.error.HTTPError as exc:
+        raise HTTPException(502, "JakeAI Direct model provider rejected the request") from exc
+    except Exception as exc:
+        raise HTTPException(502, "JakeAI Direct model provider is unavailable") from exc
+    text = _extract_output_text(data)
+    if not text:
+        raise HTTPException(502, "JakeAI Direct received no usable model output")
+    usage = data.get("usage") or {}
+    return {
+        "text": text,
+        "model": str(data.get("model") or model),
+        "response_id": str(data.get("id") or ""),
+        "input_tokens": int(usage.get("input_tokens") or 0),
+        "output_tokens": int(usage.get("output_tokens") or 0),
+    }
+
+def _rounded_provider_cost_cents(input_tokens, output_tokens):
+    input_rate = float(os.environ.get("DIRECT_INPUT_USD_PER_MILLION", "0.20"))
+    output_rate = float(os.environ.get("DIRECT_OUTPUT_USD_PER_MILLION", "1.20"))
+    usd = (float(input_tokens) * input_rate + float(output_tokens) * output_rate) / 1000000.0
+    return max(1, int(math.ceil(usd * 100.0)))
+
 def _activation_pending_html(session_id):
     safe = "".join(ch for ch in session_id if ch.isalnum() or ch in "_-")
     return f"""<!doctype html><html><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1">
@@ -362,6 +504,8 @@ def register_direct_routes(app):
             "usage_allowance_cents": _allowance_cents(),
             "automatic_overages": False,
             "environment": _environment_name(),
+            "execution_configured": bool(_openai_key()),
+            "execution_model": _direct_model(),
             "event_count": counts["events"],
             "entitlement_count": counts["entitlements"],
             "active_entitlement_count": counts["active"],
@@ -421,6 +565,63 @@ def register_direct_routes(app):
             "remaining_cents": remaining,
             "automatic_overages": False,
             "environment": _environment_name(),
+            "execution_configured": bool(_openai_key()),
+            "execution_model": _direct_model(),
+        }
+
+    @app.post("/v1/direct/run")
+    def direct_run(body: DirectRunRequest, request: Request):
+        row = _session_entitlement(request)
+        prompt = str(body.prompt or "").strip()
+        workflow = str(body.workflow or "general").strip().lower()
+        if workflow not in ALLOWED_WORKFLOWS:
+            raise HTTPException(400, "Unknown JakeAI Direct workflow")
+        if not prompt:
+            raise HTTPException(400, "Prompt is required")
+        if len(prompt) > 12000:
+            raise HTTPException(413, "Prompt is too large for this Direct run")
+        if not _openai_key():
+            raise HTTPException(503, "JakeAI Direct model runtime is not configured")
+
+        subscription_id = row["stripe_subscription_id"]
+        reserve = _consume_usage(subscription_id, 1)
+        run_id = "dir_" + secrets.token_urlsafe(12)
+        try:
+            result = _call_openai(prompt, workflow)
+        except Exception:
+            _refund_usage(subscription_id, 1)
+            _record_run(run_id, subscription_id, workflow, _direct_model(), len(prompt), 0, 0, 0, None, "failed")
+            raise
+
+        actual_cents = _rounded_provider_cost_cents(result["input_tokens"], result["output_tokens"])
+        if actual_cents > 1:
+            try:
+                reserve = _consume_usage(subscription_id, actual_cents - 1)
+            except Exception:
+                _refund_usage(subscription_id, 1)
+                _record_run(
+                    run_id, subscription_id, workflow, result["model"], len(prompt),
+                    result["input_tokens"], result["output_tokens"], 0, result["response_id"], "usage_rejected"
+                )
+                raise HTTPException(402, "JakeAI Direct usage allowance was reached")
+        elif actual_cents < 1:
+            actual_cents = 1
+
+        _record_run(
+            run_id, subscription_id, workflow, result["model"], len(prompt),
+            result["input_tokens"], result["output_tokens"], actual_cents, result["response_id"], "complete"
+        )
+        return {
+            "run_id": run_id,
+            "workflow": workflow,
+            "output": result["text"],
+            "model": result["model"],
+            "input_tokens": result["input_tokens"],
+            "output_tokens": result["output_tokens"],
+            "usage_cents": actual_cents,
+            "remaining_cents": reserve["remaining_cents"],
+            "approval_gate": "on",
+            "external_actions_executed": False,
         }
 
     @app.get("/v1/direct/portal")
