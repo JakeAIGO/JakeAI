@@ -2,6 +2,7 @@ import sqlite3
 import time
 import os
 import uuid
+import hmac
 import stripe
 import urllib.request
 import re
@@ -161,6 +162,30 @@ def init_db():
     )
     """)
     cursor.execute("INSERT OR IGNORE INTO genesis_commission(slot, state) VALUES (1, 'available')")
+    # Backward-compatible schema migration for the Genesis operator lifecycle.
+    existing_cols = {row[1] for row in cursor.execute("PRAGMA table_info(genesis_commission)").fetchall()}
+    for col, spec in {
+        "intake_received_at": "TIMESTAMP",
+        "accepted_at": "TIMESTAMP",
+        "declined_at": "TIMESTAMP",
+        "completed_at": "TIMESTAMP",
+        "operator_note": "TEXT",
+        "delivery_note": "TEXT",
+    }.items():
+        if col not in existing_cols:
+            cursor.execute(f"ALTER TABLE genesis_commission ADD COLUMN {col} {spec}")
+    cursor.execute("""
+    CREATE TABLE IF NOT EXISTS genesis_events (
+        id INTEGER PRIMARY KEY AUTOINCREMENT,
+        event_type TEXT NOT NULL,
+        state_from TEXT,
+        state_to TEXT,
+        stripe_session_id TEXT,
+        customer_email TEXT,
+        note TEXT,
+        created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+    )
+    """)
     # Sync Genesis catalog
     for pid, p in GENESIS_CATALOG.items():
         cursor.execute("SELECT id FROM products WHERE id = ?", (pid,))
@@ -464,13 +489,13 @@ def create_checkout_session(product_id: str, idempotency_key: Optional[str] = He
             conn.execute("BEGIN IMMEDIATE")
             row = conn.execute("SELECT state, reserved_until FROM genesis_commission WHERE slot=1").fetchone()
             state, reserved_until = row if row else ("available", None)
-            if state in ("claimed", "completed"):
+            if state == "reserved" and reserved_until and reserved_until <= now:
+                conn.execute("UPDATE genesis_commission SET state='available', reservation_token=NULL, stripe_session_id=NULL, reserved_until=NULL, updated_at=CURRENT_TIMESTAMP WHERE slot=1")
+                state = "available"
+            if state != "available":
                 conn.execute("ROLLBACK")
-                raise HTTPException(status_code=409, detail="Genesis Commission #001 has already been claimed.")
-            if state == "reserved" and reserved_until and reserved_until > now:
-                conn.execute("ROLLBACK")
-                raise HTTPException(status_code=409, detail="Genesis Commission #001 is currently reserved in another checkout. Please try again shortly.")
-            conn.execute("UPDATE genesis_commission SET state='reserved', reservation_token=?, stripe_session_id=NULL, reserved_until=?, updated_at=CURRENT_TIMESTAMP WHERE slot=1", (token, now + 1800))
+                raise HTTPException(status_code=409, detail="Genesis Commission #001 is not currently available.")
+            conn.execute("UPDATE genesis_commission SET state='reserved', reservation_token=?, stripe_session_id=NULL, customer_email=NULL, problem=NULL, desired_outcome=NULL, current_approach=NULL, notes=NULL, reserved_until=?, intake_received_at=NULL, accepted_at=NULL, declined_at=NULL, completed_at=NULL, operator_note=NULL, delivery_note=NULL, updated_at=CURRENT_TIMESTAMP WHERE slot=1", (token, now + 1800))
             conn.execute("COMMIT")
         finally:
             conn.close()
@@ -530,13 +555,29 @@ class GenesisIntake(BaseModel):
     current_approach: str = Field(default="", max_length=5000)
     notes: str = Field(default="", max_length=5000)
 
+def _record_genesis_event(conn, event_type: str, state_from: str | None, state_to: str | None, stripe_session_id: str | None, customer_email: str | None, note: str = ""):
+    conn.execute(
+        "INSERT INTO genesis_events(event_type,state_from,state_to,stripe_session_id,customer_email,note) VALUES (?,?,?,?,?,?)",
+        (event_type, state_from, state_to, stripe_session_id, customer_email, note[:5000])
+    )
+
+def _require_genesis_admin(authorization: Optional[str]):
+    expected = os.environ.get("GENESIS_ADMIN_TOKEN", "").strip()
+    if not expected:
+        raise HTTPException(status_code=503, detail="Genesis operator controls are not configured")
+    if not authorization or not authorization.lower().startswith("bearer "):
+        raise HTTPException(status_code=401, detail="Genesis admin authorization required")
+    supplied = authorization.split(" ", 1)[1].strip()
+    if not supplied or not hmac.compare_digest(supplied, expected):
+        raise HTTPException(status_code=403, detail="Invalid Genesis admin authorization")
+
 @app.get("/v1/genesis/001/status")
 def genesis_001_status(session_id: Optional[str] = None):
     now = int(time.time())
     conn = sqlite3.connect(DB_PATH)
-    row = conn.execute("SELECT state, stripe_session_id, customer_email, reserved_until FROM genesis_commission WHERE slot=1").fetchone()
+    row = conn.execute("SELECT state, stripe_session_id, customer_email, reserved_until, problem FROM genesis_commission WHERE slot=1").fetchone()
     conn.close()
-    state, stored_session, email, reserved_until = row or ("available", None, None, None)
+    state, stored_session, email, reserved_until, problem = row or ("available", None, None, None, None)
     if state == "reserved" and reserved_until and reserved_until <= now:
         conn = sqlite3.connect(DB_PATH)
         conn.execute("UPDATE genesis_commission SET state='available', reservation_token=NULL, stripe_session_id=NULL, reserved_until=NULL WHERE slot=1 AND state='reserved' AND reserved_until<=?", (now,))
@@ -551,10 +592,24 @@ def genesis_001_status(session_id: Optional[str] = None):
                 email=(getattr(sess, 'customer_details', None) and sess.customer_details.email) or email
                 conn=sqlite3.connect(DB_PATH)
                 conn.execute("UPDATE genesis_commission SET state='claimed', customer_email=?, reserved_until=NULL, updated_at=CURRENT_TIMESTAMP WHERE slot=1 AND stripe_session_id=?", (email,session_id))
+                _record_genesis_event(conn, "payment_verified", "reserved", "claimed", session_id, email, "Verified Stripe payment claimed Genesis #001.")
                 conn.commit(); conn.close(); state='claimed'
         except Exception:
             paid=False
-    return {"slot":"001","state":state,"paid":paid,"intake_allowed": bool(session_id and stored_session==session_id and state in ('claimed','completed'))}
+    return {
+        "slot":"001",
+        "state":state,
+        "paid":paid,
+        "intake_allowed": bool(session_id and stored_session==session_id and state == 'claimed'),
+        "intake_received": bool(problem),
+    }
+
+class GenesisIntake(BaseModel):
+    session_id: str = Field(min_length=5, max_length=200)
+    problem: str = Field(min_length=5, max_length=5000)
+    desired_outcome: str = Field(default="", max_length=5000)
+    current_approach: str = Field(default="", max_length=5000)
+    notes: str = Field(default="", max_length=5000)
 
 @app.post("/v1/genesis/001/intake")
 def genesis_001_intake(req: GenesisIntake):
@@ -566,12 +621,116 @@ def genesis_001_intake(req: GenesisIntake):
     if sess.payment_status != 'paid' or (getattr(sess,'metadata',{}) or {}).get('jakeai_product_id') != 'prod_genesis_commission_001':
         raise HTTPException(status_code=403, detail="A verified Genesis #001 payment is required")
     conn=sqlite3.connect(DB_PATH)
-    row=conn.execute("SELECT stripe_session_id,state FROM genesis_commission WHERE slot=1").fetchone()
-    if not row or row[0] != req.session_id or row[1] not in ('claimed','completed'):
-        conn.close(); raise HTTPException(status_code=409, detail="This checkout does not own Genesis #001")
-    conn.execute("UPDATE genesis_commission SET problem=?,desired_outcome=?,current_approach=?,notes=?,state='claimed',updated_at=CURRENT_TIMESTAMP WHERE slot=1",(req.problem,req.desired_outcome,req.current_approach,req.notes))
+    row=conn.execute("SELECT stripe_session_id,state,customer_email,problem FROM genesis_commission WHERE slot=1").fetchone()
+    if not row or row[0] != req.session_id or row[1] != 'claimed':
+        conn.close(); raise HTTPException(status_code=409, detail="This checkout does not own an open Genesis #001 intake")
+    previous_problem = row[3]
+    conn.execute("UPDATE genesis_commission SET problem=?,desired_outcome=?,current_approach=?,notes=?,intake_received_at=CURRENT_TIMESTAMP,updated_at=CURRENT_TIMESTAMP WHERE slot=1",(req.problem,req.desired_outcome,req.current_approach,req.notes))
+    _record_genesis_event(conn, "intake_received" if not previous_problem else "intake_updated", "claimed", "claimed", req.session_id, row[2], "Customer submitted Genesis #001 intake.")
     conn.commit(); conn.close()
     return {"ok":True,"commission":"001","state":"claimed","message":"Genesis Commission #001 intake received by JakeAI."}
+
+class GenesisAdminAction(BaseModel):
+    note: str = Field(default="", max_length=5000)
+    delivery_note: str = Field(default="", max_length=5000)
+
+@app.get("/v1/genesis/001/admin/status")
+def genesis_001_admin_status(authorization: Optional[str] = Header(None, alias="Authorization")):
+    _require_genesis_admin(authorization)
+    conn=sqlite3.connect(DB_PATH)
+    conn.row_factory=sqlite3.Row
+    row=conn.execute("SELECT slot,state,stripe_session_id,customer_email,problem,desired_outcome,current_approach,notes,reserved_until,intake_received_at,accepted_at,declined_at,completed_at,operator_note,delivery_note,updated_at FROM genesis_commission WHERE slot=1").fetchone()
+    events=conn.execute("SELECT id,event_type,state_from,state_to,stripe_session_id,customer_email,note,created_at FROM genesis_events ORDER BY id DESC LIMIT 50").fetchall()
+    conn.close()
+    return {"commission": dict(row) if row else None, "events": [dict(e) for e in events]}
+
+@app.post("/v1/genesis/001/admin/accept")
+def genesis_001_admin_accept(req: GenesisAdminAction, authorization: Optional[str] = Header(None, alias="Authorization")):
+    _require_genesis_admin(authorization)
+    conn=sqlite3.connect(DB_PATH, timeout=10, isolation_level=None)
+    try:
+        conn.execute("BEGIN IMMEDIATE")
+        row=conn.execute("SELECT state,stripe_session_id,customer_email,problem FROM genesis_commission WHERE slot=1").fetchone()
+        if not row or row[0] != "claimed":
+            conn.execute("ROLLBACK"); raise HTTPException(status_code=409, detail="Genesis #001 is not awaiting acceptance")
+        if not (row[3] or "").strip():
+            conn.execute("ROLLBACK"); raise HTTPException(status_code=409, detail="Customer intake has not been submitted")
+        conn.execute("UPDATE genesis_commission SET state='accepted',accepted_at=CURRENT_TIMESTAMP,operator_note=?,updated_at=CURRENT_TIMESTAMP WHERE slot=1",(req.note,))
+        _record_genesis_event(conn, "accepted", "claimed", "accepted", row[1], row[2], req.note or "Commission accepted.")
+        conn.execute("COMMIT")
+    finally:
+        conn.close()
+    return {"ok":True,"commission":"001","state":"accepted"}
+
+@app.post("/v1/genesis/001/admin/decline")
+def genesis_001_admin_decline(req: GenesisAdminAction, authorization: Optional[str] = Header(None, alias="Authorization")):
+    _require_genesis_admin(authorization)
+    conn=sqlite3.connect(DB_PATH, timeout=10, isolation_level=None)
+    try:
+        conn.execute("BEGIN IMMEDIATE")
+        row=conn.execute("SELECT state,stripe_session_id,customer_email FROM genesis_commission WHERE slot=1").fetchone()
+        if not row or row[0] not in ("claimed","accepted"):
+            conn.execute("ROLLBACK"); raise HTTPException(status_code=409, detail="Genesis #001 cannot be declined from its current state")
+        old=row[0]
+        conn.execute("UPDATE genesis_commission SET state='declined_pending_refund',declined_at=CURRENT_TIMESTAMP,operator_note=?,updated_at=CURRENT_TIMESTAMP WHERE slot=1",(req.note,))
+        _record_genesis_event(conn, "declined", old, "declined_pending_refund", row[1], row[2], req.note or "Commission declined; refund must be verified before release.")
+        conn.execute("COMMIT")
+    finally:
+        conn.close()
+    return {"ok":True,"commission":"001","state":"declined_pending_refund","message":"Refund the payment in Stripe, then use refund-release. #001 remains locked until the refund is verified."}
+
+@app.post("/v1/genesis/001/admin/refund-release")
+def genesis_001_admin_refund_release(req: GenesisAdminAction, authorization: Optional[str] = Header(None, alias="Authorization")):
+    _require_genesis_admin(authorization)
+    conn=sqlite3.connect(DB_PATH)
+    row=conn.execute("SELECT state,stripe_session_id,customer_email FROM genesis_commission WHERE slot=1").fetchone()
+    conn.close()
+    if not row or row[0] != "declined_pending_refund" or not row[1]:
+        raise HTTPException(status_code=409, detail="Genesis #001 is not awaiting refund verification")
+    secret_key=os.environ.get("STRIPE_SECRET_KEY","").strip()
+    if not secret_key: raise HTTPException(status_code=503, detail="Stripe verification unavailable")
+    stripe.api_key=secret_key
+    try:
+        sess=stripe.checkout.Session.retrieve(row[1])
+        payment_intent=getattr(sess, "payment_intent", None)
+        if not payment_intent:
+            raise HTTPException(status_code=409, detail="Checkout session has no payment intent")
+        refunds=stripe.Refund.list(payment_intent=payment_intent, limit=10)
+        refunded=sum(int(getattr(r,"amount",0) or 0) for r in getattr(refunds,"data",[]) if getattr(r,"status","")=="succeeded")
+    except HTTPException:
+        raise
+    except Exception:
+        raise HTTPException(status_code=502, detail="Could not verify Stripe refund")
+    if refunded < 4900:
+        raise HTTPException(status_code=409, detail="A successful full $49 refund has not been verified")
+    conn=sqlite3.connect(DB_PATH, timeout=10, isolation_level=None)
+    try:
+        conn.execute("BEGIN IMMEDIATE")
+        current=conn.execute("SELECT state,stripe_session_id,customer_email FROM genesis_commission WHERE slot=1").fetchone()
+        if not current or current[0] != "declined_pending_refund" or current[1] != row[1]:
+            conn.execute("ROLLBACK"); raise HTTPException(status_code=409, detail="Genesis #001 changed while refund was being verified")
+        _record_genesis_event(conn, "refund_verified_release", "declined_pending_refund", "available", current[1], current[2], req.note or "Full refund verified; Genesis #001 released.")
+        conn.execute("UPDATE genesis_commission SET state='available',reservation_token=NULL,stripe_session_id=NULL,customer_email=NULL,problem=NULL,desired_outcome=NULL,current_approach=NULL,notes=NULL,reserved_until=NULL,intake_received_at=NULL,accepted_at=NULL,declined_at=NULL,completed_at=NULL,operator_note=NULL,delivery_note=NULL,updated_at=CURRENT_TIMESTAMP WHERE slot=1")
+        conn.execute("COMMIT")
+    finally:
+        conn.close()
+    return {"ok":True,"commission":"001","state":"available","message":"Full refund verified. Genesis #001 is available again."}
+
+@app.post("/v1/genesis/001/admin/complete")
+def genesis_001_admin_complete(req: GenesisAdminAction, authorization: Optional[str] = Header(None, alias="Authorization")):
+    _require_genesis_admin(authorization)
+    conn=sqlite3.connect(DB_PATH, timeout=10, isolation_level=None)
+    try:
+        conn.execute("BEGIN IMMEDIATE")
+        row=conn.execute("SELECT state,stripe_session_id,customer_email FROM genesis_commission WHERE slot=1").fetchone()
+        if not row or row[0] != "accepted":
+            conn.execute("ROLLBACK"); raise HTTPException(status_code=409, detail="Genesis #001 must be accepted before completion")
+        conn.execute("UPDATE genesis_commission SET state='completed',completed_at=CURRENT_TIMESTAMP,operator_note=CASE WHEN ?<>'' THEN ? ELSE operator_note END,delivery_note=?,updated_at=CURRENT_TIMESTAMP WHERE slot=1",(req.note,req.note,req.delivery_note))
+        _record_genesis_event(conn, "completed", "accepted", "completed", row[1], row[2], req.delivery_note or req.note or "Commission completed.")
+        conn.execute("COMMIT")
+    finally:
+        conn.close()
+    return {"ok":True,"commission":"001","state":"completed"}
 
 # Catalog Discovery Endpoints
 @app.get("/v1/products/list")
