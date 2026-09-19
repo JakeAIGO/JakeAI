@@ -147,6 +147,23 @@ def init_db():
     )
     """)
     cursor.execute("""
+    CREATE TABLE IF NOT EXISTS traffic_events (
+        id INTEGER PRIMARY KEY AUTOINCREMENT,
+        event_type TEXT NOT NULL,
+        page TEXT NOT NULL,
+        referrer_domain TEXT,
+        device TEXT,
+        session_id TEXT NOT NULL,
+        source TEXT,
+        medium TEXT,
+        campaign TEXT,
+        created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+    )
+    """)
+    cursor.execute("CREATE INDEX IF NOT EXISTS idx_traffic_created_at ON traffic_events(created_at)")
+    cursor.execute("CREATE INDEX IF NOT EXISTS idx_traffic_event_type ON traffic_events(event_type)")
+    cursor.execute("CREATE INDEX IF NOT EXISTS idx_traffic_session ON traffic_events(session_id)")
+    cursor.execute("""
     CREATE TABLE IF NOT EXISTS genesis_commission (
         slot INTEGER PRIMARY KEY CHECK(slot = 1),
         state TEXT NOT NULL DEFAULT 'available',
@@ -256,6 +273,168 @@ class SettlementRequest(BaseModel):
     buyer_did: str
     amount: float
     take_rate: Optional[float] = 0.01
+
+class TrafficEvent(BaseModel):
+    event_type: str = Field(min_length=1, max_length=40)
+    page: str = Field(default="/", max_length=240)
+    referrer_domain: str = Field(default="", max_length=160)
+    device: str = Field(default="unknown", max_length=20)
+    session_id: str = Field(min_length=8, max_length=80)
+    source: str = Field(default="", max_length=100)
+    medium: str = Field(default="", max_length=100)
+    campaign: str = Field(default="", max_length=120)
+
+TRAFFIC_EVENT_ALLOWLIST = {
+    "page_view","genesis_click","checkout_start","arcade_play","commission_open",
+    "factory_open","mission_submit","purchase_verified","intake_submitted",
+    "genesis_accepted","genesis_declined","genesis_refund_release","genesis_completed"
+}
+
+def _clean_metric_text(value: str, limit: int) -> str:
+    value = (value or "").strip().replace("\n", " ").replace("\r", " ")
+    return value[:limit]
+
+def _record_traffic_event(
+    event_type: str,
+    page: str,
+    session_id: str,
+    referrer_domain: str = "",
+    device: str = "server",
+    source: str = "",
+    medium: str = "",
+    campaign: str = "",
+):
+    if event_type not in TRAFFIC_EVENT_ALLOWLIST:
+        return
+    conn = sqlite3.connect(DB_PATH)
+    conn.execute(
+        """INSERT INTO traffic_events
+        (event_type,page,referrer_domain,device,session_id,source,medium,campaign)
+        VALUES (?,?,?,?,?,?,?,?)""",
+        (
+            event_type,
+            _clean_metric_text(page, 240) or "/",
+            _clean_metric_text(referrer_domain, 160),
+            _clean_metric_text(device, 20) or "unknown",
+            _clean_metric_text(session_id, 80),
+            _clean_metric_text(source, 100),
+            _clean_metric_text(medium, 100),
+            _clean_metric_text(campaign, 120),
+        ),
+    )
+    conn.commit()
+    conn.close()
+
+@app.post("/v1/traffic/event")
+def traffic_event(req: TrafficEvent, request: Request):
+    if req.event_type not in TRAFFIC_EVENT_ALLOWLIST:
+        raise HTTPException(status_code=400, detail="Unsupported traffic event")
+    origin = (request.headers.get("origin") or "").lower().rstrip("/")
+    if origin and origin not in ("https://jakeaiofficial.com", "https://www.jakeaiofficial.com"):
+        raise HTTPException(status_code=403, detail="Traffic events are accepted only from JakeAI")
+    conn = sqlite3.connect(DB_PATH)
+    recent = conn.execute(
+        "SELECT COUNT(*) FROM traffic_events WHERE session_id=? AND created_at >= datetime('now','-1 hour')",
+        (_clean_metric_text(req.session_id,80),),
+    ).fetchone()[0]
+    conn.close()
+    if recent >= 200:
+        return {"ok": True, "limited": True}
+    _record_traffic_event(
+        req.event_type, req.page, req.session_id, req.referrer_domain,
+        req.device, req.source, req.medium, req.campaign
+    )
+    return {"ok": True}
+
+def _require_traffic_admin(authorization: Optional[str]):
+    expected = (
+        os.environ.get("TRAFFIC_ADMIN_TOKEN", "").strip()
+        or os.environ.get("GENESIS_ADMIN_TOKEN", "").strip()
+    )
+    if not expected:
+        raise HTTPException(status_code=503, detail="Traffic Ledger admin access is not configured")
+    if not authorization or not authorization.lower().startswith("bearer "):
+        raise HTTPException(status_code=401, detail="Traffic Ledger admin authorization required")
+    supplied = authorization.split(" ", 1)[1].strip()
+    if not supplied or not hmac.compare_digest(supplied, expected):
+        raise HTTPException(status_code=403, detail="Invalid Traffic Ledger admin authorization")
+
+@app.get("/v1/traffic/admin/report")
+def traffic_admin_report(days: int = 7, authorization: Optional[str] = Header(None, alias="Authorization")):
+    _require_traffic_admin(authorization)
+    days = max(1, min(int(days or 7), 90))
+    since = f"-{days} days"
+    conn = sqlite3.connect(DB_PATH)
+    conn.row_factory = sqlite3.Row
+    total_views = conn.execute(
+        "SELECT COUNT(*) c FROM traffic_events WHERE event_type='page_view' AND created_at >= datetime('now',?)",
+        (since,)
+    ).fetchone()["c"]
+    sessions = conn.execute(
+        "SELECT COUNT(DISTINCT session_id) c FROM traffic_events WHERE event_type='page_view' AND created_at >= datetime('now',?)",
+        (since,)
+    ).fetchone()["c"]
+    pages = [dict(r) for r in conn.execute(
+        """SELECT page,COUNT(*) views,COUNT(DISTINCT session_id) sessions
+        FROM traffic_events WHERE event_type='page_view' AND created_at >= datetime('now',?)
+        GROUP BY page ORDER BY views DESC LIMIT 25""", (since,)
+    ).fetchall()]
+    referrers = [dict(r) for r in conn.execute(
+        """SELECT CASE WHEN referrer_domain='' THEN '(direct / unknown)' ELSE referrer_domain END referrer,
+        COUNT(DISTINCT session_id) sessions
+        FROM traffic_events WHERE event_type='page_view' AND created_at >= datetime('now',?)
+        GROUP BY referrer_domain ORDER BY sessions DESC LIMIT 20""", (since,)
+    ).fetchall()]
+    devices = [dict(r) for r in conn.execute(
+        """SELECT device,COUNT(DISTINCT session_id) sessions
+        FROM traffic_events WHERE event_type='page_view' AND created_at >= datetime('now',?)
+        GROUP BY device ORDER BY sessions DESC""", (since,)
+    ).fetchall()]
+    sources = [dict(r) for r in conn.execute(
+        """SELECT source,medium,campaign,COUNT(DISTINCT session_id) sessions
+        FROM traffic_events WHERE event_type='page_view' AND source<>'' AND created_at >= datetime('now',?)
+        GROUP BY source,medium,campaign ORDER BY sessions DESC LIMIT 20""", (since,)
+    ).fetchall()]
+    funnel_names = [
+        "genesis_click","checkout_start","purchase_verified","intake_submitted",
+        "genesis_accepted","genesis_completed"
+    ]
+    funnel = {}
+    for name in funnel_names:
+        funnel[name] = conn.execute(
+            "SELECT COUNT(*) c FROM traffic_events WHERE event_type=? AND created_at >= datetime('now',?)",
+            (name, since)
+        ).fetchone()["c"]
+    by_day = [dict(r) for r in conn.execute(
+        """SELECT date(created_at) day,
+        SUM(CASE WHEN event_type='page_view' THEN 1 ELSE 0 END) views,
+        COUNT(DISTINCT CASE WHEN event_type='page_view' THEN session_id END) sessions
+        FROM traffic_events WHERE created_at >= datetime('now',?)
+        GROUP BY date(created_at) ORDER BY day ASC""", (since,)
+    ).fetchall()]
+    recent = [dict(r) for r in conn.execute(
+        """SELECT event_type,page,referrer_domain,device,source,medium,campaign,created_at
+        FROM traffic_events WHERE created_at >= datetime('now',?)
+        ORDER BY id DESC LIMIT 50""", (since,)
+    ).fetchall()]
+    conn.close()
+    return {
+        "period_days": days,
+        "summary": {"page_views": total_views, "sessions": sessions},
+        "funnel": funnel,
+        "pages": pages,
+        "referrers": referrers,
+        "devices": devices,
+        "campaigns": sources,
+        "by_day": by_day,
+        "recent_events": recent,
+        "privacy": {
+            "raw_ip_stored": False,
+            "user_agent_stored": False,
+            "cookies_used": False,
+            "session_id_scope": "ephemeral browser session"
+        }
+    }
 
 # --- WORKING AI PRODUCT ENDPOINTS ---
 
@@ -587,6 +766,7 @@ def genesis_001_status(session_id: Optional[str] = None):
                 conn.execute("UPDATE genesis_commission SET state='claimed', customer_email=?, reserved_until=NULL, updated_at=CURRENT_TIMESTAMP WHERE slot=1 AND stripe_session_id=?", (email,session_id))
                 _record_genesis_event(conn, "payment_verified", "reserved", "claimed", session_id, email, "Verified Stripe payment claimed Genesis #001.")
                 conn.commit(); conn.close(); state='claimed'
+                _record_traffic_event("purchase_verified", "/genesis-001.html", "stripe:" + session_id, device="server")
         except Exception:
             paid=False
     return {
@@ -621,6 +801,8 @@ def genesis_001_intake(req: GenesisIntake):
     conn.execute("UPDATE genesis_commission SET problem=?,desired_outcome=?,current_approach=?,notes=?,intake_received_at=CURRENT_TIMESTAMP,updated_at=CURRENT_TIMESTAMP WHERE slot=1",(req.problem,req.desired_outcome,req.current_approach,req.notes))
     _record_genesis_event(conn, "intake_received" if not previous_problem else "intake_updated", "claimed", "claimed", req.session_id, row[2], "Customer submitted Genesis #001 intake.")
     conn.commit(); conn.close()
+    if not previous_problem:
+        _record_traffic_event("intake_submitted", "/genesis-001.html", "stripe:" + req.session_id, device="server")
     return {"ok":True,"commission":"001","state":"claimed","message":"Genesis Commission #001 intake received by JakeAI."}
 
 class GenesisAdminAction(BaseModel):
@@ -653,6 +835,7 @@ def genesis_001_admin_accept(req: GenesisAdminAction, authorization: Optional[st
         conn.execute("COMMIT")
     finally:
         conn.close()
+    _record_traffic_event("genesis_accepted", "/genesis-001.html", "stripe:" + (row[1] or "unknown"), device="server")
     return {"ok":True,"commission":"001","state":"accepted"}
 
 @app.post("/v1/genesis/001/admin/decline")
@@ -670,6 +853,7 @@ def genesis_001_admin_decline(req: GenesisAdminAction, authorization: Optional[s
         conn.execute("COMMIT")
     finally:
         conn.close()
+    _record_traffic_event("genesis_declined", "/genesis-001.html", "stripe:" + (row[1] or "unknown"), device="server")
     return {"ok":True,"commission":"001","state":"declined_pending_refund","message":"Refund the payment in Stripe, then use refund-release. #001 remains locked until the refund is verified."}
 
 @app.post("/v1/genesis/001/admin/refund-release")
@@ -707,6 +891,7 @@ def genesis_001_admin_refund_release(req: GenesisAdminAction, authorization: Opt
         conn.execute("COMMIT")
     finally:
         conn.close()
+    _record_traffic_event("genesis_refund_release", "/genesis-001.html", "stripe:" + (row[1] or "unknown"), device="server")
     return {"ok":True,"commission":"001","state":"available","message":"Full refund verified. Genesis #001 is available again."}
 
 @app.post("/v1/genesis/001/admin/complete")
@@ -723,6 +908,7 @@ def genesis_001_admin_complete(req: GenesisAdminAction, authorization: Optional[
         conn.execute("COMMIT")
     finally:
         conn.close()
+    _record_traffic_event("genesis_completed", "/genesis-001.html", "stripe:" + (row[1] or "unknown"), device="server")
     return {"ok":True,"commission":"001","state":"completed"}
 
 # Catalog Discovery Endpoints
