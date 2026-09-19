@@ -89,6 +89,9 @@ def _webhook_secret():
 def _environment_name():
     return os.environ.get("DIRECT_ENVIRONMENT", "sandbox").strip() or "sandbox"
 
+def _qa_token():
+    return os.environ.get("DIRECT_QA_TOKEN", "").strip()
+
 def _billing_enabled():
     return _bool_env("DIRECT_BILLING_ENABLED", False)
 
@@ -349,6 +352,39 @@ def register_direct_routes(app):
             secure=True,
             samesite="lax",
             max_age=2592000,
+            path="/",
+        )
+        return response
+
+    @app.get("/v1/direct/qa/activate-latest")
+    def direct_qa_activate_latest(token: str):
+        if _environment_name().lower() != "sandbox" or _billing_enabled():
+            raise HTTPException(404, "Not found")
+        expected = _qa_token()
+        if not expected or not secrets.compare_digest(token, expected):
+            raise HTTPException(404, "Not found")
+        conn = _conn()
+        row = conn.execute(
+            """SELECT c.stripe_customer_id,c.stripe_subscription_id
+               FROM direct_checkout_sessions c
+               JOIN direct_entitlements e ON e.stripe_subscription_id=c.stripe_subscription_id
+               WHERE c.customer_email='jakeai-direct-qa@example.com'
+                 AND e.status IN ('active','trialing')
+               ORDER BY c.created_at DESC
+               LIMIT 1"""
+        ).fetchone()
+        conn.close()
+        if not row:
+            raise HTTPException(404, "No sandbox QA entitlement found")
+        session_token = _issue_session(row["stripe_customer_id"], row["stripe_subscription_id"])
+        response = RedirectResponse("https://jakeaiofficial.com/direct/app/?qa=1", 303)
+        response.set_cookie(
+            COOKIE_NAME,
+            session_token,
+            httponly=True,
+            secure=True,
+            samesite="lax",
+            max_age=3600,
             path="/",
         )
         return response
