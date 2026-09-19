@@ -1,0 +1,128 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
+<meta name="robots" content="noindex,nofollow,noarchive">
+<title>JakeAI Direct</title>
+<style>
+:root{--bg:#04070d;--panel:#09131d;--panel2:#0b1724;--line:#24465a;--cyan:#69eaff;--green:#73f0b4;--violet:#9678ff;--text:#eefaff;--muted:#91a9b8;--danger:#ff8b9a}
+*{box-sizing:border-box}body{margin:0;background:radial-gradient(circle at 75% 10%,#2c1b5d55,transparent 27%),radial-gradient(circle at 18% 5%,#16486555,transparent 24%),var(--bg);color:var(--text);font-family:Inter,system-ui,-apple-system,Segoe UI,sans-serif;min-height:100vh}
+.shell{max-width:1180px;margin:auto;padding:18px 18px 60px}.top{display:flex;align-items:center;justify-content:space-between;gap:12px;padding:10px 0 18px}.brand{font-weight:950;letter-spacing:-.02em}.brand span{color:var(--cyan)}.badge{font-size:10px;font-weight:900;letter-spacing:.14em;border:1px solid #f2c15a66;color:#ffd36d;background:#2b1f09cc;border-radius:999px;padding:7px 10px;display:none}
+.hero{position:relative;overflow:hidden;border:1px solid #55def63d;border-radius:28px;padding:30px;background:linear-gradient(135deg,#07111bf2,#120d2af0);box-shadow:0 30px 90px #0009}.hero:after{content:"";position:absolute;width:350px;aspect-ratio:1;border-radius:50%;right:-70px;top:-80px;border:1px solid #73efff66;box-shadow:0 0 45px #5ce7ff66,0 0 130px #6f4cff55;animation:pulse 4s ease-in-out infinite}.eyebrow{font-size:11px;letter-spacing:.18em;color:var(--green);font-weight:900}.hero h1{font-size:clamp(38px,7vw,74px);line-height:.92;margin:12px 0 16px;max-width:780px;letter-spacing:-.055em}.hero p{max-width:720px;color:#a8c0cf;font-size:17px;line-height:1.55;margin:0}.statusRow{display:flex;gap:9px;flex-wrap:wrap;margin-top:20px}.pill{font-size:11px;border:1px solid #6de9ff33;border-radius:999px;padding:8px 10px;color:#c6f7ff;background:#08131ddd}.pill.good{border-color:#63e9ad44;color:#83f5c2}
+.grid{display:grid;grid-template-columns:1.1fr .9fr;gap:16px;margin-top:16px}.card{border:1px solid #25455a;border-radius:22px;background:linear-gradient(180deg,#09141eee,#071019ee);padding:22px;box-shadow:0 16px 50px #0005}.card h2{margin:0 0 6px;font-size:17px}.muted{color:var(--muted);font-size:13px;line-height:1.45}
+.meter{margin-top:18px}.meterHead{display:flex;justify-content:space-between;align-items:end;gap:10px}.meterBig{font-size:38px;font-weight:950;letter-spacing:-.05em}.bar{height:11px;background:#122433;border-radius:999px;overflow:hidden;margin-top:10px;border:1px solid #274558}.fill{height:100%;width:0;background:linear-gradient(90deg,#72eaff,#8b7aff);transition:width .35s}
+.actions{display:flex;gap:10px;flex-wrap:wrap;margin-top:18px}.btn{appearance:none;border:1px solid #3b6176;background:#0e1e29;color:#ddf8ff;border-radius:999px;padding:11px 15px;font-weight:850;text-decoration:none;cursor:pointer}.btn.primary{background:linear-gradient(135deg,#71efff,#c6fbff);color:#041016;border-color:#71efff}.btn.ghost{background:transparent}.btn:disabled{opacity:.45;cursor:not-allowed}
+.workflows{display:grid;grid-template-columns:repeat(5,1fr);gap:10px;margin-top:16px}.wf{min-height:122px;border:1px solid #27485d;border-radius:18px;padding:16px;background:linear-gradient(180deg,#0a1722,#08111a);position:relative;overflow:hidden}.wf:after{content:"";position:absolute;width:70px;height:70px;border-radius:50%;right:-25px;bottom:-25px;box-shadow:0 0 45px #5beaff66}.wf b{display:block;font-size:13px;margin-bottom:8px}.wf span{font-size:11px;color:#8fa9b8;line-height:1.35}.wf small{display:block;margin-top:12px;color:#7ff2bd;font-size:9px;letter-spacing:.12em;font-weight:900}
+.console{margin-top:16px;border:1px solid #2a4a60;border-radius:22px;background:#071019;padding:18px}.consoleTop{display:flex;justify-content:space-between;gap:12px;align-items:center}.console textarea{width:100%;min-height:110px;margin-top:14px;border:1px solid #24485c;border-radius:16px;background:#050c12;color:#eefaff;padding:14px;font:inherit;resize:vertical;outline:none}.console textarea:focus{border-color:#68e8ff}.approval{font-size:10px;letter-spacing:.12em;color:#78f1bd;border:1px solid #5be0a344;border-radius:999px;padding:7px 9px}
+.lock{display:none;min-height:60vh;place-items:center}.lockCard{max-width:620px;text-align:center;border:1px solid #3d5361;border-radius:24px;padding:32px;background:#09121bdd}.lockCard h1{font-size:38px;margin:8px 0 12px}.lockCard p{color:#9bb0bd;line-height:1.55}
+.qaNote{margin-top:14px;padding:13px 15px;border-left:3px solid #ffd36d;background:#1b150bbb;color:#d8c99d;font-size:12px;line-height:1.45}
+footer{display:flex;justify-content:space-between;gap:12px;flex-wrap:wrap;color:#627987;font-size:11px;padding:24px 2px}
+@keyframes pulse{50%{transform:scale(1.035);filter:brightness(1.15)}}
+@media(max-width:880px){.grid{grid-template-columns:1fr}.workflows{grid-template-columns:1fr 1fr}.hero{padding:24px}.hero:after{opacity:.55}.meterBig{font-size:32px}}
+@media(max-width:520px){.shell{padding:12px 12px 48px}.workflows{grid-template-columns:1fr}.hero h1{font-size:43px}.top{padding-top:4px}}
+</style>
+</head>
+<body>
+<div class="shell" id="app" hidden>
+  <div class="top">
+    <div class="brand">Jake<span>AI</span> Direct</div>
+    <div class="badge" id="sandboxBadge">SANDBOX QA</div>
+  </div>
+  <section class="hero">
+    <div class="eyebrow">JAKEAI DIRECT // ENTITLED WORKSPACE</div>
+    <h1>What do you want JakeAI to do?</h1>
+    <p>Your subscription controls access, usage and billing. Consequential external actions remain behind your approval gate.</p>
+    <div class="statusRow">
+      <span class="pill good" id="planStatus">CHECKING SUBSCRIPTION…</span>
+      <span class="pill">FOUNDING EDITION · $29/MO</span>
+      <span class="pill">NO AUTOMATIC OVERAGES</span>
+      <span class="pill good">HUMAN APPROVAL ON</span>
+    </div>
+  </section>
+
+  <section class="grid">
+    <div class="card">
+      <h2>Provider usage</h2>
+      <div class="muted">Included monthly AI-provider allowance. JakeAI stops rather than charging an overage automatically.</div>
+      <div class="meter">
+        <div class="meterHead"><div class="meterBig" id="remaining">$—</div><div class="muted"><span id="used">$—</span> used of <span id="allowance">$—</span></div></div>
+        <div class="bar"><div class="fill" id="usageFill"></div></div>
+      </div>
+    </div>
+    <div class="card">
+      <h2>Subscription control</h2>
+      <div class="muted" id="renewal">Loading billing state…</div>
+      <div class="actions">
+        <a class="btn primary" href="/api/v1/direct/portal">Manage billing / cancel</a>
+        <button class="btn ghost" id="logoutBtn">Sign out</button>
+      </div>
+      <div class="qaNote" id="qaNote" hidden>This is the sandbox QA workspace. It is intentionally not a live customer account.</div>
+    </div>
+  </section>
+
+  <section class="workflows">
+    <div class="wf"><b>Research Brief</b><span>Turn a question into a sourced decision brief.</span><small>WORKFLOW 01</small></div>
+    <div class="wf"><b>RFP / RFQ Scout</b><span>Find, qualify and package relevant opportunities.</span><small>WORKFLOW 02</small></div>
+    <div class="wf"><b>Proposal Factory</b><span>Structure evidence into a client-ready proposal draft.</span><small>WORKFLOW 03</small></div>
+    <div class="wf"><b>Campaign Builder</b><span>Create campaign assets with approval before outreach.</span><small>WORKFLOW 04</small></div>
+    <div class="wf"><b>Site Operator</b><span>Plan and stage site changes behind a human gate.</span><small>WORKFLOW 05</small></div>
+  </section>
+
+  <section class="console">
+    <div class="consoleTop"><div><b>Direct Control</b><div class="muted">Customer workspace shell connected to entitlement and billing.</div></div><span class="approval">APPROVAL GATE · ON</span></div>
+    <textarea id="prompt" placeholder="Ask, build, investigate, compare, create…" disabled></textarea>
+    <div class="actions">
+      <button class="btn primary" id="goBtn" disabled>Run with JakeAI</button>
+      <span class="muted" id="engineNote">Model/tool execution remains QA-locked until routing is verified.</span>
+    </div>
+  </section>
+  <footer><span>JakeAI Direct · Founding Edition</span><span>Entitlement-gated · Usage-controlled · Human-approved</span></footer>
+</div>
+
+<div class="lock" id="lock">
+  <div class="lockCard">
+    <div class="eyebrow">JAKEAI DIRECT // ACCESS GATE</div>
+    <h1 id="lockTitle">Checking access…</h1>
+    <p id="lockText">JakeAI is verifying your subscription entitlement.</p>
+    <div class="actions" style="justify-content:center"><a class="btn" href="/">Return to JakeAI</a></div>
+  </div>
+</div>
+
+<script>
+const money=c=>'$'+((Number(c)||0)/100).toFixed(2);
+const fmtDate=v=>{if(!v)return'No renewal date available';try{return new Date(Number(v)*1000).toLocaleDateString(undefined,{year:'numeric',month:'long',day:'numeric'})}catch{return'—'}};
+async function load(){
+  const app=document.getElementById('app'), lock=document.getElementById('lock');
+  lock.style.display='grid';
+  try{
+    const res=await fetch('/api/v1/direct/me',{credentials:'include',cache:'no-store'});
+    if(!res.ok){
+      document.getElementById('lockTitle').textContent='Direct access is locked';
+      document.getElementById('lockText').textContent=res.status===401?'No authenticated JakeAI Direct session was found. Complete an authorized subscription activation to enter.':'Your JakeAI Direct subscription is not currently active.';
+      return;
+    }
+    const d=await res.json();
+    lock.style.display='none'; app.hidden=false;
+    const env=String(d.environment||'').toLowerCase();
+    if(env==='sandbox'){document.getElementById('sandboxBadge').style.display='inline-block';document.getElementById('qaNote').hidden=false;}
+    document.getElementById('planStatus').textContent=String(d.subscription_status||'unknown').toUpperCase()+' SUBSCRIPTION';
+    document.getElementById('remaining').textContent=money(d.remaining_cents);
+    document.getElementById('used').textContent=money(d.usage_cents);
+    document.getElementById('allowance').textContent=money(d.usage_allowance_cents);
+    const pct=Math.max(0,Math.min(100,(Number(d.usage_cents||0)/Math.max(1,Number(d.usage_allowance_cents||1)))*100));
+    document.getElementById('usageFill').style.width=pct+'%';
+    document.getElementById('renewal').textContent=d.cancel_at_period_end?'Cancellation scheduled. Access remains active through '+fmtDate(d.current_period_end)+'.':'Renews monthly. Current paid period ends '+fmtDate(d.current_period_end)+'.';
+  }catch(e){
+    document.getElementById('lockTitle').textContent='Access check unavailable';
+    document.getElementById('lockText').textContent='JakeAI could not verify the entitlement service. No access has been granted.';
+  }
+}
+document.getElementById('logoutBtn').addEventListener('click',async()=>{
+  await fetch('/api/v1/direct/logout',{method:'POST',credentials:'include'});
+  location.reload();
+});
+load();
+</script>
+</body>
+</html>
