@@ -210,5 +210,5 @@ def genesis_review_decline_refund_runtime(
 # ---------------------------------------------------------------------------
 # JakeAI Direct subscription / entitlement routes (gated by environment vars)
 # ---------------------------------------------------------------------------
-from direct_subscription import register_direct_routes
+from direct_billing import register_direct_routes
 register_direct_routes(app)
