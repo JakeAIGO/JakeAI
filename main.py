@@ -548,13 +548,6 @@ def create_checkout_session(product_id: str, idempotency_key: Optional[str] = He
     except Exception as e:
         raise HTTPException(status_code=400, detail=f"Stripe Error: {str(e)}")
 
-class GenesisIntake(BaseModel):
-    session_id: str = Field(min_length=5, max_length=200)
-    problem: str = Field(min_length=5, max_length=5000)
-    desired_outcome: str = Field(default="", max_length=5000)
-    current_approach: str = Field(default="", max_length=5000)
-    notes: str = Field(default="", max_length=5000)
-
 def _record_genesis_event(conn, event_type: str, state_from: str | None, state_to: str | None, stripe_session_id: str | None, customer_email: str | None, note: str = ""):
     conn.execute(
         "INSERT INTO genesis_events(event_type,state_from,state_to,stripe_session_id,customer_email,note) VALUES (?,?,?,?,?,?)",
