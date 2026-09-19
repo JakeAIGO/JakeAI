@@ -241,10 +241,14 @@ def register_direct_routes(app):
             conn = _conn(); conn.execute("SELECT 1").fetchone(); conn.close()
         except Exception:
             storage = "error"
-        price_check = _verify_price_read_only()\n        return {\n            "status":"ready" if storage=="ready" else "degraded",
+        price_check = _verify_price_read_only()
+        return {
+            "status":"ready" if storage=="ready" else "degraded",
             "billing_enabled":_billing_enabled(),
             "storage":storage,
-            "price_configured":bool(_price_id()),\n            "price_verified":bool(price_check.get("verified")),\n            "price_verification":price_check,
+            "price_configured":bool(_price_id()),
+            "price_verified":bool(price_check.get("verified")),
+            "price_verification":price_check,
             "payment_processor_configured":bool(_stripe_secret()),
             "payment_processor_mode":_stripe_key_mode(),
             "webhook_configured":bool(_webhook_secret()),
