@@ -607,7 +607,8 @@ def register_direct_routes(app):
             "remaining_cents": remaining,
             "automatic_overages": False,
             "environment": _environment_name(),
-            "execution_configured": bool(_openai_key()),
+            "execution_configured": _execution_configured(),
+            "execution_mode": "remote_runtime" if (_runtime_url() and _runtime_token()) else ("local_key" if _openai_key() else "disabled"),
             "execution_model": _direct_model(),
         }
 
