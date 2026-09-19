@@ -99,9 +99,6 @@ def _webhook_secret():
 def _environment_name():
     return os.environ.get("DIRECT_ENVIRONMENT", "sandbox").strip() or "sandbox"
 
-def _qa_token():
-    return os.environ.get("DIRECT_QA_TOKEN", "").strip()
-
 def _billing_enabled():
     return _bool_env("DIRECT_BILLING_ENABLED", False)
 
@@ -402,122 +399,6 @@ def register_direct_routes(app):
             secure=True,
             samesite="lax",
             max_age=2592000,
-            path="/",
-        )
-        return response
-
-    @app.get("/v1/direct/qa/status")
-    def direct_qa_status(token: str):
-        if _environment_name().lower() != "sandbox" or _billing_enabled():
-            raise HTTPException(404, "Not found")
-        expected = _qa_token()
-        if not expected or not secrets.compare_digest(token, expected):
-            raise HTTPException(404, "Not found")
-        conn = _conn()
-        checkouts = conn.execute(
-            """SELECT checkout_session_id,stripe_subscription_id,stripe_customer_id,customer_email,payment_status,created_at
-               FROM direct_checkout_sessions
-               ORDER BY created_at DESC LIMIT 10"""
-        ).fetchall()
-        entitlements = conn.execute(
-            """SELECT stripe_subscription_id,stripe_customer_id,customer_email,status,current_period_end,cancel_at_period_end,allowance_cents,usage_cents,created_at,updated_at
-               FROM direct_entitlements
-               ORDER BY updated_at DESC LIMIT 10"""
-        ).fetchall()
-        events = conn.execute(
-            """SELECT event_id,event_type,created_at FROM direct_stripe_events
-               ORDER BY created_at DESC LIMIT 20"""
-        ).fetchall()
-        conn.close()
-        def tail(value, n=8):
-            value = str(value or "")
-            return value[-n:] if value else None
-        return {
-            "checkout_count": len(checkouts),
-            "entitlement_count": len(entitlements),
-            "checkouts": [
-                {
-                    "session_tail": tail(r["checkout_session_id"]),
-                    "subscription_tail": tail(r["stripe_subscription_id"]),
-                    "customer_tail": tail(r["stripe_customer_id"]),
-                    "email": r["customer_email"],
-                    "payment_status": r["payment_status"],
-                    "created_at": r["created_at"],
-                } for r in checkouts
-            ],
-            "events": [
-                {"event_tail": tail(r["event_id"]), "event_type": r["event_type"], "created_at": r["created_at"]}
-                for r in events
-            ],
-            "entitlements": [
-                {
-                    "subscription_tail": tail(r["stripe_subscription_id"]),
-                    "customer_tail": tail(r["stripe_customer_id"]),
-                    "email": r["customer_email"],
-                    "status": r["status"],
-                    "current_period_end": r["current_period_end"],
-                    "cancel_at_period_end": bool(r["cancel_at_period_end"]),
-                    "allowance_cents": r["allowance_cents"],
-                    "usage_cents": r["usage_cents"],
-                    "created_at": r["created_at"],
-                    "updated_at": r["updated_at"],
-                } for r in entitlements
-            ],
-        }
-
-    @app.get("/v1/direct/qa/backfill-checkout")
-    def direct_qa_backfill_checkout(
-        token: str,
-        session_id: str,
-        subscription_id: str,
-        customer_id: str,
-        email: str,
-    ):
-        if _environment_name().lower() != "sandbox" or _billing_enabled():
-            raise HTTPException(404, "Not found")
-        expected = _qa_token()
-        if not expected or not secrets.compare_digest(token, expected):
-            raise HTTPException(404, "Not found")
-        ok = _persist_checkout(
-            session_id,
-            subscription_id,
-            customer_id,
-            email,
-            "paid",
-        )
-        if not ok:
-            raise HTTPException(409, "Sandbox checkout does not match an active entitlement")
-        return {"ok": True, "environment": "sandbox"}
-
-    @app.get("/v1/direct/qa/activate-latest")
-    def direct_qa_activate_latest(token: str):
-        if _environment_name().lower() != "sandbox" or _billing_enabled():
-            raise HTTPException(404, "Not found")
-        expected = _qa_token()
-        if not expected or not secrets.compare_digest(token, expected):
-            raise HTTPException(404, "Not found")
-        conn = _conn()
-        row = conn.execute(
-            """SELECT c.stripe_customer_id,c.stripe_subscription_id
-               FROM direct_checkout_sessions c
-               JOIN direct_entitlements e ON e.stripe_subscription_id=c.stripe_subscription_id
-               WHERE c.customer_email='jakeai-direct-qa@example.com'
-                 AND e.status IN ('active','trialing')
-               ORDER BY c.created_at DESC
-               LIMIT 1"""
-        ).fetchone()
-        conn.close()
-        if not row:
-            raise HTTPException(404, "No sandbox QA entitlement found")
-        session_token = _issue_session(row["stripe_customer_id"], row["stripe_subscription_id"])
-        response = RedirectResponse("https://jakeaiofficial.com/direct/app/?qa=1", 303)
-        response.set_cookie(
-            COOKIE_NAME,
-            session_token,
-            httponly=True,
-            secure=True,
-            samesite="lax",
-            max_age=3600,
             path="/",
         )
         return response
