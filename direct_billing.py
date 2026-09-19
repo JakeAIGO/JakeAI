@@ -337,12 +337,14 @@ def register_direct_routes(app):
     @app.get("/v1/direct/health")
     def direct_health():
         storage = "ready"
-        counts = {"entitlements": 0, "events": 0}
+        counts = {"entitlements": 0, "events": 0, "active": 0, "pending_cancel": 0}
         try:
             conn = _conn()
             conn.execute("SELECT 1").fetchone()
             counts["entitlements"] = int(conn.execute("SELECT COUNT(*) FROM direct_entitlements").fetchone()[0])
             counts["events"] = int(conn.execute("SELECT COUNT(*) FROM direct_stripe_events").fetchone()[0])
+            counts["active"] = int(conn.execute("SELECT COUNT(*) FROM direct_entitlements WHERE status IN ('active','trialing')").fetchone()[0])
+            counts["pending_cancel"] = int(conn.execute("SELECT COUNT(*) FROM direct_entitlements WHERE cancel_at_period_end=1 AND status IN ('active','trialing')").fetchone()[0])
             conn.close()
         except Exception:
             storage = "error"
@@ -362,6 +364,8 @@ def register_direct_routes(app):
             "environment": _environment_name(),
             "event_count": counts["events"],
             "entitlement_count": counts["entitlements"],
+            "active_entitlement_count": counts["active"],
+            "pending_cancellation_count": counts["pending_cancel"],
         }
 
     @app.get("/v1/direct/checkout")
