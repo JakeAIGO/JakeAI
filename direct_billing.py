@@ -349,6 +349,15 @@ def _consume_usage(subscription_id, amount_cents):
 def _openai_key():
     return os.environ.get("OPENAI_API_KEY", "").strip()
 
+def _runtime_url():
+    return os.environ.get("DIRECT_RUNTIME_URL", "").strip()
+
+def _runtime_token():
+    return os.environ.get("DIRECT_RUNTIME_INTERNAL_TOKEN", "").strip()
+
+def _execution_configured():
+    return bool((_runtime_url() and _runtime_token()) or _openai_key())
+
 def _direct_model():
     return os.environ.get("DIRECT_OPENAI_MODEL", "gpt-5.6-luna").strip() or "gpt-5.6-luna"
 
@@ -417,6 +426,38 @@ def _workflow_instructions(workflow):
     return base + modes.get(workflow, modes["general"])
 
 def _call_openai(prompt, workflow):
+    runtime_url = _runtime_url()
+    runtime_token = _runtime_token()
+    if runtime_url and runtime_token:
+        payload = {"prompt": prompt, "workflow": workflow}
+        req = urllib.request.Request(
+            runtime_url,
+            data=json.dumps(payload).encode("utf-8"),
+            headers={
+                "X-JakeAI-Internal-Token": runtime_token,
+                "Content-Type": "application/json",
+                "User-Agent": "JakeAI-Direct-Commerce/1.0",
+            },
+            method="POST",
+        )
+        try:
+            with urllib.request.urlopen(req, timeout=55) as response:
+                data = json.loads(response.read().decode("utf-8"))
+        except urllib.error.HTTPError as exc:
+            raise HTTPException(502, "JakeAI Direct runtime rejected the request") from exc
+        except Exception as exc:
+            raise HTTPException(502, "JakeAI Direct runtime is unavailable") from exc
+        text = str(data.get("text") or "").strip()
+        if not text:
+            raise HTTPException(502, "JakeAI Direct runtime returned no usable model output")
+        return {
+            "text": text,
+            "model": str(data.get("model") or _direct_model()),
+            "response_id": str(data.get("response_id") or ""),
+            "input_tokens": int(data.get("input_tokens") or 0),
+            "output_tokens": int(data.get("output_tokens") or 0),
+        }
+
     key = _openai_key()
     if not key:
         raise HTTPException(503, "JakeAI Direct model runtime is not configured")
@@ -504,7 +545,8 @@ def register_direct_routes(app):
             "usage_allowance_cents": _allowance_cents(),
             "automatic_overages": False,
             "environment": _environment_name(),
-            "execution_configured": bool(_openai_key()),
+            "execution_configured": _execution_configured(),
+            "execution_mode": "remote_runtime" if (_runtime_url() and _runtime_token()) else ("local_key" if _openai_key() else "disabled"),
             "execution_model": _direct_model(),
             "event_count": counts["events"],
             "entitlement_count": counts["entitlements"],
@@ -580,7 +622,7 @@ def register_direct_routes(app):
             raise HTTPException(400, "Prompt is required")
         if len(prompt) > 12000:
             raise HTTPException(413, "Prompt is too large for this Direct run")
-        if not _openai_key():
+        if not _execution_configured():
             raise HTTPException(503, "JakeAI Direct model runtime is not configured")
 
         subscription_id = row["stripe_subscription_id"]
