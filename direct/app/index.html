@@ -70,7 +70,7 @@ footer{display:flex;justify-content:space-between;gap:12px;flex-wrap:wrap;color:
   </section>
 
   <section class="console">
-    <div class="consoleTop"><div><b>Direct Control</b><div class="muted">Customer workspace shell connected to entitlement and billing.</div></div><span class="approval">APPROVAL GATE · ON</span></div>
+    <div class="consoleTop"><div><b>Direct Control</b><div class="muted">Tell JakeAI the job. Choose a workflow only when it helps.</div></div><span class="approval">APPROVAL GATE · ON</span></div>
     <textarea id="prompt" placeholder="Ask, build, investigate, compare, create…" disabled></textarea>
     <div class="actions">
       <select id="workflow" class="btn" disabled>
@@ -82,9 +82,9 @@ footer{display:flex;justify-content:space-between;gap:12px;flex-wrap:wrap;color:
         <option value="site">Site Operator</option>
       </select>
       <button class="btn primary" id="goBtn" disabled>Run with JakeAI</button>
-      <span class="muted" id="engineNote">Model/tool execution remains QA-locked until routing is verified.</span>
+      <span class="muted" id="engineNote">Verifying execution path…</span>
     </div>
-    <div class="outputBox" id="outputBox"></div>
+    <div class="qaNote" style="border-left-color:#73f0b4;color:#bdebd5"><b>Hard gate:</b> JakeAI may prepare external actions, but it does not send, post, purchase or deploy without explicit approval.</div><div class="outputBox" id="outputBox"></div>
     <div class="runMeta" id="runMeta"></div>
   </section>
   <footer><span>JakeAI Direct · Founding Edition</span><span>Entitlement-gated · Usage-controlled · Human-approved</span></footer>
@@ -153,9 +153,9 @@ async function runDirect(){
     const d=await res.json();
     if(!res.ok)throw new Error(typeof d.detail==='string'?d.detail:'JakeAI Direct run failed');
     box.textContent=d.output||'No output returned.';
-    meta.textContent='RUN '+d.run_id+' · '+d.model+' · '+d.usage_cents+'¢ usage · '+d.remaining_cents+'¢ remaining · approval gate '+d.approval_gate;
+    meta.textContent='RUN '+d.run_id+' · '+d.usage_cents+'¢ usage · '+d.remaining_cents+'¢ remaining · approval gate '+d.approval_gate;
     document.getElementById('remaining').textContent=money(d.remaining_cents);
-    document.getElementById('used').textContent=money(1000-d.remaining_cents);
+    document.getElementById('used').textContent=money(Math.max(0,Number(document.getElementById('allowance').textContent.replace(/[$,]/g,''))*100-Number(d.remaining_cents||0)));
   }catch(e){
     box.textContent='Run stopped safely: '+e.message;
   }finally{
