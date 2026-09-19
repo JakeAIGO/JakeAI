@@ -70,7 +70,7 @@ def init_direct_db():
     conn.execute("""CREATE TABLE IF NOT EXISTS direct_stripe_events(
       event_id TEXT PRIMARY KEY,
       event_type TEXT NOT NULL,
-      processed_at TEXT NOT NULL)""")
+      created_at TEXT NOT NULL)""")
     conn.commit()
     conn.close()
 
@@ -106,6 +106,15 @@ def _subscription_price_id(subscription):
         return getattr(price, "id", None)
     except Exception:
         return None
+
+def _invoice_subscription_id(invoice):
+    direct = getattr(invoice, "subscription", None)
+    if direct:
+        return str(direct)
+    parent = getattr(invoice, "parent", None)
+    details = getattr(parent, "subscription_details", None) if parent else None
+    nested = getattr(details, "subscription", None) if details else None
+    return str(nested) if nested else ""
 
 def _subscription_period_end(subscription):
     top = getattr(subscription, "current_period_end", None)
@@ -418,7 +427,7 @@ def register_direct_routes(app):
             elif event_type.startswith("customer.subscription."):
                 _upsert_entitlement(obj)
             elif event_type == "invoice.paid":
-                sub_id = str(getattr(obj, "subscription", "") or "")
+                sub_id = _invoice_subscription_id(obj)
                 if sub_id:
                     conn = _conn()
                     conn.execute(
@@ -442,7 +451,7 @@ def register_direct_routes(app):
 
         conn = _conn()
         conn.execute(
-            "INSERT INTO direct_stripe_events(event_id,event_type,processed_at) VALUES (?,?,?)",
+            "INSERT INTO direct_stripe_events(event_id,event_type,created_at) VALUES (?,?,?)",
             (event_id, event_type, _now_iso()),
         )
         conn.commit()
