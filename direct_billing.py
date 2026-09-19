@@ -356,6 +356,57 @@ def register_direct_routes(app):
         )
         return response
 
+    @app.get("/v1/direct/qa/status")
+    def direct_qa_status(token: str):
+        if _environment_name().lower() != "sandbox" or _billing_enabled():
+            raise HTTPException(404, "Not found")
+        expected = _qa_token()
+        if not expected or not secrets.compare_digest(token, expected):
+            raise HTTPException(404, "Not found")
+        conn = _conn()
+        checkouts = conn.execute(
+            """SELECT checkout_session_id,stripe_subscription_id,stripe_customer_id,customer_email,payment_status,created_at
+               FROM direct_checkout_sessions
+               ORDER BY created_at DESC LIMIT 10"""
+        ).fetchall()
+        entitlements = conn.execute(
+            """SELECT stripe_subscription_id,stripe_customer_id,customer_email,status,current_period_end,cancel_at_period_end,allowance_cents,usage_cents,created_at,updated_at
+               FROM direct_entitlements
+               ORDER BY updated_at DESC LIMIT 10"""
+        ).fetchall()
+        conn.close()
+        def tail(value, n=8):
+            value = str(value or "")
+            return value[-n:] if value else None
+        return {
+            "checkout_count": len(checkouts),
+            "entitlement_count": len(entitlements),
+            "checkouts": [
+                {
+                    "session_tail": tail(r["checkout_session_id"]),
+                    "subscription_tail": tail(r["stripe_subscription_id"]),
+                    "customer_tail": tail(r["stripe_customer_id"]),
+                    "email": r["customer_email"],
+                    "payment_status": r["payment_status"],
+                    "created_at": r["created_at"],
+                } for r in checkouts
+            ],
+            "entitlements": [
+                {
+                    "subscription_tail": tail(r["stripe_subscription_id"]),
+                    "customer_tail": tail(r["stripe_customer_id"]),
+                    "email": r["customer_email"],
+                    "status": r["status"],
+                    "current_period_end": r["current_period_end"],
+                    "cancel_at_period_end": bool(r["cancel_at_period_end"]),
+                    "allowance_cents": r["allowance_cents"],
+                    "usage_cents": r["usage_cents"],
+                    "created_at": r["created_at"],
+                    "updated_at": r["updated_at"],
+                } for r in entitlements
+            ],
+        }
+
     @app.get("/v1/direct/qa/activate-latest")
     def direct_qa_activate_latest(token: str):
         if _environment_name().lower() != "sandbox" or _billing_enabled():
