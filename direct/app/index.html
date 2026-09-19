@@ -21,7 +21,7 @@ footer{display:flex;justify-content:space-between;gap:12px;flex-wrap:wrap;color:
 @keyframes pulse{50%{transform:scale(1.035);filter:brightness(1.15)}}
 @media(max-width:880px){.grid{grid-template-columns:1fr}.workflows{grid-template-columns:1fr 1fr}.hero{padding:24px}.hero:after{opacity:.55}.meterBig{font-size:32px}}
 @media(max-width:520px){.shell{padding:12px 12px 48px}.workflows{grid-template-columns:1fr}.hero h1{font-size:43px}.top{padding-top:4px}}
-</style>
+.outputBox{display:none;margin-top:14px;border:1px solid #284b60;border-radius:16px;background:#050c12;padding:16px;white-space:pre-wrap;line-height:1.55;color:#dff8ff}.runMeta{margin-top:9px;color:#718b9b;font-size:10px;letter-spacing:.08em}.busy{opacity:.65;pointer-events:none}</style>
 </head>
 <body>
 <div class="shell" id="app" hidden>
@@ -73,9 +73,19 @@ footer{display:flex;justify-content:space-between;gap:12px;flex-wrap:wrap;color:
     <div class="consoleTop"><div><b>Direct Control</b><div class="muted">Customer workspace shell connected to entitlement and billing.</div></div><span class="approval">APPROVAL GATE · ON</span></div>
     <textarea id="prompt" placeholder="Ask, build, investigate, compare, create…" disabled></textarea>
     <div class="actions">
+      <select id="workflow" class="btn" disabled>
+        <option value="general">General</option>
+        <option value="research">Research Brief</option>
+        <option value="rfp">RFP / RFQ Scout</option>
+        <option value="proposal">Proposal Factory</option>
+        <option value="campaign">Campaign Builder</option>
+        <option value="site">Site Operator</option>
+      </select>
       <button class="btn primary" id="goBtn" disabled>Run with JakeAI</button>
       <span class="muted" id="engineNote">Model/tool execution remains QA-locked until routing is verified.</span>
     </div>
+    <div class="outputBox" id="outputBox"></div>
+    <div class="runMeta" id="runMeta"></div>
   </section>
   <footer><span>JakeAI Direct · Founding Edition</span><span>Entitlement-gated · Usage-controlled · Human-approved</span></footer>
 </div>
@@ -113,11 +123,47 @@ async function load(){
     const pct=Math.max(0,Math.min(100,(Number(d.usage_cents||0)/Math.max(1,Number(d.usage_allowance_cents||1)))*100));
     document.getElementById('usageFill').style.width=pct+'%';
     document.getElementById('renewal').textContent=d.cancel_at_period_end?'Cancellation scheduled. Access remains active through '+fmtDate(d.current_period_end)+'.':'Renews monthly. Current paid period ends '+fmtDate(d.current_period_end)+'.';
+    if(d.execution_configured){
+      document.getElementById('prompt').disabled=false;
+      document.getElementById('workflow').disabled=false;
+      document.getElementById('goBtn').disabled=false;
+      document.getElementById('engineNote').textContent='Execution ready · '+String(d.execution_model||'model routed');
+    }else{
+      document.getElementById('engineNote').textContent='Execution is fail-closed until the server-side model credential is connected.';
+    }
   }catch(e){
     document.getElementById('lockTitle').textContent='Access check unavailable';
     document.getElementById('lockText').textContent='JakeAI could not verify the entitlement service. No access has been granted.';
   }
 }
+async function runDirect(){
+  const prompt=document.getElementById('prompt').value.trim();
+  if(!prompt)return;
+  const btn=document.getElementById('goBtn');
+  const box=document.getElementById('outputBox');
+  const meta=document.getElementById('runMeta');
+  btn.classList.add('busy'); btn.textContent='Running…';
+  box.style.display='block'; box.textContent='JakeAI is working…'; meta.textContent='';
+  try{
+    const res=await fetch('/api/v1/direct/run',{
+      method:'POST',credentials:'include',
+      headers:{'Content-Type':'application/json'},
+      body:JSON.stringify({prompt,workflow:document.getElementById('workflow').value})
+    });
+    const d=await res.json();
+    if(!res.ok)throw new Error(typeof d.detail==='string'?d.detail:'JakeAI Direct run failed');
+    box.textContent=d.output||'No output returned.';
+    meta.textContent='RUN '+d.run_id+' · '+d.model+' · '+d.usage_cents+'¢ usage · '+d.remaining_cents+'¢ remaining · approval gate '+d.approval_gate;
+    document.getElementById('remaining').textContent=money(d.remaining_cents);
+    document.getElementById('used').textContent=money(1000-d.remaining_cents);
+  }catch(e){
+    box.textContent='Run stopped safely: '+e.message;
+  }finally{
+    btn.classList.remove('busy'); btn.textContent='Run with JakeAI';
+  }
+}
+document.getElementById('goBtn').addEventListener('click',runDirect);
+document.getElementById('prompt').addEventListener('keydown',e=>{if((e.ctrlKey||e.metaKey)&&e.key==='Enter')runDirect();});
 document.getElementById('logoutBtn').addEventListener('click',async()=>{
   await fetch('/api/v1/direct/logout',{method:'POST',credentials:'include'});
   location.reload();
