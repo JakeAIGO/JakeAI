@@ -98,6 +98,14 @@ GENESIS_CATALOG = {
         "download_url": "https://www.jakeaiofficial.com/docs#/default/audit_agent_card_v1_tools_audit_agent_card_post",
         "vendor_did": "did:a2a:jakeai_core"
     }
+    ,"prod_genesis_commission_001": {
+        "title": "JakeAI Genesis Commission #001",
+        "description": "The first JakeAI customer commission. Tell JakeAI one real problem or opportunity; JakeAI evaluates feasibility, safety, and scope before accepting the commission.",
+        "category": "commission",
+        "price": 49.00,
+        "download_url": "https://www.jakeaiofficial.com/genesis-001.html",
+        "vendor_did": "did:a2a:jakeai_core"
+    }
 }
 
 def init_db():
@@ -137,6 +145,22 @@ def init_db():
         created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
     )
     """)
+    cursor.execute("""
+    CREATE TABLE IF NOT EXISTS genesis_commission (
+        slot INTEGER PRIMARY KEY CHECK(slot = 1),
+        state TEXT NOT NULL DEFAULT 'available',
+        reservation_token TEXT,
+        stripe_session_id TEXT,
+        customer_email TEXT,
+        problem TEXT,
+        desired_outcome TEXT,
+        current_approach TEXT,
+        notes TEXT,
+        reserved_until INTEGER,
+        updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+    )
+    """)
+    cursor.execute("INSERT OR IGNORE INTO genesis_commission(slot, state) VALUES (1, 'available')")
     # Sync Genesis catalog
     for pid, p in GENESIS_CATALOG.items():
         cursor.execute("SELECT id FROM products WHERE id = ?", (pid,))
@@ -430,6 +454,48 @@ def create_checkout_session(product_id: str, idempotency_key: Optional[str] = He
     if prod_data.get("price", 0) <= 0 or product_id == "prod_make_free_00":
         return RedirectResponse(url=success_url, status_code=303)
 
+    # Genesis #001 is a single-slot commission. Reserve the checkout slot before
+    # creating Stripe Checkout so two customers cannot purchase #001 concurrently.
+    if product_id == "prod_genesis_commission_001":
+        now = int(time.time())
+        token = uuid.uuid4().hex
+        conn = sqlite3.connect(DB_PATH, timeout=10, isolation_level=None)
+        try:
+            conn.execute("BEGIN IMMEDIATE")
+            row = conn.execute("SELECT state, reserved_until FROM genesis_commission WHERE slot=1").fetchone()
+            state, reserved_until = row if row else ("available", None)
+            if state in ("claimed", "completed"):
+                conn.execute("ROLLBACK")
+                raise HTTPException(status_code=409, detail="Genesis Commission #001 has already been claimed.")
+            if state == "reserved" and reserved_until and reserved_until > now:
+                conn.execute("ROLLBACK")
+                raise HTTPException(status_code=409, detail="Genesis Commission #001 is currently reserved in another checkout. Please try again shortly.")
+            conn.execute("UPDATE genesis_commission SET state='reserved', reservation_token=?, stripe_session_id=NULL, reserved_until=?, updated_at=CURRENT_TIMESTAMP WHERE slot=1", (token, now + 1800))
+            conn.execute("COMMIT")
+        finally:
+            conn.close()
+        try:
+            session = stripe.checkout.Session.create(
+                payment_method_types=['card'],
+                line_items=[{'price_data': {'currency':'usd','product_data': {'name':prod_data['title'],'description':prod_data['description'][:250]},'unit_amount':4900},'quantity':1}],
+                mode='payment',
+                success_url="https://www.jakeaiofficial.com/genesis-001.html?session_id={CHECKOUT_SESSION_ID}",
+                cancel_url="https://www.jakeaiofficial.com/genesis-001.html?payment=cancelled",
+                expires_at=now + 1800,
+                metadata={'jakeai_product_id': product_id, 'reservation_token': token}
+            )
+            conn = sqlite3.connect(DB_PATH)
+            conn.execute("UPDATE genesis_commission SET stripe_session_id=? WHERE slot=1 AND reservation_token=?", (session.id, token))
+            conn.commit(); conn.close()
+            return RedirectResponse(url=session.url, status_code=303)
+        except HTTPException:
+            raise
+        except Exception as e:
+            conn = sqlite3.connect(DB_PATH)
+            conn.execute("UPDATE genesis_commission SET state='available', reservation_token=NULL, stripe_session_id=NULL, reserved_until=NULL WHERE slot=1 AND reservation_token=?", (token,))
+            conn.commit(); conn.close()
+            raise HTTPException(status_code=400, detail=f"Stripe Error: {str(e)}")
+
     stripe_kwargs = {}
     if idempotency_key:
         stripe_kwargs["idempotency_key"] = idempotency_key
@@ -456,6 +522,56 @@ def create_checkout_session(product_id: str, idempotency_key: Optional[str] = He
         return RedirectResponse(url=session.url, status_code=303)
     except Exception as e:
         raise HTTPException(status_code=400, detail=f"Stripe Error: {str(e)}")
+
+class GenesisIntake(BaseModel):
+    session_id: str = Field(min_length=5, max_length=200)
+    problem: str = Field(min_length=5, max_length=5000)
+    desired_outcome: str = Field(default="", max_length=5000)
+    current_approach: str = Field(default="", max_length=5000)
+    notes: str = Field(default="", max_length=5000)
+
+@app.get("/v1/genesis/001/status")
+def genesis_001_status(session_id: Optional[str] = None):
+    now = int(time.time())
+    conn = sqlite3.connect(DB_PATH)
+    row = conn.execute("SELECT state, stripe_session_id, customer_email, reserved_until FROM genesis_commission WHERE slot=1").fetchone()
+    conn.close()
+    state, stored_session, email, reserved_until = row or ("available", None, None, None)
+    if state == "reserved" and reserved_until and reserved_until <= now:
+        conn = sqlite3.connect(DB_PATH)
+        conn.execute("UPDATE genesis_commission SET state='available', reservation_token=NULL, stripe_session_id=NULL, reserved_until=NULL WHERE slot=1 AND state='reserved' AND reserved_until<=?", (now,))
+        conn.commit(); conn.close(); state="available"; stored_session=None
+    paid = False
+    if session_id and stored_session == session_id:
+        try:
+            secret_key=os.environ.get("STRIPE_SECRET_KEY","").strip(); stripe.api_key=secret_key
+            sess=stripe.checkout.Session.retrieve(session_id)
+            paid = sess.payment_status == "paid"
+            if paid and state == "reserved":
+                email=(getattr(sess, 'customer_details', None) and sess.customer_details.email) or email
+                conn=sqlite3.connect(DB_PATH)
+                conn.execute("UPDATE genesis_commission SET state='claimed', customer_email=?, reserved_until=NULL, updated_at=CURRENT_TIMESTAMP WHERE slot=1 AND stripe_session_id=?", (email,session_id))
+                conn.commit(); conn.close(); state='claimed'
+        except Exception:
+            paid=False
+    return {"slot":"001","state":state,"paid":paid,"intake_allowed": bool(session_id and stored_session==session_id and state in ('claimed','completed'))}
+
+@app.post("/v1/genesis/001/intake")
+def genesis_001_intake(req: GenesisIntake):
+    secret_key=os.environ.get("STRIPE_SECRET_KEY","").strip()
+    if not secret_key: raise HTTPException(status_code=500, detail="Payment verification unavailable")
+    stripe.api_key=secret_key
+    try: sess=stripe.checkout.Session.retrieve(req.session_id)
+    except Exception: raise HTTPException(status_code=400, detail="Invalid checkout session")
+    if sess.payment_status != 'paid' or (getattr(sess,'metadata',{}) or {}).get('jakeai_product_id') != 'prod_genesis_commission_001':
+        raise HTTPException(status_code=403, detail="A verified Genesis #001 payment is required")
+    conn=sqlite3.connect(DB_PATH)
+    row=conn.execute("SELECT stripe_session_id,state FROM genesis_commission WHERE slot=1").fetchone()
+    if not row or row[0] != req.session_id or row[1] not in ('claimed','completed'):
+        conn.close(); raise HTTPException(status_code=409, detail="This checkout does not own Genesis #001")
+    conn.execute("UPDATE genesis_commission SET problem=?,desired_outcome=?,current_approach=?,notes=?,state='claimed',updated_at=CURRENT_TIMESTAMP WHERE slot=1",(req.problem,req.desired_outcome,req.current_approach,req.notes))
+    conn.commit(); conn.close()
+    return {"ok":True,"commission":"001","state":"claimed","message":"Genesis Commission #001 intake received by JakeAI."}
 
 # Catalog Discovery Endpoints
 @app.get("/v1/products/list")
