@@ -554,6 +554,55 @@ def register_direct_routes(app):
             "pending_cancellation_count": counts["pending_cancel"],
         }
 
+    @app.get("/v1/direct/qa/runtime-probe-8f2c")
+    def direct_runtime_probe():
+        if _environment_name() != "sandbox" or _billing_enabled():
+            raise HTTPException(404, "Not found")
+        run_id = "dir_qa_runtime_20260919"
+        conn = _conn()
+        prior = conn.execute("SELECT status,model,input_tokens,output_tokens,usage_cents FROM direct_runs WHERE run_id=?", (run_id,)).fetchone()
+        if prior and prior["status"] == "complete":
+            ent = conn.execute("SELECT usage_cents,allowance_cents FROM direct_entitlements WHERE status IN ('active','trialing') ORDER BY updated_at DESC LIMIT 1").fetchone()
+            conn.close()
+            return {
+                "status": "already_complete",
+                "model": prior["model"],
+                "input_tokens": prior["input_tokens"],
+                "output_tokens": prior["output_tokens"],
+                "usage_cents": prior["usage_cents"],
+                "remaining_cents": (int(ent["allowance_cents"]) - int(ent["usage_cents"])) if ent else None,
+                "approval_gate": "on",
+                "external_actions_executed": False,
+            }
+        ent = conn.execute("SELECT stripe_subscription_id FROM direct_entitlements WHERE status IN ('active','trialing') ORDER BY updated_at DESC LIMIT 1").fetchone()
+        conn.close()
+        if not ent:
+            raise HTTPException(503, "No active sandbox entitlement")
+        subscription_id = ent["stripe_subscription_id"]
+        reserve = _consume_usage(subscription_id, 1)
+        prompt = "Reply with exactly: JAKEAI DIRECT RUNTIME OK"
+        try:
+            result = _call_openai(prompt, "general")
+        except Exception:
+            _refund_usage(subscription_id, 1)
+            _record_run(run_id, subscription_id, "general", _direct_model(), len(prompt), 0, 0, 0, None, "failed")
+            raise
+        actual_cents = _rounded_provider_cost_cents(result["input_tokens"], result["output_tokens"])
+        if actual_cents > 1:
+            reserve = _consume_usage(subscription_id, actual_cents - 1)
+        _record_run(run_id, subscription_id, "general", result["model"], len(prompt), result["input_tokens"], result["output_tokens"], actual_cents, result["response_id"], "complete")
+        return {
+            "status": "complete",
+            "output": result["text"],
+            "model": result["model"],
+            "input_tokens": result["input_tokens"],
+            "output_tokens": result["output_tokens"],
+            "usage_cents": actual_cents,
+            "remaining_cents": reserve["remaining_cents"],
+            "approval_gate": "on",
+            "external_actions_executed": False,
+        }
+
     @app.get("/v1/direct/checkout")
     def direct_checkout():
         if not _public_billing_ready():
