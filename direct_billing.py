@@ -80,6 +80,16 @@ def _price_id():
 def _payment_link_url():
     return os.environ.get("DIRECT_PAYMENT_LINK_URL", "").strip()
 
+def _payment_link_id():
+    return os.environ.get("DIRECT_PAYMENT_LINK_ID", "").strip()
+
+def _object_id(value):
+    if not value:
+        return ""
+    if isinstance(value, str):
+        return value
+    return str(getattr(value, "id", "") or "")
+
 def _portal_login_url():
     return os.environ.get("DIRECT_PORTAL_LOGIN_URL", "").strip()
 
@@ -171,20 +181,17 @@ def _upsert_entitlement(subscription, customer_email=None, reset_usage=False):
     conn.close()
     return True
 
-def _store_checkout_session(session):
-    metadata = getattr(session, "metadata", None) or {}
-    plan = metadata.get("jakeai_product_id") if hasattr(metadata, "get") else None
-    if plan != DIRECT_PLAN_ID or getattr(session, "mode", None) != "subscription":
-        return False
-    session_id = str(getattr(session, "id", "") or "")
-    sub_id = str(getattr(session, "subscription", "") or "")
-    customer_id = str(getattr(session, "customer", "") or "")
-    payment_status = str(getattr(session, "payment_status", "") or "")
+def _persist_checkout(session_id, sub_id, customer_id, email, payment_status):
     if not session_id or not sub_id or not customer_id:
         return False
-    details = getattr(session, "customer_details", None)
-    email = getattr(details, "email", None) if details else None
     conn = _conn()
+    entitlement = conn.execute(
+        "SELECT stripe_customer_id,status FROM direct_entitlements WHERE stripe_subscription_id=?",
+        (sub_id,),
+    ).fetchone()
+    if not entitlement or entitlement["stripe_customer_id"] != customer_id:
+        conn.close()
+        return False
     conn.execute(
         """INSERT OR REPLACE INTO direct_checkout_sessions
         (checkout_session_id,stripe_subscription_id,stripe_customer_id,customer_email,payment_status,created_at)
@@ -198,6 +205,49 @@ def _store_checkout_session(session):
     conn.commit()
     conn.close()
     return True
+
+def _store_checkout_session(session):
+    metadata = getattr(session, "metadata", None) or {}
+    plan = metadata.get("jakeai_product_id") if hasattr(metadata, "get") else None
+    link_id = _object_id(getattr(session, "payment_link", None))
+    if getattr(session, "mode", None) != "subscription":
+        return False
+    if plan != DIRECT_PLAN_ID and (not _payment_link_id() or link_id != _payment_link_id()):
+        return False
+
+    session_id = _object_id(getattr(session, "id", None))
+    sub_id = _object_id(getattr(session, "subscription", None))
+    customer_id = _object_id(getattr(session, "customer", None))
+    payment_status = str(getattr(session, "payment_status", "") or "")
+    details = getattr(session, "customer_details", None)
+    email = getattr(details, "email", None) if details else None
+
+    conn = _conn()
+    if customer_id and not sub_id:
+        row = conn.execute(
+            """SELECT stripe_subscription_id FROM direct_entitlements
+               WHERE stripe_customer_id=? AND status IN ('active','trialing')
+               ORDER BY updated_at DESC LIMIT 1""",
+            (customer_id,),
+        ).fetchone()
+        if row:
+            sub_id = row["stripe_subscription_id"]
+    if sub_id and not customer_id:
+        row = conn.execute(
+            "SELECT stripe_customer_id FROM direct_entitlements WHERE stripe_subscription_id=?",
+            (sub_id,),
+        ).fetchone()
+        if row:
+            customer_id = row["stripe_customer_id"]
+    if customer_id and email:
+        conn.execute(
+            "UPDATE direct_entitlements SET customer_email=COALESCE(customer_email,?),updated_at=? WHERE stripe_customer_id=?",
+            (email, _now_iso(), customer_id),
+        )
+        conn.commit()
+    conn.close()
+
+    return _persist_checkout(session_id, sub_id, customer_id, email, payment_status)
 
 def _issue_session(customer_id, subscription_id):
     raw = secrets.token_urlsafe(32)
@@ -414,6 +464,30 @@ def register_direct_routes(app):
                 } for r in entitlements
             ],
         }
+
+    @app.get("/v1/direct/qa/backfill-checkout")
+    def direct_qa_backfill_checkout(
+        token: str,
+        session_id: str,
+        subscription_id: str,
+        customer_id: str,
+        email: str,
+    ):
+        if _environment_name().lower() != "sandbox" or _billing_enabled():
+            raise HTTPException(404, "Not found")
+        expected = _qa_token()
+        if not expected or not secrets.compare_digest(token, expected):
+            raise HTTPException(404, "Not found")
+        ok = _persist_checkout(
+            session_id,
+            subscription_id,
+            customer_id,
+            email,
+            "paid",
+        )
+        if not ok:
+            raise HTTPException(409, "Sandbox checkout does not match an active entitlement")
+        return {"ok": True, "environment": "sandbox"}
 
     @app.get("/v1/direct/qa/activate-latest")
     def direct_qa_activate_latest(token: str):
