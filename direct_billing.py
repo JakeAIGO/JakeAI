@@ -86,6 +86,9 @@ def _portal_login_url():
 def _webhook_secret():
     return os.environ.get("DIRECT_STRIPE_WEBHOOK_SECRET", "").strip()
 
+def _environment_name():
+    return os.environ.get("DIRECT_ENVIRONMENT", "sandbox").strip() or "sandbox"
+
 def _billing_enabled():
     return _bool_env("DIRECT_BILLING_ENABLED", False)
 
@@ -306,6 +309,7 @@ def register_direct_routes(app):
             "price_cents": DIRECT_PRICE_CENTS,
             "usage_allowance_cents": _allowance_cents(),
             "automatic_overages": False,
+            "environment": _environment_name(),
             "event_count": counts["events"],
             "entitlement_count": counts["entitlements"],
         }
@@ -362,6 +366,7 @@ def register_direct_routes(app):
             "usage_cents": row["usage_cents"],
             "remaining_cents": remaining,
             "automatic_overages": False,
+            "environment": _environment_name(),
         }
 
     @app.get("/v1/direct/portal")
