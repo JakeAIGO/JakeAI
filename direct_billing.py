@@ -444,7 +444,20 @@ def _call_openai(prompt, workflow):
             with urllib.request.urlopen(req, timeout=55) as response:
                 data = json.loads(response.read().decode("utf-8"))
         except urllib.error.HTTPError as exc:
-            raise HTTPException(502, "JakeAI Direct runtime rejected the request") from exc
+            runtime_error = {}
+            try:
+                runtime_error = json.loads(exc.read().decode("utf-8"))
+            except Exception:
+                runtime_error = {}
+            raise HTTPException(
+                502,
+                {
+                    "message": "JakeAI Direct runtime rejected the request",
+                    "runtime_status": int(getattr(exc, "code", 0) or 0),
+                    "runtime_error": str(runtime_error.get("error") or ""),
+                    "provider_status": runtime_error.get("provider_status"),
+                },
+            ) from exc
         except Exception as exc:
             raise HTTPException(502, "JakeAI Direct runtime is unavailable") from exc
         text = str(data.get("text") or "").strip()
@@ -583,10 +596,26 @@ def register_direct_routes(app):
         prompt = "Reply with exactly: JAKEAI DIRECT RUNTIME OK"
         try:
             result = _call_openai(prompt, "general")
-        except Exception:
+        except HTTPException as exc:
             _refund_usage(subscription_id, 1)
             _record_run(run_id, subscription_id, "general", _direct_model(), len(prompt), 0, 0, 0, None, "failed")
-            raise
+            return {
+                "status": "failed",
+                "detail": exc.detail,
+                "usage_cents": 0,
+                "approval_gate": "on",
+                "external_actions_executed": False,
+            }
+        except Exception as exc:
+            _refund_usage(subscription_id, 1)
+            _record_run(run_id, subscription_id, "general", _direct_model(), len(prompt), 0, 0, 0, None, "failed")
+            return {
+                "status": "failed",
+                "detail": "unexpected runtime failure",
+                "usage_cents": 0,
+                "approval_gate": "on",
+                "external_actions_executed": False,
+            }
         actual_cents = _rounded_provider_cost_cents(result["input_tokens"], result["output_tokens"])
         if actual_cents > 1:
             reserve = _consume_usage(subscription_id, actual_cents - 1)
