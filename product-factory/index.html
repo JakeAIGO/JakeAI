@@ -1,12 +1,95 @@
-<!doctype html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><title>JakeAI Autonomous Product Factory</title><link rel="stylesheet" href="style.css"></head><body>
-<header><b>Jake<span>AI</span></b><div class="crumb">UNIVERSE / FOUNDRY / AUTONOMOUS PRODUCT FACTORY</div><em>FACTORY BRAIN · LIVE CAPABILITY</em></header><main>
-<section class="hero"><div class="heroCopy"><small>JAKEAI AUTONOMOUS PRODUCT FACTORY</small><h1>FIND THE PROBLEM.<br><strong>BUILD THE CAPABILITY.</strong></h1><p>JakeAI discovers problems continuously. Humans can bring us one too. Both enter the same evidence-first factory.</p><div class="heroBtns"><button id="toIntake">BRING US A PROBLEM</button><button class="ghost" id="run">WATCH AUTONOMOUS RUN</button></div></div><div class="bot"><div class="antenna"></div><div class="face"><i></i><i></i></div><b>J<span>AI</span></b><small>PROBLEM<br>ANNOYANCE<br>UNIT</small></div></section>
-<section class="doors"><article><div class="doorIcon">⌁</div><small>INTAKE 01 · ALWAYS ON</small><h2>AUTONOMOUS DISCOVERY</h2><p>JakeAI hunts for useful problems and workflow gaps without waiting to be asked.</p><b>JAKEAI FOUND IT →</b></article><article class="humanDoor"><div class="doorIcon">!</div><small>INTAKE 02 · HUMAN</small><h2>BRING US A PROBLEM</h2><p>You found one. Describe the mess in normal language. Knowing the solution is optional.</p><b>YOU FOUND IT →</b></article><article><div class="doorIcon">◇</div><small>INTAKE 03 · MACHINE</small><h2>AGENT INTAKE</h2><p>Structured capability requests for authorized agents through the future Agent Gateway.</p><b>CONTRACT RESERVED →</b></article></section>
-<section class="intake" id="intake"><div class="intakeArt"><div class="hopper"><span>PROBLEM</span><i>↓</i><b>?</b></div><div class="miniBot">J<span>AI</span></div><p>“You found the problem.<br><strong>We’ll annoy it.</strong>”</p></div><div class="intakeForm"><small>PROBLEM INTAKE BAY · CONTROLLED SESSION</small><h2>What keeps going wrong?</h2><p>Describe what happens, who it affects, and what you've already tried. You do not need to design the automation.</p><label for="problem">YOUR PROBLEM</label><textarea id="problem" maxlength="1800" placeholder="Example: Engineering changes arrive by email. Production sometimes works from an old revision, and nobody knows whether every system was updated."></textarea><div class="formRow"><span id="count">0 / 1800</span><button id="analyze">ANALYZE PROBLEM →</button></div><p class="privacy">Factory Brain analyzes this specimen locally for the current browser session. No external action is authorized.</p></div></section>
-<section class="triage" id="triage" hidden><small>JAKEAI TRIAGE · FIRST PASS</small><h2 id="triageTitle">Problem received.</h2><div class="triageGrid"><div><small>LIKELY CLASS</small><b id="class">—</b></div><div><small>FIRST MOVE</small><b id="move">—</b></div><div><small>FACTORY ROUTE</small><b id="route">—</b></div></div><p id="summary"></p><div class="joke" id="joke"></div><button id="feed">FEED THIS PROBLEM TO THE FACTORY →</button></section>
-<section class="brain"><small>FACTORY BRAIN · CASE INVESTIGATION</small><h2 id="brainTitle">Evidence before automation.</h2><div class="brainGrid"><article><b>01 · PRESERVE</b><span id="preserve">Waiting for a case.</span></article><article><b>02 · INVESTIGATE</b><span id="investigate">Known vs assumed.</span></article><article><b>03 · SEARCH</b><span id="search">JakeAI → outside/open solutions.</span></article><article><b>04 · GAP</b><span id="gap">Build only if a real gap remains.</span></article><article><b>05 · EXPERIMENT</b><span id="experiment">Smallest useful test.</span></article><article><b>06 · PROVE</b><span id="prove">Evidence, failures, uncertainty.</span></article></div><div class="brainVerdict"><small>FACTORY DECISION</small><strong id="verdict">NO CASE LOADED</strong><p id="why">The factory does not confuse activity with value.</p></div></section><section class="factory" aria-label="Autonomous Product Factory line"><div class="rail"></div><article data-step="0"><i>01</i><b>DISCOVER</b><small>Signal → problem</small><div class="machine">⌁</div></article><article data-step="1"><i>02</i><b>RANK</b><small>Value × evidence × feasibility</small><div class="machine">◇</div></article><article data-step="2"><i>03</i><b>CHECK</b><small>Existing / open solution</small><div class="machine">◎</div></article><article data-step="3"><i>04</i><b>EXPERIMENT</b><small>Bounded prototype</small><div class="machine">⚙</div></article><article data-step="4"><i>05</i><b>VALIDATE</b><small>Outcome + regression</small><div class="machine">✓</div></article><article data-step="5"><i>06</i><b>FOUNDRY</b><small>Package + provenance</small><div class="machine">⬡</div></article><article data-step="6"><i>07</i><b>RELEASE</b><small>Human authority</small><div class="machine">▣</div></article></section>
-<section class="control"><div><small>FACTORY CONTROL</small><h2 id="stage">STANDBY · FACTORY BRAIN READY</h2><p id="log">Autonomous discovery and human problem intake converge here. Nothing external is authorized.</p></div><div class="meter"><i id="meter"></i></div></section>
-<section class="deck"><article><small>AUTONOMOUS DISCOVERY BAY</small><h2>Factory keeps looking.</h2><div class="signal"><b>MANUFACTURING</b><span>Engineering changes crossing disconnected systems</span><em>seed signal</em></div><div class="signal"><b>WORKFLOW OPS</b><span>Broken handoffs and missing evidence between people, agents and systems</span><em>seed signal</em></div><p class="truth">These are clearly labeled seed records—not live discovery counters. Production discovery adapters remain a separate integration.</p></article><article class="queue"><small>OPPORTUNITY RANKER</small><h2>Candidate queue</h2><button class="candidate free" data-product="xray"><span>01</span><div><b>Workflow X-Ray</b><small>FREE · PROTOTYPE</small></div><strong>INSPECT →</strong></button><button class="candidate paid" data-product="impact"><span>02</span><div><b>Change Impact Commander</b><small>COMMERCIAL · VALIDATION</small></div><strong>INSPECT →</strong></button><a class="candidate paid" href="/autonomous-employee.html" style="text-decoration:none"><span>03</span><div><b>Autonomous Employee Foundry</b><small>COMMERCIAL · FOUNDING PILOT · INTAKE OPEN</small></div><strong>APPLY →</strong></a><div class="reject">REJECT CHUTE → “COOL DEMO. SOLVES NOTHING.”</div></article></section>
-<section class="product" id="product"><div class="productHead"><div><small id="productStatus">FREE · PROTOTYPE</small><h2 id="productName">Workflow X-Ray</h2></div><b id="productTag">SEE THE WORK. FIND THE BREAK.</b></div><p id="productDesc">Maps a real workflow across people, agents, systems, handoffs, decisions and evidence; identifies broken handoffs, duplicated work, missing information and bounded automation opportunities.</p><div class="outputs"><div><small>OUTPUT</small><b id="outputName">Workflow Genome</b><span>Human + agent-readable capability map</span></div><div><small>EVIDENCE</small><b>Uncertainty retained</b><span>Claims stay tied to evidence</span></div><div><small>AUTHORITY</small><b>Human retained</b><span>No external action by inspection</span></div></div></section>
-<section class="bottom"><article class="receipt"><small>EVIDENCE + PROVENANCE BAY</small><h2>Execution receipt</h2><pre id="receipt">No execution receipt yet.</pre></article><article class="gate"><small>HUMAN RELEASE GATE</small><h2>Nothing leaves the factory without authority.</h2><p>JakeAI may discover, analyze, rank, prototype, test and package. Publication, spending, contractual commitments, company representation and production release require explicit authority.</p><div class="locks"><span>NO SPEND</span><span>NO SUBMIT</span><span>NO PUBLISH</span><span>NO REPRESENT</span></div><b>We annoy the problem. You keep the authority.</b></article></section>
-<section class="machineLayer"><small>MACHINE-READABLE CAPABILITY LAYER</small><p>Human intake and autonomous discovery share one factory contract. Authorized agent intake is reserved for the Agent Gateway; RC2 does not pretend that production connection exists.</p></section></main><footer>JakeAI · Learn. Discover. Create. Provide value. <span>FACTORY BRAIN · HUMAN-GATED</span></footer><script src="app.js"></script></body></html>
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
+<meta name="theme-color" content="#02070b">
+<title>JakeAI Foundry — Products, Autonomous Employees & Custom Builds</title>
+<meta name="description" content="The JakeAI Foundry turns real problems into useful capabilities: ready-made workflows, bounded autonomous employees and custom builds.">
+<link rel="stylesheet" href="/product-factory/foundry.css">
+</head>
+<body>
+<header class="top">
+<a class="brand" href="/">Jake<span>AI</span></a>
+<nav><a href="/">UNIVERSE</a><a href="/product-factory/">FOUNDRY</a><a href="/arcade/">ARCADE</a><a href="/terms.html">TERMS</a></nav>
+<div class="trail">BUILD → PROVE → HUMAN RELEASE</div>
+</header>
+
+<section class="hero">
+<div class="heroCopy">
+<div class="eyebrow">JAKEAI · REAL PROBLEMS · USEFUL SOLUTIONS · MEASURABLE OUTCOMES</div>
+<h1>THE FOUNDRY<span>IDEAS INTO REAL-WORLD CAPABILITIES</span></h1>
+<p>Bring a recurring job, a broken workflow or a stubborn problem. JakeAI routes it into the right production line, tests what it builds and keeps consequential authority with people.</p>
+<div class="heroKinds">READY-MADE WORKFLOWS · AUTONOMOUS EMPLOYEES · CUSTOM BUILDS</div>
+</div>
+</section>
+
+<main>
+<section class="floor">
+<div class="lanes">
+<a class="lane" href="#ready-made"><div class="icon">⚙</div><small>PRODUCTION LINE 01</small><h2>READY-MADE WORKFLOWS</h2><p>Existing JakeAI capabilities, working prototypes and reusable tools ready to inspect or deploy.</p><b>EXPLORE THE LINE →</b></a>
+<a class="lane purple" href="#autonomous-employees"><div class="icon">◉</div><small>PRODUCTION LINE 02 · FOUNDING PILOT</small><h2>AUTONOMOUS EMPLOYEES</h2><p>Give us the job. JakeAI scopes, builds and proves the worker. You keep the authority.</p><b>BUILD THE WORKER →</b></a>
+<a class="lane" href="#custom-build"><div class="icon">⌁</div><small>PRODUCTION LINE 03</small><h2>CUSTOM BUILD</h2><p>Bring JakeAI a problem that does not fit neatly in a box. Describe the outcome; we work out the capability path.</p><b>BRING THE PROBLEM →</b></a>
+</div>
+</section>
+
+<section class="section" id="autonomous-employees">
+<div class="sectionHead"><div><span class="badge purple">FOUNDING PILOT · INTAKE OPEN</span><h2>Autonomous Employee Foundry</h2></div><p>Not a chatbot with a job title. A bounded operational capability built around a recurring outcome, authorized tools, explicit approval boundaries and observable tests.</p></div>
+<div class="employee">
+<div class="employeeGrid">
+<div>
+<div class="steps">
+<div class="step"><i>01 · DESCRIBE</i><strong>Tell us the job.</strong><span>What keeps repeating? What outcome would actually matter?</span></div>
+<div class="step"><i>02 · BUILD</i><strong>JakeAI builds the worker.</strong><span>Scope → tools → boundaries → prototype → evidence.</span></div>
+<div class="step"><i>03 · CONTROL</i><strong>You keep the keys.</strong><span>Money, publishing, sending, deleting and commitments remain human-gated unless explicitly authorized.</span></div>
+</div>
+<div class="pipeline"><div class="pipe">YOU SUBMIT</div><div class="pipe">CONCIERGE ANALYZES</div><div class="pipe">CASE OPENED</div><div class="pipe">SCOPE DRAFTED</div><div class="pipe">YOUR APPROVAL</div><div class="pipe">BUILD + PROVE</div><div class="pipe">OPERATE</div></div>
+</div>
+<aside class="ctaBox">
+<span class="badge purple">FROM $500 SETUP</span>
+<h3>Start a new employee request.</h3>
+<p>Pilot Concierge performs first-pass qualification and prepares the internal review packet. It cannot contact you, spend money or deploy anything by itself.</p>
+<a class="button purple" href="/autonomous-employee.html">OPEN FOUNDING PILOT INTAKE →</a>
+</aside>
+</div>
+</div>
+</section>
+
+<section class="section" id="ready-made">
+<div class="sectionHead"><div><span class="badge">READY-MADE + PROTOTYPE CAPABILITIES</span><h2>Start with what already exists.</h2></div><p>Before building something new, JakeAI checks the existing capability base. Reuse beats rebuilding when the evidence says it fits.</p></div>
+<div class="readyGrid">
+<article class="panel"><h3>Factory Lab</h3><p>The original evidence-first Autonomous Product Factory remains intact as the working lab: discovery, triage, experimentation, validation and human release.</p><a class="button" href="/product-factory/lab.html">OPEN FACTORY LAB →</a></article>
+<article class="panel"><h3>Current capability doors</h3><div class="miniLinks"><a href="/workflow-rescue.html"><b>Workflow Rescue</b><span>AI Agent Ops</span></a><a href="/supplier-quote-compare.html"><b>Supplier Quote Compare</b><span>Procurement</span></a><a href="/inventory-replenishment-autopilot.html"><b>Inventory Replenishment Autopilot</b><span>Business Operations</span></a><a href="/workflow-registry.json"><b>Workflow Registry</b><span>Machine-readable record</span></a></div></article>
+</div>
+</section>
+
+<section class="custom" id="custom-build">
+<div class="section customGrid">
+<div class="customIntro"><span class="badge purple">FORMERLY COMMISSION BAY · NOW ONE FOUNDRY</span><h2>Bring JakeAI a problem.</h2><p>You do not need to know the automation, agent or software answer. Describe what is going wrong, what good would look like and where the boundaries are.</p><p class="fine">Custom Build is the old Commission Bay idea, simplified into the Foundry so there is one place to build useful things.</p></div>
+<form class="form" name="jakeai-custom-build" method="POST" action="/product-factory/?custom-submitted=1#custom-build" data-netlify="true" netlify-honeypot="bot-field">
+<div id="customSuccess" class="success">Problem received. JakeAI has the signal; human review remains the gate before any external action or commitment.</div>
+<input type="hidden" name="form-name" value="jakeai-custom-build"><p style="display:none"><label>Do not fill this out: <input name="bot-field"></label></p>
+<div class="two"><div><label for="cb-name">YOUR NAME</label><input id="cb-name" name="name" autocomplete="name" required></div><div><label for="cb-email">EMAIL</label><input id="cb-email" name="email" type="email" autocomplete="email" required></div></div>
+<label for="cb-problem">WHAT IS HAPPENING?</label><textarea id="cb-problem" name="problem" maxlength="2500" required placeholder="Describe the recurring mess, missed handoff, manual work or stubborn problem."></textarea>
+<label for="cb-outcome">WHAT WOULD A GOOD RESULT LOOK LIKE?</label><textarea id="cb-outcome" name="desired_outcome" maxlength="1800" required></textarea>
+<label for="cb-boundaries">WHAT MUST STAY HUMAN-APPROVED?</label><textarea id="cb-boundaries" name="approval_boundaries" maxlength="1800" placeholder="Sending external email, spending money, submitting bids, publishing, deleting data, signing contracts, etc."></textarea>
+<label for="cb-context">CONTEXT / TOOLS / CONSTRAINTS</label><textarea id="cb-context" name="context" maxlength="2200"></textarea>
+<button class="button purple" type="submit">SUBMIT TO THE FOUNDRY →</button>
+<p class="fine">Do not include passwords or API keys. Submission authorizes review only—not account access, purchases, deployment, representation or publication.</p>
+</form>
+</div>
+</section>
+
+<section class="trust">
+<div class="sectionHead"><div><span class="badge">TRUST ENGINE</span><h2>Autonomous does not mean unbounded.</h2></div><p>The Foundry can investigate, prototype, test and prepare. Consequential action remains explicitly scoped and auditable.</p></div>
+<div class="trustBar"><div><b>SAFE BY DESIGN</b><span>Bounded tools and explicit limits.</span></div><div><b>HUMAN APPROVED</b><span>Release authority stays with people.</span></div><div><b>EVIDENCE READY</b><span>Tests, failures and provenance matter.</span></div><div><b>MODEL AGNOSTIC</b><span>Underlying AI providers remain replaceable.</span></div></div>
+<p class="legacy">The old Commission Bay entrance now routes here to Custom Build. Nothing useful was discarded; the architecture is simply cleaner.</p>
+</section>
+</main>
+
+<footer><span>JakeAI · Learn. Discover. Create. Provide value.</span><span>THE FOUNDRY · HUMAN-GATED</span></footer>
+<script>
+(()=>{const p=new URLSearchParams(location.search);if(p.get('custom-submitted')==='1'){const s=document.getElementById('customSuccess');s.classList.add('show');s.scrollIntoView({behavior:'smooth',block:'center'});}})();
+</script>
+</body>
+</html>
