@@ -2,7 +2,7 @@ import os
 from fastapi import FastAPI, HTTPException, Header, Request
 from fastapi.responses import RedirectResponse, PlainTextResponse
 from fastapi.middleware.cors import CORSMiddleware
-from main import app as legacy_app
+from main import app as legacy_app, create_checkout_session as legacy_create_checkout_session
 
 PUBLIC_BASE_URL = os.environ.get("PUBLIC_BASE_URL", "https://jakeaiofficial.com").rstrip("/")
 FREE_DELIVERY_URL = "https://docs.google.com/document/d/14Ayw4pxjnYy5MddTGdLSZEeQGKJGU3CRSmW7384Lfhk/edit?usp=sharing"
@@ -11,6 +11,7 @@ PUBLIC_PRODUCTS = {
     "prod_make_free_00": {"id":"prod_make_free_00","title":"Make the Damn Thing for Free™","description":"Zero-budget production orchestration workflow.","category":"autonomous-workflow-skills","price":0.0,"status":"live"},
     "prod_game_qa_autopilot_01": {"id":"prod_game_qa_autopilot_01","title":"Game QA Autopilot v1.0","description":"Structured game QA workflow kit.","category":"gaming-qa","price":9.99,"status":"gated"},
     "prod_where_the_hell_are_my_glasses_01": {"id":"prod_where_the_hell_are_my_glasses_01","title":"Where the Hell Are My Glasses?","description":"Guided lost-object recovery workflow.","category":"personal-productivity","price":2.99,"status":"gated"},
+    "prod_genesis_commission_001": {"id":"prod_genesis_commission_001","title":"JakeAI Genesis Commission #001","description":"The first JakeAI customer commission. JakeAI evaluates feasibility, safety, and scope before accepting the commission.","category":"commission","price":49.00,"status":"live"},
 }
 
 app = FastAPI(title="JakeAI Commerce Guard", version="1.3.0")
@@ -52,6 +53,11 @@ def _create_checkout(product_id: str, idempotency_key: str | None):
         raise HTTPException(status_code=503, detail="Checkout is temporarily gated until delivery and QA are verified")
     if product_id == "prod_make_free_00":
         return RedirectResponse(FREE_DELIVERY_URL, status_code=303)
+    if product_id == "prod_genesis_commission_001":
+        # Keep the public fail-closed guard while delegating the one approved paid
+        # product to the legacy commerce engine, which owns the reservation,
+        # Stripe Checkout, payment verification, and persistent Genesis state.
+        return legacy_create_checkout_session(product_id, idempotency_key)
     raise HTTPException(status_code=503, detail="Paid fulfillment is not configured for this public product")
 
 @app.get("/v1/checkout/buy/{product_id}")
@@ -77,6 +83,7 @@ def llms_txt():
 
 ## LIVE
 - Make the Damn Thing for Free™ — $0 — Product ID: prod_make_free_00
+- JakeAI Genesis Commission #001 — $49 — Product ID: prod_genesis_commission_001
 
 ## GATED / NOT FOR SALE
 - Game QA Autopilot v1.0 — delivery QA pending
