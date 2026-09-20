@@ -2,6 +2,7 @@ import sqlite3
 import time
 import os
 import uuid
+import hmac
 import stripe
 import urllib.request
 import re
@@ -23,7 +24,7 @@ GENESIS_CATALOG = {
         "description": "Deterministic physics calculation for 5-fingered, 22-DoF robotic hands. Solves normal force, tendon tension distribution, joint torque limits, compliance margin, and slip risk with sub-10ms execution.",
         "category": "robotics-api",
         "price": 0.10,
-        "download_url": "https://www.jakeaiofficial.com/docs#/default/solve_grasp_v1_robotics_grasp_impedance_solver_post",
+        "download_url": "https://jakeaiofficial.com/docs#/default/solve_grasp_v1_robotics_grasp_impedance_solver_post",
         "vendor_did": "did:a2a:jakeai_core"
     },
     "prod_make_free_00": {
@@ -47,7 +48,7 @@ GENESIS_CATALOG = {
         "description": "Executable calculator returning statutory cash direct elective pay breakdowns (30% Base + 10% Energy Community + 10% Domestic Content).",
         "category": "fintech-api",
         "price": 1.00,
-        "download_url": "https://www.jakeaiofficial.com/docs#/default/calculate_ira_v1_solar_ira_calculator_post",
+        "download_url": "https://jakeaiofficial.com/docs#/default/calculate_ira_v1_solar_ira_calculator_post",
         "vendor_did": "did:a2a:solutions_energy"
     },
     "prod_scrape_01": {
@@ -55,7 +56,7 @@ GENESIS_CATALOG = {
         "description": "High-speed clean text & markdown extractor for LLMs and autonomous agents. Bypasses ads, navbars, and bloated HTML with instant automated API delivery.",
         "category": "ai-utilities",
         "price": 5.00,
-        "download_url": "https://www.jakeaiofficial.com/docs#/default/extract_markdown_v1_tools_extract_markdown_post",
+        "download_url": "https://jakeaiofficial.com/docs#/default/extract_markdown_v1_tools_extract_markdown_post",
         "vendor_did": "did:a2a:jakeai_core"
     },
     "prod_energy_01": {
@@ -63,7 +64,7 @@ GENESIS_CATALOG = {
         "description": "Automated nodal electricity price queries and 4CP transmission peak alerts across PJM & Dominion territories for energy automation bots.",
         "category": "data-api",
         "price": 0.25,
-        "download_url": "https://www.jakeaiofficial.com/docs#/default/get_tariff_data_v1_energy_tariff_pjm_get",
+        "download_url": "https://jakeaiofficial.com/docs#/default/get_tariff_data_v1_energy_tariff_pjm_get",
         "vendor_did": "did:a2a:solutions_energy"
     },
     "prod_tariff_norm_06": {
@@ -71,7 +72,7 @@ GENESIS_CATALOG = {
         "description": "Transforms complex non-standard utility rate schedules (GS-1, GS-3, large industrial) into standardized JSON objects for financial modeling.",
         "category": "data-api",
         "price": 0.50,
-        "download_url": "https://www.jakeaiofficial.com/docs#/default/normalize_tariff_v1_energy_tariff_normalize_post",
+        "download_url": "https://jakeaiofficial.com/docs#/default/normalize_tariff_v1_energy_tariff_normalize_post",
         "vendor_did": "did:a2a:solutions_energy"
     },
     "prod_audit_pack_10": {
@@ -79,7 +80,7 @@ GENESIS_CATALOG = {
         "description": "Pre-funded developer credit key for 10 automated pre-deployment audits (Claude 3.5 Sonnet + Perplexity Sonar-Pro). Eliminates per-transaction card fees. Includes CI/CD & MCP execution token.",
         "category": "developer-pack",
         "price": 18.00,
-        "download_url": "https://www.jakeaiofficial.com/docs#/default/multi_model_audit_v1_tools_multi_model_audit_post",
+        "download_url": "https://jakeaiofficial.com/docs#/default/multi_model_audit_v1_tools_multi_model_audit_post",
         "vendor_did": "did:a2a:jakeai_core"
     },
     "prod_multi_model_audit_08": {
@@ -87,7 +88,7 @@ GENESIS_CATALOG = {
         "description": "Automated dual-model pre-deployment audit combining Claude 3.5 Sonnet (architecture & legal risk) and Perplexity Sonar-Pro (market benchmarks) into a unified Go/No-Go report.",
         "category": "ai-utilities",
         "price": 2.00,
-        "download_url": "https://www.jakeaiofficial.com/docs#/default/multi_model_audit_v1_tools_multi_model_audit_post",
+        "download_url": "https://jakeaiofficial.com/docs#/default/multi_model_audit_v1_tools_multi_model_audit_post",
         "vendor_did": "did:a2a:jakeai_core"
     },
     "prod_agent_audit_07": {
@@ -95,10 +96,23 @@ GENESIS_CATALOG = {
         "description": "Automated machine audit testing any domain for /llms.txt compliance, MCP schema compatibility, and AI bot crawlability score.",
         "category": "ai-utilities",
         "price": 0.50,
-        "download_url": "https://www.jakeaiofficial.com/docs#/default/audit_agent_card_v1_tools_audit_agent_card_post",
+        "download_url": "https://jakeaiofficial.com/docs#/default/audit_agent_card_v1_tools_audit_agent_card_post",
+        "vendor_did": "did:a2a:jakeai_core"
+    }
+    ,"prod_genesis_commission_001": {
+        "title": "JakeAI Genesis Commission #001",
+        "description": "The first JakeAI customer commission. Tell JakeAI one real problem or opportunity; JakeAI evaluates feasibility, safety, and scope before accepting the commission.",
+        "category": "commission",
+        "price": 49.00,
+        "download_url": "https://jakeaiofficial.com/genesis-001.html",
         "vendor_did": "did:a2a:jakeai_core"
     }
 }
+
+
+# Fail-closed production commerce allowlist. Discovery records may exist for
+# additional capabilities, but only these product IDs may create checkout.
+PUBLIC_COMMERCE_ALLOWLIST = {"prod_make_free_00", "prod_genesis_commission_001"}
 
 def init_db():
     conn = sqlite3.connect(DB_PATH)
@@ -134,6 +148,46 @@ def init_db():
         fee_collected REAL NOT NULL,
         status TEXT NOT NULL,
         idempotency_key TEXT,
+        created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+    )
+    """)
+    cursor.execute("""
+    CREATE TABLE IF NOT EXISTS genesis_commission (
+        slot INTEGER PRIMARY KEY CHECK(slot = 1),
+        state TEXT NOT NULL DEFAULT 'available',
+        reservation_token TEXT,
+        stripe_session_id TEXT,
+        customer_email TEXT,
+        problem TEXT,
+        desired_outcome TEXT,
+        current_approach TEXT,
+        notes TEXT,
+        reserved_until INTEGER,
+        updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+    )
+    """)
+    cursor.execute("INSERT OR IGNORE INTO genesis_commission(slot, state) VALUES (1, 'available')")
+    # Backward-compatible schema migration for the Genesis operator lifecycle.
+    existing_cols = {row[1] for row in cursor.execute("PRAGMA table_info(genesis_commission)").fetchall()}
+    for col, spec in {
+        "intake_received_at": "TIMESTAMP",
+        "accepted_at": "TIMESTAMP",
+        "declined_at": "TIMESTAMP",
+        "completed_at": "TIMESTAMP",
+        "operator_note": "TEXT",
+        "delivery_note": "TEXT",
+    }.items():
+        if col not in existing_cols:
+            cursor.execute(f"ALTER TABLE genesis_commission ADD COLUMN {col} {spec}")
+    cursor.execute("""
+    CREATE TABLE IF NOT EXISTS genesis_events (
+        id INTEGER PRIMARY KEY AUTOINCREMENT,
+        event_type TEXT NOT NULL,
+        state_from TEXT,
+        state_to TEXT,
+        stripe_session_id TEXT,
+        customer_email TEXT,
+        note TEXT,
         created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
     )
     """)
@@ -173,7 +227,7 @@ async def http_exception_handler(request: Request, exc: HTTPException):
             "error": {
                 "status_code": exc.status_code,
                 "message": exc.detail,
-                "domain": "https://www.jakeaiofficial.com",
+                "domain": "https://jakeaiofficial.com",
                 "support_email": "support@jakeaiofficial.com"
             }
         }
@@ -212,6 +266,7 @@ class SettlementRequest(BaseModel):
 
 @app.post("/v1/solar/ira-calculator")
 def calculate_ira(req: IRACalculatorRequest):
+    raise HTTPException(status_code=503, detail="Tax assumptions and eligibility logic require authoritative-source and version validation before production use.")
     """Calculates Section 48 Base ITC and Adders under IRA rules"""
     base_rate = 0.30
     bonus_energy = 0.10 if req.is_energy_community else 0.0
@@ -240,6 +295,7 @@ def calculate_ira(req: IRACalculatorRequest):
 
 @app.post("/v1/energy/tariff-normalize")
 def normalize_tariff(req: TariffNormalizeRequest):
+    raise HTTPException(status_code=503, detail="Authoritative tariff-source ingestion and versioned rate provenance are not verified for production.")
     """Normalizes utility tariffs into structured machine objects"""
     volumetric_energy_rate = 0.0785 # avg generation/fuel $0.0785/kWh
     distribution_demand_rate = 14.50 # $14.50/kW peak demand
@@ -266,6 +322,7 @@ def normalize_tariff(req: TariffNormalizeRequest):
 
 @app.get("/v1/energy/tariff/pjm")
 def get_tariff_data():
+    raise HTTPException(status_code=503, detail="No verified live PJM data adapter is configured; demonstration values are not served as live grid data.")
     """Live PJM & Dominion LMP pricing and 4CP status"""
     return {
         "region": "PJM_DOMINION",
@@ -280,9 +337,10 @@ def get_tariff_data():
 
 @app.post("/v1/tools/extract-markdown")
 def extract_markdown(req: ExtractRequest):
+    raise HTTPException(status_code=503, detail="Public URL fetching is disabled until SSRF-safe destination validation and egress controls are verified.")
     """Clean web-to-markdown text extractor for LLMs"""
     try:
-        headers = {'User-Agent': 'JakeAIBot/2.0 (+https://www.jakeaiofficial.com)'}
+        headers = {'User-Agent': 'JakeAIBot/2.0 (+https://jakeaiofficial.com)'}
         request_obj = urllib.request.Request(req.url, headers=headers)
         with urllib.request.urlopen(request_obj, timeout=10) as response:
             html = response.read().decode('utf-8', errors='ignore')
@@ -373,6 +431,7 @@ def query_perplexity_auditor(prompt: str, api_key: Optional[str]) -> Dict[str, A
 
 @app.post("/v1/tools/multi-model-audit")
 def multi_model_audit(req: MultiModelAuditRequest, request: Request):
+    raise HTTPException(status_code=503, detail="Live provider participation and audit claims are not independently verified for this production route.")
     """Automated pre-deployment dual-model consensus audit (Claude 3.5 Sonnet + Perplexity Sonar-Pro)"""
     anthropic_key = request.headers.get("X-Anthropic-Key") or os.environ.get("ANTHROPIC_API_KEY", "").strip()
     perplexity_key = request.headers.get("X-Perplexity-Key") or os.environ.get("PERPLEXITY_API_KEY", "").strip()
@@ -399,6 +458,7 @@ def multi_model_audit(req: MultiModelAuditRequest, request: Request):
 
 @app.post("/v1/tools/audit-agent-card")
 def audit_agent_card(req: AgentAuditRequest):
+    raise HTTPException(status_code=503, detail="The legacy implementation used fixed results rather than a verified live audit.")
     """Audits any domain for llms.txt & agent-card readability"""
     clean_domain = req.domain.replace("https://", "").replace("http://", "").strip("/")
     return {
@@ -418,17 +478,61 @@ def create_checkout_session(product_id: str, idempotency_key: Optional[str] = He
     prod_data = GENESIS_CATALOG.get(product_id)
     if not prod_data:
         raise HTTPException(status_code=404, detail=f"Product {product_id} not found in catalog")
+    if product_id not in PUBLIC_COMMERCE_ALLOWLIST:
+        raise HTTPException(status_code=503, detail="Checkout is gated until delivery, entitlement, provenance, and safety verification are complete")
         
     secret_key = os.environ.get("STRIPE_SECRET_KEY", "").strip()
     if not secret_key:
         raise HTTPException(status_code=500, detail="STRIPE_SECRET_KEY missing in server variables")
         
     stripe.api_key = secret_key
-    success_url = prod_data.get("download_url", "https://www.jakeaiofficial.com?payment=success")
+    success_url = prod_data.get("download_url", "https://jakeaiofficial.com?payment=success")
     
     # Free Gateway SKU: frictionless 1-click delivery, bypass Stripe minimums
     if prod_data.get("price", 0) <= 0 or product_id == "prod_make_free_00":
         return RedirectResponse(url=success_url, status_code=303)
+
+    # Genesis #001 is a single-slot commission. Reserve the checkout slot before
+    # creating Stripe Checkout so two customers cannot purchase #001 concurrently.
+    if product_id == "prod_genesis_commission_001":
+        now = int(time.time())
+        token = uuid.uuid4().hex
+        conn = sqlite3.connect(DB_PATH, timeout=10, isolation_level=None)
+        try:
+            conn.execute("BEGIN IMMEDIATE")
+            row = conn.execute("SELECT state, reserved_until FROM genesis_commission WHERE slot=1").fetchone()
+            state, reserved_until = row if row else ("available", None)
+            if state == "reserved" and reserved_until and reserved_until <= now:
+                conn.execute("UPDATE genesis_commission SET state='available', reservation_token=NULL, stripe_session_id=NULL, reserved_until=NULL, updated_at=CURRENT_TIMESTAMP WHERE slot=1")
+                state = "available"
+            if state != "available":
+                conn.execute("ROLLBACK")
+                raise HTTPException(status_code=409, detail="Genesis Commission #001 is not currently available.")
+            conn.execute("UPDATE genesis_commission SET state='reserved', reservation_token=?, stripe_session_id=NULL, customer_email=NULL, problem=NULL, desired_outcome=NULL, current_approach=NULL, notes=NULL, reserved_until=?, intake_received_at=NULL, accepted_at=NULL, declined_at=NULL, completed_at=NULL, operator_note=NULL, delivery_note=NULL, updated_at=CURRENT_TIMESTAMP WHERE slot=1", (token, now + 1800))
+            conn.execute("COMMIT")
+        finally:
+            conn.close()
+        try:
+            session = stripe.checkout.Session.create(
+                payment_method_types=['card'],
+                line_items=[{'price_data': {'currency':'usd','product_data': {'name':prod_data['title'],'description':prod_data['description'][:250]},'unit_amount':4900},'quantity':1}],
+                mode='payment',
+                success_url="https://jakeaiofficial.com/genesis-001.html?session_id={CHECKOUT_SESSION_ID}",
+                cancel_url="https://jakeaiofficial.com/genesis-001.html?payment=cancelled",
+                expires_at=now + 1800,
+                metadata={'jakeai_product_id': product_id, 'reservation_token': token}
+            )
+            conn = sqlite3.connect(DB_PATH)
+            conn.execute("UPDATE genesis_commission SET stripe_session_id=? WHERE slot=1 AND reservation_token=?", (session.id, token))
+            conn.commit(); conn.close()
+            return RedirectResponse(url=session.url, status_code=303)
+        except HTTPException:
+            raise
+        except Exception as e:
+            conn = sqlite3.connect(DB_PATH)
+            conn.execute("UPDATE genesis_commission SET state='available', reservation_token=NULL, stripe_session_id=NULL, reserved_until=NULL WHERE slot=1 AND reservation_token=?", (token,))
+            conn.commit(); conn.close()
+            raise HTTPException(status_code=400, detail=f"Stripe Error: {str(e)}")
 
     stripe_kwargs = {}
     if idempotency_key:
@@ -450,17 +554,198 @@ def create_checkout_session(product_id: str, idempotency_key: Optional[str] = He
             }],
             mode='payment',
             success_url=success_url,
-            cancel_url="https://www.jakeaiofficial.com?payment=cancelled",
+            cancel_url="https://jakeaiofficial.com?payment=cancelled",
             **stripe_kwargs
         )
         return RedirectResponse(url=session.url, status_code=303)
     except Exception as e:
         raise HTTPException(status_code=400, detail=f"Stripe Error: {str(e)}")
 
+def _record_genesis_event(conn, event_type: str, state_from: str | None, state_to: str | None, stripe_session_id: str | None, customer_email: str | None, note: str = ""):
+    conn.execute(
+        "INSERT INTO genesis_events(event_type,state_from,state_to,stripe_session_id,customer_email,note) VALUES (?,?,?,?,?,?)",
+        (event_type, state_from, state_to, stripe_session_id, customer_email, note[:5000])
+    )
+
+def _require_genesis_admin(authorization: Optional[str]):
+    expected = os.environ.get("GENESIS_ADMIN_TOKEN", "").strip()
+    if not expected:
+        raise HTTPException(status_code=503, detail="Genesis operator controls are not configured")
+    if not authorization or not authorization.lower().startswith("bearer "):
+        raise HTTPException(status_code=401, detail="Genesis admin authorization required")
+    supplied = authorization.split(" ", 1)[1].strip()
+    if not supplied or not hmac.compare_digest(supplied, expected):
+        raise HTTPException(status_code=403, detail="Invalid Genesis admin authorization")
+
+@app.get("/v1/genesis/001/status")
+def genesis_001_status(session_id: Optional[str] = None):
+    now = int(time.time())
+    conn = sqlite3.connect(DB_PATH)
+    row = conn.execute("SELECT state, stripe_session_id, customer_email, reserved_until, problem FROM genesis_commission WHERE slot=1").fetchone()
+    conn.close()
+    state, stored_session, email, reserved_until, problem = row or ("available", None, None, None, None)
+    if state == "reserved" and reserved_until and reserved_until <= now:
+        conn = sqlite3.connect(DB_PATH)
+        conn.execute("UPDATE genesis_commission SET state='available', reservation_token=NULL, stripe_session_id=NULL, reserved_until=NULL WHERE slot=1 AND state='reserved' AND reserved_until<=?", (now,))
+        conn.commit(); conn.close(); state="available"; stored_session=None
+    paid = False
+    if session_id and stored_session == session_id:
+        try:
+            secret_key=os.environ.get("STRIPE_SECRET_KEY","").strip(); stripe.api_key=secret_key
+            sess=stripe.checkout.Session.retrieve(session_id)
+            paid = sess.payment_status == "paid"
+            if paid and state == "reserved":
+                email=(getattr(sess, 'customer_details', None) and sess.customer_details.email) or email
+                conn=sqlite3.connect(DB_PATH)
+                conn.execute("UPDATE genesis_commission SET state='claimed', customer_email=?, reserved_until=NULL, updated_at=CURRENT_TIMESTAMP WHERE slot=1 AND stripe_session_id=?", (email,session_id))
+                _record_genesis_event(conn, "payment_verified", "reserved", "claimed", session_id, email, "Verified Stripe payment claimed Genesis #001.")
+                conn.commit(); conn.close(); state='claimed'
+        except Exception:
+            paid=False
+    return {
+        "slot":"001",
+        "state":state,
+        "paid":paid,
+        "intake_allowed": bool(session_id and stored_session==session_id and state == 'claimed'),
+        "intake_received": bool(problem),
+    }
+
+class GenesisIntake(BaseModel):
+    session_id: str = Field(min_length=5, max_length=200)
+    problem: str = Field(min_length=5, max_length=5000)
+    desired_outcome: str = Field(default="", max_length=5000)
+    current_approach: str = Field(default="", max_length=5000)
+    notes: str = Field(default="", max_length=5000)
+
+@app.post("/v1/genesis/001/intake")
+def genesis_001_intake(req: GenesisIntake):
+    secret_key=os.environ.get("STRIPE_SECRET_KEY","").strip()
+    if not secret_key: raise HTTPException(status_code=500, detail="Payment verification unavailable")
+    stripe.api_key=secret_key
+    try: sess=stripe.checkout.Session.retrieve(req.session_id)
+    except Exception: raise HTTPException(status_code=400, detail="Invalid checkout session")
+    if sess.payment_status != 'paid' or (getattr(sess,'metadata',{}) or {}).get('jakeai_product_id') != 'prod_genesis_commission_001':
+        raise HTTPException(status_code=403, detail="A verified Genesis #001 payment is required")
+    conn=sqlite3.connect(DB_PATH)
+    row=conn.execute("SELECT stripe_session_id,state,customer_email,problem FROM genesis_commission WHERE slot=1").fetchone()
+    if not row or row[0] != req.session_id or row[1] != 'claimed':
+        conn.close(); raise HTTPException(status_code=409, detail="This checkout does not own an open Genesis #001 intake")
+    previous_problem = row[3]
+    conn.execute("UPDATE genesis_commission SET problem=?,desired_outcome=?,current_approach=?,notes=?,intake_received_at=CURRENT_TIMESTAMP,updated_at=CURRENT_TIMESTAMP WHERE slot=1",(req.problem,req.desired_outcome,req.current_approach,req.notes))
+    _record_genesis_event(conn, "intake_received" if not previous_problem else "intake_updated", "claimed", "claimed", req.session_id, row[2], "Customer submitted Genesis #001 intake.")
+    conn.commit(); conn.close()
+    return {"ok":True,"commission":"001","state":"claimed","message":"Genesis Commission #001 intake received by JakeAI."}
+
+class GenesisAdminAction(BaseModel):
+    note: str = Field(default="", max_length=5000)
+    delivery_note: str = Field(default="", max_length=5000)
+
+@app.get("/v1/genesis/001/admin/status")
+def genesis_001_admin_status(authorization: Optional[str] = Header(None, alias="Authorization")):
+    _require_genesis_admin(authorization)
+    conn=sqlite3.connect(DB_PATH)
+    conn.row_factory=sqlite3.Row
+    row=conn.execute("SELECT slot,state,stripe_session_id,customer_email,problem,desired_outcome,current_approach,notes,reserved_until,intake_received_at,accepted_at,declined_at,completed_at,operator_note,delivery_note,updated_at FROM genesis_commission WHERE slot=1").fetchone()
+    events=conn.execute("SELECT id,event_type,state_from,state_to,stripe_session_id,customer_email,note,created_at FROM genesis_events ORDER BY id DESC LIMIT 50").fetchall()
+    conn.close()
+    return {"commission": dict(row) if row else None, "events": [dict(e) for e in events]}
+
+@app.post("/v1/genesis/001/admin/accept")
+def genesis_001_admin_accept(req: GenesisAdminAction, authorization: Optional[str] = Header(None, alias="Authorization")):
+    _require_genesis_admin(authorization)
+    conn=sqlite3.connect(DB_PATH, timeout=10, isolation_level=None)
+    try:
+        conn.execute("BEGIN IMMEDIATE")
+        row=conn.execute("SELECT state,stripe_session_id,customer_email,problem FROM genesis_commission WHERE slot=1").fetchone()
+        if not row or row[0] != "claimed":
+            conn.execute("ROLLBACK"); raise HTTPException(status_code=409, detail="Genesis #001 is not awaiting acceptance")
+        if not (row[3] or "").strip():
+            conn.execute("ROLLBACK"); raise HTTPException(status_code=409, detail="Customer intake has not been submitted")
+        conn.execute("UPDATE genesis_commission SET state='accepted',accepted_at=CURRENT_TIMESTAMP,operator_note=?,updated_at=CURRENT_TIMESTAMP WHERE slot=1",(req.note,))
+        _record_genesis_event(conn, "accepted", "claimed", "accepted", row[1], row[2], req.note or "Commission accepted.")
+        conn.execute("COMMIT")
+    finally:
+        conn.close()
+    return {"ok":True,"commission":"001","state":"accepted"}
+
+@app.post("/v1/genesis/001/admin/decline")
+def genesis_001_admin_decline(req: GenesisAdminAction, authorization: Optional[str] = Header(None, alias="Authorization")):
+    _require_genesis_admin(authorization)
+    conn=sqlite3.connect(DB_PATH, timeout=10, isolation_level=None)
+    try:
+        conn.execute("BEGIN IMMEDIATE")
+        row=conn.execute("SELECT state,stripe_session_id,customer_email FROM genesis_commission WHERE slot=1").fetchone()
+        if not row or row[0] not in ("claimed","accepted"):
+            conn.execute("ROLLBACK"); raise HTTPException(status_code=409, detail="Genesis #001 cannot be declined from its current state")
+        old=row[0]
+        conn.execute("UPDATE genesis_commission SET state='declined_pending_refund',declined_at=CURRENT_TIMESTAMP,operator_note=?,updated_at=CURRENT_TIMESTAMP WHERE slot=1",(req.note,))
+        _record_genesis_event(conn, "declined", old, "declined_pending_refund", row[1], row[2], req.note or "Commission declined; refund must be verified before release.")
+        conn.execute("COMMIT")
+    finally:
+        conn.close()
+    return {"ok":True,"commission":"001","state":"declined_pending_refund","message":"Refund the payment in Stripe, then use refund-release. #001 remains locked until the refund is verified."}
+
+@app.post("/v1/genesis/001/admin/refund-release")
+def genesis_001_admin_refund_release(req: GenesisAdminAction, authorization: Optional[str] = Header(None, alias="Authorization")):
+    _require_genesis_admin(authorization)
+    conn=sqlite3.connect(DB_PATH)
+    row=conn.execute("SELECT state,stripe_session_id,customer_email FROM genesis_commission WHERE slot=1").fetchone()
+    conn.close()
+    if not row or row[0] != "declined_pending_refund" or not row[1]:
+        raise HTTPException(status_code=409, detail="Genesis #001 is not awaiting refund verification")
+    secret_key=os.environ.get("STRIPE_SECRET_KEY","").strip()
+    if not secret_key: raise HTTPException(status_code=503, detail="Stripe verification unavailable")
+    stripe.api_key=secret_key
+    try:
+        sess=stripe.checkout.Session.retrieve(row[1])
+        payment_intent=getattr(sess, "payment_intent", None)
+        if not payment_intent:
+            raise HTTPException(status_code=409, detail="Checkout session has no payment intent")
+        refunds=stripe.Refund.list(payment_intent=payment_intent, limit=10)
+        refunded=sum(int(getattr(r,"amount",0) or 0) for r in getattr(refunds,"data",[]) if getattr(r,"status","")=="succeeded")
+    except HTTPException:
+        raise
+    except Exception:
+        raise HTTPException(status_code=502, detail="Could not verify Stripe refund")
+    if refunded < 4900:
+        raise HTTPException(status_code=409, detail="A successful full $49 refund has not been verified")
+    conn=sqlite3.connect(DB_PATH, timeout=10, isolation_level=None)
+    try:
+        conn.execute("BEGIN IMMEDIATE")
+        current=conn.execute("SELECT state,stripe_session_id,customer_email FROM genesis_commission WHERE slot=1").fetchone()
+        if not current or current[0] != "declined_pending_refund" or current[1] != row[1]:
+            conn.execute("ROLLBACK"); raise HTTPException(status_code=409, detail="Genesis #001 changed while refund was being verified")
+        _record_genesis_event(conn, "refund_verified_release", "declined_pending_refund", "available", current[1], current[2], req.note or "Full refund verified; Genesis #001 released.")
+        conn.execute("UPDATE genesis_commission SET state='available',reservation_token=NULL,stripe_session_id=NULL,customer_email=NULL,problem=NULL,desired_outcome=NULL,current_approach=NULL,notes=NULL,reserved_until=NULL,intake_received_at=NULL,accepted_at=NULL,declined_at=NULL,completed_at=NULL,operator_note=NULL,delivery_note=NULL,updated_at=CURRENT_TIMESTAMP WHERE slot=1")
+        conn.execute("COMMIT")
+    finally:
+        conn.close()
+    return {"ok":True,"commission":"001","state":"available","message":"Full refund verified. Genesis #001 is available again."}
+
+@app.post("/v1/genesis/001/admin/complete")
+def genesis_001_admin_complete(req: GenesisAdminAction, authorization: Optional[str] = Header(None, alias="Authorization")):
+    _require_genesis_admin(authorization)
+    conn=sqlite3.connect(DB_PATH, timeout=10, isolation_level=None)
+    try:
+        conn.execute("BEGIN IMMEDIATE")
+        row=conn.execute("SELECT state,stripe_session_id,customer_email FROM genesis_commission WHERE slot=1").fetchone()
+        if not row or row[0] != "accepted":
+            conn.execute("ROLLBACK"); raise HTTPException(status_code=409, detail="Genesis #001 must be accepted before completion")
+        conn.execute("UPDATE genesis_commission SET state='completed',completed_at=CURRENT_TIMESTAMP,operator_note=CASE WHEN ?<>'' THEN ? ELSE operator_note END,delivery_note=?,updated_at=CURRENT_TIMESTAMP WHERE slot=1",(req.note,req.note,req.delivery_note))
+        _record_genesis_event(conn, "completed", "accepted", "completed", row[1], row[2], req.delivery_note or req.note or "Commission completed.")
+        conn.execute("COMMIT")
+    finally:
+        conn.close()
+    return {"ok":True,"commission":"001","state":"completed"}
+
 # Catalog Discovery Endpoints
 @app.get("/v1/products/list")
 def list_products():
-    return list(GENESIS_CATALOG.values())
+    return [
+        {"id": pid, **GENESIS_CATALOG[pid], "status": "live"}
+        for pid in sorted(PUBLIC_COMMERCE_ALLOWLIST)
+        if pid in GENESIS_CATALOG
+    ]
 
 
 # --- TELEMETRY HONEYPOT & ROBOTICS ENDPOINTS ---
@@ -495,6 +780,7 @@ class GraspResponse(BaseModel):
 
 @app.post("/v1/robotics/grasp-impedance-solver", response_model=GraspResponse)
 def solve_grasp(req: GraspRequest):
+    raise HTTPException(status_code=503, detail="Physical-control outputs require engineering validation and safety controls before production use.")
     """Calculates physical grip forces and tendon tensions for 22-DoF robotic manipulation"""
     start_time = time.perf_counter()
     num_fingers = 5
@@ -528,85 +814,70 @@ async def search_products(request: Request, background_tasks: BackgroundTasks, q
     except Exception:
         body = query_payload or {}
     q = str(body.get("query", "")).lower().strip()
+    live_products = [
+        {"id": pid, **GENESIS_CATALOG[pid], "status": "live"}
+        for pid in sorted(PUBLIC_COMMERCE_ALLOWLIST)
+        if pid in GENESIS_CATALOG
+    ]
     matches = [
-        p for p in GENESIS_CATALOG.values()
+        p for p in live_products
         if q and (q in p["title"].lower() or q in p["description"].lower() or q in p["category"].lower())
     ]
     client_ip = request.client.host if request.client else "unknown"
     ua = request.headers.get("user-agent", "unknown")
-    
-    # Background honeypot logging for market telemetry
     background_tasks.add_task(log_unmet_query, q, client_ip, ua, len(matches))
-    
-    return {
-        "status": "success" if matches else "no_matches_logged_to_telemetry",
-        "count": len(matches),
-        "results": matches or list(GENESIS_CATALOG.values())
-    }
+    return {"status": "success", "count": len(matches), "results": matches}
 
 # Machine Specifications
 @app.get("/llms.txt", response_class=PlainTextResponse)
 def llms_txt():
-    return """# JakeAI Network — Agent-to-Agent Machine Specification
-> System: Verified digital supply chain and capability exchange for autonomous AI agents.
-> Host: www.jakeaiofficial.com
-> Protocol Fee: 1.0% (100 basis points) on completed settlements.
-> Terms & Policies: https://www.jakeaiofficial.com/terms.html
+    return """# JakeAI — Human + AI Capability Discovery
+> Provider: JakeAI
+> Canonical host: https://jakeaiofficial.com
+> Public capability catalog: https://jakeaiofficial.com/catalog.json
+> Human capability catalog: https://jakeaiofficial.com/catalog/
+> Workflow registry: https://jakeaiofficial.com/workflow-registry.json
+> Agent card: https://jakeaiofficial.com/.well-known/agent.json
 
-## Active Machine Products:
-1. Commercial Solar & BESS Sizing Guide (2026 PDF)
-   - Product ID: prod_solar_guide_04
-   - Price: $3.00 USD
-   - Checkout: https://www.jakeaiofficial.com/api/v1/checkout/buy/prod_solar_guide_04
+JakeAI publishes public capability records for both human and AI discovery. Capability discovery does not imply purchase or invocation rights. Agents must honor each catalog record's explicit commerce and invocation state.
 
-2. IRA Section 48 Tax Credit Calculator API
-   - Product ID: prod_ira_calc_05
-   - Price: $1.00 USD / calculation
-   - Endpoint: POST /api/v1/solar/ira-calculator
-   - Checkout: https://www.jakeaiofficial.com/api/v1/checkout/buy/prod_ira_calc_05
+## CURRENT COMMERCE ALLOWLIST
+- Make the Damn Thing for Free™ — $0 — Product ID: prod_make_free_00
+- JakeAI Genesis Commission #001 — $49 — Product ID: prod_genesis_commission_001
 
-3. Web-to-Markdown Extraction API (100 Credits)
-   - Product ID: prod_scrape_01
-   - Price: $5.00 USD
-   - Endpoint: POST /api/v1/tools/extract-markdown
-   - Checkout: https://www.jakeaiofficial.com/api/v1/checkout/buy/prod_scrape_01
+## FAIL-CLOSED RULE
+Any product or capability not explicitly marked live by the commerce service is not available for automated purchase. Gated API routes return service-unavailable until delivery, provenance, entitlement, safety, or claims validation is complete.
 
-4. PJM Real-Time Energy Tariff & 4CP Alert Feed
-   - Product ID: prod_energy_01
-   - Price: $0.25 USD / query
-   - Endpoint: GET /api/v1/energy/tariff/pjm
-   - Checkout: https://www.jakeaiofficial.com/api/v1/checkout/buy/prod_energy_01
-
-5. Utility Tariff Normalizer API (PJM / Dominion / AEP)
-   - Product ID: prod_tariff_norm_06
-   - Price: $0.50 USD / query
-   - Endpoint: POST /api/v1/energy/tariff-normalize
-   - Checkout: https://www.jakeaiofficial.com/api/v1/checkout/buy/prod_tariff_norm_06
-
-7. Multi-Model Advisory Council Audit API
-   - Product ID: prod_multi_model_audit_08
-   - Price: .00 USD / audit
-   - Endpoint: POST /api/v1/tools/multi-model-audit
-   - Checkout: https://www.jakeaiofficial.com/api/v1/checkout/buy/prod_multi_model_audit_08
-
-6. llms.txt & Agent-Card Readability Auditor API
-   - Product ID: prod_agent_audit_07
-   - Price: $0.50 USD / audit
-   - Endpoint: POST /api/v1/tools/audit-agent-card
-   - Checkout: https://www.jakeaiofficial.com/api/v1/checkout/buy/prod_agent_audit_07
+Terms: https://jakeaiofficial.com/terms.html
+Privacy: https://jakeaiofficial.com/privacy.html
+Refunds: https://jakeaiofficial.com/refunds.html
 """
 
 @app.get("/.well-known/agent.json", response_class=JSONResponse)
 def agent_card():
+    live_products = [
+        {"id": pid, **GENESIS_CATALOG[pid], "status": "live"}
+        for pid in sorted(PUBLIC_COMMERCE_ALLOWLIST)
+        if pid in GENESIS_CATALOG
+    ]
     return {
-        "name": "JakeAI Commerce Network",
-        "url": "https://www.jakeaiofficial.com",
-        "description": "Verified digital supply chain and settlement rail for autonomous AI agents.",
-        "protocol_version": "2.0.0",
-        "fee_structure": {"protocol_fee_percent": 1.0, "currency": "USD"},
-        "active_catalog": list(GENESIS_CATALOG.values())
+        "name": "JakeAI",
+        "url": "https://jakeaiofficial.com",
+        "description": "JakeAI capability and autonomous-workflow ecosystem designed for human and AI-agent discovery, with explicit human release gates for consequential actions.",
+        "protocol_version": "3.1",
+        "discovery": {
+            "human_catalog_url": "https://jakeaiofficial.com/catalog/",
+            "machine_catalog_url": "https://jakeaiofficial.com/catalog.json",
+            "workflow_registry_url": "https://jakeaiofficial.com/workflow-registry.json"
+        },
+        "commerce": {
+            "mode": "fail_closed",
+            "rule": "Discovery does not imply purchase or invocation rights.",
+            "transactable_product_ids": [p["id"] for p in live_products]
+        },
+        "commerce_allowlist": live_products
     }
 
 @app.get("/health")
 def health():
-    return {"status": "healthy", "service": "JakeAI Core v2.0"}
+    return {"status": "healthy", "service": "JakeAI Core", "commerce_mode": "fail_closed", "version": "2.1.0"}

@@ -1,0 +1,124 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8" />
+<meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover,user-scalable=no" />
+<title>JakeAI Factory Panic — Game #004</title>
+<style>
+  :root{--bg:#02070b;--panel:#07141d;--cyan:#67e8f9;--blue:#4aa3ff;--warn:#ffb84d;--danger:#ff5b6e;--good:#66f0a6;--text:#eafaff;--muted:#89a9b8}
+  *{box-sizing:border-box} html,body{margin:0;height:100%;background:#02070b;color:var(--text);font-family:Inter,system-ui,-apple-system,Segoe UI,sans-serif;overflow:hidden}
+  #wrap{height:100%;display:grid;grid-template-rows:auto 1fr auto;background:
+    radial-gradient(circle at 50% 10%,rgba(52,188,255,.14),transparent 30%),
+    linear-gradient(#02070b,#06121a 60%,#02070b)}
+  header{display:flex;align-items:center;justify-content:space-between;padding:10px 14px;border-bottom:1px solid rgba(103,232,249,.16);background:rgba(2,7,11,.88);backdrop-filter:blur(10px);z-index:3}
+  .brand{font-weight:950;letter-spacing:.02em;font-size:18px}.brand b{color:var(--cyan)}
+  .title{text-align:right}.title strong{display:block;font-size:12px;letter-spacing:.18em}.title span{font-size:10px;color:var(--muted)}
+  #stage{position:relative;min-height:0}
+  canvas{position:absolute;inset:0;width:100%;height:100%;touch-action:none}
+  #hud{pointer-events:none;position:absolute;inset:0;padding:12px;display:grid;grid-template-columns:1fr auto;align-items:start}
+  .pill{display:inline-flex;gap:8px;align-items:center;padding:8px 10px;border:1px solid rgba(103,232,249,.2);border-radius:999px;background:rgba(2,10,15,.72);font-size:12px;box-shadow:0 8px 30px rgba(0,0,0,.25)}
+  .statrow{display:flex;gap:7px;flex-wrap:wrap}.stat b{color:var(--cyan)}
+  #status{text-align:right;max-width:48vw}.danger{color:var(--danger)!important}.good{color:var(--good)!important}
+  #overlay{position:absolute;inset:0;display:grid;place-items:center;padding:22px;background:linear-gradient(rgba(2,7,11,.18),rgba(2,7,11,.72));z-index:2}
+  #card{width:min(520px,94vw);padding:24px;border:1px solid rgba(103,232,249,.3);border-radius:24px;background:linear-gradient(145deg,rgba(9,29,41,.95),rgba(4,11,17,.97));box-shadow:0 25px 90px rgba(0,0,0,.45),inset 0 0 45px rgba(103,232,249,.03);text-align:center}
+  #card h1{font-size:clamp(34px,9vw,62px);line-height:.88;margin:8px 0 12px;letter-spacing:-.055em}
+  #card h1 b{color:var(--cyan)}
+  #card p{color:#b9d0db;line-height:1.45;margin:8px auto 18px;max-width:410px}
+  #card .eyebrow{font-size:11px;letter-spacing:.22em;color:#8deeff;font-weight:900}
+  button{border:1px solid rgba(103,232,249,.55);background:linear-gradient(135deg,#0d3445,#17234d);color:white;border-radius:15px;padding:13px 18px;font-weight:900;font-size:15px;cursor:pointer;box-shadow:0 0 24px rgba(75,215,255,.08)}
+  #tip{margin-top:12px;font-size:11px;color:#7f9aa6}
+  footer{padding:9px 12px;border-top:1px solid rgba(103,232,249,.12);background:rgba(2,7,11,.9);display:flex;justify-content:center;gap:8px}
+  .ctrl{min-width:70px;padding:11px 14px;border-radius:13px;border:1px solid rgba(103,232,249,.24);background:rgba(6,25,35,.85);font-weight:900;color:#dffaff;touch-action:manipulation}
+  .ctrl.fire{min-width:100px;border-color:rgba(255,184,77,.35);background:rgba(58,35,10,.82)}
+  .hidden{display:none!important}
+</style>
+</head>
+<body>
+<div id="wrap">
+<header>
+  <div class="brand">Jake<b>AI</b></div>
+  <div class="title"><strong>FACTORY PANIC</strong><span>GAME #004 · 60-SECOND FACTORY DEFENSE</span></div>
+</header>
+<div id="stage">
+  <canvas id="game"></canvas>
+  <div id="hud">
+    <div class="statrow">
+      <div class="pill stat">SCORE <b id="score">0</b></div>
+      <div class="pill stat">COMBO <b id="combo">x1</b></div>
+      <div class="pill stat">BEST <b id="best">0</b></div>
+    </div>
+    <div id="status" class="pill">FACTORY INTEGRITY <b id="integrity">100%</b></div>
+  </div>
+  <div id="overlay">
+    <div id="card">
+      <div class="eyebrow">JAKEAI ARCADE · GAME #004</div>
+      <h1>FACTORY<br><b>PANIC</b></h1>
+      <p>Production is melting down. Move the JakeAI repair bot beneath incoming failures and hit <b>FIX</b> before they cross the red line. Survive the full 60-second shift and build the biggest combo you can.</p>
+      <button id="start" aria-label="Start Factory Panic">START SHIFT →</button>
+      <div id="tip">Desktop: ← → / A D + Space · Mobile: buttons below or tap a lane · Best score saves locally</div>
+    </div>
+  </div>
+</div>
+<footer>
+  <button class="ctrl" id="left" aria-label="Move left">← LEFT</button>
+  <button class="ctrl fire" id="fire" aria-label="Fix failure">FIX</button>
+  <button class="ctrl" id="right" aria-label="Move right">RIGHT →</button>
+</footer>
+</div>
+<script>
+(()=>{
+const c=document.getElementById('game'),ctx=c.getContext('2d');
+const stage=document.getElementById('stage');
+const scoreEl=document.getElementById('score'),comboEl=document.getElementById('combo'),integrityEl=document.getElementById('integrity'),bestEl=document.getElementById('best');
+const overlay=document.getElementById('overlay'),startBtn=document.getElementById('start'),card=document.getElementById('card');
+let W=0,H=0,dpr=1,running=false,last=0,score=0,combo=1,integrity=100,elapsed=0,spawnClock=0,shake=0,flash=0;
+let best=Number(localStorage.getItem('jakeai-factory-panic-best')||0); bestEl.textContent=best;
+const lanes=5, hazards=[]; let player={lane:2,cooldown:0,pulse:0};
+const types=[
+ {name:'JAM',abbr:'JAM',hue:31,pts:100},
+ {name:'SURGE',abbr:'⚡',hue:52,pts:120},
+ {name:'MISSORT',abbr:'404',hue:194,pts:110},
+ {name:'OVERHEAT',abbr:'HOT',hue:352,pts:140},
+ {name:'BAD DATA',abbr:'ERR',hue:282,pts:130}
+];
+function resize(){dpr=Math.min(2,devicePixelRatio||1);W=stage.clientWidth;H=stage.clientHeight;c.width=W*dpr;c.height=H*dpr;ctx.setTransform(dpr,0,0,dpr,0,0)} addEventListener('resize',resize);resize();
+function laneX(i){return (i+.5)*W/lanes}
+function reset(){hazards.length=0;score=0;combo=1;integrity=100;elapsed=0;spawnClock=0;shake=0;flash=0;player={lane:2,cooldown:0,pulse:0};syncHUD()}
+function syncHUD(){scoreEl.textContent=Math.floor(score);comboEl.textContent='x'+combo;integrityEl.textContent=Math.max(0,Math.ceil(integrity))+'%';document.getElementById('status').className='pill '+(integrity<35?'danger':integrity>75?'good':'')}
+function start(){reset();running=true;last=performance.now();overlay.classList.add('hidden');draw();requestAnimationFrame(loop)}
+function end(){running=false;best=Math.max(best,Math.floor(score));localStorage.setItem('jakeai-factory-panic-best',best);bestEl.textContent=best;overlay.classList.remove('hidden');card.innerHTML=`<div class="eyebrow">SHIFT COMPLETE</div><h1>${integrity<=0?'FACTORY<br><b>DOWN</b>':'SHIFT<br><b>SAVED</b>'}</h1><p>Score <b>${Math.floor(score)}</b> · Best <b>${best}</b><br>${integrity<=0?'Too many failures crossed the line.':'The factory survived the panic.'}</p><button id="again">RUN IT AGAIN →</button><div id="tip">60-second shift · Protect the factory · Chase the high score.</div>`;document.getElementById('again').onclick=start}
+startBtn.onclick=start;
+function move(d){if(!running)return;player.lane=Math.max(0,Math.min(lanes-1,player.lane+d))}
+function fire(){if(!running||player.cooldown>0)return;player.cooldown=.22;player.pulse=1;let hit=-1,bestY=-1;for(let i=0;i<hazards.length;i++){let h=hazards[i];if(h.lane===player.lane && h.y>H*.38 && h.y>bestY){hit=i;bestY=h.y}}
+ if(hit>=0){let h=hazards.splice(hit,1)[0];score+=h.type.pts*combo;combo=Math.min(9,combo+1);flash=.18;beep(700+combo*35,.05)}else{combo=1;beep(160,.035)} syncHUD()}
+document.getElementById('left').onpointerdown=()=>move(-1);document.getElementById('right').onpointerdown=()=>move(1);document.getElementById('fire').onpointerdown=fire;
+addEventListener('keydown',e=>{if(['ArrowLeft','a','A'].includes(e.key)){e.preventDefault();move(-1)} if(['ArrowRight','d','D'].includes(e.key)){e.preventDefault();move(1)} if(e.code==='Space'){e.preventDefault();fire()}});
+c.addEventListener('pointerdown',e=>{if(!running)return;let r=c.getBoundingClientRect(),x=e.clientX-r.left;player.lane=Math.max(0,Math.min(lanes-1,Math.floor(x/(W/lanes))));fire()});
+let audioCtx;function beep(freq,dur){try{audioCtx??=new (window.AudioContext||window.webkitAudioContext)();let o=audioCtx.createOscillator(),g=audioCtx.createGain();o.type='square';o.frequency.value=freq;g.gain.value=.025;o.connect(g);g.connect(audioCtx.destination);o.start();g.gain.exponentialRampToValueAtTime(.0001,audioCtx.currentTime+dur);o.stop(audioCtx.currentTime+dur)}catch{}}
+function spawn(){const type=types[Math.floor(Math.random()*types.length)];hazards.push({lane:Math.floor(Math.random()*lanes),y:-40,speed:85+elapsed*1.5+Math.random()*45,type,rot:(Math.random()-.5)*.3})}
+function update(dt){elapsed+=dt;player.cooldown=Math.max(0,player.cooldown-dt);player.pulse=Math.max(0,player.pulse-dt*4);flash=Math.max(0,flash-dt);shake=Math.max(0,shake-dt*4);
+ spawnClock-=dt;let interval=Math.max(.38,1.15-elapsed*.009);if(spawnClock<=0){spawn();spawnClock=interval*(.7+Math.random()*.55)}
+ for(let i=hazards.length-1;i>=0;i--){let h=hazards[i];h.y+=h.speed*dt;if(h.y>H*.84){hazards.splice(i,1);integrity-=12;combo=1;shake=1;beep(90,.12)}}
+ score+=dt*4*combo;if(integrity<=0||elapsed>=60)end();syncHUD()}
+function roundRect(x,y,w,h,r){ctx.beginPath();ctx.roundRect(x,y,w,h,r)}
+function draw(){ctx.clearRect(0,0,W,H);ctx.save();if(shake>0)ctx.translate((Math.random()-.5)*7*shake,(Math.random()-.5)*5*shake);
+ // background factory depth
+ let grd=ctx.createLinearGradient(0,0,0,H);grd.addColorStop(0,'#071923');grd.addColorStop(1,'#02070b');ctx.fillStyle=grd;ctx.fillRect(0,0,W,H);
+ ctx.globalAlpha=.25;for(let i=0;i<20;i++){let y=(i*73+(elapsed*14)%73);ctx.strokeStyle='rgba(96,221,255,.12)';ctx.beginPath();ctx.moveTo(0,y);ctx.lineTo(W,y);ctx.stroke()}ctx.globalAlpha=1;
+ // lane conveyor belts
+ for(let i=0;i<lanes;i++){let x=i*W/lanes,ww=W/lanes;ctx.fillStyle=i%2?'rgba(9,30,41,.54)':'rgba(7,24,34,.46)';ctx.fillRect(x+2,0,ww-4,H);ctx.strokeStyle='rgba(103,232,249,.1)';ctx.strokeRect(x+2,0,ww-4,H);for(let yy=(elapsed*120)%56-56;yy<H;yy+=56){ctx.fillStyle='rgba(122,179,200,.08)';ctx.fillRect(x+8,yy,ww-16,5)}}
+ // danger line
+ let dy=H*.84;ctx.fillStyle='rgba(255,91,110,.12)';ctx.fillRect(0,dy,W,H-dy);ctx.strokeStyle='rgba(255,91,110,.65)';ctx.lineWidth=2;ctx.setLineDash([10,8]);ctx.beginPath();ctx.moveTo(0,dy);ctx.lineTo(W,dy);ctx.stroke();ctx.setLineDash([]);
+ // hazards
+ hazards.forEach(h=>{let x=laneX(h.lane),w=Math.min(74,W/lanes*.7),hh=54;ctx.save();ctx.translate(x,h.y);ctx.rotate(h.rot);ctx.shadowBlur=20;ctx.shadowColor=`hsla(${h.type.hue},90%,60%,.35)`;ctx.fillStyle=`hsla(${h.type.hue},70%,22%,.92)`;ctx.strokeStyle=`hsla(${h.type.hue},90%,67%,.9)`;ctx.lineWidth=2;roundRect(-w/2,-hh/2,w,hh,12);ctx.fill();ctx.stroke();ctx.shadowBlur=0;ctx.fillStyle='#ecfbff';ctx.font='900 14px system-ui';ctx.textAlign='center';ctx.textBaseline='middle';ctx.fillText(h.type.abbr,0,-4);ctx.font='700 8px system-ui';ctx.fillStyle='rgba(230,249,255,.7)';ctx.fillText(h.type.name,0,14);ctx.restore()});
+ // player bot
+ let px=laneX(player.lane),py=H*.91;ctx.save();ctx.translate(px,py);ctx.shadowBlur=26;ctx.shadowColor='rgba(103,232,249,.5)';ctx.fillStyle='#d8f7ff';roundRect(-27,-22,54,40,14);ctx.fill();ctx.fillStyle='#06141c';roundRect(-19,-15,38,22,9);ctx.fill();ctx.shadowBlur=0;ctx.fillStyle='#67e8f9';ctx.beginPath();ctx.arc(-8,-4,3,0,7);ctx.arc(8,-4,3,0,7);ctx.fill();ctx.fillStyle='#0a2230';ctx.font='900 8px system-ui';ctx.textAlign='center';ctx.fillText('JakeAI',0,14);ctx.fillStyle='#c9eef8';ctx.fillRect(-17,19,10,8);ctx.fillRect(7,19,10,8);if(player.pulse>0){ctx.strokeStyle=`rgba(103,232,249,${player.pulse})`;ctx.lineWidth=4;ctx.beginPath();ctx.arc(0,-6,35+(1-player.pulse)*80,0,Math.PI*2);ctx.stroke()}ctx.restore();
+ // shift timer
+ ctx.fillStyle='rgba(1,7,11,.66)';roundRect(W/2-54,10,108,27,14);ctx.fill();ctx.fillStyle='#dffaff';ctx.font='900 12px system-ui';ctx.textAlign='center';ctx.fillText('SHIFT '+Math.max(0,60-elapsed).toFixed(1)+'s',W/2,28);
+ if(flash>0){ctx.fillStyle=`rgba(103,232,249,${flash*.35})`;ctx.fillRect(0,0,W,H)}ctx.restore()}
+ function loop(t){if(!running)return;let dt=Math.min(.033,(t-last)/1000);last=t;update(dt);draw();if(running)requestAnimationFrame(loop)}
+ draw();
+})();
+</script>
+</body>
+</html>

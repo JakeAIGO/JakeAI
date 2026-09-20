@@ -1,0 +1,8 @@
+{
+  "name": "jakeai-universe",
+  "private": true,
+  "type": "module",
+  "dependencies": {
+    "@netlify/blobs": "latest"
+  }
+}

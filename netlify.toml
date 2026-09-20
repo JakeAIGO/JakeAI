@@ -4,55 +4,55 @@
 
 [[redirects]]
   from = "/v1/*"
-  to = "https://agent-commerce-network-production-56e8.up.railway.app/v1/:splat"
+  to = "https://agent-commerce-network-production.up.railway.app/v1/:splat"
   status = 200
   force = true
 
 [[redirects]]
   from = "/api/v1/*"
-  to = "https://agent-commerce-network-production-56e8.up.railway.app/v1/:splat"
+  to = "https://agent-commerce-network-production.up.railway.app/v1/:splat"
   status = 200
   force = true
 
 [[redirects]]
   from = "/api/*"
-  to = "https://agent-commerce-network-production-56e8.up.railway.app/:splat"
+  to = "https://agent-commerce-network-production.up.railway.app/:splat"
   status = 200
   force = true
 
 [[redirects]]
   from = "/docs"
-  to = "https://agent-commerce-network-production-56e8.up.railway.app/docs"
+  to = "https://agent-commerce-network-production.up.railway.app/docs"
   status = 200
   force = true
 
 [[redirects]]
   from = "/openapi.json"
-  to = "https://agent-commerce-network-production-56e8.up.railway.app/openapi.json"
+  to = "https://agent-commerce-network-production.up.railway.app/openapi.json"
   status = 200
   force = true
 
 [[redirects]]
   from = "/health"
-  to = "https://agent-commerce-network-production-56e8.up.railway.app/health"
+  to = "https://agent-commerce-network-production.up.railway.app/health"
   status = 200
   force = true
 
 [[redirects]]
   from = "/health/checkout"
-  to = "https://agent-commerce-network-production-56e8.up.railway.app/health/checkout"
+  to = "https://agent-commerce-network-production.up.railway.app/health/checkout"
   status = 200
   force = true
 
 [[redirects]]
   from = "/llms.txt"
-  to = "https://agent-commerce-network-production-56e8.up.railway.app/llms.txt"
+  to = "https://agent-commerce-network-production.up.railway.app/llms.txt"
   status = 200
   force = true
 
 [[redirects]]
   from = "/.well-known/*"
-  to = "https://agent-commerce-network-production-56e8.up.railway.app/.well-known/:splat"
+  to = "https://agent-commerce-network-production.up.railway.app/.well-known/:splat"
   status = 200
   force = true
 

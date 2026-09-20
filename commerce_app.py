@@ -1,5 +1,4 @@
 import os
-import hmac
 import sqlite3
 import uuid
 from datetime import datetime, timezone
@@ -29,12 +28,13 @@ INVENTORY_PRODUCT = {"title":"JakeAI Inventory & Replenishment Intelligence Auto
 POOL_PRODUCT_ID = "prod_pool_coach_autopilot_01"
 POOL_PRODUCT = {"title":"JakeAI Pool Coach Autopilot v1.0","description":"A lightweight pool-practice companion that turns plain-language session notes into recurring-pattern tracking and a focused next-session warmup. Recreational training aid; no wagering, guaranteed shot prediction, or camera analysis in v1.0.","category":"sports-practice-workflow","price":1.00,"download_url":SECURE_DELIVERY_URL,"delivery_mode":"protected_order","vendor_did":"did:a2a:jakeai_core"}
 GLASSES_PRODUCT_ID = "prod_where_the_hell_are_my_glasses_01"
+GENESIS_PRODUCT_ID = "prod_genesis_commission_001"
 GLASSES_PRODUCT = {"title":"Where the Hell Are My Glasses? v1.0","description":"Humorous stateful guided-search workflow that remembers checked locations, reconstructs the last-use context, supports opt-in pattern learning, and includes safety guardrails. No camera-based object detection in v1.0.","category":"life-automation-comedy","price":2.99,"download_url":SECURE_DELIVERY_URL,"delivery_mode":"protected_order","vendor_did":"did:a2a:jakeai_core"}
 
 PROMOTED_PRODUCTS={GAME_QA_PRODUCT_ID:GAME_QA_PRODUCT,BOSS_FIGHT_PRODUCT_ID:BOSS_FIGHT_PRODUCT,INVENTORY_PRODUCT_ID:INVENTORY_PRODUCT,POOL_PRODUCT_ID:POOL_PRODUCT,GLASSES_PRODUCT_ID:GLASSES_PRODUCT}
 main.GENESIS_CATALOG.update(PROMOTED_PRODUCTS)
-# Pool Coach is enabled only on the isolated commerce feature branch as the $1 controlled purchase test product.
-COMMERCE_ENABLED={"prod_make_free_00","prod_solar_guide_04",GAME_QA_PRODUCT_ID,BOSS_FIGHT_PRODUCT_ID,INVENTORY_PRODUCT_ID,POOL_PRODUCT_ID,GLASSES_PRODUCT_ID}
+# Pool Coach is intentionally omitted while its checkout/delivery flow is under review.
+COMMERCE_ENABLED={"prod_make_free_00","prod_solar_guide_04",GAME_QA_PRODUCT_ID,BOSS_FIGHT_PRODUCT_ID,INVENTORY_PRODUCT_ID,GLASSES_PRODUCT_ID}
 
 PRODUCT_PAGE_PATHS={
     GAME_QA_PRODUCT_ID:"/game-qa-autopilot.html",
@@ -45,7 +45,7 @@ PRODUCT_PAGE_PATHS={
 }
 
 app.user_middleware=[m for m in app.user_middleware if m.cls is not CORSMiddleware]
-app.add_middleware(CORSMiddleware,allow_origins=["https://jakeaiofficial.com","https://www.jakeaiofficial.com"],allow_credentials=False,allow_methods=["GET","POST","OPTIONS"],allow_headers=["Content-Type","Idempotency-Key"])
+app.add_middleware(CORSMiddleware,allow_origins=["https://jakeaiofficial.com","https://www.jakeaiofficial.com"],allow_credentials=False,allow_methods=["GET","POST","OPTIONS"],allow_headers=["Content-Type","Idempotency-Key","X-Genesis-Admin-Token"])
 
 def is_safe_url(url:str)->bool:
     try: parsed=urlparse(url)
@@ -68,12 +68,7 @@ def _commerce_conn():
 
 def _init_commerce_tables():
     conn=_commerce_conn()
-    conn.execute("CREATE TABLE IF NOT EXISTS commerce_orders (id TEXT PRIMARY KEY,product_id TEXT NOT NULL,amount_cents INTEGER NOT NULL,status TEXT NOT NULL,stripe_session_id TEXT,source TEXT,created_at TEXT NOT NULL,completed_at TEXT,receipt_access_token TEXT)")
-    order_columns={row[1] for row in conn.execute("PRAGMA table_info(commerce_orders)").fetchall()}
-    if "receipt_access_token" not in order_columns:
-        conn.execute("ALTER TABLE commerce_orders ADD COLUMN receipt_access_token TEXT")
-    conn.execute("CREATE TABLE IF NOT EXISTS commerce_entitlements (id TEXT PRIMARY KEY,order_id TEXT NOT NULL UNIQUE,product_id TEXT NOT NULL,status TEXT NOT NULL,buyer_type TEXT NOT NULL DEFAULT 'human',principal TEXT,authorized_by TEXT,created_at TEXT NOT NULL,activated_at TEXT)")
-    conn.execute("CREATE TABLE IF NOT EXISTS commerce_receipts (id TEXT PRIMARY KEY,order_id TEXT NOT NULL UNIQUE,product_id TEXT NOT NULL,payment_rail TEXT NOT NULL,amount_cents INTEGER NOT NULL,payment_reference TEXT,entitlement_id TEXT NOT NULL,created_at TEXT NOT NULL)")
+    conn.execute("CREATE TABLE IF NOT EXISTS commerce_orders (id TEXT PRIMARY KEY,product_id TEXT NOT NULL,amount_cents INTEGER NOT NULL,status TEXT NOT NULL,stripe_session_id TEXT,source TEXT,created_at TEXT NOT NULL,completed_at TEXT)")
     conn.commit();conn.close()
     try:
         catalog=sqlite3.connect(DB_PATH,timeout=5)
@@ -83,29 +78,10 @@ def _init_commerce_tables():
         pass
 
 def _create_order(product_id,amount_cents,status,source=None):
-    oid=f"ord_{uuid.uuid4().hex}"; token=f"rct_{uuid.uuid4().hex}{uuid.uuid4().hex}"; now=datetime.now(timezone.utc).isoformat();conn=_commerce_conn();conn.execute("INSERT INTO commerce_orders (id,product_id,amount_cents,status,source,created_at,receipt_access_token) VALUES (?,?,?,?,?,?,?)",(oid,product_id,amount_cents,status,source,now,token));conn.commit();conn.close();return oid
+    oid=f"ord_{uuid.uuid4().hex}"; now=datetime.now(timezone.utc).isoformat();conn=_commerce_conn();conn.execute("INSERT INTO commerce_orders (id,product_id,amount_cents,status,source,created_at) VALUES (?,?,?,?,?,?)",(oid,product_id,amount_cents,status,source,now));conn.commit();conn.close();return oid
 
 def _mark_order_paid(order_id,session_id):
     conn=_commerce_conn();conn.execute("UPDATE commerce_orders SET status='paid',stripe_session_id=?,completed_at=? WHERE id=?",(session_id,datetime.now(timezone.utc).isoformat(),order_id));conn.commit();conn.close()
-
-def _issue_entitlement_and_receipt(order_id:str,payment_rail:str,payment_reference:Optional[str]=None,buyer_type:str="human",principal:Optional[str]=None,authorized_by:Optional[str]=None):
-    order=_get_order(order_id)
-    if not order or order["status"]!="paid":raise HTTPException(409,"Verified payment is required before entitlement")
-    now=datetime.now(timezone.utc).isoformat();conn=_commerce_conn()
-    eid=f"ent_{uuid.uuid4().hex}";rid=f"rcpt_{uuid.uuid4().hex}"
-    try:
-        conn.execute("BEGIN IMMEDIATE")
-        existing=conn.execute("SELECT r.id AS receipt_id,e.id AS entitlement_id FROM commerce_receipts r JOIN commerce_entitlements e ON e.id=r.entitlement_id WHERE r.order_id=?",(order_id,)).fetchone()
-        if existing:
-            conn.commit();conn.close();return dict(existing)
-        conn.execute("INSERT INTO commerce_entitlements (id,order_id,product_id,status,buyer_type,principal,authorized_by,created_at,activated_at) VALUES (?,?,?,?,?,?,?,?,?)",(eid,order_id,order["product_id"],"active",buyer_type,principal,authorized_by,now,now))
-        conn.execute("INSERT INTO commerce_receipts (id,order_id,product_id,payment_rail,amount_cents,payment_reference,entitlement_id,created_at) VALUES (?,?,?,?,?,?,?,?)",(rid,order_id,order["product_id"],payment_rail,order["amount_cents"],payment_reference,eid,now))
-        conn.commit()
-    except Exception:conn.rollback();conn.close();raise
-    conn.close();return {"receipt_id":rid,"entitlement_id":eid}
-
-def _get_receipt(order_id:str):
-    conn=_commerce_conn();row=conn.execute("SELECT r.*,e.status AS entitlement_status,e.buyer_type,e.principal,e.authorized_by,e.activated_at FROM commerce_receipts r JOIN commerce_entitlements e ON e.id=r.entitlement_id WHERE r.order_id=?",(order_id,)).fetchone();conn.close();return dict(row) if row else None
 
 def _set_order_session(order_id,session_id):
     conn=_commerce_conn();conn.execute("UPDATE commerce_orders SET stripe_session_id=? WHERE id=?",(session_id,order_id));conn.commit();conn.close()
@@ -138,6 +114,11 @@ def checkout_health():
 async def buy_product(product_id:str,request:Request,source:Optional[str]=None,idempotency_key:Optional[str]=Header(None,alias="Idempotency-Key")):
     product=main.GENESIS_CATALOG.get(product_id)
     if not product:raise HTTPException(404,"Product not found")
+    # Genesis #001 has its own single-slot reservation + human-review checkout
+    # state machine in main.py. Delegate to it before the generic commerce
+    # allowlist so the generic order layer cannot bypass or block that logic.
+    if product_id == GENESIS_PRODUCT_ID:
+        return main.create_checkout_session(product_id, idempotency_key)
     if not is_product_checkout_enabled(product_id):raise HTTPException(409,"Checkout is not active for this product yet")
     amount_cents=int(round(float(product.get("price",0))*100));delivery_url=product.get("download_url")
     if not delivery_url or not is_safe_url(delivery_url):raise HTTPException(409,"Product delivery is not configured safely")
@@ -177,44 +158,10 @@ def complete_checkout(session_id:str,order_id:str):
     except Exception as exc:raise HTTPException(400,f"Payment verification failed: {exc}")
     md=getattr(session,"metadata",{}) or {}
     if getattr(session,"payment_status",None)!="paid" or md.get("jakeai_order_id")!=order_id or md.get("product_id")!=order["product_id"] or int(getattr(session,"amount_total",-1) or -1)!=int(order["amount_cents"]) or str(getattr(session,"currency","")).lower()!="usd":raise HTTPException(402,"Payment has not been verified for this order")
-    _mark_order_paid(order_id,session_id)
-    _issue_entitlement_and_receipt(order_id,"card",session_id)
-    return RedirectResponse(target,303)
+    _mark_order_paid(order_id,session_id);return RedirectResponse(target,303)
 
 @app.get("/v1/commerce/status/{order_id}")
 def commerce_status(order_id:str):
     order=_get_order(order_id)
     if not order:raise HTTPException(404,"Order not found")
     return {k:order[k] for k in ["id","product_id","amount_cents","status","created_at","completed_at"]}
-
-
-@app.get("/v1/commerce/receipt/{order_id}")
-def commerce_receipt(order_id:str,receipt_key:Optional[str]=Header(None,alias="X-JakeAI-Receipt-Key")):
-    order=_get_order(order_id)
-    if not order:raise HTTPException(404,"Order not found")
-    expected=order.get("receipt_access_token") or ""
-    if not expected or not receipt_key or not hmac.compare_digest(receipt_key,expected):
-        raise HTTPException(403,"Receipt authorization required")
-    receipt=_get_receipt(order_id)
-    if not receipt:raise HTTPException(404,"Receipt is not available")
-    return {"receipt_id":receipt["id"],"order_id":receipt["order_id"],"product_id":receipt["product_id"],"payment_rail":receipt["payment_rail"],"amount_cents":receipt["amount_cents"],"payment_reference":receipt["payment_reference"],"entitlement":{"id":receipt["entitlement_id"],"status":receipt["entitlement_status"],"buyer_type":receipt["buyer_type"],"principal":receipt["principal"],"authorized_by":receipt["authorized_by"],"activated_at":receipt["activated_at"]},"created_at":receipt["created_at"]}
-
-
-@app.post("/v1/commerce/dry-run/{product_id}")
-def commerce_dry_run(product_id:str,preview_key:Optional[str]=Header(None,alias="X-JakeAI-Preview-Key")):
-    if os.environ.get("JAKEAI_COMMERCE_DRY_RUN_ENABLED","").strip().lower() not in {"1","true","yes","on"}:
-        raise HTTPException(404,"Dry run is not enabled")
-    expected_key=os.environ.get("JAKEAI_COMMERCE_PREVIEW_KEY","").strip()
-    if not expected_key:
-        raise HTTPException(404,"Dry run is not enabled")
-    if not preview_key or not hmac.compare_digest(preview_key,expected_key):
-        raise HTTPException(403,"Private preview authorization required")
-    product=main.GENESIS_CATALOG.get(product_id)
-    if not product:raise HTTPException(404,"Product not found")
-    amount_cents=int(round(float(product.get("price",0))*100))
-    oid=_create_order(product_id,amount_cents,"pending_payment","private-dry-run")
-    simulation_reference=f"sim_{uuid.uuid4().hex}"
-    _mark_order_paid(oid,simulation_reference)
-    issued=_issue_entitlement_and_receipt(oid,"simulation",simulation_reference)
-    receipt=_get_receipt(oid)
-    return {"mode":"simulation","money_moved":False,"external_payment_processor_contacted":False,"blockchain_contacted":False,"order":{"id":oid,"product_id":product_id,"amount_cents":amount_cents,"status":"paid"},"payment":{"rail":"simulation","reference":simulation_reference,"status":"verified_simulation"},"entitlement":{"id":issued["entitlement_id"],"status":receipt["entitlement_status"]},"receipt":{"id":issued["receipt_id"],"endpoint":f"/v1/commerce/receipt/{oid}","access_token":_get_order(oid)["receipt_access_token"]}}

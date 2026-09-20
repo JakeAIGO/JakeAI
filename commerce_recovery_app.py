@@ -2,8 +2,7 @@ import os
 from datetime import datetime, timezone
 
 import stripe
-from fastapi import Request, HTTPException
-from fastapi.responses import HTMLResponse
+from fastapi import Request
 
 import commerce_app
 from crypto_commerce_app import app
@@ -131,9 +130,203 @@ async def recover_checkout_order_after_ephemeral_storage_loss(request: Request, 
 
     return await call_next(request)
 
+# ---------------------------------------------------------------------------
+# Genesis #001 private human-review routes
+# ---------------------------------------------------------------------------
+# Railway boots this module directly (see Dockerfile). Register the review
+# surface here so it is guaranteed to exist in the production ASGI app even
+# though the underlying review logic remains owned by main.py.
+from typing import Optional
+from fastapi import Header, HTTPException
+from pydantic import BaseModel, Field
 
-@app.get("/", response_class=HTMLResponse)
-def private_commerce_preview():
-    if os.environ.get("JAKEAI_COMMERCE_DRY_RUN_ENABLED","").strip().lower() not in {"1","true","yes","on"}:
-        raise HTTPException(404,"Not Found")
-    return """<!doctype html><html><head><meta name="viewport" content="width=device-width,initial-scale=1"><title>JakeAI Commerce — Isolated Preview</title><style>:root{color-scheme:dark}*{box-sizing:border-box}body{margin:0;background:#05070c;color:#eef5ff;font:16px/1.5 system-ui,sans-serif}main{max-width:720px;margin:auto;padding:28px 18px}.brand{font-weight:900;font-size:30px}.brand b{color:#62e7ff}.eyebrow{letter-spacing:.16em;text-transform:uppercase;color:#8fa8bf;font-size:12px}.panel{margin-top:22px;padding:22px;border:1px solid #203047;border-radius:20px;background:#0c1320}h1{font-size:34px;line-height:1.08}p{color:#b8c7d8}.notice{margin-top:16px;padding:13px;border:1px solid #263b51;border-radius:12px;color:#9fb4c8}.action,input{width:100%;margin-top:12px;padding:15px;border-radius:14px;font:inherit}.action{border:0;background:#eef5ff;color:#07101a;font-weight:850}.action:disabled{opacity:.45}input{border:1px solid #2b405a;background:#080b12;color:#eef5ff}pre{white-space:pre-wrap;word-break:break-word;color:#a8efff}</style></head><body><main><div class="brand">Jake<b>AI</b></div><div class="eyebrow">Commerce · Isolated Railway Preview</div><section class="panel"><h1>Zero-money commerce simulation.</h1><p>This surface exercises JakeAI order → entitlement → receipt. Card, USDC, Stripe and blockchain execution are not available here.</p><div class="notice"><strong>Private preview authorization</strong><input id="key" type="password" autocomplete="off" placeholder="Paste temporary preview password"><button class="action" id="run">Run zero-money simulation</button><pre id="out"></pre></div><div class="notice">SIMULATION ONLY — money moved: false. External payment processors contacted: false. Blockchain contacted: false.</div></section><script>const run=document.getElementById('run'),out=document.getElementById('out'),key=document.getElementById('key');run.onclick=async()=>{run.disabled=true;out.textContent='Running isolated simulation…';try{const r=await fetch('/v1/commerce/dry-run/prod_where_the_hell_are_my_glasses_01',{method:'POST',headers:{'X-JakeAI-Preview-Key':key.value}});const j=await r.json();if(!r.ok)throw new Error(j.detail||'Simulation unavailable');out.textContent=JSON.stringify(j,null,2)}catch(e){out.textContent=e.message}finally{run.disabled=false}};</script></main></body></html>"""
+legacy_main = commerce_app.main
+
+class GenesisReviewProxyRequest(BaseModel):
+    session_id: str = Field(min_length=5, max_length=200)
+
+_REVIEW_PATHS = {
+    "/v1/genesis/001/review/health",
+    "/v1/genesis/001/review/pending",
+    "/v1/genesis/001/review/accept",
+    "/v1/genesis/001/review/decline-refund",
+    "/api/v1/genesis/001/review/health",
+    "/api/v1/genesis/001/review/pending",
+    "/api/v1/genesis/001/review/accept",
+    "/api/v1/genesis/001/review/decline-refund",
+}
+# Remove any earlier copies of these routes from the shared FastAPI app and
+# re-register them at the actual Railway entrypoint.
+app.router.routes[:] = [
+    route for route in app.router.routes
+    if getattr(route, "path", None) not in _REVIEW_PATHS
+]
+
+def _review_handler(name: str):
+    handler = getattr(legacy_main, name, None)
+    if not callable(handler):
+        raise HTTPException(status_code=503, detail="Genesis review backend is not loaded in this deployment")
+    return handler
+
+@app.get("/v1/genesis/001/review/health")
+@app.get("/api/v1/genesis/001/review/health")
+def genesis_review_health_runtime():
+    names = (
+        "genesis_001_pending_review",
+        "genesis_001_accept",
+        "genesis_001_decline_refund",
+    )
+    handlers = {name: callable(getattr(legacy_main, name, None)) for name in names}
+    return {
+        "status": "ready" if all(handlers.values()) else "incomplete",
+        "runtime": "commerce_recovery_app",
+        "handlers": handlers,
+    }
+
+@app.get("/v1/genesis/001/review/pending")
+@app.get("/api/v1/genesis/001/review/pending")
+def genesis_review_pending_runtime(
+    x_genesis_admin_token: Optional[str] = Header(None, alias="X-Genesis-Admin-Token"),
+):
+    return _review_handler("genesis_001_pending_review")(x_genesis_admin_token)
+
+@app.post("/v1/genesis/001/review/accept")
+@app.post("/api/v1/genesis/001/review/accept")
+def genesis_review_accept_runtime(
+    req: GenesisReviewProxyRequest,
+    x_genesis_admin_token: Optional[str] = Header(None, alias="X-Genesis-Admin-Token"),
+):
+    return _review_handler("genesis_001_accept")(req, x_genesis_admin_token)
+
+@app.post("/v1/genesis/001/review/decline-refund")
+@app.post("/api/v1/genesis/001/review/decline-refund")
+def genesis_review_decline_refund_runtime(
+    req: GenesisReviewProxyRequest,
+    x_genesis_admin_token: Optional[str] = Header(None, alias="X-Genesis-Admin-Token"),
+):
+    return _review_handler("genesis_001_decline_refund")(req, x_genesis_admin_token)
+
+
+# ---------------------------------------------------------------------------
+# JakeAI Direct subscription / entitlement routes (gated by environment vars)
+# ---------------------------------------------------------------------------
+from direct_billing import register_direct_routes
+register_direct_routes(app)
+
+from secret_vault import register_secret_vault_routes
+register_secret_vault_routes(app)
+
+from unreal_bridge import register_unreal_bridge_routes
+register_unreal_bridge_routes(app)
+
+
+# ---------------------------------------------------------------------------
+# Crypto wallet RC2 isolated preview console
+# ---------------------------------------------------------------------------
+import hmac as _wallet_hmac
+import crypto_commerce_app as crypto_runtime
+from fastapi.responses import HTMLResponse as _WalletHTMLResponse
+
+_WALLET_TRUE = {"1", "true", "yes", "on"}
+
+def _wallet_bool(name: str) -> bool:
+    return os.environ.get(name, "").strip().lower() in _WALLET_TRUE
+
+def _require_wallet_preview_key(provided: Optional[str]) -> None:
+    expected = os.environ.get("JAKEAI_COMMERCE_PREVIEW_KEY", "").strip()
+    if not expected:
+        raise HTTPException(status_code=503, detail="Wallet preview authorization is not configured")
+    candidate = (provided or "").strip()
+    if not candidate or not _wallet_hmac.compare_digest(candidate, expected):
+        raise HTTPException(status_code=401, detail="Unauthorized")
+
+def _wallet_preview_status() -> dict:
+    config = crypto_runtime._crypto_config()
+    activation_errors = config.activation_errors()
+    legal = crypto_runtime._legal_approved()
+    return {
+        "runtime": "commerce-wallet-preview",
+        "mode": "merchant_only_non_custodial",
+        "network": "Base Mainnet",
+        "chain_id": crypto_runtime.BASE_MAINNET_CHAIN_ID,
+        "asset": "USDC",
+        "token_contract": crypto_runtime.BASE_NATIVE_USDC_CONTRACT,
+        "merchant_configured": bool(config.merchant_address),
+        "rpc_configured": bool(os.environ.get("BASE_RPC_URL", "").strip()),
+        "admin_review_configured": bool(os.environ.get("CRYPTO_ADMIN_TOKEN", "").strip()),
+        "payments_enabled": bool(config.enabled),
+        "legal_approved": bool(legal),
+        "auto_fulfill_enabled": bool(config.auto_fulfill_enabled),
+        "canary_enabled": _wallet_bool("JAKEAI_CRYPTO_CANARY_ENABLED"),
+        "minimum_confirmations": max(1, int(os.environ.get("CRYPTO_MIN_CONFIRMATIONS", "2"))),
+        "activation_ready": bool(not activation_errors and config.enabled and legal),
+        "activation_errors": activation_errors,
+        "customer_custody": False,
+        "creator_payouts": False,
+        "exchange_or_swaps": False,
+        "private_signing_material_in_app": False,
+    }
+
+class WalletCanaryRequest(BaseModel):
+    acknowledge_irreversible_payment: bool = False
+
+@app.get("/v1/commerce/wallet-preview/status")
+def wallet_preview_status(
+    preview_key: Optional[str] = Header(default=None, alias="X-JakeAI-Preview-Key"),
+):
+    _require_wallet_preview_key(preview_key)
+    return _wallet_preview_status()
+
+@app.post("/v1/commerce/wallet-preview/create-canary")
+def wallet_preview_create_canary(
+    req: WalletCanaryRequest,
+    preview_key: Optional[str] = Header(default=None, alias="X-JakeAI-Preview-Key"),
+):
+    _require_wallet_preview_key(preview_key)
+    if not _wallet_bool("JAKEAI_CRYPTO_CANARY_ENABLED"):
+        raise HTTPException(status_code=409, detail="Real-money crypto canary is disabled")
+    if not req.acknowledge_irreversible_payment:
+        raise HTTPException(status_code=422, detail="Blockchain payment acknowledgement is required")
+    config = crypto_runtime._require_activation_ready()
+    if not config.merchant_address:
+        raise HTTPException(status_code=503, detail="Merchant receiving address is not configured")
+    created = crypto_runtime._create_crypto_order(
+        "prod_crypto_canary_preview",
+        10,
+        "crypto-test",
+        config.merchant_address,
+    )
+    return {
+        **created,
+        "price_usd_cents": 10,
+        "network": "Base Mainnet",
+        "chain_id": crypto_runtime.BASE_MAINNET_CHAIN_ID,
+        "asset": "USDC",
+        "token_contract": crypto_runtime.BASE_NATIVE_USDC_CONTRACT,
+        "state": "awaiting_payment",
+        "auto_fulfillment": False,
+        "instructions": "Send exactly 0.10 native USDC on Base to the merchant address, then submit the transaction hash for verification.",
+        "warnings": [
+            "TEST ONLY — this is a real blockchain transfer if you send it.",
+            "Do not send another token or use another network.",
+            "No product delivery is attached to this canary order.",
+        ],
+    }
+
+@app.get("/wallet-preview", response_class=_WalletHTMLResponse)
+def wallet_preview_console():
+    html = r"""<!doctype html><html><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover"><meta name="robots" content="noindex,nofollow,noarchive"><title>JakeAI Wallet RC2</title><style>:root{color-scheme:dark;--bg:#03070b;--p:#091622;--line:#21445a;--cyan:#5ce8ff;--muted:#91abba}*{box-sizing:border-box}body{margin:0;background:radial-gradient(circle at 50% 0,#12334c,var(--bg) 48%);color:#eefaff;font:15px/1.45 system-ui,sans-serif}main{max-width:760px;margin:auto;padding:28px 16px 70px}.brand{font-size:28px;font-weight:950}.brand b{color:var(--cyan)}.eyebrow{font-size:10px;letter-spacing:.18em;color:var(--cyan);font-weight:900}h1{font-size:36px;line-height:1;margin:12px 0}p{color:var(--muted)}.panel{margin-top:15px;padding:18px;border:1px solid var(--line);border-radius:18px;background:#07121dcc}.row{display:grid;grid-template-columns:1fr 1fr;gap:8px}.stat{padding:11px;border:1px solid #ffffff16;border-radius:12px;background:#ffffff05;font-size:12px}.ok{color:#68efba}.off{color:#ffc267}input,button{width:100%;padding:14px;margin-top:10px;border-radius:12px;font:inherit}input{background:#03080d;border:1px solid #315067;color:#fff}button{border:0;background:#56ddff;color:#00131b;font-weight:900}button.secondary{background:#132535;color:#dffaff;border:1px solid #315067}button:disabled{opacity:.4}pre{white-space:pre-wrap;word-break:break-word;background:#02070b;padding:12px;border-radius:10px;color:#a9efff;min-height:42px}.warn{border-color:#725823;color:#ffd27e}.tiny{font-size:11px}</style></head><body><main><div class="brand">Jake<b>AI</b></div><div class="eyebrow">WALLET RC2 · ISOLATED TEST CONSOLE</div><h1>Base USDC checkout.</h1><p>Merchant-only, non-custodial and fail-closed. This console never holds a customer's wallet or signs a transaction.</p><section class="panel"><b>Preview authorization</b><input id="key" type="password" autocomplete="off" placeholder="Preview password"><button id="status">Check wallet readiness</button><div id="grid" class="row"></div><pre id="out"></pre></section><section class="panel warn"><b>10¢ real-chain canary</b><p class="tiny">The button remains server-gated. Creating an invoice moves no money. Sending the resulting USDC is a real irreversible Base transaction.</p><label><input id="ack" type="checkbox" style="width:auto;margin-right:8px">I understand the canary payment is a real blockchain transfer.</label><button id="create" disabled>Create 0.10 USDC canary invoice</button><div id="invoice"></div></section><section class="panel"><b>Verify submitted transaction</b><input id="order" placeholder="Order ID"><input id="tx" placeholder="0x transaction hash"><button class="secondary" id="verify">Verify transaction</button><pre id="verifyOut"></pre></section></main><script>
+const q=s=>document.querySelector(s),key=q('#key'),out=q('#out'),grid=q('#grid'),create=q('#create'),invoice=q('#invoice');
+async function api(path,opt={}){opt.headers={...(opt.headers||{}),'X-JakeAI-Preview-Key':key.value};const r=await fetch(path,opt);let j={};try{j=await r.json()}catch{}if(!r.ok)throw new Error(j.detail||('HTTP '+r.status));return j}
+q('#status').onclick=async()=>{try{const j=await api('/v1/commerce/wallet-preview/status');out.textContent=JSON.stringify(j,null,2);grid.innerHTML=['payments_enabled','legal_approved','merchant_configured','rpc_configured','admin_review_configured','canary_enabled','auto_fulfill_enabled','activation_ready'].map(k=>'<div class="stat"><b>'+k+'</b><br><span class="'+(j[k]?'ok':'off')+'">'+j[k]+'</span></div>').join('');create.disabled=!(j.activation_ready&&j.canary_enabled)}catch(e){out.textContent=e.message;create.disabled=true}}
+q('#ack').onchange=()=>{if(!q('#ack').checked)create.disabled=true;else q('#status').click()}
+create.onclick=async()=>{try{const j=await api('/v1/commerce/wallet-preview/create-canary',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({acknowledge_irreversible_payment:q('#ack').checked})});q('#order').value=j.order_id;invoice.innerHTML='<pre>'+JSON.stringify(j,null,2)+'</pre>'}catch(e){invoice.innerHTML='<pre>'+e.message+'</pre>'}}
+q('#verify').onclick=async()=>{try{const r=await fetch('/v1/checkout/crypto/verify',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({order_id:q('#order').value,tx_hash:q('#tx').value})});const j=await r.json();q('#verifyOut').textContent=JSON.stringify(j,null,2)}catch(e){q('#verifyOut').textContent=e.message}}
+</script></body></html>"""
+    return _WalletHTMLResponse(
+        html,
+        headers={
+            "Cache-Control": "no-store, max-age=0",
+            "X-Robots-Tag": "noindex, nofollow, noarchive",
+        },
+    )

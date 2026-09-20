@@ -1,12 +1,14 @@
 {
   "project": "JakeAI",
-  "release": "jakeai-universe-2026-09-13",
-  "date": "2026-09-13",
+  "release": "jakeai-universe-rc4-mobile-gateway-2026-09-20",
+  "date": "2026-09-20",
   "version": "3.0.0",
   "frontend_host_target": "Netlify",
   "backend_host": "https://agent-commerce-network-production-56e8.up.railway.app",
   "checkout_strategy": "fail-closed public commerce with verified fulfillment",
   "arcade_games_live": 3,
   "media_rights_gate": true,
-  "human_release_gate": true
+  "human_release_gate": true,
+  "mobile_gateway_release": "RC4",
+  "universe_hub": "/universe-hub.html"
 }

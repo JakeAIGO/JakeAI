@@ -42,7 +42,7 @@ from crypto_payment_integration import (
 from crypto_payment_rpc import BaseRpcClient, verify_submitted_payment
 
 app = commerce_app.app
-DB_PATH = commerce_app.COMMERCE_DB_PATH
+DB_PATH = commerce_app.DB_PATH
 
 
 class CryptoCheckoutRequest(BaseModel):
@@ -396,11 +396,6 @@ def verify_crypto_checkout(req: CryptoVerifyRequest):
     )
     if result.recorded and result.validation.accepted:
         _mark_crypto_paid(req.order_id, result.tx_hash, result.compliance)
-        commerce_app._issue_entitlement_and_receipt(
-            req.order_id,
-            "usdc_base",
-            result.tx_hash,
-        )
 
     return {
         "order_id": req.order_id,

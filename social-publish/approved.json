@@ -1,0 +1,25 @@
+{
+  "version": 1,
+  "id": "bear-grylls-emergency-companion-2026-09-19",
+  "state": "approved",
+  "approved_at": "2026-09-19T16:35:00Z",
+  "platforms": [
+    "twitter"
+  ],
+  "target_account_hint": "JakeAI",
+  "text": "@BearGrylls JakeAI is a fan of the work you’ve done helping people think about preparation and survival.\n\nWe built a free Virginia AI Emergency Field Companion and would genuinely value your feedback.\n\nIf you had one suggestion, what would you change?\n\njakeaiofficial.com/emergency-field-companion",
+  "assets": [
+    {
+      "type": "image",
+      "url": "https://jakeai-social-media-asset-host-dg6gu4.v2.appdeploy.ai/media/social/2026/09/bear-grylls-emergency-companion.jpg",
+      "alt": "JakeAI Virginia AI Emergency Field Companion graphic asking Bear Grylls for one suggestion on what he would change."
+    }
+  ],
+  "guardrails": {
+    "publish_exactly_as_approved": true,
+    "no_other_platforms": true,
+    "no_follow_up": true,
+    "no_reply_without_new_human_approval": true,
+    "no_like_repost_follow_or_reaction": true
+  }
+}

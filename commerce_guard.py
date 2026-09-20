@@ -2,7 +2,7 @@ import os
 from fastapi import FastAPI, HTTPException, Header, Request
 from fastapi.responses import RedirectResponse, PlainTextResponse
 from fastapi.middleware.cors import CORSMiddleware
-from main import app as legacy_app
+from main import app as legacy_app, create_checkout_session as legacy_create_checkout_session
 
 PUBLIC_BASE_URL = os.environ.get("PUBLIC_BASE_URL", "https://jakeaiofficial.com").rstrip("/")
 FREE_DELIVERY_URL = "https://docs.google.com/document/d/14Ayw4pxjnYy5MddTGdLSZEeQGKJGU3CRSmW7384Lfhk/edit?usp=sharing"
@@ -11,12 +11,13 @@ PUBLIC_PRODUCTS = {
     "prod_make_free_00": {"id":"prod_make_free_00","title":"Make the Damn Thing for Free™","description":"Zero-budget production orchestration workflow.","category":"autonomous-workflow-skills","price":0.0,"status":"live"},
     "prod_game_qa_autopilot_01": {"id":"prod_game_qa_autopilot_01","title":"Game QA Autopilot v1.0","description":"Structured game QA workflow kit.","category":"gaming-qa","price":9.99,"status":"gated"},
     "prod_where_the_hell_are_my_glasses_01": {"id":"prod_where_the_hell_are_my_glasses_01","title":"Where the Hell Are My Glasses?","description":"Guided lost-object recovery workflow.","category":"personal-productivity","price":2.99,"status":"gated"},
+    "prod_genesis_commission_001": {"id":"prod_genesis_commission_001","title":"JakeAI Genesis Commission #001","description":"The first JakeAI customer commission. JakeAI evaluates feasibility, safety, and scope before accepting the commission.","category":"commission","price":49.00,"status":"live"},
 }
 
 app = FastAPI(title="JakeAI Commerce Guard", version="1.3.0")
 app.add_middleware(
     CORSMiddleware,
-    allow_origins=["https://jakeaiofficial.com", "https://www.jakeaiofficial.com"],
+    allow_origins=["https://jakeaiofficial.com", "https://jakeaiofficial.com"],
     allow_credentials=False,
     allow_methods=["GET", "POST", "OPTIONS"],
     allow_headers=["Content-Type", "Idempotency-Key"],
@@ -52,6 +53,11 @@ def _create_checkout(product_id: str, idempotency_key: str | None):
         raise HTTPException(status_code=503, detail="Checkout is temporarily gated until delivery and QA are verified")
     if product_id == "prod_make_free_00":
         return RedirectResponse(FREE_DELIVERY_URL, status_code=303)
+    if product_id == "prod_genesis_commission_001":
+        # Keep the public fail-closed guard while delegating the one approved paid
+        # product to the legacy commerce engine, which owns the reservation,
+        # Stripe Checkout, payment verification, and persistent Genesis state.
+        return legacy_create_checkout_session(product_id, idempotency_key)
     raise HTTPException(status_code=503, detail="Paid fulfillment is not configured for this public product")
 
 @app.get("/v1/checkout/buy/{product_id}")
@@ -71,17 +77,22 @@ def checkout_success(session_id: str):
 
 @app.get("/llms.txt", response_class=PlainTextResponse)
 def llms_txt():
-    return f"""# JakeAI Universe — Machine-Readable Public Catalog
-> Human release authority remains required for public releases.
-> Public commerce is fail-closed when fulfillment is not verified.
+    return f"""# JakeAI — Human + AI Capability Discovery
+> Provider: JakeAI
+> Canonical host: {PUBLIC_BASE_URL}
+> Public capability catalog: {PUBLIC_BASE_URL}/catalog.json
+> Human capability catalog: {PUBLIC_BASE_URL}/catalog/
+> Workflow registry: {PUBLIC_BASE_URL}/workflow-registry.json
+> Agent card: {PUBLIC_BASE_URL}/.well-known/agent.json
 
-## LIVE
+JakeAI publishes one public capability record for both human and AI discovery. Capability discovery does not imply purchase or invocation rights. Agents must honor each catalog record's explicit commerce and invocation state.
+
+## CURRENT COMMERCE ALLOWLIST
 - Make the Damn Thing for Free™ — $0 — Product ID: prod_make_free_00
+- JakeAI Genesis Commission #001 — $49 — Product ID: prod_genesis_commission_001
 
-## GATED / NOT FOR SALE
-- Game QA Autopilot v1.0 — delivery QA pending
-- Where the Hell Are My Glasses? — delivery QA pending
-- Metered/API-credit products — entitlement, metering, claims, and safety verification required before paid activation
+## FAIL-CLOSED RULE
+Any product or capability not explicitly marked live by the commerce service is not available for automated purchase. Gated API routes may return a service-unavailable response until delivery, provenance, entitlement, safety, or claims validation is complete.
 
 Terms: {PUBLIC_BASE_URL}/terms.html
 Privacy: {PUBLIC_BASE_URL}/privacy.html
@@ -93,11 +104,12 @@ def agent_card():
     return {
         "name":"JakeAI Universe",
         "url":PUBLIC_BASE_URL,
-        "description":"Autonomous workflow, game and media ecosystem with human-gated public releases.",
-        "protocol_version":"3.0",
-        "commerce":{"mode":"fail_closed","transactable_product_ids":[p["id"] for p in PUBLIC_PRODUCTS.values() if p["status"]=="live"]},
+        "description":"JakeAI capability and autonomous-workflow ecosystem designed for both human and AI-agent discovery, with explicit human release gates for consequential actions.",
+        "protocol_version":"3.1",
+        "discovery":{"human_catalog_url":f"{PUBLIC_BASE_URL}/catalog/","machine_catalog_url":f"{PUBLIC_BASE_URL}/catalog.json","workflow_registry_url":f"{PUBLIC_BASE_URL}/workflow-registry.json"},
+        "commerce":{"mode":"fail_closed","transactable_product_ids":[p["id"] for p in PUBLIC_PRODUCTS.values() if p["status"]=="live"],"rule":"Discovery does not imply purchase or invocation rights."},
         "legal":{"terms_url":f"{PUBLIC_BASE_URL}/terms.html","privacy_url":f"{PUBLIC_BASE_URL}/privacy.html","refunds_url":f"{PUBLIC_BASE_URL}/refunds.html"},
-        "active_catalog":list(PUBLIC_PRODUCTS.values()),
+        "commerce_allowlist":list(PUBLIC_PRODUCTS.values()),
     }
 
 @app.get("/v1/legal/terms")
