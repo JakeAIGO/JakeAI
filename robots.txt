@@ -21,4 +21,6 @@ Disallow: /pilot-concierge-operator.html
 
 Sitemap: https://jakeaiofficial.com/sitemap.xml
 LLMs-Txt: https://jakeaiofficial.com/llms.txt
-\n# Machine-readable capability catalog\n# https://jakeaiofficial.com/catalog.json\n
+
+# Machine-readable capability catalog
+# https://jakeaiofficial.com/catalog.json
