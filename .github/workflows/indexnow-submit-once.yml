@@ -1,0 +1,58 @@
+name: Submit JakeAI URLs to IndexNow
+
+on:
+  push:
+    branches: [main]
+    paths:
+      - "indexnow-submit-trigger.txt"
+
+permissions:
+  contents: read
+
+jobs:
+  submit:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Verify IndexNow ownership key
+        shell: bash
+        run: |
+          set -euo pipefail
+          KEY="6fa77cd44f2b87b843e59ed654c77bdd"
+          BODY="$(curl -fsSL "https://jakeaiofficial.com/${KEY}.txt" | tr -d '\r\n')"
+          test "$BODY" = "$KEY"
+
+      - name: Submit updated JakeAI URLs
+        shell: bash
+        run: |
+          set -euo pipefail
+          cat > /tmp/indexnow.json <<'JSON'
+          {
+            "host": "jakeaiofficial.com",
+            "key": "6fa77cd44f2b87b843e59ed654c77bdd",
+            "keyLocation": "https://jakeaiofficial.com/6fa77cd44f2b87b843e59ed654c77bdd.txt",
+            "urlList": [
+              "https://jakeaiofficial.com/",
+              "https://jakeaiofficial.com/catalog/",
+              "https://jakeaiofficial.com/product-factory/",
+              "https://jakeaiofficial.com/autonomous-employee.html",
+              "https://jakeaiofficial.com/workflow-rescue.html",
+              "https://jakeaiofficial.com/supplier-quote-compare.html",
+              "https://jakeaiofficial.com/inventory-replenishment-autopilot.html",
+              "https://jakeaiofficial.com/catalog.json",
+              "https://jakeaiofficial.com/llms.txt",
+              "https://jakeaiofficial.com/.well-known/agent.json"
+            ]
+          }
+          JSON
+
+          CODE="$(curl -sS -o /tmp/indexnow-response.txt -w '%{http_code}' \
+            -X POST \
+            -H 'Content-Type: application/json; charset=utf-8' \
+            --data-binary @/tmp/indexnow.json \
+            https://api.indexnow.org/indexnow)"
+
+          echo "IndexNow HTTP status: $CODE"
+          cat /tmp/indexnow-response.txt || true
+          if [ "$CODE" != "200" ] && [ "$CODE" != "202" ]; then
+            exit 1
+          fi
