@@ -13,7 +13,7 @@
     "human",
     "ai_agent"
   ],
-  "purpose": "Public discovery catalog for JakeAI capabilities and autonomous workflows. Human and machine surfaces are projections of the same public capability records.",
+  "purpose": "Public autonomous workflow marketplace and discovery catalog for JakeAI capabilities. Human and machine surfaces are projections of the same public capability records; discovery never implies purchase or invocation rights.",
   "discovery_contract": {
     "stable_ids": true,
     "canonical_urls": true,
