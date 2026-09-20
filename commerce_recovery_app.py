@@ -552,6 +552,7 @@ def wallet_preview_verify_testnet_canary(req: WalletCanaryVerifyRequest):
         creator_payouts_enabled=False,
         customer_custody_enabled=False,
         exchange_functions_enabled=False,
+        test_mode=True,
     )
     tx_hash = crypto_runtime._require_tx_hash(req.tx_hash)
     amount_usd = crypto_runtime.Decimal(int(order["amount_cents"])) / crypto_runtime.Decimal(100)

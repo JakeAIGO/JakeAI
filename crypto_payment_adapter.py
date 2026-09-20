@@ -19,6 +19,9 @@ from typing import Optional
 BASE_MAINNET_CHAIN_ID = 8453
 # Native USDC on Base. Contract address must be independently re-verified before activation.
 BASE_NATIVE_USDC_CONTRACT = "0x833589fcd6edb6e08f4c7c32d4f71b54bda02913"
+BASE_SEPOLIA_CHAIN_ID = 84532
+# Circle testnet USDC on Base Sepolia. Test tokens have no monetary value.
+BASE_SEPOLIA_USDC_CONTRACT = "0x036cbd53842c5426634e7929541ec2318f3dcf7e"
 USDC_DECIMALS = 6
 
 
@@ -48,6 +51,7 @@ class CryptoPaymentConfig:
     creator_payouts_enabled: bool = False
     customer_custody_enabled: bool = False
     exchange_functions_enabled: bool = False
+    test_mode: bool = False
 
     @classmethod
     def from_env(cls) -> "CryptoPaymentConfig":
@@ -71,10 +75,16 @@ class CryptoPaymentConfig:
             errors.append("customer custody is prohibited in merchant-only v0.1")
         if self.exchange_functions_enabled:
             errors.append("exchange functions are prohibited in merchant-only v0.1")
-        if self.chain_id != BASE_MAINNET_CHAIN_ID:
-            errors.append("unsupported chain")
-        if self.token_contract != BASE_NATIVE_USDC_CONTRACT:
-            errors.append("unsupported token contract")
+        if self.test_mode:
+            if self.chain_id != BASE_SEPOLIA_CHAIN_ID:
+                errors.append("unsupported test chain")
+            if self.token_contract != BASE_SEPOLIA_USDC_CONTRACT:
+                errors.append("unsupported test token contract")
+        else:
+            if self.chain_id != BASE_MAINNET_CHAIN_ID:
+                errors.append("unsupported chain")
+            if self.token_contract != BASE_NATIVE_USDC_CONTRACT:
+                errors.append("unsupported token contract")
         if self.enabled and not self.merchant_address:
             errors.append("merchant address is required before crypto payments can be enabled")
         return errors
@@ -213,6 +223,7 @@ def should_auto_fulfill(config: CryptoPaymentConfig, validation: ValidationResul
         and config.auto_fulfill_enabled
         and validation.accepted
         and validation.state == PaymentState.COMPLIANCE_CLEAR
+        and not config.test_mode
         and not config.activation_errors()
     )
 

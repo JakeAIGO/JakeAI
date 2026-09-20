@@ -85,6 +85,7 @@ def test_base_sepolia_testnet_config_verifies_without_changing_mainnet_defaults(
         chain_id=84532,
         token_contract=testnet_usdc,
         merchant_address=MERCHANT,
+        test_mode=True,
     )
     testnet_invoice = PaymentInvoice.create("ord_testnet", "0.10", MERCHANT)
     registry = SqliteTransactionRegistry(str(tmp_path/"testnet.sqlite3"))
