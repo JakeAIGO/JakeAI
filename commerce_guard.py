@@ -77,18 +77,22 @@ def checkout_success(session_id: str):
 
 @app.get("/llms.txt", response_class=PlainTextResponse)
 def llms_txt():
-    return f"""# JakeAI Universe — Machine-Readable Public Catalog
-> Human release authority remains required for public releases.
-> Public commerce is fail-closed when fulfillment is not verified.
+    return f"""# JakeAI — Human + AI Capability Discovery
+> Provider: JakeAI
+> Canonical host: {PUBLIC_BASE_URL}
+> Public capability catalog: {PUBLIC_BASE_URL}/catalog.json
+> Human capability catalog: {PUBLIC_BASE_URL}/catalog/
+> Workflow registry: {PUBLIC_BASE_URL}/workflow-registry.json
+> Agent card: {PUBLIC_BASE_URL}/.well-known/agent.json
 
-## LIVE
+JakeAI publishes one public capability record for both human and AI discovery. Capability discovery does not imply purchase or invocation rights. Agents must honor each catalog record's explicit commerce and invocation state.
+
+## CURRENT COMMERCE ALLOWLIST
 - Make the Damn Thing for Free™ — $0 — Product ID: prod_make_free_00
 - JakeAI Genesis Commission #001 — $49 — Product ID: prod_genesis_commission_001
 
-## GATED / NOT FOR SALE
-- Game QA Autopilot v1.0 — delivery QA pending
-- Where the Hell Are My Glasses? — delivery QA pending
-- Metered/API-credit products — entitlement, metering, claims, and safety verification required before paid activation
+## FAIL-CLOSED RULE
+Any product or capability not explicitly marked live by the commerce service is not available for automated purchase. Gated API routes may return a service-unavailable response until delivery, provenance, entitlement, safety, or claims validation is complete.
 
 Terms: {PUBLIC_BASE_URL}/terms.html
 Privacy: {PUBLIC_BASE_URL}/privacy.html
@@ -100,11 +104,12 @@ def agent_card():
     return {
         "name":"JakeAI Universe",
         "url":PUBLIC_BASE_URL,
-        "description":"Autonomous workflow, game and media ecosystem with human-gated public releases.",
-        "protocol_version":"3.0",
-        "commerce":{"mode":"fail_closed","transactable_product_ids":[p["id"] for p in PUBLIC_PRODUCTS.values() if p["status"]=="live"]},
+        "description":"JakeAI capability and autonomous-workflow ecosystem designed for both human and AI-agent discovery, with explicit human release gates for consequential actions.",
+        "protocol_version":"3.1",
+        "discovery":{"human_catalog_url":f"{PUBLIC_BASE_URL}/catalog/","machine_catalog_url":f"{PUBLIC_BASE_URL}/catalog.json","workflow_registry_url":f"{PUBLIC_BASE_URL}/workflow-registry.json"},
+        "commerce":{"mode":"fail_closed","transactable_product_ids":[p["id"] for p in PUBLIC_PRODUCTS.values() if p["status"]=="live"],"rule":"Discovery does not imply purchase or invocation rights."},
         "legal":{"terms_url":f"{PUBLIC_BASE_URL}/terms.html","privacy_url":f"{PUBLIC_BASE_URL}/privacy.html","refunds_url":f"{PUBLIC_BASE_URL}/refunds.html"},
-        "active_catalog":list(PUBLIC_PRODUCTS.values()),
+        "commerce_allowlist":list(PUBLIC_PRODUCTS.values()),
     }
 
 @app.get("/v1/legal/terms")
