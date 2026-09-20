@@ -19,6 +19,6 @@ User-agent: Google-Extended
 Allow: /
 Disallow: /pilot-concierge-operator.html
 
-Sitemap: https://www.jakeaiofficial.com/sitemap.xml
-LLMs-Txt: https://www.jakeaiofficial.com/llms.txt
-\n# Machine-readable capability catalog\n# https://www.jakeaiofficial.com/catalog.json\n
+Sitemap: https://jakeaiofficial.com/sitemap.xml
+LLMs-Txt: https://jakeaiofficial.com/llms.txt
+\n# Machine-readable capability catalog\n# https://jakeaiofficial.com/catalog.json\n

@@ -3,10 +3,10 @@
   "catalog_id": "jakeai-public-capability-catalog",
   "provider": {
     "name": "JakeAI",
-    "canonical_url": "https://www.jakeaiofficial.com/",
-    "human_catalog_url": "https://www.jakeaiofficial.com/catalog/",
-    "machine_catalog_url": "https://www.jakeaiofficial.com/catalog.json",
-    "workflow_registry_url": "https://www.jakeaiofficial.com/workflow-registry.json"
+    "canonical_url": "https://jakeaiofficial.com/",
+    "human_catalog_url": "https://jakeaiofficial.com/catalog/",
+    "machine_catalog_url": "https://jakeaiofficial.com/catalog.json",
+    "workflow_registry_url": "https://jakeaiofficial.com/workflow-registry.json"
   },
   "generated_at": "2026-09-20",
   "audience": [
@@ -52,8 +52,8 @@
         "recovery plan",
         "approval boundaries"
       ],
-      "human_url": "https://www.jakeaiofficial.com/workflow-rescue.html",
-      "machine_url": "https://www.jakeaiofficial.com/catalog.json#JAI-WF-0019",
+      "human_url": "https://jakeaiofficial.com/workflow-rescue.html",
+      "machine_url": "https://jakeaiofficial.com/catalog.json#JAI-WF-0019",
       "commerce": {
         "mode": "public_page",
         "purchasable": false,
@@ -96,8 +96,8 @@
         "exceptions",
         "human review flags"
       ],
-      "human_url": "https://www.jakeaiofficial.com/supplier-quote-compare.html",
-      "machine_url": "https://www.jakeaiofficial.com/catalog.json#JAI-WF-0018",
+      "human_url": "https://jakeaiofficial.com/supplier-quote-compare.html",
+      "machine_url": "https://jakeaiofficial.com/catalog.json#JAI-WF-0018",
       "commerce": {
         "mode": "public_page",
         "purchasable": false,
@@ -140,8 +140,8 @@
         "exceptions",
         "approval-required actions"
       ],
-      "human_url": "https://www.jakeaiofficial.com/inventory-replenishment-autopilot.html",
-      "machine_url": "https://www.jakeaiofficial.com/catalog.json#JAI-WF-0017",
+      "human_url": "https://jakeaiofficial.com/inventory-replenishment-autopilot.html",
+      "machine_url": "https://jakeaiofficial.com/catalog.json#JAI-WF-0017",
       "commerce": {
         "mode": "public_page",
         "purchasable": false,
@@ -186,8 +186,8 @@
         "scope draft",
         "proposed capability path"
       ],
-      "human_url": "https://www.jakeaiofficial.com/autonomous-employee.html",
-      "machine_url": "https://www.jakeaiofficial.com/catalog.json#JAI-WF-0020",
+      "human_url": "https://jakeaiofficial.com/autonomous-employee.html",
+      "machine_url": "https://jakeaiofficial.com/catalog.json#JAI-WF-0020",
       "commerce": {
         "mode": "intake",
         "purchasable": false,
@@ -229,8 +229,8 @@
         "tool path",
         "human review points"
       ],
-      "human_url": "https://www.jakeaiofficial.com/product-factory/",
-      "machine_url": "https://www.jakeaiofficial.com/catalog.json#JAI-WF-0002",
+      "human_url": "https://jakeaiofficial.com/product-factory/",
+      "machine_url": "https://jakeaiofficial.com/catalog.json#JAI-WF-0002",
       "commerce": {
         "mode": "listed_live",
         "purchasable": false,
@@ -272,8 +272,8 @@
         "discovery gaps",
         "recommended fixes"
       ],
-      "human_url": "https://www.jakeaiofficial.com/product-factory/",
-      "machine_url": "https://www.jakeaiofficial.com/catalog.json#JAI-WF-0008",
+      "human_url": "https://jakeaiofficial.com/product-factory/",
+      "machine_url": "https://jakeaiofficial.com/catalog.json#JAI-WF-0008",
       "commerce": {
         "mode": "gated",
         "purchasable": false,
@@ -314,8 +314,8 @@
         "normalized Markdown",
         "extraction metadata"
       ],
-      "human_url": "https://www.jakeaiofficial.com/product-factory/",
-      "machine_url": "https://www.jakeaiofficial.com/catalog.json#JAI-WF-0007",
+      "human_url": "https://jakeaiofficial.com/product-factory/",
+      "machine_url": "https://jakeaiofficial.com/catalog.json#JAI-WF-0007",
       "commerce": {
         "mode": "gated",
         "purchasable": false,
@@ -358,8 +358,8 @@
         "normalization notes",
         "review flags"
       ],
-      "human_url": "https://www.jakeaiofficial.com/product-factory/",
-      "machine_url": "https://www.jakeaiofficial.com/catalog.json#JAI-WF-0010",
+      "human_url": "https://jakeaiofficial.com/product-factory/",
+      "machine_url": "https://jakeaiofficial.com/catalog.json#JAI-WF-0010",
       "commerce": {
         "mode": "gated",
         "purchasable": false,
@@ -402,8 +402,8 @@
         "disagreement notes",
         "human review flags"
       ],
-      "human_url": "https://www.jakeaiofficial.com/product-factory/",
-      "machine_url": "https://www.jakeaiofficial.com/catalog.json#JAI-WF-0011",
+      "human_url": "https://jakeaiofficial.com/product-factory/",
+      "machine_url": "https://jakeaiofficial.com/catalog.json#JAI-WF-0011",
       "commerce": {
         "mode": "gated",
         "purchasable": false,
@@ -446,8 +446,8 @@
         "assumptions",
         "review flags"
       ],
-      "human_url": "https://www.jakeaiofficial.com/product-factory/",
-      "machine_url": "https://www.jakeaiofficial.com/catalog.json#JAI-WF-0006",
+      "human_url": "https://jakeaiofficial.com/product-factory/",
+      "machine_url": "https://jakeaiofficial.com/catalog.json#JAI-WF-0006",
       "commerce": {
         "mode": "gated",
         "purchasable": false,
