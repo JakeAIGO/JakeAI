@@ -1,0 +1,43 @@
+<!doctype html>
+<html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
+<meta name="robots" content="noindex,nofollow,noarchive"><meta name="theme-color" content="#05080d">
+<title>JakeAI Unreal Pairing</title>
+<style>
+*{box-sizing:border-box}body{margin:0;background:radial-gradient(circle at 75% 0,#26365a55,transparent 32%),#05080d;color:#eefaff;font-family:Inter,system-ui,-apple-system,Segoe UI,sans-serif}.wrap{max-width:700px;margin:auto;padding:24px 16px 60px}.brand{font-weight:950;font-size:20px;margin-bottom:22px}.brand span{color:#75ecff}.card{border:1px solid #294355;border-radius:24px;background:#09131d;padding:24px;box-shadow:0 24px 70px #0008}.eyebrow{font-size:10px;letter-spacing:.16em;color:#75efbd;font-weight:900}.card h1{font-size:40px;margin:9px 0 10px;letter-spacing:-.04em}.card p{color:#a9bec9;line-height:1.55}.field{display:grid;gap:7px;margin-top:18px}label{font-size:10px;letter-spacing:.12em;color:#91b4c6;font-weight:900}input{width:100%;border:1px solid #294355;border-radius:14px;background:#050b11;color:#eefaff;padding:15px;font:inherit;text-transform:uppercase;letter-spacing:.12em}.btn{margin-top:14px;border:0;border-radius:999px;padding:13px 18px;background:linear-gradient(135deg,#69eaff,#c7fbff);color:#021017;font-weight:950;cursor:pointer}.btn:disabled{opacity:.45}.status{margin-top:14px;font-size:13px;line-height:1.5;color:#9fb5c1}.ok{color:#78efbc}.bad{color:#ff8f9a}.device{margin-top:16px;border:1px solid #284354;border-radius:16px;padding:15px;background:#061019;display:none}.device b{display:block;margin-bottom:5px}.note{margin-top:18px;font-size:11px;color:#6f8795;line-height:1.5}
+</style></head><body><div class="wrap"><div class="brand">Jake<span>AI</span> Unreal Bridge</div>
+<div class="card"><div class="eyebrow">PRIVATE DEVICE PAIRING</div><h1>Pair this Unreal PC</h1>
+<p>Enter the one-time code shown by the JakeAI Unreal Bridge on your PC. Approval is accepted only from a browser already enrolled in JakeAI Vault.</p>
+<div class="field"><label>PAIRING CODE</label><input id="code" autocomplete="off" placeholder="ABCD-EFGH-IJKL" maxlength="14"></div>
+<button id="check" class="btn">CHECK DEVICE →</button>
+<div id="device" class="device"></div>
+<button id="approve" class="btn" style="display:none">APPROVE PAIRING →</button>
+<div id="status" class="status"></div>
+<div class="note">The permanent device secret is delivered directly to the PC over HTTPS after approval. It is not shown on this page or in chat.</div>
+</div></div>
+<script>
+const q=new URLSearchParams(location.search);const c=document.querySelector('#code');if(q.get('code'))c.value=q.get('code');
+const st=document.querySelector('#status'),dev=document.querySelector('#device'),ap=document.querySelector('#approve'),ck=document.querySelector('#check');
+function show(t,ok=false){st.textContent=t;st.className='status '+(ok?'ok':'bad')}
+async function lookup(){
+ const code=c.value.trim().toUpperCase();if(!code){show('Enter the pairing code shown on the PC.');return}
+ ck.disabled=true;show('Checking…',true);
+ try{
+  const r=await fetch('/api/v1/unreal/pair/lookup?pair_code='+encodeURIComponent(code),{cache:'no-store'});
+  if(r.status===401){throw new Error('This browser is not enrolled in JakeAI Vault. Open this page on the enrolled phone/browser.')}
+  const d=await r.json();if(!r.ok)throw new Error(d.detail||'Pairing code not found');
+  dev.style.display='block';dev.innerHTML='<b>'+escapeHtml(d.device_name)+'</b><span>'+escapeHtml(d.device_id)+'</span>';
+  ap.style.display='inline-block';show('Device found. Review the name, then approve.',true)
+ }catch(e){dev.style.display='none';ap.style.display='none';show(e.message||'Lookup failed')}
+ finally{ck.disabled=false}
+}
+async function approve(){
+ const code=c.value.trim().toUpperCase();ap.disabled=true;show('Approving…',true);
+ try{
+  const r=await fetch('/api/v1/unreal/pair/approve',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({pair_code:code})});
+  const d=await r.json();if(!r.ok)throw new Error(d.detail||'Approval failed');
+  show('Approved. Return to the PC; JakeAI will claim the credential automatically.',true);ap.style.display='none'
+ }catch(e){show(e.message||'Approval failed')}finally{ap.disabled=false}
+}
+function escapeHtml(s){return String(s||'').replace(/[&<>"']/g,m=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#039;'}[m]))}
+ck.onclick=lookup;ap.onclick=approve;if(c.value)lookup();
+</script></body></html>
