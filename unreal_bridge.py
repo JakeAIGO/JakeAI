@@ -103,6 +103,18 @@ def init_unreal_bridge():
       started_at TEXT NOT NULL,
       completed_at TEXT,
       last_error TEXT)""")
+    conn.execute("""CREATE TABLE IF NOT EXISTS unreal_bridge_migrations(
+      migration_id TEXT PRIMARY KEY,
+      applied_at TEXT NOT NULL)""")
+    migration = conn.execute(
+        "SELECT 1 FROM unreal_bridge_migrations WHERE migration_id='autodemo_single_actor_v2'"
+    ).fetchone()
+    if not migration:
+        conn.execute("DELETE FROM unreal_autodemo WHERE stage='failed'")
+        conn.execute(
+            "INSERT INTO unreal_bridge_migrations(migration_id,applied_at) VALUES (?,?)",
+            ("autodemo_single_actor_v2", _now_iso()),
+        )
     conn.commit()
     conn.close()
 
@@ -199,6 +211,8 @@ def _find_camera(value):
 
 def _actor_rows(value):
     value = _decode_tool_result(value)
+    if isinstance(value, dict) and value.get("label") and value.get("class"):
+        return [value]
     if isinstance(value, list):
         return [x for x in value if isinstance(x, dict)]
     if isinstance(value, dict):
@@ -247,10 +261,7 @@ def _start_demo_if_idle(device_id):
         "SELECT 1 FROM unreal_jobs WHERE device_id=? AND status IN ('pending','claimed') LIMIT 1",
         (device_id,),
     ).fetchone()
-    if active:
-        conn.close()
-        return False
-    if existing and existing["stage"] not in ("completed", "failed"):
+    if active or existing:
         conn.close()
         return False
     conn.execute(
