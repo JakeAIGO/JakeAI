@@ -15,9 +15,9 @@ def read(name: str) -> str:
 
 def test_canonical_machine_routes_are_proxied():
     redirects = read("_redirects")
-    assert "/llms.txt  https://agent-commerce-network-production-56e8.up.railway.app/llms.txt  200!" in redirects
-    assert "/.well-known/agent.json  https://agent-commerce-network-production-56e8.up.railway.app/.well-known/agent.json  200!" in redirects
-    assert "/api/*  https://agent-commerce-network-production-56e8.up.railway.app/:splat  200" in redirects
+    assert "/llms.txt  https://agent-commerce-network-production.up.railway.app/llms.txt  200!" in redirects
+    assert "/.well-known/agent.json  https://agent-commerce-network-production.up.railway.app/.well-known/agent.json  200!" in redirects
+    assert "/api/*  https://agent-commerce-network-production.up.railway.app/:splat  200" in redirects
 
 
 def test_backend_owns_dynamic_machine_surfaces():
