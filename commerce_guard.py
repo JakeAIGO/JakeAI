@@ -17,7 +17,7 @@ PUBLIC_PRODUCTS = {
 app = FastAPI(title="JakeAI Commerce Guard", version="1.3.0")
 app.add_middleware(
     CORSMiddleware,
-    allow_origins=["https://jakeaiofficial.com", "https://www.jakeaiofficial.com"],
+    allow_origins=["https://jakeaiofficial.com", "https://jakeaiofficial.com"],
     allow_credentials=False,
     allow_methods=["GET", "POST", "OPTIONS"],
     allow_headers=["Content-Type", "Idempotency-Key"],
