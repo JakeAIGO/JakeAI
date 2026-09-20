@@ -1,0 +1,29 @@
+<!doctype html>
+<html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover"><meta name="robots" content="noindex,nofollow,noarchive"><meta name="theme-color" content="#05080d"><title>JakeAI Unreal Bridge</title>
+<style>*{box-sizing:border-box}body{margin:0;background:#05080d;color:#edf9ff;font-family:Inter,system-ui,-apple-system,Segoe UI,sans-serif}.wrap{max-width:900px;margin:auto;padding:20px 16px 60px}.brand{font-weight:950;font-size:20px;margin-bottom:20px}.brand span{color:#70eaff}.hero,.panel{border:1px solid #243b4a;border-radius:22px;background:#08111a;padding:20px;margin-bottom:14px}.hero h1{margin:0 0 8px;font-size:38px}.hero p,.sub{color:#91a9b7}.device{border:1px solid #244454;border-radius:16px;padding:14px;margin-top:10px;background:#061019}.device b{font-size:14px}.meta{font-size:11px;color:#8aa3b0;margin-top:5px}.ok{color:#78efbd}.btn{border:1px solid #3c5b6c;border-radius:999px;padding:10px 14px;background:#0c1822;color:#edf9ff;font-weight:900;margin:8px 6px 0 0;cursor:pointer}.jobs{margin-top:10px;font-size:12px;color:#9fb5c1}.job{padding:9px 0;border-bottom:1px solid #18303f}</style></head>
+<body><div class="wrap"><div class="brand">Jake<span>AI</span> Unreal Bridge</div><section class="hero"><h1>Unreal Control</h1><p>Private owner console. Unreal connects outbound to JakeAI; no Unreal control port is exposed to the public Internet.</p></section><section class="panel"><h2>Paired devices</h2><div id="devices" class="sub">Loading…</div></section></div>
+<script>
+const root=document.querySelector('#devices');
+async function load(){
+ try{
+  const r=await fetch('/api/v1/unreal/devices',{cache:'no-store'});if(r.status===401){root.textContent='Open this console in the browser enrolled in JakeAI Vault.';return}
+  const d=await r.json();if(!r.ok)throw new Error(d.detail||'Unavailable');
+  root.innerHTML='';if(!d.devices.length){root.textContent='No Unreal PC paired yet.';return}
+  for(const x of d.devices){
+    const el=document.createElement('div');el.className='device';el.innerHTML='<b>'+esc(x.device_name)+'</b><div class="meta">'+esc(x.engine_version||'Awaiting status')+' · '+esc(x.current_level||'No level yet')+' · '+(x.actor_count??'—')+' actors</div><div class="meta">Last seen: '+esc(x.last_seen_at||'never')+'</div><button class="btn" data-a="ue_status">STATUS</button><button class="btn" data-a="ue_list_actors">ACTORS</button><button class="btn" data-a="ue_get_camera">CAMERA</button><div class="jobs" id="j_'+x.device_id.replace(/[^a-zA-Z0-9]/g,'_')+'"></div>';
+    root.appendChild(el);el.querySelectorAll('button').forEach(b=>b.onclick=()=>job(x.device_id,b.dataset.a));
+    latest(x.device_id);
+  }
+ }catch(e){root.textContent=e.message||'Unavailable'}
+}
+async function job(device_id,action){
+ const r=await fetch('/api/v1/unreal/jobs',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({device_id,action,args:{}})});const d=await r.json();if(!r.ok){alert(d.detail||'Failed');return}setTimeout(()=>latest(device_id),1500)
+}
+async function latest(id){
+ const box=document.querySelector('#j_'+id.replace(/[^a-zA-Z0-9]/g,'_'));if(!box)return;
+ const r=await fetch('/api/v1/unreal/jobs/latest?device_id='+encodeURIComponent(id),{cache:'no-store'});const d=await r.json();if(!r.ok)return;
+ box.innerHTML=(d.jobs||[]).slice(0,5).map(j=>'<div class="job"><span class="'+(j.status==='completed'?'ok':'')+'">'+esc(j.status)+'</span> · '+esc(j.action)+' · '+esc(j.completed_at||j.created_at)+'</div>').join('')
+}
+function esc(s){return String(s||'').replace(/[&<>"']/g,m=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#039;'}[m]))}
+load();setInterval(load,10000);
+</script></body></html>
