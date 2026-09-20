@@ -7,7 +7,7 @@
 <title>JakeAI Foundry — Find the Problem. Build the Capability.</title>
 <meta name="description" content="JakeAI discovers real problems, turns evidence into useful capabilities, proves what it builds, and keeps consequential release authority with people.">
 <link rel="canonical" href="https://jakeaiofficial.com/product-factory/">
-<link rel="alternate" type="application/json" href="https://www.jakeaiofficial.com/catalog.json" title="JakeAI Machine Capability Catalog">
+<link rel="alternate" type="application/json" href="https://jakeaiofficial.com/catalog.json" title="JakeAI Machine Capability Catalog">
 <link rel="stylesheet" href="/product-factory/foundry.css">
 </head>
 <body>
@@ -108,6 +108,7 @@
     <div class="stageCopy"><h3>HUMAN GATE</h3><p>Nothing consequential leaves the factory without the required human authority.</p><ul><li>Final review</li><li>Ethics and compliance</li><li>Brand and release alignment</li></ul></div>
     <div class="stageArt gate"><strong>HUMAN<br>RELEASE<br>GATE</strong><span>Real people.<br>A more capable tomorrow.</span></div>
   </article>
+  <a class="factoryDeepDive button ghost" href="/product-factory/lab.html">EXPLORE THE FULL FACTORY →</a>
 </section>
 
 <section class="doors" id="doors">
@@ -158,6 +159,7 @@
     <h2>What keeps going wrong?</h2>
     <p>Tell JakeAI the recurring mess, bottleneck, missed handoff, manual workaround or useful thing you wish existed.</p>
     <div class="intakeRules"><span>PLAIN ENGLISH</span><span>NO PASSWORDS</span><span>HUMAN REVIEW</span></div>
+    <button class="button primary mobileIntakeToggle" id="openIntake" type="button">OPEN PROBLEM INTAKE →</button>
     <div class="hopper" aria-hidden="true"><b>PROBLEM</b><i>↓</i><strong>CAPABILITY</strong></div>
   </div>
 
@@ -193,7 +195,17 @@
 <script>
 (function(){
   var p=new URLSearchParams(location.search);
+  var intake=document.getElementById('problem-intake');
+  var openBtn=document.getElementById('openIntake');
+  function openIntake(){
+    if(intake){intake.classList.add('open');}
+  }
+  if(openBtn){openBtn.addEventListener('click',function(){openIntake();});}
+  document.querySelectorAll('a[href="#problem-intake"]').forEach(function(a){
+    a.addEventListener('click',function(){openIntake();});
+  });
   if(p.get('custom-submitted')==='1'){
+    openIntake();
     var s=document.getElementById('customSuccess');
     if(s){s.classList.add('show');setTimeout(function(){s.scrollIntoView({behavior:'smooth',block:'center'});},80);}
   }
