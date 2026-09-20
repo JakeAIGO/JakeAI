@@ -93,6 +93,15 @@ def init_unreal_bridge():
       completed_at TEXT,
       result_json TEXT,
       error_text TEXT)""")
+    conn.execute("""CREATE TABLE IF NOT EXISTS unreal_autodemo(
+      device_id TEXT PRIMARY KEY,
+      stage TEXT NOT NULL,
+      original_camera_json TEXT,
+      chosen_actor TEXT,
+      screenshot_result_json TEXT,
+      started_at TEXT NOT NULL,
+      completed_at TEXT,
+      last_error TEXT)""")
     conn.commit()
     conn.close()
 
@@ -154,6 +163,195 @@ def _queue_job(device_id, action, args=None):
     conn.close()
     return job_id
 
+
+def _decode_tool_result(value):
+    """Unwrap MCP text payloads when a tool returns a JSON list instead of an object."""
+    if isinstance(value, dict):
+        texts = value.get("text")
+        if isinstance(texts, list):
+            for text in texts:
+                if isinstance(text, str):
+                    try:
+                        return json.loads(text)
+                    except Exception:
+                        pass
+        return value
+    return value
+
+def _find_camera(value):
+    value = _decode_tool_result(value)
+    if not isinstance(value, dict):
+        return None
+    location = value.get("location")
+    rotation = value.get("rotation")
+    if isinstance(location, (dict, list)) and isinstance(rotation, (dict, list)):
+        return {"location": location, "rotation": rotation}
+    for child in value.values():
+        if isinstance(child, dict):
+            found = _find_camera(child)
+            if found:
+                return found
+    return None
+
+def _actor_rows(value):
+    value = _decode_tool_result(value)
+    if isinstance(value, list):
+        return [x for x in value if isinstance(x, dict)]
+    if isinstance(value, dict):
+        for key in ("actors", "return_value", "ReturnValue", "items"):
+            rows = value.get(key)
+            if isinstance(rows, list):
+                return [x for x in rows if isinstance(x, dict)]
+        for child in value.values():
+            rows = _actor_rows(child)
+            if rows:
+                return rows
+    return []
+
+def _choose_demo_actor(result):
+    rows = _actor_rows(result)
+    if not rows:
+        return None
+    blocked = ("worldsettings", "physicsvolume", "brush", "skyatmosphere",
+               "exponentialheightfog", "postprocessvolume", "navmeshbounds")
+    def label_of(row):
+        for key in ("label", "actor_label", "name", "actor_name"):
+            value = row.get(key)
+            if isinstance(value, str) and value.strip():
+                return value.strip()
+        return ""
+    def score(row):
+        label = label_of(row).lower()
+        cls = str(row.get("class") or row.get("class_name") or row.get("type") or "").lower()
+        if not label or any(x in label or x in cls for x in blocked):
+            return -9999
+        s = 0
+        if "character" in cls or "skeletal" in cls: s += 30
+        if "staticmesh" in cls: s += 20
+        if "blueprint" in cls or label.startswith("bp_"): s += 12
+        if "camera" in cls: s += 8
+        if any(x in label for x in ("floor", "ground", "wall", "ceiling")): s -= 10
+        if "light" in cls: s -= 4
+        return s
+    ranked = sorted(rows, key=score, reverse=True)
+    return label_of(ranked[0]) if ranked and score(ranked[0]) > -9999 else None
+
+def _start_demo_if_idle(device_id):
+    conn = _conn()
+    existing = conn.execute("SELECT stage FROM unreal_autodemo WHERE device_id=?", (device_id,)).fetchone()
+    active = conn.execute(
+        "SELECT 1 FROM unreal_jobs WHERE device_id=? AND status IN ('pending','claimed') LIMIT 1",
+        (device_id,),
+    ).fetchone()
+    if existing or active:
+        conn.close()
+        return False
+    conn.execute(
+        "INSERT INTO unreal_autodemo(device_id,stage,started_at) VALUES (?,?,?)",
+        (device_id, "camera", _now_iso()),
+    )
+    conn.commit()
+    conn.close()
+    _queue_job(device_id, "ue_get_camera", {})
+    return True
+
+def _fail_demo(device_id, message):
+    conn = _conn()
+    conn.execute(
+        "UPDATE unreal_autodemo SET stage='failed',completed_at=?,last_error=? WHERE device_id=?",
+        (_now_iso(), str(message)[:1000], device_id),
+    )
+    conn.commit()
+    conn.close()
+
+def _advance_demo(device_id, action, ok, result, error=""):
+    conn = _conn()
+    demo = conn.execute(
+        "SELECT stage,original_camera_json FROM unreal_autodemo WHERE device_id=?",
+        (device_id,),
+    ).fetchone()
+    conn.close()
+    if not demo or demo["stage"] in ("completed", "failed"):
+        return
+    if not ok:
+        _fail_demo(device_id, error or f"{action} failed")
+        return
+
+    stage = demo["stage"]
+    if stage == "camera" and action == "ue_get_camera":
+        camera = _find_camera(result)
+        if not camera:
+            _fail_demo(device_id, "Could not parse original viewport camera state")
+            return
+        conn = _conn()
+        conn.execute(
+            "UPDATE unreal_autodemo SET stage='actors',original_camera_json=? WHERE device_id=?",
+            (json.dumps(camera, separators=(",", ":")), device_id),
+        )
+        conn.commit()
+        conn.close()
+        _queue_job(device_id, "ue_list_actors", {})
+        return
+
+    if stage == "actors" and action == "ue_list_actors":
+        actor = _choose_demo_actor(result)
+        if not actor:
+            _fail_demo(device_id, "No safe focus target found in actor inventory")
+            return
+        conn = _conn()
+        conn.execute(
+            "UPDATE unreal_autodemo SET stage='focus',chosen_actor=? WHERE device_id=?",
+            (actor, device_id),
+        )
+        conn.commit()
+        conn.close()
+        _queue_job(device_id, "ue_focus_actor", {"label": actor, "distance": 650})
+        return
+
+    if stage == "focus" and action == "ue_focus_actor":
+        conn = _conn()
+        conn.execute("UPDATE unreal_autodemo SET stage='screenshot' WHERE device_id=?", (device_id,))
+        conn.commit()
+        conn.close()
+        _queue_job(device_id, "ue_screenshot", {
+            "filename": "JakeAI_Autonomous_Demo.png",
+            "width": 960,
+            "height": 540,
+            "return_image": False,
+        })
+        return
+
+    if stage == "screenshot" and action == "ue_screenshot":
+        try:
+            camera = json.loads(demo["original_camera_json"] or "{}")
+        except Exception:
+            camera = {}
+        if not camera.get("location") or not camera.get("rotation"):
+            _fail_demo(device_id, "Original camera state missing before restore")
+            return
+        conn = _conn()
+        conn.execute(
+            "UPDATE unreal_autodemo SET stage='restore',screenshot_result_json=? WHERE device_id=?",
+            (json.dumps(result or {}, separators=(",", ":")), device_id),
+        )
+        conn.commit()
+        conn.close()
+        _queue_job(device_id, "ue_set_camera", {
+            "location": camera["location"],
+            "rotation": camera["rotation"],
+        })
+        return
+
+    if stage == "restore" and action == "ue_set_camera":
+        conn = _conn()
+        conn.execute(
+            "UPDATE unreal_autodemo SET stage='completed',completed_at=? WHERE device_id=?",
+            (_now_iso(), device_id),
+        )
+        conn.commit()
+        conn.close()
+        return
+
 def register_unreal_bridge_routes(app):
     init_unreal_bridge()
 
@@ -174,6 +372,7 @@ def register_unreal_bridge_routes(app):
             "allowed_actions": sorted(ALLOWED_ACTIONS),
             "paired_devices": devices,
             "pending_jobs": pending,
+            "autonomous_demo": "safe_one_time_camera_focus_restore",
         }
 
     @app.post("/v1/unreal/pair/start")
@@ -312,7 +511,17 @@ def register_unreal_bridge_routes(app):
         ).fetchone()
         if not row:
             conn.close()
-            return {"job": None}
+            _start_demo_if_idle(body.device_id)
+            conn = _conn()
+            row = conn.execute(
+                """SELECT job_id,action,args_json FROM unreal_jobs
+                   WHERE device_id=? AND status='pending'
+                   ORDER BY created_at ASC LIMIT 1""",
+                (body.device_id,),
+            ).fetchone()
+            if not row:
+                conn.close()
+                return {"job": None}
         conn.execute(
             "UPDATE unreal_jobs SET status='claimed',claimed_at=? WHERE job_id=? AND status='pending'",
             (_now_iso(), row["job_id"]),
@@ -370,6 +579,7 @@ def register_unreal_bridge_routes(app):
             )
         conn.commit()
         conn.close()
+        _advance_demo(body.device_id, job["action"], body.ok, body.result or {}, body.error)
         return {"status": "recorded"}
 
     @app.get("/v1/unreal/devices")
