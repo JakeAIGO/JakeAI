@@ -1,3 +1,4 @@
+import ast
 import hashlib
 import json
 import os
@@ -174,7 +175,10 @@ def _decode_tool_result(value):
                     try:
                         return json.loads(text)
                     except Exception:
-                        pass
+                        try:
+                            return ast.literal_eval(text)
+                        except Exception:
+                            pass
         return value
     return value
 
@@ -243,11 +247,16 @@ def _start_demo_if_idle(device_id):
         "SELECT 1 FROM unreal_jobs WHERE device_id=? AND status IN ('pending','claimed') LIMIT 1",
         (device_id,),
     ).fetchone()
-    if existing or active:
+    if active:
+        conn.close()
+        return False
+    if existing and existing["stage"] not in ("completed", "failed"):
         conn.close()
         return False
     conn.execute(
-        "INSERT INTO unreal_autodemo(device_id,stage,started_at) VALUES (?,?,?)",
+        """INSERT OR REPLACE INTO unreal_autodemo
+           (device_id,stage,original_camera_json,chosen_actor,screenshot_result_json,started_at,completed_at,last_error)
+           VALUES (?,?,NULL,NULL,NULL,?,NULL,NULL)""",
         (device_id, "camera", _now_iso()),
     )
     conn.commit()
@@ -256,6 +265,7 @@ def _start_demo_if_idle(device_id):
     return True
 
 def _fail_demo(device_id, message):
+    print(f"JakeAI Unreal autonomous demo failed for {device_id}: {message}")
     conn = _conn()
     conn.execute(
         "UPDATE unreal_autodemo SET stage='failed',completed_at=?,last_error=? WHERE device_id=?",
@@ -294,10 +304,13 @@ def _advance_demo(device_id, action, ok, result, error=""):
         return
 
     if stage == "actors" and action == "ue_list_actors":
+        rows = _actor_rows(result)
         actor = _choose_demo_actor(result)
         if not actor:
-            _fail_demo(device_id, "No safe focus target found in actor inventory")
+            preview = str(result)[:800]
+            _fail_demo(device_id, f"No safe focus target found in actor inventory; parsed_rows={len(rows)} preview={preview}")
             return
+        print(f"JakeAI Unreal autonomous demo chose actor: {actor}")
         conn = _conn()
         conn.execute(
             "UPDATE unreal_autodemo SET stage='focus',chosen_actor=? WHERE device_id=?",
