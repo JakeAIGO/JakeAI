@@ -166,4 +166,9 @@ def gate_ira_calculator():
 def gate_robotics_solver():
     return _gated("robotics-grasp-solver", "Physical-control outputs require engineering validation and safety controls before production use.")
 
+# Register the private JakeAI Unreal bridge on the guarded production app.
+# Keep this before the catch-all legacy mount so /api/v1/unreal/* resolves here.
+from unreal_bridge import register_unreal_bridge_routes
+register_unreal_bridge_routes(app)
+
 app.mount("/", legacy_app)
