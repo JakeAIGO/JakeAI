@@ -215,3 +215,6 @@ register_direct_routes(app)
 
 from secret_vault import register_secret_vault_routes
 register_secret_vault_routes(app)
+
+from unreal_bridge import register_unreal_bridge_routes
+register_unreal_bridge_routes(app)
