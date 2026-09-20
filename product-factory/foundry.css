@@ -260,3 +260,129 @@ footer{grid-template-columns:1fr;padding:20px 14px;text-align:center}.footerLink
   .trustPills span{font-size:6.8px}
   .stageCopy h3{font-size:17px}
 }
+
+
+/* Mobile short-page pass: overview first, detail on demand. */
+.factoryDeepDive{display:none}
+.mobileIntakeToggle{display:none}
+
+@media(max-width:900px){
+  .heroGrid{min-height:560px;padding-top:34px;padding-bottom:26px}
+  .heroArt{min-height:225px}
+  .statusBar{margin-top:8px}
+  .pipelineIntro{padding-top:28px}
+  .pipelineIntro p{display:none}
+
+  .factoryLine{
+    display:grid;
+    grid-template-columns:1fr 1fr;
+    gap:8px;
+    padding:4px 10px 12px
+  }
+  .stage,
+  .stage+.stage,
+  .stage.amber,
+  .stage.amber+.stage{
+    display:block;
+    min-height:112px;
+    margin:0;
+    padding:12px;
+    border-radius:13px;
+    position:relative
+  }
+  .stage .num{
+    display:grid;
+    place-items:center;
+    width:27px;
+    height:27px;
+    padding:0;
+    margin:0 0 10px;
+    font-size:11px;
+    position:relative
+  }
+  .stage .num:before{
+    inset:0;
+    width:27px;
+    height:27px
+  }
+  .stageCopy{padding:0}
+  .stageCopy h3{
+    margin:0;
+    font-size:12px;
+    line-height:1.12;
+    max-width:120px
+  }
+  .stageCopy p,
+  .stageCopy ul,
+  .stageArt{display:none!important}
+  .humanStage{min-height:112px}
+  .factoryDeepDive{
+    display:flex;
+    width:calc(100% - 20px);
+    margin:0 10px 30px;
+    min-height:40px
+  }
+
+  .doors{padding:28px 0 30px}
+  .doors .sectionHead{padding:0 12px}
+  .doors .sectionHead h2{font-size:27px}
+  .doors .sectionHead p{font-size:11px}
+  .doorGrid{
+    display:flex;
+    gap:9px;
+    overflow-x:auto;
+    padding:0 12px 10px;
+    scroll-snap-type:x mandatory;
+    scrollbar-width:none
+  }
+  .doorGrid::-webkit-scrollbar{display:none}
+  .doorCard{
+    flex:0 0 82vw;
+    min-height:225px;
+    padding:16px;
+    scroll-snap-align:center
+  }
+  .doorCard h3{font-size:20px}
+  .doorCard p{font-size:11px}
+  .doorCard .button{min-height:38px}
+  .textLink{margin-top:10px}
+
+  .agents{
+    margin:0 10px 24px;
+    padding:15px 13px
+  }
+  .agents h2{font-size:24px}
+  .agents p{font-size:11px;line-height:1.4}
+  .agentLinks{grid-template-columns:1fr 1fr;gap:6px}
+  .agentLinks a{padding:9px}
+  .agentLinks b{font-size:9px}
+  .agentLinks span{font-size:8px}
+
+  .intake{
+    margin:0 10px 24px;
+    padding:0;
+    display:block
+  }
+  .intakeIntro{padding:16px}
+  .intakeIntro h2{font-size:27px}
+  .intakeIntro p{font-size:11px}
+  .intakeRules{margin:12px 0}
+  .hopper{display:none}
+  .mobileIntakeToggle{display:flex;margin-top:12px}
+  .intake .form{display:none;margin-top:8px;padding:14px}
+  .intake.open .form{display:block}
+  .intake.open .mobileIntakeToggle{display:none}
+
+  .releaseStrip{margin-bottom:24px}
+  footer{padding-top:16px;padding-bottom:16px}
+}
+
+@media(max-width:390px){
+  .factoryLine{gap:7px}
+  .stage,
+  .stage+.stage,
+  .stage.amber,
+  .stage.amber+.stage{min-height:106px;padding:10px}
+  .stageCopy h3{font-size:11px}
+  .doorCard{flex-basis:86vw}
+}
