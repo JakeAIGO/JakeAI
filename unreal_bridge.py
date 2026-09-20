@@ -22,6 +22,19 @@ ALLOWED_ACTIONS = {
     "ue_screenshot",
     "ue_focus_actor",
     "ue_set_camera",
+
+    # Constructive/read-only tools enabled for JakeAI Unreal Bridge v2.
+    # Deletion, arbitrary Python, packaging and deployment remain blocked.
+    "ue_import_assets",
+    "ue_list_assets",
+    "ue_make_folder",
+    "ue_duplicate_asset",
+    "ue_spawn_actor",
+    "ue_set_actor_transform",
+    "ue_set_actor_property",
+    "ue_list_actor_components",
+    "ue_create_material",
+    "ue_assign_material",
 }
 
 def _now_iso():
