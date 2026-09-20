@@ -272,6 +272,56 @@ class WalletCanaryRequest(BaseModel):
     acknowledge_irreversible_payment: bool = False
 
 
+def _canary_runtime_ready() -> tuple[bool, list[str]]:
+    config = crypto_runtime._crypto_config()
+    errors = []
+    if config.chain_id != crypto_runtime.BASE_MAINNET_CHAIN_ID:
+        errors.append("unsupported chain")
+    if config.token_contract != crypto_runtime.BASE_NATIVE_USDC_CONTRACT:
+        errors.append("unsupported token contract")
+    if not config.merchant_address:
+        errors.append("merchant address missing")
+    if not os.environ.get("BASE_RPC_URL", "").strip():
+        errors.append("Base RPC missing")
+    return (not errors, errors)
+
+
+def _get_or_create_canary_invoice() -> Optional[dict]:
+    if not _wallet_bool("JAKEAI_CRYPTO_CANARY_ENABLED"):
+        return None
+    ready, errors = _canary_runtime_ready()
+    if not ready:
+        raise HTTPException(status_code=503, detail="Canary configuration incomplete: " + ", ".join(errors))
+    conn = commerce_app._commerce_conn()
+    conn.row_factory = __import__("sqlite3").Row
+    row = conn.execute(
+        """
+        SELECT id, status
+        FROM commerce_orders
+        WHERE product_id = ? AND source = ?
+        ORDER BY created_at DESC
+        LIMIT 1
+        """,
+        ("prod_crypto_canary_preview", "crypto-test"),
+    ).fetchone()
+    conn.close()
+    if row and row["status"] in {"crypto_awaiting_payment", "pending_payment"}:
+        crypto_order = crypto_runtime._get_crypto_order(row["id"])
+        if crypto_order:
+            return {
+                "order_id": row["id"],
+                "amount_usdc": crypto_order["amount_usdc"],
+                "merchant_address": crypto_runtime._crypto_config().merchant_address,
+            }
+    config = crypto_runtime._crypto_config()
+    return crypto_runtime._create_crypto_order(
+        "prod_crypto_canary_preview",
+        10,
+        "crypto-test",
+        config.merchant_address,
+    )
+
+
 class WalletCanaryComplianceRequest(BaseModel):
     order_id: str = Field(..., min_length=5, max_length=100)
     tx_hash: str = Field(..., min_length=66, max_length=66)
@@ -336,15 +386,10 @@ def wallet_preview_create_canary(
         raise HTTPException(status_code=409, detail="Real-money crypto canary is disabled")
     if not req.acknowledge_irreversible_payment:
         raise HTTPException(status_code=422, detail="Blockchain payment acknowledgement is required")
-    config = crypto_runtime._require_activation_ready()
-    if not config.merchant_address:
-        raise HTTPException(status_code=503, detail="Merchant receiving address is not configured")
-    created = crypto_runtime._create_crypto_order(
-        "prod_crypto_canary_preview",
-        10,
-        "crypto-test",
-        config.merchant_address,
-    )
+    ready, errors = _canary_runtime_ready()
+    if not ready:
+        raise HTTPException(status_code=503, detail="Canary configuration incomplete: " + ", ".join(errors))
+    created = _get_or_create_canary_invoice()
     return {
         **created,
         "price_usd_cents": 10,
@@ -396,6 +441,12 @@ def wallet_preview_compliance_clear(
 @app.get("/wallet-preview", response_class=_WalletHTMLResponse)
 def wallet_preview_console():
     status = _wallet_preview_status()
+    canary_invoice = None
+    if status["canary_enabled"]:
+        try:
+            canary_invoice = _get_or_create_canary_invoice()
+        except Exception:
+            canary_invoice = None
     status_fields = [
         ("Merchant wallet configured", status["merchant_configured"]),
         ("Base RPC configured", status["rpc_configured"]),
@@ -415,15 +466,25 @@ def wallet_preview_console():
         if status["merchant_configured"] and status["rpc_configured"] and status["admin_review_configured"] and status["preview_only_lock"]
         else '<p class="warn"><b>Configuration incomplete.</b> One or more required preview components are missing.</p>'
     )
-    html = r"""<!doctype html><html><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover"><meta name="robots" content="noindex,nofollow,noarchive"><title>JakeAI Wallet RC2</title><style>:root{color-scheme:dark;--bg:#03070b;--line:#21445a;--cyan:#5ce8ff;--muted:#91abba;--ok:#68efba;--warn:#ffd27e}*{box-sizing:border-box}body{margin:0;background:radial-gradient(circle at 50% 0,#12334c,var(--bg) 48%);color:#eefaff;font:15px/1.45 system-ui,sans-serif}main{max-width:760px;margin:auto;padding:28px 16px 70px}.brand{font-size:28px;font-weight:950}.brand b{color:var(--cyan)}.eyebrow{font-size:10px;letter-spacing:.18em;color:var(--cyan);font-weight:900}h1{font-size:36px;line-height:1;margin:12px 0}p{color:var(--muted)}.panel{margin-top:15px;padding:18px;border:1px solid var(--line);border-radius:18px;background:#07121dcc}.row{display:grid;grid-template-columns:1fr 1fr;gap:8px}.stat{padding:11px;border:1px solid #ffffff16;border-radius:12px;background:#ffffff05;font-size:12px}.ok{color:var(--ok)}.off{color:#ffc267}input,button{width:100%;padding:14px;margin-top:10px;border-radius:12px;font:inherit}input{background:#03080d;border:1px solid #315067;color:#fff}button{border:0;background:#56ddff;color:#00131b;font-weight:900}button.secondary{background:#132535;color:#dffaff;border:1px solid #315067}button:disabled{opacity:.4}pre{white-space:pre-wrap;word-break:break-word;background:#02070b;padding:12px;border-radius:10px;color:#a9efff;min-height:42px}.warn{border-color:#725823}.tiny{font-size:11px}.attest{display:flex;gap:8px;align-items:flex-start;color:var(--muted);font-size:12px}.attest input{width:auto;margin-top:3px}</style></head><body><main><div class="brand">Jake<b>AI</b></div><div class="eyebrow">WALLET RC2 · ISOLATED TEST CONSOLE</div><h1>Base USDC checkout.</h1><p>Merchant-only, non-custodial and fail-closed. The app never holds a customer's wallet and never signs or broadcasts a transaction.</p><section class="panel"><b>Wallet readiness</b><p class="tiny">Loaded automatically from the JakeAI wallet service. No password and no button required.</p>__SUMMARY__<div class="row">__STATUS__</div><p class="tiny">Network: Base Mainnet · Chain ID 8453 · Asset: native USDC · Minimum confirmations: 2</p><p class="tiny">Refresh this page only if you want to re-check the state.</p></section><section class="panel warn"><b>10¢ real-chain canary</b><p class="tiny">Creating an invoice moves no money. Sending USDC is a real irreversible Base transaction. The canary has no product fulfillment.</p><label class="attest"><input id="ack" type="checkbox">I understand the canary payment is a real blockchain transfer.</label><button id="create" disabled>Create 0.10 USDC canary invoice</button><div id="invoice"></div></section><section class="panel"><b>Verify transaction</b><input id="order" placeholder="Order ID"><input id="tx" placeholder="0x transaction hash"><button class="secondary" id="verify">Verify transaction</button><pre id="verifyOut"></pre></section><section class="panel"><b>Human compliance gate</b><p class="tiny">This does not perform sanctions/risk screening. Use only after the approved external review has actually been completed for this exact transaction.</p><input id="reviewer" placeholder="Reviewer name"><input id="reference" placeholder="External review reference"><label class="attest"><input id="reviewed" type="checkbox">I attest that the approved external review was completed for this exact order and transaction.</label><button class="secondary" id="clear">Record compliance clear</button><pre id="clearOut"></pre></section></main><script>
-const q=s=>document.querySelector(s),create=q('#create'),invoice=q('#invoice');const key={value:''};
+    if canary_invoice:
+        canary_html = (
+            '<div class="label">ORDER ID</div><div class="value">' + canary_invoice["order_id"] + '</div>'
+            '<div class="label">EXACT AMOUNT</div><div class="value"><b>' + canary_invoice["amount_usdc"] + ' USDC</b></div>'
+            '<div class="label">NETWORK</div><div class="value">Base Mainnet · Chain ID 8453</div>'
+            '<div class="label">ASSET</div><div class="value">Native USDC</div>'
+            '<div class="label">MERCHANT ADDRESS</div><div class="value">' + canary_invoice["merchant_address"] + '</div>'
+            '<div class="label">TOKEN CONTRACT</div><div class="value">' + crypto_runtime.BASE_NATIVE_USDC_CONTRACT + '</div>'
+            '<p class="warn"><b>STOP HERE until you deliberately send the 0.10 USDC.</b> Creating this invoice moved no money.</p>'
+        )
+    else:
+        canary_html = '<p class="tiny">The real-chain canary is OFF. No invoice exists and no money can move from this console.</p>'
+    html = r"""<!doctype html><html><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover"><meta name="robots" content="noindex,nofollow,noarchive"><title>JakeAI Wallet RC2</title><style>:root{color-scheme:dark;--bg:#03070b;--line:#21445a;--cyan:#5ce8ff;--muted:#91abba;--ok:#68efba;--warn:#ffd27e}*{box-sizing:border-box}body{margin:0;background:radial-gradient(circle at 50% 0,#12334c,var(--bg) 48%);color:#eefaff;font:15px/1.45 system-ui,sans-serif}main{max-width:760px;margin:auto;padding:28px 16px 70px}.brand{font-size:28px;font-weight:950}.brand b{color:var(--cyan)}.eyebrow{font-size:10px;letter-spacing:.18em;color:var(--cyan);font-weight:900}h1{font-size:36px;line-height:1;margin:12px 0}p{color:var(--muted)}.panel{margin-top:15px;padding:18px;border:1px solid var(--line);border-radius:18px;background:#07121dcc}.row{display:grid;grid-template-columns:1fr 1fr;gap:8px}.stat{padding:11px;border:1px solid #ffffff16;border-radius:12px;background:#ffffff05;font-size:12px}.ok{color:var(--ok)}.off{color:#ffc267}input,button{width:100%;padding:14px;margin-top:10px;border-radius:12px;font:inherit}input{background:#03080d;border:1px solid #315067;color:#fff}button{border:0;background:#56ddff;color:#00131b;font-weight:900}button.secondary{background:#132535;color:#dffaff;border:1px solid #315067}button:disabled{opacity:.4}pre{white-space:pre-wrap;word-break:break-word;background:#02070b;padding:12px;border-radius:10px;color:#a9efff;min-height:42px}.warn{border-color:#725823}.tiny{font-size:11px}.attest{display:flex;gap:8px;align-items:flex-start;color:var(--muted);font-size:12px}.attest input{width:auto;margin-top:3px}</style></head><body><main><div class="brand">Jake<b>AI</b></div><div class="eyebrow">WALLET RC2 · ISOLATED TEST CONSOLE</div><h1>Base USDC checkout.</h1><p>Merchant-only, non-custodial and fail-closed. The app never holds a customer's wallet and never signs or broadcasts a transaction.</p><section class="panel"><b>Wallet readiness</b><p class="tiny">Loaded automatically from the JakeAI wallet service. No password and no button required.</p>__SUMMARY__<div class="row">__STATUS__</div><p class="tiny">Network: Base Mainnet · Chain ID 8453 · Asset: native USDC · Minimum confirmations: 2</p><p class="tiny">Refresh this page only if you want to re-check the state.</p></section><section class="panel warn"><b>10¢ real-chain canary</b><p class="tiny">The invoice is generated server-side. It does not move money and has no product fulfillment.</p>__CANARY__</section><section class="panel"><b>Verify transaction</b><input id="order" placeholder="Order ID"><input id="tx" placeholder="0x transaction hash"><button class="secondary" id="verify">Verify transaction</button><pre id="verifyOut"></pre></section><section class="panel"><b>Human compliance gate</b><p class="tiny">This does not perform sanctions/risk screening. Use only after the approved external review has actually been completed for this exact transaction.</p><input id="reviewer" placeholder="Reviewer name"><input id="reference" placeholder="External review reference"><label class="attest"><input id="reviewed" type="checkbox">I attest that the approved external review was completed for this exact order and transaction.</label><button class="secondary" id="clear">Record compliance clear</button><pre id="clearOut"></pre></section></main><script>
+const q=s=>document.querySelector(s);const key={value:''};
 async function api(path,opt={}){opt.headers={...(opt.headers||{}),'X-JakeAI-Preview-Key':key.value};const x=await fetch(path,opt);let j={};try{j=await x.json()}catch{}if(!x.ok)throw new Error(typeof j.detail==='string'?j.detail:JSON.stringify(j.detail||('HTTP '+x.status)));return j}
-q('#ack').onchange=()=>{create.disabled=true};
-create.onclick=async()=>{try{const j=await api('/v1/commerce/wallet-preview/create-canary',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({acknowledge_irreversible_payment:q('#ack').checked})});q('#order').value=j.order_id;invoice.innerHTML='<pre>'+JSON.stringify(j,null,2)+'</pre>'}catch(e){invoice.innerHTML='<pre>'+e.message+'</pre>'}}
 q('#verify').onclick=async()=>{try{const j=await api('/v1/checkout/crypto/verify',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({order_id:q('#order').value,tx_hash:q('#tx').value})});q('#verifyOut').textContent=JSON.stringify(j,null,2)}catch(e){q('#verifyOut').textContent=e.message}}
 q('#clear').onclick=async()=>{try{const j=await api('/v1/commerce/wallet-preview/compliance-clear',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({order_id:q('#order').value,tx_hash:q('#tx').value,reviewer:q('#reviewer').value,reference:q('#reference').value||null,attest_external_review_complete:q('#reviewed').checked})});q('#clearOut').textContent=JSON.stringify(j,null,2)}catch(e){q('#clearOut').textContent=e.message}}
 </script></body></html>"""
-    html = html.replace("__STATUS__", status_html).replace("__SUMMARY__", summary)
+    html = html.replace("__STATUS__", status_html).replace("__SUMMARY__", summary).replace("__CANARY__", canary_html)
     return _WalletHTMLResponse(
         html,
         headers={
