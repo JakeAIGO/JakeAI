@@ -1,6 +1,6 @@
 {
   "$schema": "https://json-schema.org/draft/2020-12/schema",
-  "$id": "https://www.jakeaiofficial.com/catalog.schema.json",
+  "$id": "https://jakeaiofficial.com/catalog.schema.json",
   "title": "JakeAI Public Capability Catalog v1",
   "type": "object",
   "required": [
