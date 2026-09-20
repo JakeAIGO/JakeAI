@@ -1,0 +1,467 @@
+{
+  "schema_version": "1.0",
+  "catalog_id": "jakeai-public-capability-catalog",
+  "provider": {
+    "name": "JakeAI",
+    "canonical_url": "https://www.jakeaiofficial.com/",
+    "human_catalog_url": "https://www.jakeaiofficial.com/catalog/",
+    "machine_catalog_url": "https://www.jakeaiofficial.com/catalog.json",
+    "workflow_registry_url": "https://www.jakeaiofficial.com/workflow-registry.json"
+  },
+  "generated_at": "2026-09-20",
+  "audience": [
+    "human",
+    "ai_agent"
+  ],
+  "purpose": "Public discovery catalog for JakeAI capabilities and autonomous workflows. Human and machine surfaces are projections of the same public capability records.",
+  "discovery_contract": {
+    "stable_ids": true,
+    "canonical_urls": true,
+    "explicit_availability": true,
+    "explicit_human_approval_boundaries": true,
+    "no_hidden_purchase_claims": true,
+    "agent_guidance": "Do not infer that a gated capability is purchasable or invokable. Use each record's commerce and invocation fields."
+  },
+  "capabilities": [
+    {
+      "id": "JAI-WF-0019",
+      "slug": "workflow-rescue",
+      "name": "Workflow Rescue",
+      "type": "autonomous_workflow",
+      "category": [
+        "AI Agent Operations"
+      ],
+      "version": "1.0",
+      "lifecycle_status": "working",
+      "publication_status": "public_page",
+      "summary": "Diagnose failed or fragile AI-agent workflows and structure a bounded recovery path for human review.",
+      "problem_signals": [
+        "agent workflow failure",
+        "broken automation",
+        "fragile multi-step workflow",
+        "recovery planning"
+      ],
+      "inputs": [
+        "workflow description",
+        "observed failure",
+        "available logs or evidence",
+        "constraints"
+      ],
+      "outputs": [
+        "diagnostic findings",
+        "recovery plan",
+        "approval boundaries"
+      ],
+      "human_url": "https://www.jakeaiofficial.com/workflow-rescue.html",
+      "machine_url": "https://www.jakeaiofficial.com/catalog.json#JAI-WF-0019",
+      "commerce": {
+        "mode": "public_page",
+        "purchasable": false,
+        "reason": "No machine-purchasable offer is declared in this catalog record."
+      },
+      "invocation": {
+        "mode": "human_page",
+        "endpoint": null
+      },
+      "trust": {
+        "human_release_gate": true,
+        "provenance": "repository_public_record"
+      }
+    },
+    {
+      "id": "JAI-WF-0018",
+      "slug": "supplier-quote-compare",
+      "name": "Supplier Quote Compare",
+      "type": "autonomous_workflow",
+      "category": [
+        "Procurement"
+      ],
+      "version": "1.0",
+      "lifecycle_status": "working",
+      "publication_status": "public_page",
+      "summary": "Normalize supplier quotes and compare price, scope, terms and constraints for human decision-making.",
+      "problem_signals": [
+        "supplier quote comparison",
+        "procurement normalization",
+        "quote mismatch",
+        "vendor comparison"
+      ],
+      "inputs": [
+        "supplier quotes",
+        "scope requirements",
+        "comparison criteria"
+      ],
+      "outputs": [
+        "normalized comparison",
+        "exceptions",
+        "human review flags"
+      ],
+      "human_url": "https://www.jakeaiofficial.com/supplier-quote-compare.html",
+      "machine_url": "https://www.jakeaiofficial.com/catalog.json#JAI-WF-0018",
+      "commerce": {
+        "mode": "public_page",
+        "purchasable": false,
+        "reason": "No machine-purchasable offer is declared in this catalog record."
+      },
+      "invocation": {
+        "mode": "human_page",
+        "endpoint": null
+      },
+      "trust": {
+        "human_release_gate": true,
+        "provenance": "repository_public_record"
+      }
+    },
+    {
+      "id": "JAI-WF-0017",
+      "slug": "inventory-replenishment-autopilot",
+      "name": "Inventory Replenishment Autopilot",
+      "type": "autonomous_workflow",
+      "category": [
+        "Business Operations"
+      ],
+      "version": "1.0",
+      "lifecycle_status": "working",
+      "publication_status": "public_page",
+      "summary": "Structure repeatable inventory replenishment decisions from supplied operational inputs while keeping consequential actions human-approved.",
+      "problem_signals": [
+        "inventory replenishment",
+        "stockout risk",
+        "repeat reorder work",
+        "inventory planning"
+      ],
+      "inputs": [
+        "inventory state",
+        "reorder rules",
+        "constraints"
+      ],
+      "outputs": [
+        "replenishment recommendation",
+        "exceptions",
+        "approval-required actions"
+      ],
+      "human_url": "https://www.jakeaiofficial.com/inventory-replenishment-autopilot.html",
+      "machine_url": "https://www.jakeaiofficial.com/catalog.json#JAI-WF-0017",
+      "commerce": {
+        "mode": "public_page",
+        "purchasable": false,
+        "reason": "No machine-purchasable offer is declared in this catalog record."
+      },
+      "invocation": {
+        "mode": "human_page",
+        "endpoint": null
+      },
+      "trust": {
+        "human_release_gate": true,
+        "provenance": "repository_public_record"
+      }
+    },
+    {
+      "id": "JAI-WF-0020",
+      "slug": "autonomous-employee-foundry",
+      "name": "Autonomous Employee Foundry",
+      "type": "custom_autonomous_capability",
+      "category": [
+        "AI Agent Operations",
+        "Business Automation"
+      ],
+      "version": "0.1",
+      "lifecycle_status": "candidate",
+      "publication_status": "public_intake",
+      "summary": "A founding-pilot intake and build path that turns a recurring job into a bounded autonomous capability with explicit tools, tests and approval gates.",
+      "problem_signals": [
+        "recurring manual job",
+        "repeat operational task",
+        "bounded autonomous worker",
+        "workflow delegation"
+      ],
+      "inputs": [
+        "job description",
+        "desired outcome",
+        "approval boundaries",
+        "context and constraints"
+      ],
+      "outputs": [
+        "review packet",
+        "scope draft",
+        "proposed capability path"
+      ],
+      "human_url": "https://www.jakeaiofficial.com/autonomous-employee.html",
+      "machine_url": "https://www.jakeaiofficial.com/catalog.json#JAI-WF-0020",
+      "commerce": {
+        "mode": "intake",
+        "purchasable": false,
+        "reason": "Founding pilot intake is public; checkout and automated fulfillment remain gated."
+      },
+      "invocation": {
+        "mode": "human_intake",
+        "endpoint": null
+      },
+      "trust": {
+        "human_release_gate": true,
+        "provenance": "repository_public_record"
+      }
+    },
+    {
+      "id": "JAI-WF-0002",
+      "slug": "make-the-damn-thing-for-free",
+      "name": "Make the Damn Thing for Free™",
+      "type": "autonomous_workflow",
+      "category": [
+        "Production Orchestration"
+      ],
+      "version": "1.0",
+      "lifecycle_status": "production",
+      "publication_status": "listed_live",
+      "summary": "A JakeAI production-orchestration workflow listed in the public registry.",
+      "problem_signals": [
+        "low-cost production",
+        "production orchestration",
+        "build with minimal paid tooling"
+      ],
+      "inputs": [
+        "production goal",
+        "constraints",
+        "available tools"
+      ],
+      "outputs": [
+        "production workflow",
+        "tool path",
+        "human review points"
+      ],
+      "human_url": "https://www.jakeaiofficial.com/product-factory/",
+      "machine_url": "https://www.jakeaiofficial.com/catalog.json#JAI-WF-0002",
+      "commerce": {
+        "mode": "listed_live",
+        "purchasable": false,
+        "reason": "This catalog version does not expose a machine-purchasable offer."
+      },
+      "invocation": {
+        "mode": "catalog_discovery",
+        "endpoint": null
+      },
+      "trust": {
+        "human_release_gate": true,
+        "provenance": "repository_public_record"
+      }
+    },
+    {
+      "id": "JAI-WF-0008",
+      "slug": "agent-readability-auditor",
+      "name": "Agent Readability Auditor",
+      "type": "autonomous_workflow",
+      "category": [
+        "AI Agent Operations"
+      ],
+      "version": "1.0",
+      "lifecycle_status": "working",
+      "publication_status": "listed_gated",
+      "summary": "Designed to audit whether a public property presents clear, structured and discoverable information for AI agents.",
+      "problem_signals": [
+        "AI discoverability",
+        "agent readability",
+        "machine-readable website",
+        "capability indexing"
+      ],
+      "inputs": [
+        "public URL",
+        "audit criteria"
+      ],
+      "outputs": [
+        "readability findings",
+        "discovery gaps",
+        "recommended fixes"
+      ],
+      "human_url": "https://www.jakeaiofficial.com/product-factory/",
+      "machine_url": "https://www.jakeaiofficial.com/catalog.json#JAI-WF-0008",
+      "commerce": {
+        "mode": "gated",
+        "purchasable": false,
+        "reason": "Listed capability; public purchase is not declared."
+      },
+      "invocation": {
+        "mode": "gated",
+        "endpoint": null
+      },
+      "trust": {
+        "human_release_gate": true,
+        "provenance": "repository_public_record"
+      }
+    },
+    {
+      "id": "JAI-WF-0007",
+      "slug": "web-to-markdown-extraction-api",
+      "name": "Web-to-Markdown Extraction API",
+      "type": "api_capability",
+      "category": [
+        "Data Tools"
+      ],
+      "version": "1.0",
+      "lifecycle_status": "working",
+      "publication_status": "listed_gated",
+      "summary": "Designed to convert web content into normalized Markdown for downstream workflows.",
+      "problem_signals": [
+        "web extraction",
+        "HTML normalization",
+        "content to Markdown",
+        "machine-readable content"
+      ],
+      "inputs": [
+        "public web content or URL",
+        "extraction options"
+      ],
+      "outputs": [
+        "normalized Markdown",
+        "extraction metadata"
+      ],
+      "human_url": "https://www.jakeaiofficial.com/product-factory/",
+      "machine_url": "https://www.jakeaiofficial.com/catalog.json#JAI-WF-0007",
+      "commerce": {
+        "mode": "gated",
+        "purchasable": false,
+        "reason": "Listed capability; public purchase is not declared."
+      },
+      "invocation": {
+        "mode": "gated",
+        "endpoint": null
+      },
+      "trust": {
+        "human_release_gate": true,
+        "provenance": "repository_public_record"
+      }
+    },
+    {
+      "id": "JAI-WF-0010",
+      "slug": "utility-tariff-normalizer-api",
+      "name": "Utility Tariff Normalizer API",
+      "type": "api_capability",
+      "category": [
+        "Energy",
+        "Data Tools"
+      ],
+      "version": "1.0",
+      "lifecycle_status": "working",
+      "publication_status": "listed_gated",
+      "summary": "Designed to normalize utility tariff information into structured outputs for downstream analysis.",
+      "problem_signals": [
+        "utility tariff normalization",
+        "rate data extraction",
+        "tariff comparison",
+        "energy data structuring"
+      ],
+      "inputs": [
+        "utility tariff source",
+        "normalization criteria"
+      ],
+      "outputs": [
+        "structured tariff data",
+        "normalization notes",
+        "review flags"
+      ],
+      "human_url": "https://www.jakeaiofficial.com/product-factory/",
+      "machine_url": "https://www.jakeaiofficial.com/catalog.json#JAI-WF-0010",
+      "commerce": {
+        "mode": "gated",
+        "purchasable": false,
+        "reason": "Listed capability; public purchase is not declared."
+      },
+      "invocation": {
+        "mode": "gated",
+        "endpoint": null
+      },
+      "trust": {
+        "human_release_gate": true,
+        "provenance": "repository_public_record"
+      }
+    },
+    {
+      "id": "JAI-WF-0011",
+      "slug": "multi-model-advisory-council-audit-api",
+      "name": "Multi-Model Advisory Council Audit API",
+      "type": "api_capability",
+      "category": [
+        "AI Governance"
+      ],
+      "version": "1.0",
+      "lifecycle_status": "working",
+      "publication_status": "listed_gated",
+      "summary": "Designed to compare or audit outputs across multiple AI models and preserve a traceable human review path.",
+      "problem_signals": [
+        "multi-model review",
+        "AI output audit",
+        "model disagreement",
+        "AI governance"
+      ],
+      "inputs": [
+        "review question or artifact",
+        "model outputs",
+        "audit criteria"
+      ],
+      "outputs": [
+        "comparative findings",
+        "disagreement notes",
+        "human review flags"
+      ],
+      "human_url": "https://www.jakeaiofficial.com/product-factory/",
+      "machine_url": "https://www.jakeaiofficial.com/catalog.json#JAI-WF-0011",
+      "commerce": {
+        "mode": "gated",
+        "purchasable": false,
+        "reason": "Listed capability; public purchase is not declared."
+      },
+      "invocation": {
+        "mode": "gated",
+        "endpoint": null
+      },
+      "trust": {
+        "human_release_gate": true,
+        "provenance": "repository_public_record"
+      }
+    },
+    {
+      "id": "JAI-WF-0006",
+      "slug": "ira-section-48-calculator-api",
+      "name": "IRA / Section 48 Calculator API",
+      "type": "api_capability",
+      "category": [
+        "Energy",
+        "Tax Modeling"
+      ],
+      "version": "1.0",
+      "lifecycle_status": "working",
+      "publication_status": "listed_gated",
+      "summary": "Designed to support structured IRA / Section 48 tax-modeling calculations from supplied inputs; outputs require qualified human review.",
+      "problem_signals": [
+        "IRA Section 48 modeling",
+        "energy tax calculation",
+        "tax-credit scenario analysis"
+      ],
+      "inputs": [
+        "project assumptions",
+        "eligible-cost assumptions",
+        "calculation parameters"
+      ],
+      "outputs": [
+        "structured calculation",
+        "assumptions",
+        "review flags"
+      ],
+      "human_url": "https://www.jakeaiofficial.com/product-factory/",
+      "machine_url": "https://www.jakeaiofficial.com/catalog.json#JAI-WF-0006",
+      "commerce": {
+        "mode": "gated",
+        "purchasable": false,
+        "reason": "Listed capability; public purchase is not declared."
+      },
+      "invocation": {
+        "mode": "gated",
+        "endpoint": null
+      },
+      "trust": {
+        "human_release_gate": true,
+        "provenance": "repository_public_record",
+        "notice": "Not tax or legal advice."
+      }
+    }
+  ]
+}
