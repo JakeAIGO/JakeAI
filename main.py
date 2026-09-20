@@ -24,7 +24,7 @@ GENESIS_CATALOG = {
         "description": "Deterministic physics calculation for 5-fingered, 22-DoF robotic hands. Solves normal force, tendon tension distribution, joint torque limits, compliance margin, and slip risk with sub-10ms execution.",
         "category": "robotics-api",
         "price": 0.10,
-        "download_url": "https://www.jakeaiofficial.com/docs#/default/solve_grasp_v1_robotics_grasp_impedance_solver_post",
+        "download_url": "https://jakeaiofficial.com/docs#/default/solve_grasp_v1_robotics_grasp_impedance_solver_post",
         "vendor_did": "did:a2a:jakeai_core"
     },
     "prod_make_free_00": {
@@ -48,7 +48,7 @@ GENESIS_CATALOG = {
         "description": "Executable calculator returning statutory cash direct elective pay breakdowns (30% Base + 10% Energy Community + 10% Domestic Content).",
         "category": "fintech-api",
         "price": 1.00,
-        "download_url": "https://www.jakeaiofficial.com/docs#/default/calculate_ira_v1_solar_ira_calculator_post",
+        "download_url": "https://jakeaiofficial.com/docs#/default/calculate_ira_v1_solar_ira_calculator_post",
         "vendor_did": "did:a2a:solutions_energy"
     },
     "prod_scrape_01": {
@@ -56,7 +56,7 @@ GENESIS_CATALOG = {
         "description": "High-speed clean text & markdown extractor for LLMs and autonomous agents. Bypasses ads, navbars, and bloated HTML with instant automated API delivery.",
         "category": "ai-utilities",
         "price": 5.00,
-        "download_url": "https://www.jakeaiofficial.com/docs#/default/extract_markdown_v1_tools_extract_markdown_post",
+        "download_url": "https://jakeaiofficial.com/docs#/default/extract_markdown_v1_tools_extract_markdown_post",
         "vendor_did": "did:a2a:jakeai_core"
     },
     "prod_energy_01": {
@@ -64,7 +64,7 @@ GENESIS_CATALOG = {
         "description": "Automated nodal electricity price queries and 4CP transmission peak alerts across PJM & Dominion territories for energy automation bots.",
         "category": "data-api",
         "price": 0.25,
-        "download_url": "https://www.jakeaiofficial.com/docs#/default/get_tariff_data_v1_energy_tariff_pjm_get",
+        "download_url": "https://jakeaiofficial.com/docs#/default/get_tariff_data_v1_energy_tariff_pjm_get",
         "vendor_did": "did:a2a:solutions_energy"
     },
     "prod_tariff_norm_06": {
@@ -72,7 +72,7 @@ GENESIS_CATALOG = {
         "description": "Transforms complex non-standard utility rate schedules (GS-1, GS-3, large industrial) into standardized JSON objects for financial modeling.",
         "category": "data-api",
         "price": 0.50,
-        "download_url": "https://www.jakeaiofficial.com/docs#/default/normalize_tariff_v1_energy_tariff_normalize_post",
+        "download_url": "https://jakeaiofficial.com/docs#/default/normalize_tariff_v1_energy_tariff_normalize_post",
         "vendor_did": "did:a2a:solutions_energy"
     },
     "prod_audit_pack_10": {
@@ -80,7 +80,7 @@ GENESIS_CATALOG = {
         "description": "Pre-funded developer credit key for 10 automated pre-deployment audits (Claude 3.5 Sonnet + Perplexity Sonar-Pro). Eliminates per-transaction card fees. Includes CI/CD & MCP execution token.",
         "category": "developer-pack",
         "price": 18.00,
-        "download_url": "https://www.jakeaiofficial.com/docs#/default/multi_model_audit_v1_tools_multi_model_audit_post",
+        "download_url": "https://jakeaiofficial.com/docs#/default/multi_model_audit_v1_tools_multi_model_audit_post",
         "vendor_did": "did:a2a:jakeai_core"
     },
     "prod_multi_model_audit_08": {
@@ -88,7 +88,7 @@ GENESIS_CATALOG = {
         "description": "Automated dual-model pre-deployment audit combining Claude 3.5 Sonnet (architecture & legal risk) and Perplexity Sonar-Pro (market benchmarks) into a unified Go/No-Go report.",
         "category": "ai-utilities",
         "price": 2.00,
-        "download_url": "https://www.jakeaiofficial.com/docs#/default/multi_model_audit_v1_tools_multi_model_audit_post",
+        "download_url": "https://jakeaiofficial.com/docs#/default/multi_model_audit_v1_tools_multi_model_audit_post",
         "vendor_did": "did:a2a:jakeai_core"
     },
     "prod_agent_audit_07": {
@@ -96,7 +96,7 @@ GENESIS_CATALOG = {
         "description": "Automated machine audit testing any domain for /llms.txt compliance, MCP schema compatibility, and AI bot crawlability score.",
         "category": "ai-utilities",
         "price": 0.50,
-        "download_url": "https://www.jakeaiofficial.com/docs#/default/audit_agent_card_v1_tools_audit_agent_card_post",
+        "download_url": "https://jakeaiofficial.com/docs#/default/audit_agent_card_v1_tools_audit_agent_card_post",
         "vendor_did": "did:a2a:jakeai_core"
     }
     ,"prod_genesis_commission_001": {
@@ -104,7 +104,7 @@ GENESIS_CATALOG = {
         "description": "The first JakeAI customer commission. Tell JakeAI one real problem or opportunity; JakeAI evaluates feasibility, safety, and scope before accepting the commission.",
         "category": "commission",
         "price": 49.00,
-        "download_url": "https://www.jakeaiofficial.com/genesis-001.html",
+        "download_url": "https://jakeaiofficial.com/genesis-001.html",
         "vendor_did": "did:a2a:jakeai_core"
     }
 }
@@ -227,7 +227,7 @@ async def http_exception_handler(request: Request, exc: HTTPException):
             "error": {
                 "status_code": exc.status_code,
                 "message": exc.detail,
-                "domain": "https://www.jakeaiofficial.com",
+                "domain": "https://jakeaiofficial.com",
                 "support_email": "support@jakeaiofficial.com"
             }
         }
@@ -340,7 +340,7 @@ def extract_markdown(req: ExtractRequest):
     raise HTTPException(status_code=503, detail="Public URL fetching is disabled until SSRF-safe destination validation and egress controls are verified.")
     """Clean web-to-markdown text extractor for LLMs"""
     try:
-        headers = {'User-Agent': 'JakeAIBot/2.0 (+https://www.jakeaiofficial.com)'}
+        headers = {'User-Agent': 'JakeAIBot/2.0 (+https://jakeaiofficial.com)'}
         request_obj = urllib.request.Request(req.url, headers=headers)
         with urllib.request.urlopen(request_obj, timeout=10) as response:
             html = response.read().decode('utf-8', errors='ignore')
@@ -486,7 +486,7 @@ def create_checkout_session(product_id: str, idempotency_key: Optional[str] = He
         raise HTTPException(status_code=500, detail="STRIPE_SECRET_KEY missing in server variables")
         
     stripe.api_key = secret_key
-    success_url = prod_data.get("download_url", "https://www.jakeaiofficial.com?payment=success")
+    success_url = prod_data.get("download_url", "https://jakeaiofficial.com?payment=success")
     
     # Free Gateway SKU: frictionless 1-click delivery, bypass Stripe minimums
     if prod_data.get("price", 0) <= 0 or product_id == "prod_make_free_00":
@@ -517,8 +517,8 @@ def create_checkout_session(product_id: str, idempotency_key: Optional[str] = He
                 payment_method_types=['card'],
                 line_items=[{'price_data': {'currency':'usd','product_data': {'name':prod_data['title'],'description':prod_data['description'][:250]},'unit_amount':4900},'quantity':1}],
                 mode='payment',
-                success_url="https://www.jakeaiofficial.com/genesis-001.html?session_id={CHECKOUT_SESSION_ID}",
-                cancel_url="https://www.jakeaiofficial.com/genesis-001.html?payment=cancelled",
+                success_url="https://jakeaiofficial.com/genesis-001.html?session_id={CHECKOUT_SESSION_ID}",
+                cancel_url="https://jakeaiofficial.com/genesis-001.html?payment=cancelled",
                 expires_at=now + 1800,
                 metadata={'jakeai_product_id': product_id, 'reservation_token': token}
             )
@@ -554,7 +554,7 @@ def create_checkout_session(product_id: str, idempotency_key: Optional[str] = He
             }],
             mode='payment',
             success_url=success_url,
-            cancel_url="https://www.jakeaiofficial.com?payment=cancelled",
+            cancel_url="https://jakeaiofficial.com?payment=cancelled",
             **stripe_kwargs
         )
         return RedirectResponse(url=session.url, status_code=303)
@@ -833,11 +833,11 @@ async def search_products(request: Request, background_tasks: BackgroundTasks, q
 def llms_txt():
     return """# JakeAI — Human + AI Capability Discovery
 > Provider: JakeAI
-> Canonical host: https://www.jakeaiofficial.com
-> Public capability catalog: https://www.jakeaiofficial.com/catalog.json
-> Human capability catalog: https://www.jakeaiofficial.com/catalog/
-> Workflow registry: https://www.jakeaiofficial.com/workflow-registry.json
-> Agent card: https://www.jakeaiofficial.com/.well-known/agent.json
+> Canonical host: https://jakeaiofficial.com
+> Public capability catalog: https://jakeaiofficial.com/catalog.json
+> Human capability catalog: https://jakeaiofficial.com/catalog/
+> Workflow registry: https://jakeaiofficial.com/workflow-registry.json
+> Agent card: https://jakeaiofficial.com/.well-known/agent.json
 
 JakeAI publishes public capability records for both human and AI discovery. Capability discovery does not imply purchase or invocation rights. Agents must honor each catalog record's explicit commerce and invocation state.
 
@@ -848,9 +848,9 @@ JakeAI publishes public capability records for both human and AI discovery. Capa
 ## FAIL-CLOSED RULE
 Any product or capability not explicitly marked live by the commerce service is not available for automated purchase. Gated API routes return service-unavailable until delivery, provenance, entitlement, safety, or claims validation is complete.
 
-Terms: https://www.jakeaiofficial.com/terms.html
-Privacy: https://www.jakeaiofficial.com/privacy.html
-Refunds: https://www.jakeaiofficial.com/refunds.html
+Terms: https://jakeaiofficial.com/terms.html
+Privacy: https://jakeaiofficial.com/privacy.html
+Refunds: https://jakeaiofficial.com/refunds.html
 """
 
 @app.get("/.well-known/agent.json", response_class=JSONResponse)
@@ -862,13 +862,13 @@ def agent_card():
     ]
     return {
         "name": "JakeAI",
-        "url": "https://www.jakeaiofficial.com",
+        "url": "https://jakeaiofficial.com",
         "description": "JakeAI capability and autonomous-workflow ecosystem designed for human and AI-agent discovery, with explicit human release gates for consequential actions.",
         "protocol_version": "3.1",
         "discovery": {
-            "human_catalog_url": "https://www.jakeaiofficial.com/catalog/",
-            "machine_catalog_url": "https://www.jakeaiofficial.com/catalog.json",
-            "workflow_registry_url": "https://www.jakeaiofficial.com/workflow-registry.json"
+            "human_catalog_url": "https://jakeaiofficial.com/catalog/",
+            "machine_catalog_url": "https://jakeaiofficial.com/catalog.json",
+            "workflow_registry_url": "https://jakeaiofficial.com/workflow-registry.json"
         },
         "commerce": {
             "mode": "fail_closed",
