@@ -44,6 +44,9 @@ jobs:
         run: |
           python -m pytest -q tests/test_crypto_payment_adapter.py tests/test_crypto_payment_integration.py tests/test_crypto_payment_rpc.py tests/test_crypto_commerce_app.py
 
+      - name: Run Crypto Wallet Release-Candidate Tests
+        run: python -m pytest -q tests/test_crypto_release_candidate.py
+
       - name: Validate Machine-Readable JSON
         run: |
           python - <<'PY'
@@ -89,9 +92,9 @@ jobs:
           ]
 
           required_redirect_markers = [
-              "/llms.txt  https://agent-commerce-network-production-56e8.up.railway.app/llms.txt  200!",
-              "/.well-known/agent.json  https://agent-commerce-network-production-56e8.up.railway.app/.well-known/agent.json  200!",
-              "/api/*  https://agent-commerce-network-production-56e8.up.railway.app/:splat  200",
+              "/llms.txt  https://agent-commerce-network-production.up.railway.app/llms.txt  200!",
+              "/.well-known/agent.json  https://agent-commerce-network-production.up.railway.app/.well-known/agent.json  200!",
+              "/api/*  https://agent-commerce-network-production.up.railway.app/:splat  200",
           ]
 
           missing = [m for m in required_runtime_markers if m not in runtime]

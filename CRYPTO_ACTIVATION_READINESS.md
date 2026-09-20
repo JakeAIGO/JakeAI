@@ -19,6 +19,7 @@ Activation requires all of the following:
 
 - `CRYPTO_PAYMENTS_ENABLED=true`
 - `CRYPTO_LEGAL_APPROVED=true`
+- exact product ID present in `CRYPTO_PRODUCT_ALLOWLIST`
 - valid `CRYPTO_MERCHANT_ADDRESS`
 - Base Mainnet RPC configured through `BASE_RPC_URL`
 - RPC host on `BASE_RPC_ALLOWED_HOSTS`
@@ -76,7 +77,7 @@ The verifier is read-only. It only permits `eth_chainId`, `eth_getTransactionRec
 
 ## Production configuration already staged OFF
 
-Production currently has the public merchant address, Base RPC configuration, Base chain/token configuration and confirmation threshold available as environment configuration. `CRYPTO_PAYMENTS_ENABLED`, `CRYPTO_AUTO_FULFILL_ENABLED`, and `CRYPTO_LEGAL_APPROVED` remain false. Configuration changes were staged without triggering a deployment.
+Production configuration is activation-gated. Public checkout additionally requires an explicit `CRYPTO_PRODUCT_ALLOWLIST`; an empty or missing allowlist denies all crypto product checkout. `CRYPTO_PAYMENTS_ENABLED`, `CRYPTO_AUTO_FULFILL_ENABLED`, and `CRYPTO_LEGAL_APPROVED` must remain false until the final human activation gate.
 
 ## Pre-activation Council gate
 

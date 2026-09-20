@@ -65,3 +65,40 @@ def test_transaction_cannot_pay_different_order(tmp_path):
 def test_wrong_amount_is_not_recorded(tmp_path):
     r=SqliteTransactionRegistry(str(tmp_path/"db.sqlite3")); result=verify(r,rpc=FakeRpc(receipt(amount_raw=4_000_000)))
     assert result.recorded is False and result.validation.state.value=="underpaid"
+
+
+def test_base_sepolia_testnet_config_verifies_without_changing_mainnet_defaults(tmp_path):
+    testnet_usdc = "0x036cbd53842c5426634e7929541ec2318f3dcf7e"
+    testnet_receipt = {
+        "transactionHash": TX_HASH,
+        "status": "0x1",
+        "blockNumber": "0x64",
+        "logs": [{
+            "address": testnet_usdc,
+            "topics": [TRANSFER_TOPIC, topic_address(SENDER), topic_address(MERCHANT)],
+            "data": hex(100_000),
+        }],
+    }
+    testnet_config = CryptoPaymentConfig(
+        enabled=True,
+        auto_fulfill_enabled=False,
+        chain_id=84532,
+        token_contract=testnet_usdc,
+        merchant_address=MERCHANT,
+        test_mode=True,
+    )
+    testnet_invoice = PaymentInvoice.create("ord_testnet", "0.10", MERCHANT)
+    registry = SqliteTransactionRegistry(str(tmp_path/"testnet.sqlite3"))
+    result = verify_submitted_payment(
+        rpc=FakeRpc(testnet_receipt, chain_id=84532),
+        config=testnet_config,
+        invoice=testnet_invoice,
+        tx_hash=TX_HASH,
+        compliance_provider=DenyByDefaultComplianceProvider(),
+        registry=registry,
+        minimum_confirmations=2,
+        usd_fmv=Decimal("0.10"),
+    )
+    assert result.recorded is False
+    assert result.validation.state.value == "compliance_hold"
+    assert result.validation.accepted is False

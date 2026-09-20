@@ -83,6 +83,15 @@ def _crypto_config() -> CryptoPaymentConfig:
     return CryptoPaymentConfig.from_env()
 
 
+def _crypto_product_allowlist() -> set[str]:
+    raw = os.environ.get("CRYPTO_PRODUCT_ALLOWLIST", "")
+    return {item.strip() for item in raw.split(",") if item.strip()}
+
+
+def _crypto_product_allowed(product_id: str) -> bool:
+    return product_id in _crypto_product_allowlist()
+
+
 def _require_activation_ready() -> CryptoPaymentConfig:
     config = _crypto_config()
     errors = config.activation_errors()
@@ -308,9 +317,30 @@ def _rpc_client() -> BaseRpcClient:
 _init_crypto_checkout_tables()
 
 
+@app.get("/v1/checkout/crypto/config")
+def crypto_checkout_public_config():
+    config = _crypto_config()
+    errors = config.activation_errors()
+    return {
+        "enabled": bool(config.enabled and _legal_approved() and not errors),
+        "network": "Base Mainnet",
+        "chain_id": BASE_MAINNET_CHAIN_ID,
+        "asset": "USDC",
+        "token_contract": BASE_NATIVE_USDC_CONTRACT,
+        "minimum_confirmations": max(1, int(os.environ.get("CRYPTO_MIN_CONFIRMATIONS", "2"))),
+        "auto_fulfillment": bool(config.auto_fulfill_enabled),
+        "merchant_configured": bool(config.merchant_address),
+        "product_allowlist_configured": bool(_crypto_product_allowlist()),
+        "custody": False,
+        "exchange": False,
+    }
+
+
 @app.post("/v1/checkout/crypto/create/{product_id}")
 def create_crypto_checkout(product_id: str, req: CryptoCheckoutRequest):
     config = _require_activation_ready()
+    if not _crypto_product_allowed(product_id):
+        raise HTTPException(status_code=409, detail="Crypto checkout is not enabled for this product")
     if not req.acknowledge_irreversible_payment:
         raise HTTPException(status_code=422, detail="Blockchain payment acknowledgement is required")
     if not commerce_app.is_product_checkout_enabled(product_id):

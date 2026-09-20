@@ -150,9 +150,9 @@ def verify_submitted_payment(
             compliance=ComplianceDecision(False, provider="not-run", reason="payments disabled"),
             tx_hash=tx_hash, block_number=None, recorded=False,
         )
-    if rpc.chain_id() != BASE_MAINNET_CHAIN_ID:
+    if rpc.chain_id() != config.chain_id:
         return RpcVerificationResult(
-            validation=ValidationResult(False, PaymentState.WRONG_TOKEN_OR_NETWORK, "RPC endpoint is not Base Mainnet"),
+            validation=ValidationResult(False, PaymentState.WRONG_TOKEN_OR_NETWORK, "RPC endpoint does not match configured chain"),
             compliance=ComplianceDecision(False, provider="not-run", reason="wrong RPC chain"),
             tx_hash=tx_hash, block_number=None, recorded=False,
         )
@@ -166,7 +166,13 @@ def verify_submitted_payment(
         )
 
     latest_block = rpc.latest_block_number()
-    transfer = parse_base_usdc_transfer(receipt=receipt, merchant_address=invoice.merchant_address, latest_confirmed_block=latest_block)
+    transfer = parse_base_usdc_transfer(
+        receipt=receipt,
+        merchant_address=invoice.merchant_address,
+        latest_confirmed_block=latest_block,
+        chain_id=config.chain_id,
+        token_contract=config.token_contract,
+    )
     normalized_submitted = str(tx_hash).strip().lower()
     if transfer.tx_hash != normalized_submitted:
         return RpcVerificationResult(
