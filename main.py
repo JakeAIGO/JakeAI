@@ -109,6 +109,11 @@ GENESIS_CATALOG = {
     }
 }
 
+
+# Fail-closed production commerce allowlist. Discovery records may exist for
+# additional capabilities, but only these product IDs may create checkout.
+PUBLIC_COMMERCE_ALLOWLIST = {"prod_make_free_00", "prod_genesis_commission_001"}
+
 def init_db():
     conn = sqlite3.connect(DB_PATH)
     cursor = conn.cursor()
@@ -261,6 +266,7 @@ class SettlementRequest(BaseModel):
 
 @app.post("/v1/solar/ira-calculator")
 def calculate_ira(req: IRACalculatorRequest):
+    raise HTTPException(status_code=503, detail="Tax assumptions and eligibility logic require authoritative-source and version validation before production use.")
     """Calculates Section 48 Base ITC and Adders under IRA rules"""
     base_rate = 0.30
     bonus_energy = 0.10 if req.is_energy_community else 0.0
@@ -289,6 +295,7 @@ def calculate_ira(req: IRACalculatorRequest):
 
 @app.post("/v1/energy/tariff-normalize")
 def normalize_tariff(req: TariffNormalizeRequest):
+    raise HTTPException(status_code=503, detail="Authoritative tariff-source ingestion and versioned rate provenance are not verified for production.")
     """Normalizes utility tariffs into structured machine objects"""
     volumetric_energy_rate = 0.0785 # avg generation/fuel $0.0785/kWh
     distribution_demand_rate = 14.50 # $14.50/kW peak demand
@@ -315,6 +322,7 @@ def normalize_tariff(req: TariffNormalizeRequest):
 
 @app.get("/v1/energy/tariff/pjm")
 def get_tariff_data():
+    raise HTTPException(status_code=503, detail="No verified live PJM data adapter is configured; demonstration values are not served as live grid data.")
     """Live PJM & Dominion LMP pricing and 4CP status"""
     return {
         "region": "PJM_DOMINION",
@@ -329,6 +337,7 @@ def get_tariff_data():
 
 @app.post("/v1/tools/extract-markdown")
 def extract_markdown(req: ExtractRequest):
+    raise HTTPException(status_code=503, detail="Public URL fetching is disabled until SSRF-safe destination validation and egress controls are verified.")
     """Clean web-to-markdown text extractor for LLMs"""
     try:
         headers = {'User-Agent': 'JakeAIBot/2.0 (+https://www.jakeaiofficial.com)'}
@@ -422,6 +431,7 @@ def query_perplexity_auditor(prompt: str, api_key: Optional[str]) -> Dict[str, A
 
 @app.post("/v1/tools/multi-model-audit")
 def multi_model_audit(req: MultiModelAuditRequest, request: Request):
+    raise HTTPException(status_code=503, detail="Live provider participation and audit claims are not independently verified for this production route.")
     """Automated pre-deployment dual-model consensus audit (Claude 3.5 Sonnet + Perplexity Sonar-Pro)"""
     anthropic_key = request.headers.get("X-Anthropic-Key") or os.environ.get("ANTHROPIC_API_KEY", "").strip()
     perplexity_key = request.headers.get("X-Perplexity-Key") or os.environ.get("PERPLEXITY_API_KEY", "").strip()
@@ -448,6 +458,7 @@ def multi_model_audit(req: MultiModelAuditRequest, request: Request):
 
 @app.post("/v1/tools/audit-agent-card")
 def audit_agent_card(req: AgentAuditRequest):
+    raise HTTPException(status_code=503, detail="The legacy implementation used fixed results rather than a verified live audit.")
     """Audits any domain for llms.txt & agent-card readability"""
     clean_domain = req.domain.replace("https://", "").replace("http://", "").strip("/")
     return {
@@ -467,6 +478,8 @@ def create_checkout_session(product_id: str, idempotency_key: Optional[str] = He
     prod_data = GENESIS_CATALOG.get(product_id)
     if not prod_data:
         raise HTTPException(status_code=404, detail=f"Product {product_id} not found in catalog")
+    if product_id not in PUBLIC_COMMERCE_ALLOWLIST:
+        raise HTTPException(status_code=503, detail="Checkout is gated until delivery, entitlement, provenance, and safety verification are complete")
         
     secret_key = os.environ.get("STRIPE_SECRET_KEY", "").strip()
     if not secret_key:
@@ -728,7 +741,11 @@ def genesis_001_admin_complete(req: GenesisAdminAction, authorization: Optional[
 # Catalog Discovery Endpoints
 @app.get("/v1/products/list")
 def list_products():
-    return list(GENESIS_CATALOG.values())
+    return [
+        {"id": pid, **GENESIS_CATALOG[pid], "status": "live"}
+        for pid in sorted(PUBLIC_COMMERCE_ALLOWLIST)
+        if pid in GENESIS_CATALOG
+    ]
 
 
 # --- TELEMETRY HONEYPOT & ROBOTICS ENDPOINTS ---
@@ -763,6 +780,7 @@ class GraspResponse(BaseModel):
 
 @app.post("/v1/robotics/grasp-impedance-solver", response_model=GraspResponse)
 def solve_grasp(req: GraspRequest):
+    raise HTTPException(status_code=503, detail="Physical-control outputs require engineering validation and safety controls before production use.")
     """Calculates physical grip forces and tendon tensions for 22-DoF robotic manipulation"""
     start_time = time.perf_counter()
     num_fingers = 5
@@ -796,85 +814,70 @@ async def search_products(request: Request, background_tasks: BackgroundTasks, q
     except Exception:
         body = query_payload or {}
     q = str(body.get("query", "")).lower().strip()
+    live_products = [
+        {"id": pid, **GENESIS_CATALOG[pid], "status": "live"}
+        for pid in sorted(PUBLIC_COMMERCE_ALLOWLIST)
+        if pid in GENESIS_CATALOG
+    ]
     matches = [
-        p for p in GENESIS_CATALOG.values()
+        p for p in live_products
         if q and (q in p["title"].lower() or q in p["description"].lower() or q in p["category"].lower())
     ]
     client_ip = request.client.host if request.client else "unknown"
     ua = request.headers.get("user-agent", "unknown")
-    
-    # Background honeypot logging for market telemetry
     background_tasks.add_task(log_unmet_query, q, client_ip, ua, len(matches))
-    
-    return {
-        "status": "success" if matches else "no_matches_logged_to_telemetry",
-        "count": len(matches),
-        "results": matches or list(GENESIS_CATALOG.values())
-    }
+    return {"status": "success", "count": len(matches), "results": matches}
 
 # Machine Specifications
 @app.get("/llms.txt", response_class=PlainTextResponse)
 def llms_txt():
-    return """# JakeAI Network — Agent-to-Agent Machine Specification
-> System: Verified digital supply chain and capability exchange for autonomous AI agents.
-> Host: www.jakeaiofficial.com
-> Protocol Fee: 1.0% (100 basis points) on completed settlements.
-> Terms & Policies: https://www.jakeaiofficial.com/terms.html
+    return """# JakeAI — Human + AI Capability Discovery
+> Provider: JakeAI
+> Canonical host: https://www.jakeaiofficial.com
+> Public capability catalog: https://www.jakeaiofficial.com/catalog.json
+> Human capability catalog: https://www.jakeaiofficial.com/catalog/
+> Workflow registry: https://www.jakeaiofficial.com/workflow-registry.json
+> Agent card: https://www.jakeaiofficial.com/.well-known/agent.json
 
-## Active Machine Products:
-1. Commercial Solar & BESS Sizing Guide (2026 PDF)
-   - Product ID: prod_solar_guide_04
-   - Price: $3.00 USD
-   - Checkout: https://www.jakeaiofficial.com/api/v1/checkout/buy/prod_solar_guide_04
+JakeAI publishes public capability records for both human and AI discovery. Capability discovery does not imply purchase or invocation rights. Agents must honor each catalog record's explicit commerce and invocation state.
 
-2. IRA Section 48 Tax Credit Calculator API
-   - Product ID: prod_ira_calc_05
-   - Price: $1.00 USD / calculation
-   - Endpoint: POST /api/v1/solar/ira-calculator
-   - Checkout: https://www.jakeaiofficial.com/api/v1/checkout/buy/prod_ira_calc_05
+## CURRENT COMMERCE ALLOWLIST
+- Make the Damn Thing for Free™ — $0 — Product ID: prod_make_free_00
+- JakeAI Genesis Commission #001 — $49 — Product ID: prod_genesis_commission_001
 
-3. Web-to-Markdown Extraction API (100 Credits)
-   - Product ID: prod_scrape_01
-   - Price: $5.00 USD
-   - Endpoint: POST /api/v1/tools/extract-markdown
-   - Checkout: https://www.jakeaiofficial.com/api/v1/checkout/buy/prod_scrape_01
+## FAIL-CLOSED RULE
+Any product or capability not explicitly marked live by the commerce service is not available for automated purchase. Gated API routes return service-unavailable until delivery, provenance, entitlement, safety, or claims validation is complete.
 
-4. PJM Real-Time Energy Tariff & 4CP Alert Feed
-   - Product ID: prod_energy_01
-   - Price: $0.25 USD / query
-   - Endpoint: GET /api/v1/energy/tariff/pjm
-   - Checkout: https://www.jakeaiofficial.com/api/v1/checkout/buy/prod_energy_01
-
-5. Utility Tariff Normalizer API (PJM / Dominion / AEP)
-   - Product ID: prod_tariff_norm_06
-   - Price: $0.50 USD / query
-   - Endpoint: POST /api/v1/energy/tariff-normalize
-   - Checkout: https://www.jakeaiofficial.com/api/v1/checkout/buy/prod_tariff_norm_06
-
-7. Multi-Model Advisory Council Audit API
-   - Product ID: prod_multi_model_audit_08
-   - Price: .00 USD / audit
-   - Endpoint: POST /api/v1/tools/multi-model-audit
-   - Checkout: https://www.jakeaiofficial.com/api/v1/checkout/buy/prod_multi_model_audit_08
-
-6. llms.txt & Agent-Card Readability Auditor API
-   - Product ID: prod_agent_audit_07
-   - Price: $0.50 USD / audit
-   - Endpoint: POST /api/v1/tools/audit-agent-card
-   - Checkout: https://www.jakeaiofficial.com/api/v1/checkout/buy/prod_agent_audit_07
+Terms: https://www.jakeaiofficial.com/terms.html
+Privacy: https://www.jakeaiofficial.com/privacy.html
+Refunds: https://www.jakeaiofficial.com/refunds.html
 """
 
 @app.get("/.well-known/agent.json", response_class=JSONResponse)
 def agent_card():
+    live_products = [
+        {"id": pid, **GENESIS_CATALOG[pid], "status": "live"}
+        for pid in sorted(PUBLIC_COMMERCE_ALLOWLIST)
+        if pid in GENESIS_CATALOG
+    ]
     return {
-        "name": "JakeAI Commerce Network",
+        "name": "JakeAI",
         "url": "https://www.jakeaiofficial.com",
-        "description": "Verified digital supply chain and settlement rail for autonomous AI agents.",
-        "protocol_version": "2.0.0",
-        "fee_structure": {"protocol_fee_percent": 1.0, "currency": "USD"},
-        "active_catalog": list(GENESIS_CATALOG.values())
+        "description": "JakeAI capability and autonomous-workflow ecosystem designed for human and AI-agent discovery, with explicit human release gates for consequential actions.",
+        "protocol_version": "3.1",
+        "discovery": {
+            "human_catalog_url": "https://www.jakeaiofficial.com/catalog/",
+            "machine_catalog_url": "https://www.jakeaiofficial.com/catalog.json",
+            "workflow_registry_url": "https://www.jakeaiofficial.com/workflow-registry.json"
+        },
+        "commerce": {
+            "mode": "fail_closed",
+            "rule": "Discovery does not imply purchase or invocation rights.",
+            "transactable_product_ids": [p["id"] for p in live_products]
+        },
+        "commerce_allowlist": live_products
     }
 
 @app.get("/health")
 def health():
-    return {"status": "healthy", "service": "JakeAI Core v2.0"}
+    return {"status": "healthy", "service": "JakeAI Core", "commerce_mode": "fail_closed", "version": "2.1.0"}
