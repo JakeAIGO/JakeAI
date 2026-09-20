@@ -148,6 +148,8 @@ def parse_base_usdc_transfer(
     receipt: dict,
     merchant_address: str,
     latest_confirmed_block: int,
+    chain_id: int = BASE_MAINNET_CHAIN_ID,
+    token_contract: str = BASE_NATIVE_USDC_CONTRACT,
 ) -> ObservedTransfer:
     tx_hash = _hex(receipt.get("transactionHash"), 64, "transaction hash")
     status = receipt.get("status")
@@ -165,7 +167,7 @@ def parse_base_usdc_transfer(
             contract = _address(log.get("address"))
         except ValueError:
             continue
-        if contract != BASE_NATIVE_USDC_CONTRACT:
+        if contract != _address(token_contract):
             continue
 
         topics = log.get("topics") or []
@@ -180,7 +182,7 @@ def parse_base_usdc_transfer(
         amount = Decimal(raw_amount) / (Decimal(10) ** USDC_DECIMALS)
         matches.append(
             ObservedTransfer(
-                chain_id=BASE_MAINNET_CHAIN_ID,
+                chain_id=int(chain_id),
                 token_contract=contract,
                 tx_hash=tx_hash,
                 sender=sender,

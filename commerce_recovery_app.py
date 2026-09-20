@@ -228,6 +228,8 @@ import crypto_commerce_app as crypto_runtime
 from fastapi.responses import HTMLResponse as _WalletHTMLResponse, JSONResponse as _WalletJSONResponse
 
 _WALLET_TRUE = {"1", "true", "yes", "on"}
+BASE_SEPOLIA_CHAIN_ID = 84532
+BASE_SEPOLIA_USDC_CONTRACT = "0x036cbd53842c5426634e7929541ec2318f3dcf7e"
 
 def _wallet_bool(name: str) -> bool:
     return os.environ.get(name, "").strip().lower() in _WALLET_TRUE
@@ -319,6 +321,52 @@ def _get_or_create_canary_invoice() -> Optional[dict]:
         10,
         "crypto-test",
         config.merchant_address,
+    )
+
+
+def _testnet_canary_runtime_ready() -> tuple[bool, list[str]]:
+    base = crypto_runtime._crypto_config()
+    errors = []
+    if not base.merchant_address:
+        errors.append("merchant address missing")
+    if not os.environ.get("BASE_SEPOLIA_RPC_URL", "").strip():
+        errors.append("Base Sepolia RPC missing")
+    return (not errors, errors)
+
+
+def _get_or_create_testnet_invoice() -> Optional[dict]:
+    if not _wallet_bool("JAKEAI_CRYPTO_TESTNET_ENABLED"):
+        return None
+    ready, errors = _testnet_canary_runtime_ready()
+    if not ready:
+        raise HTTPException(status_code=503, detail="Testnet configuration incomplete: " + ", ".join(errors))
+    conn = commerce_app._commerce_conn()
+    conn.row_factory = __import__("sqlite3").Row
+    row = conn.execute(
+        """
+        SELECT id, status
+        FROM commerce_orders
+        WHERE product_id = ? AND source = ?
+        ORDER BY created_at DESC
+        LIMIT 1
+        """,
+        ("prod_crypto_canary_sepolia_preview", "crypto-testnet"),
+    ).fetchone()
+    conn.close()
+    if row and row["status"] in {"crypto_awaiting_payment", "pending_payment"}:
+        crypto_order = crypto_runtime._get_crypto_order(row["id"])
+        if crypto_order:
+            return {
+                "order_id": row["id"],
+                "amount_usdc": crypto_order["amount_usdc"],
+                "merchant_address": crypto_runtime._crypto_config().merchant_address,
+            }
+    base = crypto_runtime._crypto_config()
+    return crypto_runtime._create_crypto_order(
+        "prod_crypto_canary_sepolia_preview",
+        10,
+        "crypto-testnet",
+        base.merchant_address,
     )
 
 
@@ -481,6 +529,75 @@ def wallet_preview_verify_canary(req: WalletCanaryVerifyRequest):
     }
 
 
+@app.post("/v1/commerce/wallet-preview/verify-testnet-canary")
+def wallet_preview_verify_testnet_canary(req: WalletCanaryVerifyRequest):
+    if not _wallet_bool("JAKEAI_CRYPTO_TESTNET_ENABLED"):
+        raise HTTPException(status_code=409, detail="Testnet crypto canary is disabled")
+    order = commerce_app._get_order(req.order_id)
+    crypto_order = crypto_runtime._get_crypto_order(req.order_id)
+    if not order or not crypto_order:
+        raise HTTPException(status_code=404, detail="Testnet canary order not found")
+    if order.get("product_id") != "prod_crypto_canary_sepolia_preview" or order.get("source") != "crypto-testnet":
+        raise HTTPException(status_code=409, detail="This route is limited to the isolated Base Sepolia canary")
+    ready, errors = _testnet_canary_runtime_ready()
+    if not ready:
+        raise HTTPException(status_code=503, detail="Testnet configuration incomplete: " + ", ".join(errors))
+    base = crypto_runtime._crypto_config()
+    config = crypto_runtime.CryptoPaymentConfig(
+        enabled=True,
+        auto_fulfill_enabled=False,
+        chain_id=BASE_SEPOLIA_CHAIN_ID,
+        token_contract=BASE_SEPOLIA_USDC_CONTRACT,
+        merchant_address=base.merchant_address,
+        creator_payouts_enabled=False,
+        customer_custody_enabled=False,
+        exchange_functions_enabled=False,
+    )
+    tx_hash = crypto_runtime._require_tx_hash(req.tx_hash)
+    amount_usd = crypto_runtime.Decimal(int(order["amount_cents"])) / crypto_runtime.Decimal(100)
+    invoice = crypto_runtime.PaymentInvoice.create(req.order_id, amount_usd, config.merchant_address)
+    registry = crypto_runtime.SqliteTransactionRegistry(crypto_runtime.DB_PATH)
+    compliance_provider = crypto_runtime.ReviewedComplianceProvider(crypto_runtime.DB_PATH, req.order_id)
+    rpc_url = os.environ.get("BASE_SEPOLIA_RPC_URL", "").strip()
+    try:
+        result = crypto_runtime.verify_submitted_payment(
+            rpc=crypto_runtime.BaseRpcClient(rpc_url),
+            config=config,
+            invoice=invoice,
+            tx_hash=tx_hash,
+            compliance_provider=compliance_provider,
+            registry=registry,
+            minimum_confirmations=max(1, int(os.environ.get("CRYPTO_MIN_CONFIRMATIONS", "2"))),
+            usd_fmv=amount_usd,
+        )
+    except (ValueError, RuntimeError, OSError) as exc:
+        crypto_runtime._update_crypto_state(req.order_id, state=crypto_runtime.PaymentState.FAILED.value, tx_hash=tx_hash)
+        raise HTTPException(status_code=422, detail=f"Testnet payment could not be verified: {exc}") from exc
+
+    crypto_runtime._update_crypto_state(
+        req.order_id,
+        state=result.validation.state.value,
+        tx_hash=result.tx_hash,
+        compliance=result.compliance,
+    )
+    if result.recorded and result.validation.accepted:
+        crypto_runtime._mark_crypto_paid(req.order_id, result.tx_hash, result.compliance)
+
+    return {
+        "order_id": req.order_id,
+        "network": "Base Sepolia",
+        "chain_id": BASE_SEPOLIA_CHAIN_ID,
+        "state": "paid" if result.recorded else result.validation.state.value,
+        "accepted": result.validation.accepted,
+        "reason": result.validation.reason,
+        "tx_hash": result.tx_hash,
+        "block_number": result.block_number,
+        "delivery_ready": False,
+        "testnet": True,
+        "next_step": "If state is compliance_hold, the on-chain test passed and the separate test compliance transition can be exercised next.",
+    }
+
+
 @app.post("/v1/commerce/wallet-preview/compliance-clear")
 def wallet_preview_compliance_clear(
     req: WalletCanaryComplianceRequest,
@@ -515,7 +632,13 @@ def wallet_preview_compliance_clear(
 def wallet_preview_console():
     status = _wallet_preview_status()
     canary_invoice = None
-    if status["canary_enabled"]:
+    testnet_invoice = None
+    if _wallet_bool("JAKEAI_CRYPTO_TESTNET_ENABLED"):
+        try:
+            testnet_invoice = _get_or_create_testnet_invoice()
+        except Exception:
+            testnet_invoice = None
+    elif status["canary_enabled"]:
         try:
             canary_invoice = _get_or_create_canary_invoice()
         except Exception:
@@ -527,7 +650,8 @@ def wallet_preview_console():
         ("Preview-only lock", status["preview_only_lock"]),
         ("Public crypto payments", status["payments_enabled"]),
         ("Legal activation", status["legal_approved"]),
-        ("10¢ real-chain canary", status["canary_enabled"]),
+        ("Mainnet real-money canary", status["canary_enabled"]),
+        ("Base Sepolia test mode", _wallet_bool("JAKEAI_CRYPTO_TESTNET_ENABLED")),
         ("Automatic fulfillment", status["auto_fulfill_enabled"]),
     ]
     status_html = "".join(
@@ -539,7 +663,18 @@ def wallet_preview_console():
         if status["merchant_configured"] and status["rpc_configured"] and status["admin_review_configured"] and status["preview_only_lock"]
         else '<p class="warn"><b>Configuration incomplete.</b> One or more required preview components are missing.</p>'
     )
-    if canary_invoice:
+    if testnet_invoice:
+        canary_html = (
+            '<div class="label">MODE</div><div class="value"><b>FREE TESTNET — NO REAL MONEY</b></div>'
+            '<div class="label">ORDER ID</div><div class="value">' + testnet_invoice["order_id"] + '</div>'
+            '<div class="label">EXACT AMOUNT</div><div class="value"><b>' + testnet_invoice["amount_usdc"] + ' test USDC</b></div>'
+            '<div class="label">NETWORK</div><div class="value">Base Sepolia · Chain ID 84532</div>'
+            '<div class="label">ASSET</div><div class="value">Circle testnet USDC</div>'
+            '<div class="label">MERCHANT ADDRESS</div><div class="value">' + testnet_invoice["merchant_address"] + '</div>'
+            '<div class="label">TOKEN CONTRACT</div><div class="value">' + BASE_SEPOLIA_USDC_CONTRACT + '</div>'
+            '<p class="ok"><b>No real crypto is required.</b> Testnet USDC and gas tokens are free faucet tokens with no monetary value.</p>'
+        )
+    elif canary_invoice:
         canary_html = (
             '<div class="label">ORDER ID</div><div class="value">' + canary_invoice["order_id"] + '</div>'
             '<div class="label">EXACT AMOUNT</div><div class="value"><b>' + canary_invoice["amount_usdc"] + ' USDC</b></div>'
@@ -550,13 +685,21 @@ def wallet_preview_console():
             '<p class="warn"><b>STOP HERE until you deliberately send the 0.10 USDC.</b> Creating this invoice moved no money.</p>'
         )
     else:
-        canary_html = '<p class="tiny">The real-chain canary is OFF. No invoice exists and no money can move from this console.</p>'
-    html = r"""<!doctype html><html><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover"><meta name="robots" content="noindex,nofollow,noarchive"><title>JakeAI Wallet RC2</title><style>:root{color-scheme:dark;--bg:#03070b;--line:#21445a;--cyan:#5ce8ff;--muted:#91abba;--ok:#68efba;--warn:#ffd27e}*{box-sizing:border-box}body{margin:0;background:radial-gradient(circle at 50% 0,#12334c,var(--bg) 48%);color:#eefaff;font:15px/1.45 system-ui,sans-serif}main{max-width:760px;margin:auto;padding:28px 16px 70px}.brand{font-size:28px;font-weight:950}.brand b{color:var(--cyan)}.eyebrow{font-size:10px;letter-spacing:.18em;color:var(--cyan);font-weight:900}h1{font-size:36px;line-height:1;margin:12px 0}p{color:var(--muted)}.panel{margin-top:15px;padding:18px;border:1px solid var(--line);border-radius:18px;background:#07121dcc}.row{display:grid;grid-template-columns:1fr 1fr;gap:8px}.stat{padding:11px;border:1px solid #ffffff16;border-radius:12px;background:#ffffff05;font-size:12px}.ok{color:var(--ok)}.off{color:#ffc267}input,button{width:100%;padding:14px;margin-top:10px;border-radius:12px;font:inherit}input{background:#03080d;border:1px solid #315067;color:#fff}button{border:0;background:#56ddff;color:#00131b;font-weight:900}button.secondary{background:#132535;color:#dffaff;border:1px solid #315067}button:disabled{opacity:.4}pre{white-space:pre-wrap;word-break:break-word;background:#02070b;padding:12px;border-radius:10px;color:#a9efff;min-height:42px}.warn{border-color:#725823}.tiny{font-size:11px}.attest{display:flex;gap:8px;align-items:flex-start;color:var(--muted);font-size:12px}.attest input{width:auto;margin-top:3px}</style></head><body><main><div class="brand">Jake<b>AI</b></div><div class="eyebrow">WALLET RC2 · ISOLATED TEST CONSOLE</div><h1>Base USDC checkout.</h1><p>Merchant-only, non-custodial and fail-closed. The app never holds a customer's wallet and never signs or broadcasts a transaction.</p><section class="panel"><b>Wallet readiness</b><p class="tiny">Loaded automatically from the JakeAI wallet service. No password and no button required.</p>__SUMMARY__<div class="row">__STATUS__</div><p class="tiny">Network: Base Mainnet · Chain ID 8453 · Asset: native USDC · Minimum confirmations: 2</p><p class="tiny">Refresh this page only if you want to re-check the state.</p></section><section class="panel warn"><b>10¢ real-chain canary</b><p class="tiny">The invoice is generated server-side. It does not move money and has no product fulfillment.</p>__CANARY__</section><section class="panel"><b>After you send the 0.10 USDC</b><p class="tiny">Paste only the public Base transaction hash below. Never paste a seed phrase, private key, recovery phrase, or wallet password.</p><input id="order" value="__CANARY_ORDER__" readonly><input id="tx" placeholder="0x transaction hash"><button class="secondary" id="verify">Verify canary transaction</button><pre id="verifyOut"></pre><p class="tiny">A valid payment should stop at <b>compliance_hold</b> first. JakeAI handles the separate review step after that.</p></section></main><script>
+        canary_html = '<p class="tiny">All canaries are OFF. No invoice exists and no money can move from this console.</p>'
+    html = r"""<!doctype html><html><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover"><meta name="robots" content="noindex,nofollow,noarchive"><title>JakeAI Wallet RC2</title><style>:root{color-scheme:dark;--bg:#03070b;--line:#21445a;--cyan:#5ce8ff;--muted:#91abba;--ok:#68efba;--warn:#ffd27e}*{box-sizing:border-box}body{margin:0;background:radial-gradient(circle at 50% 0,#12334c,var(--bg) 48%);color:#eefaff;font:15px/1.45 system-ui,sans-serif}main{max-width:760px;margin:auto;padding:28px 16px 70px}.brand{font-size:28px;font-weight:950}.brand b{color:var(--cyan)}.eyebrow{font-size:10px;letter-spacing:.18em;color:var(--cyan);font-weight:900}h1{font-size:36px;line-height:1;margin:12px 0}p{color:var(--muted)}.panel{margin-top:15px;padding:18px;border:1px solid var(--line);border-radius:18px;background:#07121dcc}.row{display:grid;grid-template-columns:1fr 1fr;gap:8px}.stat{padding:11px;border:1px solid #ffffff16;border-radius:12px;background:#ffffff05;font-size:12px}.ok{color:var(--ok)}.off{color:#ffc267}input,button{width:100%;padding:14px;margin-top:10px;border-radius:12px;font:inherit}input{background:#03080d;border:1px solid #315067;color:#fff}button{border:0;background:#56ddff;color:#00131b;font-weight:900}button.secondary{background:#132535;color:#dffaff;border:1px solid #315067}button:disabled{opacity:.4}pre{white-space:pre-wrap;word-break:break-word;background:#02070b;padding:12px;border-radius:10px;color:#a9efff;min-height:42px}.warn{border-color:#725823}.tiny{font-size:11px}.attest{display:flex;gap:8px;align-items:flex-start;color:var(--muted);font-size:12px}.attest input{width:auto;margin-top:3px}</style></head><body><main><div class="brand">Jake<b>AI</b></div><div class="eyebrow">WALLET RC2 · ISOLATED TEST CONSOLE</div><h1>Base USDC checkout.</h1><p>Merchant-only, non-custodial and fail-closed. The app never holds a customer's wallet and never signs or broadcasts a transaction.</p><section class="panel"><b>Wallet readiness</b><p class="tiny">Loaded automatically from the JakeAI wallet service. No password and no button required.</p>__SUMMARY__<div class="row">__STATUS__</div><p class="tiny">Network: Base Mainnet · Chain ID 8453 · Asset: native USDC · Minimum confirmations: 2</p><p class="tiny">Refresh this page only if you want to re-check the state.</p></section><section class="panel warn"><b>10¢ payment canary</b><p class="tiny">The isolated preview prefers Base Sepolia testnet. The invoice is generated server-side and has no product fulfillment.</p>__CANARY__</section><section class="panel"><b>After you send the test payment</b><p class="tiny">Paste only the public Base transaction hash below. Never paste a seed phrase, private key, recovery phrase, or wallet password.</p><input id="order" value="__CANARY_ORDER__" readonly><input id="tx" placeholder="0x transaction hash"><button class="secondary" id="verify">Verify canary transaction</button><pre id="verifyOut"></pre><p class="tiny">A valid payment should stop at <b>compliance_hold</b> first. JakeAI handles the separate review step after that.</p></section></main><script>
 const q=s=>document.querySelector(s);
 async function api(path,opt={}){const x=await fetch(path,opt);let j={};try{j=await x.json()}catch{}if(!x.ok)throw new Error(typeof j.detail==='string'?j.detail:JSON.stringify(j.detail||('HTTP '+x.status)));return j}
-q('#verify').onclick=async()=>{try{const j=await api('/v1/commerce/wallet-preview/verify-canary',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({order_id:q('#order').value,tx_hash:q('#tx').value})});q('#verifyOut').textContent=JSON.stringify(j,null,2)}catch(e){q('#verifyOut').textContent=e.message}}
+q('#verify').onclick=async()=>{try{const endpoint='__VERIFY_ENDPOINT__';const j=await api(endpoint,{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({order_id:q('#order').value,tx_hash:q('#tx').value})});q('#verifyOut').textContent=JSON.stringify(j,null,2)}catch(e){q('#verifyOut').textContent=e.message}}
 </script></body></html>"""
-    html = html.replace("__STATUS__", status_html).replace("__SUMMARY__", summary).replace("__CANARY__", canary_html).replace("__CANARY_ORDER__", canary_invoice["order_id"] if canary_invoice else "")
+    active_invoice = testnet_invoice or canary_invoice
+    verify_endpoint = "/v1/commerce/wallet-preview/verify-testnet-canary" if testnet_invoice else "/v1/commerce/wallet-preview/verify-canary"
+    html = (
+        html.replace("__STATUS__", status_html)
+        .replace("__SUMMARY__", summary)
+        .replace("__CANARY__", canary_html)
+        .replace("__CANARY_ORDER__", active_invoice["order_id"] if active_invoice else "")
+        .replace("__VERIFY_ENDPOINT__", verify_endpoint)
+    )
     return _WalletHTMLResponse(
         html,
         headers={
