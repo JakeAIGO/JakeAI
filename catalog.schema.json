@@ -1,0 +1,171 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://www.jakeaiofficial.com/catalog.schema.json",
+  "title": "JakeAI Public Capability Catalog v1",
+  "type": "object",
+  "required": [
+    "schema_version",
+    "catalog_id",
+    "provider",
+    "generated_at",
+    "audience",
+    "capabilities"
+  ],
+  "properties": {
+    "schema_version": {
+      "type": "string"
+    },
+    "catalog_id": {
+      "type": "string"
+    },
+    "generated_at": {
+      "type": "string",
+      "format": "date"
+    },
+    "audience": {
+      "type": "array",
+      "items": {
+        "enum": [
+          "human",
+          "ai_agent"
+        ]
+      }
+    },
+    "provider": {
+      "type": "object",
+      "required": [
+        "name",
+        "canonical_url",
+        "human_catalog_url",
+        "machine_catalog_url",
+        "workflow_registry_url"
+      ]
+    },
+    "discovery_contract": {
+      "type": "object"
+    },
+    "capabilities": {
+      "type": "array",
+      "items": {
+        "type": "object",
+        "required": [
+          "id",
+          "slug",
+          "name",
+          "type",
+          "category",
+          "version",
+          "lifecycle_status",
+          "publication_status",
+          "summary",
+          "human_url",
+          "machine_url",
+          "commerce",
+          "invocation",
+          "trust"
+        ],
+        "properties": {
+          "id": {
+            "type": "string",
+            "pattern": "^JAI-WF-[0-9]{4}$"
+          },
+          "slug": {
+            "type": "string"
+          },
+          "name": {
+            "type": "string"
+          },
+          "type": {
+            "type": "string"
+          },
+          "category": {
+            "type": "array",
+            "items": {
+              "type": "string"
+            }
+          },
+          "version": {
+            "type": "string"
+          },
+          "lifecycle_status": {
+            "type": "string"
+          },
+          "publication_status": {
+            "type": "string"
+          },
+          "summary": {
+            "type": "string"
+          },
+          "problem_signals": {
+            "type": "array",
+            "items": {
+              "type": "string"
+            }
+          },
+          "inputs": {
+            "type": "array",
+            "items": {
+              "type": "string"
+            }
+          },
+          "outputs": {
+            "type": "array",
+            "items": {
+              "type": "string"
+            }
+          },
+          "human_url": {
+            "type": "string",
+            "format": "uri"
+          },
+          "machine_url": {
+            "type": "string",
+            "format": "uri"
+          },
+          "commerce": {
+            "type": "object",
+            "required": [
+              "mode",
+              "purchasable"
+            ],
+            "properties": {
+              "mode": {
+                "type": "string"
+              },
+              "purchasable": {
+                "type": "boolean"
+              },
+              "reason": {
+                "type": "string"
+              }
+            }
+          },
+          "invocation": {
+            "type": "object",
+            "required": [
+              "mode"
+            ],
+            "properties": {
+              "mode": {
+                "type": "string"
+              },
+              "endpoint": {
+                "type": [
+                  "string",
+                  "null"
+                ]
+              }
+            }
+          },
+          "trust": {
+            "type": "object",
+            "required": [
+              "human_release_gate",
+              "provenance"
+            ]
+          }
+        }
+      }
+    }
+  }
+}
