@@ -115,6 +115,21 @@ def init_unreal_bridge():
             "INSERT INTO unreal_bridge_migrations(migration_id,applied_at) VALUES (?,?)",
             ("autodemo_single_actor_v2", _now_iso()),
         )
+    cleanup = conn.execute(
+        "SELECT 1 FROM unreal_bridge_migrations WHERE migration_id='autodemo_queue_cleanup_v3'"
+    ).fetchone()
+    if not cleanup:
+        conn.execute(
+            """UPDATE unreal_jobs
+               SET status='failed',completed_at=?,error_text='superseded during autonomous demo repair'
+               WHERE status IN ('pending','claimed')""",
+            (_now_iso(),),
+        )
+        conn.execute("DELETE FROM unreal_autodemo WHERE stage IN ('failed','camera','actors','focus','screenshot','restore')")
+        conn.execute(
+            "INSERT INTO unreal_bridge_migrations(migration_id,applied_at) VALUES (?,?)",
+            ("autodemo_queue_cleanup_v3", _now_iso()),
+        )
     conn.commit()
     conn.close()
 
