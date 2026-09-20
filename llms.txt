@@ -1,8 +1,10 @@
-# JakeAI Universe — Machine-Readable Public Surface
+# JakeAI — Autonomous Workflow Marketplace & Machine-Readable Capability Surface
 > Host: https://jakeaiofficial.com
 > Release: jakeai-universe-launch-candidate-2026-09-18
 > Public release authority remains human-gated.
 > Commerce is fail-closed when fulfillment, entitlement, claims, or safety are not verified.
+>
+> JakeAI is an autonomous workflow marketplace and foundry for human and AI-agent discovery. Catalog discovery does not grant purchase, invocation, or release authority.
 
 ## Live Destinations
 - The Foundry: https://jakeaiofficial.com/#foundry
