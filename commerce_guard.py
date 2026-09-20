@@ -2,7 +2,8 @@ import os
 from fastapi import FastAPI, HTTPException, Header, Request
 from fastapi.responses import RedirectResponse, PlainTextResponse
 from fastapi.middleware.cors import CORSMiddleware
-from main import app as legacy_app, create_checkout_session as legacy_create_checkout_session
+from main import create_checkout_session as legacy_create_checkout_session
+from crypto_commerce_app import app as legacy_app
 
 PUBLIC_BASE_URL = os.environ.get("PUBLIC_BASE_URL", "https://jakeaiofficial.com").rstrip("/")
 FREE_DELIVERY_URL = "https://docs.google.com/document/d/14Ayw4pxjnYy5MddTGdLSZEeQGKJGU3CRSmW7384Lfhk/edit?usp=sharing"

@@ -44,6 +44,9 @@ jobs:
         run: |
           python -m pytest -q tests/test_crypto_payment_adapter.py tests/test_crypto_payment_integration.py tests/test_crypto_payment_rpc.py tests/test_crypto_commerce_app.py
 
+      - name: Run Crypto Wallet Release-Candidate Tests
+        run: python -m pytest -q tests/test_crypto_release_candidate.py
+
       - name: Validate Machine-Readable JSON
         run: |
           python - <<'PY'

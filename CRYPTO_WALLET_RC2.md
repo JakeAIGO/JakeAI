@@ -1,33 +1,52 @@
-# JakeAI Wallet RC2 — Isolated Canary
+# JakeAI Wallet RC2 — Upload-Ready Release Candidate
 
-Status: **PRIVATE PREVIEW / REAL-MONEY CANARY OFF**
+Status: **PRIVATE PREVIEW / PUBLIC ACTIVATION OFF**
 
-This branch is synced to the current JakeAI main tree and preserves the merchant-only Base/native-USDC design.
+The wallet release is synchronized to the current JakeAI codebase and designed as a merchant-only Base/native-USDC payment rail.
 
-## Scope
+## What is complete
+- Base Mainnet / native USDC verification.
+- Exact-amount invoice creation.
+- Independent read-only RPC verification.
+- Confirmation threshold and replay protection.
+- Compliance hold before paid state.
+- Isolated manual compliance bridge for the canary; the admin token never enters the browser.
+- Separate payment, legal, product-allowlist, canary and auto-fulfillment gates.
+- Customer-facing `crypto-checkout.html` prepared but deliberately unlinked and `noindex` until owner approval.
+- Crypto-specific Terms, Refund and Privacy language prepared as release-candidate copy.
+- Production guard prepared to mount the crypto runtime while all crypto activation variables remain fail-closed.
+
+## Locked scope
 - JakeAI-owned merchant payments only.
-- Customer uses their own non-custodial wallet.
+- Customer uses a wallet they control.
 - JakeAI receives native USDC on Base Mainnet.
-- No exchange, swaps, customer balances, custody, creator payouts, yield, or token issuance.
-- No private key or signing capability in the web/backend runtime.
+- No exchange, swaps, customer balances, custody, creator payouts, yield or token issuance.
+- No seed phrase, private key, signing or transaction broadcasting in the web/backend runtime.
 
-## Isolated test console
-- `/wallet-preview`
-- Requires the existing `JAKEAI_COMMERCE_PREVIEW_KEY` for status/canary API calls.
-- Real-chain canary amount: **$0.10 / 0.10 USDC**.
-- Canary order is not in the public catalog and has no product fulfillment.
-- `JAKEAI_CRYPTO_CANARY_ENABLED` is an additional preview-only kill switch and defaults OFF.
+## Isolated canary
+- Private console: `/wallet-preview`
+- Canary: **0.10 USDC**
+- No product delivery is attached.
+- `JAKEAI_WALLET_PREVIEW_ONLY=true` locks general crypto routes behind the preview password on the isolated service.
+- `JAKEAI_CRYPTO_CANARY_ENABLED=false` remains OFF until the controlled transaction is explicitly authorized.
 
-## Activation sequence
-1. Verify preview service is on current main code.
-2. Keep public production crypto disabled.
-3. Confirm merchant address / Base RPC / official USDC contract / confirmation threshold.
-4. Confirm legal/compliance procedure and admin review path.
-5. Enable the canary flag in the isolated preview only.
-6. Create one 0.10 USDC invoice.
-7. Send exact native USDC on Base.
-8. Verify transaction -> expect compliance hold.
-9. Record approved compliance decision for exact order+tx.
-10. Re-verify -> expect paid, with auto-fulfillment still OFF.
-11. Re-test replay, wrong-network/token/amount and kill switch.
-12. Only then prepare public Pay with USDC UI for explicit owner approval.
+## Public activation gates
+Public USDC checkout requires all of these simultaneously:
+1. `CRYPTO_PAYMENTS_ENABLED=true`
+2. `CRYPTO_LEGAL_APPROVED=true`
+3. valid `CRYPTO_MERCHANT_ADDRESS`
+4. Base RPC configured and allowlisted
+5. `CRYPTO_PRODUCT_ALLOWLIST` containing the exact product ID
+6. required confirmations
+7. transaction-specific compliance clearance
+8. separate `CRYPTO_AUTO_FULFILL_ENABLED=true` before automatic delivery
+
+No single switch can silently enable the full flow.
+
+## Remaining human gates
+- Complete/approve the external sanctions-risk procedure.
+- Review the release-candidate legal copy.
+- Run one authorized 0.10 USDC canary.
+- Review the canary evidence.
+- Explicitly approve merge/upload.
+- Separately approve public crypto activation and the first crypto-enabled product.
