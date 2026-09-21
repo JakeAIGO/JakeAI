@@ -1042,6 +1042,51 @@ def register_mission_dispatcher_routes(app) -> None:
         finally:
             conn.close()
 
+    @app.get("/v1/mission-control/artifacts/{artifact_id}")
+    @app.get("/api/v1/mission-control/artifacts/{artifact_id}")
+    def mission_control_artifact(
+        artifact_id: str,
+        authorization: Optional[str] = Header(None, alias="Authorization"),
+    ):
+        _require_control(authorization)
+        conn = _connect()
+        try:
+            row = conn.execute(
+                "SELECT * FROM mission_artifacts WHERE artifact_id=?",
+                (_clean(artifact_id, 100),),
+            ).fetchone()
+            if not row:
+                raise HTTPException(status_code=404, detail="Artifact not found")
+            try:
+                manifest = json.loads(row["manifest_json"] or "{}")
+            except Exception:
+                manifest = {}
+            try:
+                validation = json.loads(row["validation_json"]) if row["validation_json"] else None
+            except Exception:
+                validation = None
+            return {
+                "artifact_id": row["artifact_id"],
+                "mission_id": row["mission_id"],
+                "artifact_type": row["artifact_type"],
+                "title": row["title"],
+                "summary": row["summary"],
+                "status": row["status"],
+                "human_approved": bool(row["human_approved"]),
+                "deployed": bool(row["deployed"]),
+                "manifest": manifest,
+                "validation": validation,
+                "created": row["created_at"],
+                "updated": row["updated_at"],
+                "controls": {
+                    "human_release_gate": True,
+                    "outbound_authorized": False,
+                    "deployed": bool(row["deployed"]),
+                },
+            }
+        finally:
+            conn.close()
+
     @app.patch("/v1/mission-control")
     @app.patch("/api/v1/mission-control")
     def mission_control_update(req: MissionAdminUpdate, authorization: Optional[str] = Header(None, alias="Authorization")):
@@ -1445,6 +1490,8 @@ def register_mission_dispatcher_routes(app) -> None:
                             evidence_backed_reports += 1
                 except Exception:
                     continue
+            artifact_total = conn.execute("SELECT COUNT(*) AS n FROM mission_artifacts").fetchone()["n"]
+            artifact_validated = conn.execute("SELECT COUNT(*) AS n FROM mission_artifacts WHERE status='validated'").fetchone()["n"]
             return {
                 "status": "ready",
                 "dispatcher": "transactional-sqlite-lease-v1",
@@ -1457,6 +1504,8 @@ def register_mission_dispatcher_routes(app) -> None:
                 "external_evidence_adapter": "tinyfish-search-fetch" if _tinyfish_key() else "not_configured",
                 "investigation_reports": investigation_reports,
                 "evidence_backed_reports": evidence_backed_reports,
+                "artifacts_total": artifact_total,
+                "validated_artifacts": artifact_validated,
             }
         finally:
             conn.close()
