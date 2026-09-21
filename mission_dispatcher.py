@@ -106,12 +106,31 @@ def _init_db() -> None:
             )
             """
         )
+        conn.execute(
+            """
+            CREATE TABLE IF NOT EXISTS mission_artifacts (
+                artifact_id TEXT PRIMARY KEY,
+                mission_id TEXT NOT NULL,
+                artifact_type TEXT NOT NULL,
+                title TEXT NOT NULL,
+                summary TEXT NOT NULL DEFAULT '',
+                manifest_json TEXT NOT NULL,
+                validation_json TEXT,
+                status TEXT NOT NULL DEFAULT 'draft',
+                human_approved INTEGER NOT NULL DEFAULT 0,
+                deployed INTEGER NOT NULL DEFAULT 0,
+                created_at TEXT NOT NULL,
+                updated_at TEXT NOT NULL
+            )
+            """
+        )
         columns = {row["name"] for row in conn.execute("PRAGMA table_info(missions)").fetchall()}
         if "analysis_json" not in columns:
             conn.execute("ALTER TABLE missions ADD COLUMN analysis_json TEXT")
         conn.execute("CREATE INDEX IF NOT EXISTS idx_missions_status_lease ON missions(status, lease_expires_at, created_at)")
         conn.execute("CREATE INDEX IF NOT EXISTS idx_missions_lease_owner ON missions(lease_owner, lease_expires_at)")
         conn.execute("CREATE INDEX IF NOT EXISTS idx_mission_events_mission ON mission_events(mission_id, id)")
+        conn.execute("CREATE INDEX IF NOT EXISTS idx_mission_artifacts_mission ON mission_artifacts(mission_id, created_at)")
     finally:
         conn.close()
 
@@ -429,6 +448,232 @@ EXTERNAL EVIDENCE:
     return report
 
 
+def _call_build_runtime(mission: dict) -> dict:
+    runtime_url = _direct_runtime_url()
+    runtime_token = _direct_runtime_token()
+    if not runtime_url or not runtime_token:
+        raise HTTPException(status_code=503, detail="JakeAI build runtime is not configured")
+
+    prompt = f"""You are the bounded JakeAI Build worker.
+
+Create a SMALL, REVIEWABLE prototype package for the mission below. This is a draft artifact for human review, not a deployment. Do not send messages, publish, purchase, modify external systems, call external APIs, or claim that anything was deployed. Do not include real secrets, credentials, tokens, private keys, or customer data beyond what appears in the mission.
+
+Return ONE JSON object only with this exact top-level schema:
+{{
+  "title": "short artifact title",
+  "artifact_type": "prototype|workflow_spec|code_bundle|document_bundle",
+  "summary": "what was built",
+  "files": [
+    {{
+      "path": "relative/path.ext",
+      "purpose": "why this file exists",
+      "content": "complete draft file contents"
+    }}
+  ],
+  "test_plan": ["reviewable test or check"],
+  "limitations": ["known limitation"],
+  "approval_requirements": ["what must be approved before any external action"],
+  "next_step": "what the human should review next"
+}}
+
+Rules:
+- Maximum 5 files.
+- File paths must be relative and must not contain '..', absolute paths, home directories, or environment-secret paths.
+- Prefer the smallest viable artifact that demonstrates the approach.
+- The artifact must be understandable without executing arbitrary shell commands.
+- Do not include destructive commands.
+- Human approval is required before deployment, publication, customer contact, purchasing, or changing an external system.
+
+MISSION:
+{json.dumps(mission, ensure_ascii=False)[:18000]}
+"""
+    payload = {"prompt": prompt, "workflow": "site"}
+    request = urllib.request.Request(
+        runtime_url,
+        data=json.dumps(payload).encode("utf-8"),
+        headers={
+            "X-JakeAI-Internal-Token": runtime_token,
+            "Content-Type": "application/json",
+            "User-Agent": "JakeAI-Mission-Builder/1.0",
+        },
+        method="POST",
+    )
+    try:
+        with urllib.request.urlopen(request, timeout=55) as response:
+            data = json.loads(response.read().decode("utf-8"))
+    except urllib.error.HTTPError as exc:
+        raise HTTPException(status_code=502, detail="JakeAI build runtime rejected the request") from exc
+    except Exception as exc:
+        raise HTTPException(status_code=502, detail="JakeAI build runtime is unavailable") from exc
+
+    package = _extract_json_object(str(data.get("text") or ""))
+    files = package.get("files")
+    if not isinstance(files, list) or not files or len(files) > 5:
+        raise HTTPException(status_code=502, detail="JakeAI build runtime returned an invalid file manifest")
+
+    cleaned_files = []
+    total_chars = 0
+    for item in files:
+        if not isinstance(item, dict):
+            raise HTTPException(status_code=502, detail="JakeAI build runtime returned an invalid file entry")
+        path = str(item.get("path") or "").strip().replace("\\", "/")
+        content = str(item.get("content") or "")
+        purpose = _clean(item.get("purpose"), 600)
+        if (
+            not path
+            or path.startswith(("/", "~"))
+            or ".." in path.split("/")
+            or path.lower().startswith((".env", "secrets/", "credentials/"))
+        ):
+            raise HTTPException(status_code=502, detail="JakeAI build runtime returned an unsafe file path")
+        total_chars += len(content)
+        if total_chars > 60000:
+            raise HTTPException(status_code=502, detail="JakeAI build artifact exceeds the bounded size limit")
+        cleaned_files.append({"path": path[:300], "purpose": purpose, "content": content[:20000]})
+
+    package["files"] = cleaned_files
+    package["title"] = _clean(package.get("title"), 300) or "JakeAI Mission Prototype"
+    package["artifact_type"] = _clean(package.get("artifact_type"), 80) or "prototype"
+    package["summary"] = _clean(package.get("summary"), 3000)
+    package["test_plan"] = [str(x)[:800] for x in (package.get("test_plan") or [])[:12]]
+    package["limitations"] = [str(x)[:800] for x in (package.get("limitations") or [])[:12]]
+    package["approval_requirements"] = [str(x)[:800] for x in (package.get("approval_requirements") or [])[:12]]
+    package["next_step"] = _clean(package.get("next_step"), 1500)
+
+    return {
+        "package": package,
+        "model": str(data.get("model") or "unknown"),
+        "response_id": str(data.get("response_id") or ""),
+        "input_tokens": int(data.get("input_tokens") or 0),
+        "output_tokens": int(data.get("output_tokens") or 0),
+    }
+
+
+def _persist_build_artifact(mission_id: str, package: dict) -> dict:
+    artifact_id = "JAI-ART-" + uuid.uuid4().hex[:16].upper()
+    now = _now_iso()
+    conn = _connect()
+    try:
+        conn.execute(
+            """
+            INSERT INTO mission_artifacts(
+                artifact_id,mission_id,artifact_type,title,summary,manifest_json,validation_json,
+                status,human_approved,deployed,created_at,updated_at
+            ) VALUES(?,?,?,?,?,?,NULL,'draft',0,0,?,?)
+            """,
+            (
+                artifact_id,
+                mission_id,
+                _clean(package.get("artifact_type"), 80) or "prototype",
+                _clean(package.get("title"), 300) or "JakeAI Mission Prototype",
+                _clean(package.get("summary"), 3000),
+                json.dumps(package, ensure_ascii=False)[:70000],
+                now,
+                now,
+            ),
+        )
+        return {
+            "artifact_id": artifact_id,
+            "mission_id": mission_id,
+            "artifact_type": _clean(package.get("artifact_type"), 80) or "prototype",
+            "title": _clean(package.get("title"), 300) or "JakeAI Mission Prototype",
+            "summary": _clean(package.get("summary"), 3000),
+            "status": "draft",
+            "human_approved": False,
+            "deployed": False,
+            "file_count": len(package.get("files") or []),
+            "created": now,
+        }
+    finally:
+        conn.close()
+
+
+def _validate_latest_artifact(mission_id: str) -> dict:
+    conn = _connect()
+    try:
+        row = conn.execute(
+            "SELECT * FROM mission_artifacts WHERE mission_id=? ORDER BY created_at DESC LIMIT 1",
+            (mission_id,),
+        ).fetchone()
+        if not row:
+            raise HTTPException(status_code=404, detail="No build artifact found for mission")
+        try:
+            package = json.loads(row["manifest_json"] or "{}")
+        except Exception:
+            package = {}
+
+        errors = []
+        warnings = []
+        files = package.get("files") if isinstance(package, dict) else None
+        if not isinstance(files, list) or not files:
+            errors.append("artifact_has_no_files")
+            files = []
+
+        total_chars = 0
+        seen_paths = set()
+        secret_markers = ("sk-", "api_key=", "private_key", "BEGIN PRIVATE KEY", "password=")
+        destructive_markers = ("rm -rf /", "format c:", "del /s /q", "drop database")
+        for item in files[:10]:
+            if not isinstance(item, dict):
+                errors.append("invalid_file_entry")
+                continue
+            path = str(item.get("path") or "").strip().replace("\\", "/")
+            content = str(item.get("content") or "")
+            total_chars += len(content)
+            if not path or path.startswith(("/", "~")) or ".." in path.split("/"):
+                errors.append("unsafe_file_path")
+            if path in seen_paths:
+                errors.append("duplicate_file_path")
+            seen_paths.add(path)
+            lowered = content.lower()
+            if any(marker.lower() in lowered for marker in secret_markers):
+                warnings.append("possible_secret_literal_requires_review")
+            if any(marker.lower() in lowered for marker in destructive_markers):
+                errors.append("destructive_command_detected")
+
+        if total_chars > 60000:
+            errors.append("artifact_exceeds_size_limit")
+
+        validation = {
+            "status": "pass" if not errors else "needs_human_review",
+            "errors": sorted(set(errors)),
+            "warnings": sorted(set(warnings)),
+            "file_count": len(files),
+            "total_chars": total_chars,
+            "checks": [
+                "manifest_present",
+                "relative_paths_only",
+                "duplicate_path_check",
+                "bounded_size_check",
+                "secret_literal_scan",
+                "destructive_command_scan",
+                "human_release_gate_preserved",
+            ],
+            "executed_code": False,
+            "external_actions_executed": False,
+        }
+        now = _now_iso()
+        conn.execute(
+            "UPDATE mission_artifacts SET validation_json=?,status=?,updated_at=? WHERE artifact_id=?",
+            (
+                json.dumps(validation, ensure_ascii=False),
+                "validated" if not errors else "review_required",
+                now,
+                row["artifact_id"],
+            ),
+        )
+        return {
+            "artifact_id": row["artifact_id"],
+            "title": row["title"],
+            "artifact_type": row["artifact_type"],
+            "validation": validation,
+            "human_approved": False,
+            "deployed": False,
+        }
+    finally:
+        conn.close()
+
+
 def _call_investigation_runtime(mission: dict) -> dict:
     runtime_url = _direct_runtime_url()
     runtime_token = _direct_runtime_token()
@@ -584,6 +829,14 @@ class MissionInvestigationRequest(BaseModel):
     mission: dict
 
 
+class MissionBuildRequest(BaseModel):
+    mission: dict
+
+
+class MissionBuildTestRequest(BaseModel):
+    mission: dict
+
+
 def register_mission_dispatcher_routes(app) -> None:
     _init_db()
 
@@ -692,6 +945,32 @@ def register_mission_dispatcher_routes(app) -> None:
                     (row["id"],),
                 ).fetchall()
                 item["events"] = [dict(e) for e in events]
+                artifact_rows = conn.execute(
+                    """
+                    SELECT artifact_id,artifact_type,title,summary,status,human_approved,deployed,created_at,updated_at,validation_json
+                    FROM mission_artifacts WHERE mission_id=? ORDER BY created_at DESC LIMIT 5
+                    """,
+                    (row["id"],),
+                ).fetchall()
+                artifacts = []
+                for artifact_row in artifact_rows:
+                    try:
+                        validation = json.loads(artifact_row["validation_json"]) if artifact_row["validation_json"] else None
+                    except Exception:
+                        validation = None
+                    artifacts.append({
+                        "artifact_id": artifact_row["artifact_id"],
+                        "artifact_type": artifact_row["artifact_type"],
+                        "title": artifact_row["title"],
+                        "summary": artifact_row["summary"],
+                        "status": artifact_row["status"],
+                        "human_approved": bool(artifact_row["human_approved"]),
+                        "deployed": bool(artifact_row["deployed"]),
+                        "created": artifact_row["created_at"],
+                        "updated": artifact_row["updated_at"],
+                        "validation": validation,
+                    })
+                item["artifacts"] = artifacts
                 missions.append(item)
             return {
                 "service": "JakeAI Mission Control",
@@ -733,6 +1012,72 @@ def register_mission_dispatcher_routes(app) -> None:
             return {"ok": True, "mission": _mission_dict(updated)}
         finally:
             conn.close()
+
+    @app.post("/v1/missions/build")
+    @app.post("/api/v1/missions/build")
+    def mission_build(
+        req: MissionBuildRequest,
+        x_jakeai_worker_token: Optional[str] = Header(None, alias="X-JakeAI-Worker-Token"),
+    ):
+        _require_worker(x_jakeai_worker_token)
+        mission = req.mission if isinstance(req.mission, dict) else {}
+        mission_id = _clean(mission.get("id"), 100)
+        if not mission_id:
+            raise HTTPException(status_code=400, detail="Mission ID is required")
+        built = _call_build_runtime(mission)
+        artifact = _persist_build_artifact(mission_id, built["package"])
+        return {
+            "ok": True,
+            "mission_id": mission_id,
+            "artifact": artifact,
+            "build": {
+                "title": built["package"]["title"],
+                "artifact_type": built["package"]["artifact_type"],
+                "summary": built["package"]["summary"],
+                "file_count": len(built["package"].get("files") or []),
+                "test_plan": built["package"].get("test_plan") or [],
+                "limitations": built["package"].get("limitations") or [],
+                "approval_requirements": built["package"].get("approval_requirements") or [],
+                "next_step": built["package"].get("next_step") or "",
+            },
+            "runtime": {
+                "model": built["model"],
+                "response_id": built["response_id"],
+                "input_tokens": built["input_tokens"],
+                "output_tokens": built["output_tokens"],
+            },
+            "controls": {
+                "human_release_gate": True,
+                "outbound_authorized": False,
+                "deployed": False,
+                "external_actions_executed": False,
+            },
+        }
+
+    @app.post("/v1/missions/test-build")
+    @app.post("/api/v1/missions/test-build")
+    def mission_test_build(
+        req: MissionBuildTestRequest,
+        x_jakeai_worker_token: Optional[str] = Header(None, alias="X-JakeAI-Worker-Token"),
+    ):
+        _require_worker(x_jakeai_worker_token)
+        mission = req.mission if isinstance(req.mission, dict) else {}
+        mission_id = _clean(mission.get("id"), 100)
+        if not mission_id:
+            raise HTTPException(status_code=400, detail="Mission ID is required")
+        artifact = _validate_latest_artifact(mission_id)
+        return {
+            "ok": True,
+            "mission_id": mission_id,
+            "artifact": artifact,
+            "controls": {
+                "human_release_gate": True,
+                "outbound_authorized": False,
+                "deployed": False,
+                "executed_code": False,
+                "external_actions_executed": False,
+            },
+        }
 
     @app.post("/v1/missions/investigate")
     @app.post("/api/v1/missions/investigate")
