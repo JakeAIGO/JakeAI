@@ -20,6 +20,7 @@ from fastapi import Header, HTTPException, Request
 from pydantic import BaseModel, Field
 
 MISSION_DB_PATH = os.environ.get("MISSION_DATABASE_PATH", "/data/jakeai-missions.db")
+TRAFFIC_QUALITY_START = os.environ.get("TRAFFIC_QUALITY_START", "2026-09-21T02:07:00+00:00")
 ALLOWED_STATUSES = {
     "received",
     "triaging",
@@ -998,8 +999,9 @@ def register_mission_dispatcher_routes(app) -> None:
                   COUNT(DISTINCT CASE WHEN event_type='page_view' THEN session_hash END) AS sessions,
                   SUM(CASE WHEN event_type='commission_view' THEN 1 ELSE 0 END) AS commission_views,
                   SUM(CASE WHEN event_type='mission_submit' THEN 1 ELSE 0 END) AS mission_submits
-                FROM traffic_events WHERE is_internal=0
-                """
+                FROM traffic_events WHERE is_internal=0 AND created_at>=?
+                """,
+                (TRAFFIC_QUALITY_START,),
             ).fetchone()
             first = conn.execute("SELECT MIN(created_at) AS at FROM traffic_events").fetchone()["at"]
             return {
@@ -1014,6 +1016,7 @@ def register_mission_dispatcher_routes(app) -> None:
                 "external_commission_views": int(ext["commission_views"] or 0),
                 "external_mission_submits": int(ext["mission_submits"] or 0),
                 "started_at": first,
+                "quality_measurement_started_at": TRAFFIC_QUALITY_START,
             }
         finally:
             conn.close()
@@ -1032,6 +1035,8 @@ def register_mission_dispatcher_routes(app) -> None:
         cut30 = (now - timedelta(days=30)).isoformat()
         cut_window = (now - timedelta(days=days)).isoformat()
         cut5m = (now - timedelta(minutes=5)).isoformat()
+        def quality_cut(cutoff: str) -> str:
+            return max(cutoff, TRAFFIC_QUALITY_START)
         conn = _connect()
         try:
             def snapshot(cutoff: str) -> dict:
@@ -1046,7 +1051,7 @@ def register_mission_dispatcher_routes(app) -> None:
                     FROM traffic_events
                     WHERE is_internal=0 AND created_at>=?
                     """,
-                    (cutoff,),
+                    (quality_cut(cutoff),),
                 ).fetchone()
                 commission = int(row["commission_views"] or 0)
                 missions = int(row["mission_submits"] or 0)
@@ -1061,7 +1066,7 @@ def register_mission_dispatcher_routes(app) -> None:
 
             active = conn.execute(
                 "SELECT COUNT(DISTINCT session_hash) AS n FROM traffic_events WHERE is_internal=0 AND created_at>=?",
-                (cut5m,),
+                (quality_cut(cut5m),),
             ).fetchone()["n"]
 
             top_pages = [
@@ -1072,7 +1077,7 @@ def register_mission_dispatcher_routes(app) -> None:
                     WHERE is_internal=0 AND event_type='page_view' AND created_at>=?
                     GROUP BY path ORDER BY n DESC,path ASC LIMIT 12
                     """,
-                    (cut_window,),
+                    (quality_cut(cut_window),),
                 ).fetchall()
             ]
             sources = [
@@ -1116,13 +1121,20 @@ def register_mission_dispatcher_routes(app) -> None:
                     WHERE is_internal=0 AND created_at>=?
                     GROUP BY day ORDER BY day ASC
                     """,
-                    ((now - timedelta(days=13)).isoformat(),),
+                    (quality_cut((now - timedelta(days=13)).isoformat()),),
                 ).fetchall()
             ]
-            first = conn.execute("SELECT MIN(created_at) AS at FROM traffic_events WHERE is_internal=0").fetchone()["at"]
+            first = conn.execute(
+                "SELECT MIN(created_at) AS at FROM traffic_events WHERE is_internal=0 AND created_at>=?",
+                (TRAFFIC_QUALITY_START,),
+            ).fetchone()["at"]
             internal_views = conn.execute(
                 "SELECT COUNT(*) AS n FROM traffic_events WHERE is_internal=1 AND event_type='page_view' AND created_at>=?",
-                (cut_window,),
+                (quality_cut(cut_window),),
+            ).fetchone()["n"]
+            setup_events = conn.execute(
+                "SELECT COUNT(*) AS n FROM traffic_events WHERE is_internal=0 AND created_at<?",
+                (TRAFFIC_QUALITY_START,),
             ).fetchone()["n"]
             return {
                 "service": "JakeAI Traffic Monitor",
@@ -1136,6 +1148,8 @@ def register_mission_dispatcher_routes(app) -> None:
                 "devices": devices,
                 "daily": daily,
                 "internal_pageviews_excluded": int(internal_views or 0),
+                "setup_events_excluded": int(setup_events or 0),
+                "quality_measurement_started_at": TRAFFIC_QUALITY_START,
                 "privacy": {
                     "raw_ip_stored": False,
                     "raw_user_agent_stored": False,
