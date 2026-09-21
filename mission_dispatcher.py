@@ -11,6 +11,7 @@ import uuid
 import threading
 import urllib.error
 import urllib.request
+import urllib.parse
 from concurrent.futures import ThreadPoolExecutor
 from datetime import datetime, timezone
 from typing import Optional
@@ -250,6 +251,176 @@ def _extract_json_object(text_value: str) -> dict:
     raise ValueError("model did not return a JSON object")
 
 
+def _tinyfish_key() -> str:
+    return os.environ.get("TINYFISH_API_KEY", "").strip()
+
+
+def _tinyfish_search(query: str, purpose: str) -> list[dict]:
+    key = _tinyfish_key()
+    if not key:
+        return []
+    params = urllib.parse.urlencode({
+        "query": _clean(query, 500),
+        "purpose": _clean(purpose, 1000),
+        "location": "US",
+        "language": "en",
+        "domain_type": "web",
+        "page": 0,
+    })
+    req = urllib.request.Request(
+        "https://api.search.tinyfish.ai?" + params,
+        headers={
+            "X-API-Key": key,
+            "User-Agent": "JakeAI-Mission-Evidence/1.0",
+        },
+        method="GET",
+    )
+    try:
+        with urllib.request.urlopen(req, timeout=25) as response:
+            data = json.loads(response.read().decode("utf-8"))
+    except Exception:
+        return []
+    results = []
+    for item in (data.get("results") or [])[:5]:
+        url = str(item.get("url") or "").strip()
+        if not url.startswith(("http://", "https://")):
+            continue
+        results.append({
+            "title": _clean(item.get("title"), 500),
+            "url": url[:2000],
+            "snippet": _clean(item.get("snippet"), 1200),
+            "site_name": _clean(item.get("site_name"), 200),
+            "date": _clean(item.get("date"), 100),
+        })
+    return results
+
+
+def _tinyfish_fetch(urls: list[str], purpose: str) -> list[dict]:
+    key = _tinyfish_key()
+    clean_urls = []
+    for url in urls:
+        value = str(url or "").strip()
+        if value.startswith(("http://", "https://")) and value not in clean_urls:
+            clean_urls.append(value)
+        if len(clean_urls) >= 5:
+            break
+    if not key or not clean_urls:
+        return []
+
+    payload = {
+        "urls": clean_urls,
+        "purpose": _clean(purpose, 1000),
+        "format": "markdown",
+        "links": False,
+        "image_links": False,
+        "ttl": 3600,
+        "per_url_timeout_ms": 30000,
+    }
+    req = urllib.request.Request(
+        "https://api.fetch.tinyfish.ai",
+        data=json.dumps(payload).encode("utf-8"),
+        headers={
+            "X-API-Key": key,
+            "Content-Type": "application/json",
+            "User-Agent": "JakeAI-Mission-Evidence/1.0",
+        },
+        method="POST",
+    )
+    try:
+        with urllib.request.urlopen(req, timeout=45) as response:
+            data = json.loads(response.read().decode("utf-8"))
+    except Exception:
+        return []
+
+    pages = []
+    for item in data.get("results") or []:
+        text_value = str(item.get("text") or "").strip()
+        pages.append({
+            "url": str(item.get("final_url") or item.get("url") or "")[:2000],
+            "title": _clean(item.get("title"), 500),
+            "description": _clean(item.get("description"), 1000),
+            "published_date": _clean(item.get("published_date"), 100),
+            "text_excerpt": text_value[:4500],
+        })
+    return pages
+
+
+def _synthesize_investigation_with_evidence(mission: dict, planning: dict, search_results: list[dict], pages: list[dict]) -> dict:
+    runtime_url = _direct_runtime_url()
+    runtime_token = _direct_runtime_token()
+    if not runtime_url or not runtime_token:
+        return planning
+
+    evidence = {
+        "search_results": search_results[:12],
+        "pages": pages[:5],
+    }
+    prompt = f"""You are the JakeAI evidence synthesis worker.
+
+You are given a customer mission, a preliminary investigation, and external public-web evidence gathered by JakeAI's search/fetch adapter. Use ONLY the supplied evidence for web-derived factual claims. Do not invent sources. Every URL in sources_used must exactly match a URL present in the evidence object. Distinguish source-backed facts from assumptions and unresolved unknowns.
+
+Return ONE JSON object only with this exact top-level schema:
+{{
+  "summary": "short evidence-backed investigation summary",
+  "problem_definition": "precise problem statement",
+  "known": ["mission facts and source-backed facts"],
+  "assumptions": ["assumptions, clearly labeled"],
+  "unknowns": ["important unknowns"],
+  "existing_capability_assessment": {{
+    "candidate_ids": ["JakeAI capability IDs if relevant"],
+    "reuse_likely": true,
+    "reason": "why"
+  }},
+  "evidence_needed": ["remaining evidence gaps"],
+  "research_queries": ["additional bounded queries only if still needed"],
+  "sources_used": [{{"title":"source title","url":"exact supplied URL","supports":"brief claim supported"}}],
+  "risks": ["material risks or constraints"],
+  "recommended_route": "building|needs_information|ready_for_review",
+  "route_reason": "why",
+  "proposed_next_step": "bounded next step",
+  "confidence": "low|medium|high"
+}}
+
+Routing rules:
+- "needs_information" when customer clarification is essential.
+- "building" only if the mission is sufficiently defined and the evidence supports a concrete bounded prototype/build as the next step.
+- "ready_for_review" when evidence is sufficient for a human decision or when consequential next actions require approval.
+- Human release gate stays ON. Outbound contact, publishing, purchases and deployment remain blocked.
+
+MISSION:
+{json.dumps(mission, ensure_ascii=False)[:12000]}
+
+PRELIMINARY INVESTIGATION:
+{json.dumps(planning, ensure_ascii=False)[:10000]}
+
+EXTERNAL EVIDENCE:
+{json.dumps(evidence, ensure_ascii=False)[:28000]}
+"""
+    payload = {"prompt": prompt, "workflow": "research"}
+    request = urllib.request.Request(
+        runtime_url,
+        data=json.dumps(payload).encode("utf-8"),
+        headers={
+            "X-JakeAI-Internal-Token": runtime_token,
+            "Content-Type": "application/json",
+            "User-Agent": "JakeAI-Mission-Evidence-Synthesis/1.0",
+        },
+        method="POST",
+    )
+    try:
+        with urllib.request.urlopen(request, timeout=55) as response:
+            data = json.loads(response.read().decode("utf-8"))
+        report = _extract_json_object(str(data.get("text") or ""))
+    except Exception:
+        return planning
+
+    route = str(report.get("recommended_route") or "").strip()
+    if route not in {"building", "needs_information", "ready_for_review"}:
+        report["recommended_route"] = "ready_for_review"
+        report["route_reason"] = "Evidence synthesis did not return an allowed route; human review required."
+    return report
+
+
 def _call_investigation_runtime(mission: dict) -> dict:
     runtime_url = _direct_runtime_url()
     runtime_token = _direct_runtime_token()
@@ -322,12 +493,35 @@ Mission:
         report["recommended_route"] = "ready_for_review"
         report["route_reason"] = "Runtime did not return an allowed route; human review required."
 
+    search_results = []
+    pages = []
+    external_evidence_used = False
+    queries = [str(q).strip() for q in (report.get("research_queries") or []) if str(q).strip()][:2]
+    if _tinyfish_key() and queries and report.get("recommended_route") != "needs_information":
+        purpose = "Gather public evidence for JakeAI mission " + _clean(mission.get("id"), 100)
+        seen_urls = []
+        for query in queries:
+            hits = _tinyfish_search(query, purpose)
+            search_results.extend(hits[:4])
+            for hit in hits[:3]:
+                url = hit.get("url")
+                if url and url not in seen_urls:
+                    seen_urls.append(url)
+        pages = _tinyfish_fetch(seen_urls[:5], purpose)
+        if search_results or pages:
+            report = _synthesize_investigation_with_evidence(mission, report, search_results, pages)
+            external_evidence_used = True
+
     return {
         "report": report,
         "model": str(data.get("model") or "unknown"),
         "response_id": str(data.get("response_id") or ""),
         "input_tokens": int(data.get("input_tokens") or 0),
         "output_tokens": int(data.get("output_tokens") or 0),
+        "external_evidence_used": external_evidence_used,
+        "evidence_adapter": "tinyfish-search-fetch" if _tinyfish_key() else "not_configured",
+        "search_result_count": len(search_results),
+        "fetched_page_count": len(pages),
     }
 
 
@@ -540,6 +734,10 @@ def register_mission_dispatcher_routes(app) -> None:
                 "response_id": result["response_id"],
                 "input_tokens": result["input_tokens"],
                 "output_tokens": result["output_tokens"],
+                "external_evidence_used": result.get("external_evidence_used", False),
+                "evidence_adapter": result.get("evidence_adapter", "not_configured"),
+                "search_result_count": result.get("search_result_count", 0),
+                "fetched_page_count": result.get("fetched_page_count", 0),
             },
             "controls": {
                 "human_release_gate": True,
@@ -806,6 +1004,8 @@ def register_mission_dispatcher_routes(app) -> None:
                 "max_lease_seconds": 900,
                 "human_release_gate": True,
                 "outbound_default": "blocked",
+                "investigation_runtime_configured": bool(_direct_runtime_url() and _direct_runtime_token()),
+                "external_evidence_adapter": "tinyfish-search-fetch" if _tinyfish_key() else "not_configured",
             }
         finally:
             conn.close()
