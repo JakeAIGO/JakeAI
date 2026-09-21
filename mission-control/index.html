@@ -78,8 +78,9 @@
         <button class="btn primary" id="artifactApprove">Approve draft</button>
         <button class="btn" id="artifactRevise">Request revision</button>
         <button class="btn" id="artifactReject">Reject draft</button>
+        <button class="btn" id="artifactRelease">Release to private customer portal</button>
       </div>
-      <div class="reviewGuard">Approval is internal only. It does not deploy, publish, contact a customer, make a purchase, or authorize outbound communication.</div>
+      <div class="reviewGuard">Approval is internal only. Release is a separate human action and only exposes the approved result inside the customer's private token-gated portal. It does not send a message, publish publicly, deploy code, or make a purchase.</div>
       <div class="artifactMeta" id="artifactReviewStatus"></div>
     </div>
   </div>
@@ -170,7 +171,8 @@ function render(){
       if(!r.ok)throw 0;
       const a=await r.json(),manifest=a.manifest||{},validation=a.validation||{};
       title.textContent=a.title||a.artifact_id;
-      meta.textContent=(a.artifact_id||"")+" · "+(a.artifact_type||"artifact")+" · "+(a.status||"draft")+" · Human approved: "+(a.human_approved?"YES":"NO")+" · Deployed: "+(a.deployed?"YES":"NO")+" · Validation: "+(validation.status||"not run")+(a.reviewed_at?" · Reviewed "+new Date(a.reviewed_at).toLocaleString():"");
+      meta.textContent=(a.artifact_id||"")+" · "+(a.artifact_type||"artifact")+" · "+(a.status||"draft")+" · Human approved: "+(a.human_approved?"YES":"NO")+" · Customer release: "+(a.released_to_customer?"YES":"NO")+" · Deployed: "+(a.deployed?"YES":"NO")+" · Validation: "+(validation.status||"not run")+(a.reviewed_at?" · Reviewed "+new Date(a.reviewed_at).toLocaleString():"")+(a.released_at?" · Released "+new Date(a.released_at).toLocaleString():"");
+      const releaseBtn=document.getElementById("artifactRelease");releaseBtn.disabled=!a.human_approved||!!a.released_to_customer;releaseBtn.textContent=a.released_to_customer?"Released to customer portal ✓":"Release to private customer portal";
       document.getElementById("artifactReviewNote").value=a.review_note||"";
       const rows=manifest.files||[];
       files.innerHTML=rows.length?rows.map(f=>'<div class="artifactFile"><b>'+esc(f.path||"file")+'</b><div class="artifactMeta">'+esc(f.purpose||"")+'</div><pre>'+esc(f.content||"")+'</pre></div>').join(""):'<div class="empty">No artifact files stored.</div>';
@@ -191,7 +193,7 @@ async function reviewArtifact(decision){
   const modal=document.getElementById("artifactModal"),id=modal.dataset.artifact,note=document.getElementById("artifactReviewNote").value.trim(),status=document.getElementById("artifactReviewStatus");
   if(!id)return;
   if(decision==="revise"&&!note){status.textContent="Add revision instructions first.";return}
-  const buttons=["artifactApprove","artifactRevise","artifactReject"].map(x=>document.getElementById(x));
+  const buttons=["artifactApprove","artifactRevise","artifactReject","artifactRelease"].map(x=>document.getElementById(x));
   buttons.forEach(b=>b.disabled=true);status.textContent="Recording human decision…";
   try{
     const r=await fetch("/api/v1/mission-control/artifacts/review",{method:"POST",headers:{...auth(),"Content-Type":"application/json"},body:JSON.stringify({artifact_id:id,decision,note})});
@@ -206,6 +208,20 @@ async function reviewArtifact(decision){
 document.getElementById("artifactApprove").onclick=()=>reviewArtifact("approve");
 document.getElementById("artifactRevise").onclick=()=>reviewArtifact("revise");
 document.getElementById("artifactReject").onclick=()=>reviewArtifact("reject");
+document.getElementById("artifactRelease").onclick=async()=>{
+  const modal=document.getElementById("artifactModal"),id=modal.dataset.artifact,note=document.getElementById("artifactReviewNote").value.trim(),status=document.getElementById("artifactReviewStatus"),btn=document.getElementById("artifactRelease");
+  if(!id||btn.disabled)return;
+  btn.disabled=true;status.textContent="Releasing approved result to the private customer portal…";
+  try{
+    const r=await fetch("/api/v1/mission-control/artifacts/release",{method:"POST",headers:{...auth(),"Content-Type":"application/json"},body:JSON.stringify({artifact_id:id,note})});
+    const d=await r.json().catch(()=>({}));
+    if(r.status===401){modal.hidden=true;showGate("Session locked.");return}
+    if(!r.ok)throw new Error(d.detail||"release failed");
+    status.textContent="Released to the private customer portal. No outbound message, public publication, purchase, or deployment occurred.";
+    await load();
+    setTimeout(()=>{modal.hidden=true},900);
+  }catch(e){status.textContent="Could not release this artifact.";btn.disabled=false}
+};
 document.getElementById("artifactClose").onclick=()=>{document.getElementById("artifactModal").hidden=true};
 document.getElementById("artifactModal").onclick=e=>{if(e.target.id==="artifactModal")e.currentTarget.hidden=true};
 document.getElementById("unlock").onclick=async()=>{key=document.getElementById("key").value.trim();if(!key)return;sessionStorage.setItem("jakeaiMissionControlKey",key);try{await load();localStorage.setItem("jakeai_internal_operator","1")}catch(e){if(key)document.getElementById("gateError").textContent="Could not open Mission Control."}};
