@@ -9,6 +9,8 @@ from datetime import datetime, timezone
 from typing import Optional
 
 from fastapi import HTTPException, Request, Response
+from fastapi.responses import HTMLResponse
+from pathlib import Path
 from pydantic import BaseModel
 
 from direct_billing import _call_openai, _db_path, _direct_model
@@ -205,7 +207,23 @@ def _contact_approval_allowed(consent_status, consent_evidence):
 def register_insurance_growth_routes(app):
     _init_db()
 
+    @app.get("/insurance-growth-desk/", response_class=HTMLResponse)
+    @app.get("/insurance-growth-desk", response_class=HTMLResponse)
+    def insurance_growth_portal():
+        portal = Path(__file__).resolve().parent / "insurance-growth-desk" / "index.html"
+        if not portal.exists():
+            raise HTTPException(503, "Insurance Growth Desk portal is unavailable")
+        return HTMLResponse(
+            portal.read_text(encoding="utf-8"),
+            headers={
+                "Cache-Control": "no-store, max-age=0",
+                "X-Robots-Tag": "noindex, nofollow, noarchive",
+            },
+        )
+
+
     @app.get("/v1/insurance/health")
+    @app.get("/api/v1/insurance/health")
     def insurance_health():
         return {
             "status": "ready" if bool(_access_code()) else "configuration_required",
@@ -219,6 +237,7 @@ def register_insurance_growth_routes(app):
         }
 
     @app.post("/v1/insurance/login")
+    @app.post("/api/v1/insurance/login")
     def insurance_login(body: PilotLogin, response: Response):
         configured = _access_code()
         if not configured:
@@ -242,6 +261,7 @@ def register_insurance_growth_routes(app):
         return {"status": "ok", "pilot_owner": _owner(), "brand_display_name": _brand(), "brand_verified": _brand_verified()}
 
     @app.get("/v1/insurance/me")
+    @app.get("/api/v1/insurance/me")
     def insurance_me(request: Request):
         _require_session(request)
         return {
@@ -257,6 +277,7 @@ def register_insurance_growth_routes(app):
         }
 
     @app.post("/v1/insurance/logout")
+    @app.post("/api/v1/insurance/logout")
     def insurance_logout(request: Request, response: Response):
         digest = _require_session(request)
         conn = _conn()
@@ -267,6 +288,7 @@ def register_insurance_growth_routes(app):
         return {"status": "ok"}
 
     @app.post("/v1/insurance/run")
+    @app.post("/api/v1/insurance/run")
     def insurance_run(body: PilotRun, request: Request):
         _require_session(request)
         prompt = _safe(body.prompt, 12000)
@@ -313,6 +335,7 @@ def register_insurance_growth_routes(app):
         }
 
     @app.get("/v1/insurance/leads")
+    @app.get("/api/v1/insurance/leads")
     def insurance_leads(request: Request):
         _require_session(request)
         conn = _conn()
@@ -325,6 +348,7 @@ def register_insurance_growth_routes(app):
         return {"leads": [dict(r) for r in rows], "public_lead_capture": False}
 
     @app.post("/v1/insurance/leads")
+    @app.post("/api/v1/insurance/leads")
     def insurance_create_lead(body: LeadCreate, request: Request):
         _require_session(request)
         interest = _safe(body.product_interest, 30).lower() or "unsure"
@@ -358,6 +382,7 @@ def register_insurance_growth_routes(app):
         return {"status": "created", "lead_id": lead_id, "lead_status": "new", "consent_status": consent}
 
     @app.post("/v1/insurance/leads/{lead_id}/status")
+    @app.post("/api/v1/insurance/leads/{lead_id}/status")
     def insurance_update_lead_status(lead_id: str, body: LeadStatus, request: Request):
         _require_session(request)
         status = _safe(body.status, 40).lower()
