@@ -1,0 +1,31 @@
+{
+  "$schema": "https://developers.reddit.com/schema/config-file.v1.json",
+  "name": "jakeai-malbot",
+  "post": {
+    "dir": "public",
+    "entrypoints": {
+      "default": {
+        "entry": "index.html",
+        "height": "tall"
+      }
+    }
+  },
+  "permissions": {
+    "payments": false,
+    "realtime": false,
+    "redis": false,
+    "media": false,
+    "chromeless": false,
+    "http": {
+      "enable": false,
+      "domains": []
+    },
+    "reddit": {
+      "enable": false
+    }
+  },
+  "sourceIgnores": [
+    "coverage/",
+    "*.log"
+  ]
+}
