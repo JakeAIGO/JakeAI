@@ -1,0 +1,37 @@
+{
+  "product_id": "prod_dependency_rescue_v1",
+  "brand": "JakeAI",
+  "title": "JakeAI Dependency Rescue",
+  "category": "workflow-rescue",
+  "status": "pre_release_candidate",
+  "customer_promise": "Submit redacted configuration or code artifacts. JakeAI identifies supported deprecated-dependency signatures and returns an evidence-linked remediation and verification report.",
+  "price_hypothesis_usd": 9.99,
+  "checkout_enabled": false,
+  "publication_enabled": false,
+  "production_execution_enabled": false,
+  "credentials_required": false,
+  "human_approval_required": true,
+  "fulfillment": {
+    "format": "markdown_report",
+    "renderer": "dependency_rescue_report.render_markdown",
+    "delivery_verified": false,
+    "public_web_upload_enabled": false,
+    "pilot_mode": "controlled_manual_fulfillment"
+  },
+  "supported_rule_packs": [
+    "cloudflare-service-key",
+    "coralogix-legacy-ingest",
+    "databricks-supervisor-api",
+    "google-ads-v22",
+    "qlik-cloudevent-legacy",
+    "ews-exchange-online"
+  ],
+  "customer_boundaries": [
+    "Redact passwords, tokens, private keys and secrets before submission.",
+    "JakeAI does not make production changes or rotate credentials.",
+    "Review-candidate findings are not proof that a system is affected.",
+    "No-match results are not proof that a system is dependency-safe.",
+    "Exchange Online EWS findings use the October 1, 2026 phased-disablement start as a review date; permanent retirement is April 1, 2027 and applicability can differ by workload and tenant configuration.",
+    "Human verification against current vendor documentation is required before action."
+  ]
+}
