@@ -213,6 +213,11 @@ def genesis_review_decline_refund_runtime(
 from direct_billing import register_direct_routes
 register_direct_routes(app)
 
+# Jim / First Term private insurance-growth pilot. This reuses the Direct runtime
+# and remains fail-closed until INSURANCE_PILOT_ACCESS_CODE is configured.
+from insurance_growth_desk import register_insurance_growth_routes
+register_insurance_growth_routes(app)
+
 from secret_vault import register_secret_vault_routes
 register_secret_vault_routes(app)
 

@@ -1,0 +1,25 @@
+{
+  "id": "jakeai-insurance-growth-desk-jim-pilot",
+  "title": "JakeAI Insurance Growth Desk — Jim Pilot",
+  "visibility": "private-pilot",
+  "price_usd": 0,
+  "pilot_owner": "Jim",
+  "brand_display_name": "First Term Insurance",
+  "brand_identity_status": "verification_required",
+  "reuse": [
+    "JakeAI Direct",
+    "Campaign Builder",
+    "Direct runtime"
+  ],
+  "modules": [
+    "IUL + Annuity Lead Foundry",
+    "First Term Marketing",
+    "Lead Inbox",
+    "Consent Ledger",
+    "Results"
+  ],
+  "release_gate": "human-approval-required",
+  "outbound_actions": "disabled-without-explicit-human-approval",
+  "public_lead_capture": false,
+  "notes": "Private controlled validation. Exact legal entity, carrier/product relationships, licensing, disclosures and approved marketing language must be verified before public campaign or lead capture."
+}

@@ -1,0 +1,65 @@
+name: Insurance Growth Desk Tests
+
+on:
+  pull_request:
+    paths:
+      - "insurance_growth_desk.py"
+      - "insurance-growth-desk/**"
+      - "tests/test_insurance_growth_desk.py"
+      - "commerce_recovery_app.py"
+      - ".github/workflows/insurance-growth-desk-tests.yml"
+  push:
+    branches:
+      - "feature/jim-insurance-growth-desk"
+    paths:
+      - "insurance_growth_desk.py"
+      - "insurance-growth-desk/**"
+      - "tests/test_insurance_growth_desk.py"
+      - "commerce_recovery_app.py"
+      - ".github/workflows/insurance-growth-desk-tests.yml"
+
+jobs:
+  guardrails:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.11"
+      - name: Install runtime dependencies
+        run: pip install -r requirements.txt
+      - name: Compile insurance runtime
+        run: python -m py_compile insurance_growth_desk.py commerce_recovery_app.py
+      - name: Verify insurance marketing guardrails
+        run: |
+          python - <<'PY'
+          import os
+          os.environ["INSURANCE_BRAND_VERIFIED"] = "false"
+          import insurance_growth_desk as desk
+          text = desk._insurance_instructions("iul_annuity_leads")
+          checks = [
+              "explicit human approval",
+              "Do not provide individualized insurance",
+              "Do not make annuity suitability or best-interest conclusions",
+              "NOT verified",
+              "sensitive traits",
+          ]
+          assert all(x in text for x in checks), text
+          PY
+      - name: Verify consent approval gate
+        run: |
+          python - <<'PY'
+          import insurance_growth_desk as desk
+          assert not desk._contact_approval_allowed("consent_pending", "")
+          assert not desk._contact_approval_allowed("do_not_contact", "record")
+          assert not desk._contact_approval_allowed("opt_in_verified", "")
+          assert desk._contact_approval_allowed("opt_in_verified", "recorded opt-in evidence")
+          PY
+      - name: Verify existing Campaign Builder reuse
+        run: |
+          python - <<'PY'
+          import insurance_growth_desk as desk
+          assert desk._underlying_workflow("first_term_marketing") == "campaign"
+          assert desk._underlying_workflow("iul_annuity_leads") == "campaign"
+          assert desk._underlying_workflow("lead_review") == "general"
+          PY
