@@ -20,8 +20,8 @@ app.add_middleware(
     CORSMiddleware,
     allow_origins=["https://jakeaiofficial.com", "https://jakeaiofficial.com"],
     allow_credentials=False,
-    allow_methods=["GET", "POST", "OPTIONS"],
-    allow_headers=["Content-Type", "Idempotency-Key"],
+    allow_methods=["GET", "POST", "PATCH", "OPTIONS"],
+    allow_headers=["Content-Type", "Idempotency-Key", "Authorization", "X-JakeAI-Worker-Token"],
 )
 
 @app.get("/health")
@@ -170,5 +170,8 @@ def gate_robotics_solver():
 # Keep this before the catch-all legacy mount so /api/v1/unreal/* resolves here.
 from unreal_bridge import register_unreal_bridge_routes
 register_unreal_bridge_routes(app)
+
+from mission_dispatcher import register_mission_dispatcher_routes
+register_mission_dispatcher_routes(app)
 
 app.mount("/", legacy_app)
