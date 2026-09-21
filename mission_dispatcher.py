@@ -978,6 +978,17 @@ def register_mission_dispatcher_routes(app) -> None:
         try:
             total = conn.execute("SELECT COUNT(*) AS n FROM traffic_events").fetchone()["n"]
             internal = conn.execute("SELECT COUNT(*) AS n FROM traffic_events WHERE is_internal=1").fetchone()["n"]
+            ext = conn.execute(
+                """
+                SELECT
+                  SUM(CASE WHEN event_type='page_view' THEN 1 ELSE 0 END) AS pageviews,
+                  COUNT(DISTINCT CASE WHEN event_type='page_view' THEN visitor_hash END) AS visitors,
+                  COUNT(DISTINCT CASE WHEN event_type='page_view' THEN session_hash END) AS sessions,
+                  SUM(CASE WHEN event_type='commission_view' THEN 1 ELSE 0 END) AS commission_views,
+                  SUM(CASE WHEN event_type='mission_submit' THEN 1 ELSE 0 END) AS mission_submits
+                FROM traffic_events WHERE is_internal=0
+                """
+            ).fetchone()
             first = conn.execute("SELECT MIN(created_at) AS at FROM traffic_events").fetchone()["at"]
             return {
                 "status": "ready",
@@ -985,6 +996,11 @@ def register_mission_dispatcher_routes(app) -> None:
                 "total_events": int(total or 0),
                 "internal_events": int(internal or 0),
                 "external_events": int((total or 0) - (internal or 0)),
+                "external_pageviews": int(ext["pageviews"] or 0),
+                "external_visitors": int(ext["visitors"] or 0),
+                "external_sessions": int(ext["sessions"] or 0),
+                "external_commission_views": int(ext["commission_views"] or 0),
+                "external_mission_submits": int(ext["mission_submits"] or 0),
                 "started_at": first,
             }
         finally:
