@@ -9,6 +9,8 @@ import sqlite3
 import time
 import uuid
 import threading
+import urllib.error
+import urllib.request
 from concurrent.futures import ThreadPoolExecutor
 from datetime import datetime, timezone
 from typing import Optional
@@ -221,6 +223,114 @@ def _require_worker(worker_token: Optional[str]) -> None:
         raise HTTPException(status_code=401, detail="Unauthorized")
 
 
+def _direct_runtime_url() -> str:
+    return os.environ.get("DIRECT_RUNTIME_URL", "").strip()
+
+
+def _direct_runtime_token() -> str:
+    return os.environ.get("DIRECT_RUNTIME_INTERNAL_TOKEN", "").strip()
+
+
+def _extract_json_object(text_value: str) -> dict:
+    raw = (text_value or "").strip()
+    if not raw:
+        raise ValueError("empty model response")
+    try:
+        parsed = json.loads(raw)
+        if isinstance(parsed, dict):
+            return parsed
+    except Exception:
+        pass
+    start = raw.find("{")
+    end = raw.rfind("}")
+    if start >= 0 and end > start:
+        parsed = json.loads(raw[start:end + 1])
+        if isinstance(parsed, dict):
+            return parsed
+    raise ValueError("model did not return a JSON object")
+
+
+def _call_investigation_runtime(mission: dict) -> dict:
+    runtime_url = _direct_runtime_url()
+    runtime_token = _direct_runtime_token()
+    if not runtime_url or not runtime_token:
+        raise HTTPException(status_code=503, detail="JakeAI investigation runtime is not configured")
+
+    prompt = f"""You are the bounded JakeAI Mission Investigation worker.
+
+Investigate the mission below using only the information in the mission and your general reasoning. Do not claim that you searched the web, contacted anyone, purchased anything, published anything, deployed anything, or changed an external system. Do not invent citations or sources. Distinguish facts supplied by the mission from assumptions and unknowns.
+
+Return ONE JSON object only with this exact top-level schema:
+{{
+  "summary": "short investigation summary",
+  "problem_definition": "precise problem statement",
+  "known": ["facts actually supplied or logically certain"],
+  "assumptions": ["assumptions, clearly labeled"],
+  "unknowns": ["important unknowns"],
+  "existing_capability_assessment": {{
+    "candidate_ids": ["JakeAI capability IDs if relevant"],
+    "reuse_likely": true,
+    "reason": "why"
+  }},
+  "evidence_needed": ["what evidence should be gathered next"],
+  "research_queries": ["bounded public research queries that would reduce uncertainty"],
+  "risks": ["material risks or constraints"],
+  "recommended_route": "building|needs_information|ready_for_review",
+  "route_reason": "why this route is appropriate",
+  "proposed_next_step": "bounded next step",
+  "confidence": "low|medium|high"
+}}
+
+Routing rules:
+- Use "needs_information" if the customer must clarify something essential before useful work can continue.
+- Use "building" only when the mission is sufficiently defined AND a concrete build/prototype is the appropriate next bounded step. Do not use building merely because no existing JakeAI capability matches.
+- Use "ready_for_review" when the investigation has reached a useful decision point for human review, including when outside evidence/search should be approved or evaluated.
+- Human release gate is always ON. Outbound contact is always blocked.
+
+Mission:
+{json.dumps(mission, ensure_ascii=False)[:14000]}
+"""
+    payload = {"prompt": prompt, "workflow": "research"}
+    request = urllib.request.Request(
+        runtime_url,
+        data=json.dumps(payload).encode("utf-8"),
+        headers={
+            "X-JakeAI-Internal-Token": runtime_token,
+            "Content-Type": "application/json",
+            "User-Agent": "JakeAI-Mission-Investigation/1.0",
+        },
+        method="POST",
+    )
+    try:
+        with urllib.request.urlopen(request, timeout=55) as response:
+            data = json.loads(response.read().decode("utf-8"))
+    except urllib.error.HTTPError as exc:
+        raise HTTPException(status_code=502, detail="JakeAI investigation runtime rejected the request") from exc
+    except Exception as exc:
+        raise HTTPException(status_code=502, detail="JakeAI investigation runtime is unavailable") from exc
+
+    text_value = str(data.get("text") or "").strip()
+    if not text_value:
+        raise HTTPException(status_code=502, detail="JakeAI investigation runtime returned no usable output")
+    try:
+        report = _extract_json_object(text_value)
+    except Exception as exc:
+        raise HTTPException(status_code=502, detail="JakeAI investigation runtime returned malformed output") from exc
+
+    route = str(report.get("recommended_route") or "").strip()
+    if route not in {"building", "needs_information", "ready_for_review"}:
+        report["recommended_route"] = "ready_for_review"
+        report["route_reason"] = "Runtime did not return an allowed route; human review required."
+
+    return {
+        "report": report,
+        "model": str(data.get("model") or "unknown"),
+        "response_id": str(data.get("response_id") or ""),
+        "input_tokens": int(data.get("input_tokens") or 0),
+        "output_tokens": int(data.get("output_tokens") or 0),
+    }
+
+
 class MissionIntake(BaseModel):
     signal: str = Field(min_length=1, max_length=5000)
     outcome: str = Field(default="", max_length=5000)
@@ -253,6 +363,10 @@ class MissionReleaseRequest(MissionLeaseRequest):
     note: str = Field(default="", max_length=1200)
     error: str = Field(default="", max_length=1200)
     result: Optional[dict] = None
+
+
+class MissionInvestigationRequest(BaseModel):
+    mission: dict
 
 
 def register_mission_dispatcher_routes(app) -> None:
@@ -405,6 +519,35 @@ def register_mission_dispatcher_routes(app) -> None:
         finally:
             conn.close()
 
+    @app.post("/v1/missions/investigate")
+    @app.post("/api/v1/missions/investigate")
+    def mission_investigate(
+        req: MissionInvestigationRequest,
+        x_jakeai_worker_token: Optional[str] = Header(None, alias="X-JakeAI-Worker-Token"),
+    ):
+        _require_worker(x_jakeai_worker_token)
+        mission = req.mission if isinstance(req.mission, dict) else {}
+        mission_id = _clean(mission.get("id"), 100)
+        if not mission_id:
+            raise HTTPException(status_code=400, detail="Mission ID is required")
+        result = _call_investigation_runtime(mission)
+        return {
+            "ok": True,
+            "mission_id": mission_id,
+            "investigation": result["report"],
+            "runtime": {
+                "model": result["model"],
+                "response_id": result["response_id"],
+                "input_tokens": result["input_tokens"],
+                "output_tokens": result["output_tokens"],
+            },
+            "controls": {
+                "human_release_gate": True,
+                "outbound_authorized": False,
+                "external_actions_executed": False,
+            },
+        }
+
     @app.post("/v1/missions/claim")
     @app.post("/api/v1/missions/claim")
     def mission_claim(req: MissionClaimRequest, x_jakeai_worker_token: Optional[str] = Header(None, alias="X-JakeAI-Worker-Token")):
@@ -511,6 +654,18 @@ def register_mission_dispatcher_routes(app) -> None:
                 conn.execute("ROLLBACK")
                 raise HTTPException(status_code=409, detail="Lease is missing, expired, or owned by another worker")
             old = row["status"]
+            existing_analysis = {}
+            try:
+                if row["analysis_json"]:
+                    loaded = json.loads(row["analysis_json"])
+                    if isinstance(loaded, dict):
+                        existing_analysis = loaded
+            except Exception:
+                existing_analysis = {}
+            merged_analysis = existing_analysis
+            if req.result is not None:
+                merged_analysis = {**existing_analysis, **req.result}
+
             conn.execute(
                 """
                 UPDATE missions
@@ -521,7 +676,7 @@ def register_mission_dispatcher_routes(app) -> None:
                 (
                     req.next_status,
                     _clean(req.error, 1200) or None,
-                    json.dumps(req.result, ensure_ascii=False)[:20000] if req.result is not None else row["analysis_json"],
+                    json.dumps(merged_analysis, ensure_ascii=False)[:20000] if merged_analysis else None,
                     _now_iso(),
                     req.mission_id,
                 ),
