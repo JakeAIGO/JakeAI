@@ -79,6 +79,15 @@ textarea,input,select{width:100%;border:1px solid #285066;background:#040c12;col
 </div>
 
 <script>
+window.JAKEAI_PILOT_DIAGNOSTICS={
+  prefix:'JAI-J',
+  label:'Jim Insurance Growth Desk',
+  submitUrl:'/api/v1/insurance/diagnostics',
+  listUrl:'/api/v1/insurance/diagnostics'
+};
+</script>
+<script src="/pilot-diagnostics.js"></script>
+<script>
 const $=id=>document.getElementById(id);
 let leads=[];
 
