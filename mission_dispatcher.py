@@ -996,6 +996,19 @@ def register_mission_dispatcher_routes(app) -> None:
         try:
             conn.execute("BEGIN IMMEDIATE")
             conn.execute("COMMIT")
+            investigation_reports = 0
+            evidence_backed_reports = 0
+            for row in conn.execute("SELECT analysis_json FROM missions WHERE analysis_json IS NOT NULL").fetchall():
+                try:
+                    analysis = json.loads(row["analysis_json"] or "{}")
+                    investigation = analysis.get("investigation") if isinstance(analysis, dict) else None
+                    if isinstance(investigation, dict):
+                        investigation_reports += 1
+                        sources = investigation.get("sources_used") or []
+                        if isinstance(sources, list) and any(isinstance(s, dict) and s.get("url") for s in sources):
+                            evidence_backed_reports += 1
+                except Exception:
+                    continue
             return {
                 "status": "ready",
                 "dispatcher": "transactional-sqlite-lease-v1",
@@ -1006,6 +1019,8 @@ def register_mission_dispatcher_routes(app) -> None:
                 "outbound_default": "blocked",
                 "investigation_runtime_configured": bool(_direct_runtime_url() and _direct_runtime_token()),
                 "external_evidence_adapter": "tinyfish-search-fetch" if _tinyfish_key() else "not_configured",
+                "investigation_reports": investigation_reports,
+                "evidence_backed_reports": evidence_backed_reports,
             }
         finally:
             conn.close()
