@@ -74,12 +74,6 @@
   .gatewayDock a{text-align:center;padding:9px 8px;font-size:10px}
 }
 
-/* Desktop gateway alignment fix 2026-09-21 */
-@media (min-width:761px){
-  .stage{
-    background:
-      radial-gradient(circle at 50% 42%,rgba(18,67,91,.62),rgba(2,5,8,.98) 68%);
-  }
   .landscapeScene{
     object-fit:contain;
     object-position:center center;
@@ -87,6 +81,32 @@
   .hit::before{display:none}
   .gatewayDock{
     bottom:18px;
+    background:rgba(2,8,12,.84);
+  }
+}
+
+/* Desktop gateway framing fix v2 2026-09-21 */
+@media (min-width:761px){
+  .stage{
+    overflow:hidden;
+    background:#020508;
+  }
+  .landscapeScene{
+    width:100%;
+    height:100%;
+    object-fit:cover;
+    object-position:46% center;
+    image-rendering:auto;
+  }
+  .hit{
+    display:none !important;
+  }
+  .gatewayDock{
+    display:flex;
+    left:50%;
+    right:auto;
+    bottom:18px;
+    transform:translateX(-50%);
     background:rgba(2,8,12,.84);
   }
 }
