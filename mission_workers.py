@@ -6,18 +6,27 @@ from concurrent.futures import ThreadPoolExecutor
 
 import mission_triage_worker
 import mission_investigation_worker
+import mission_build_worker
+import mission_test_worker
 
 
 def main() -> None:
     triage_count = mission_triage_worker.CONCURRENCY
     investigation_count = mission_investigation_worker.CONCURRENCY
-    total = triage_count + investigation_count
+    build_count = max(1, min(3, int(os.environ.get("MISSION_BUILD_CONCURRENCY", "1"))))
+    test_count = max(1, min(3, int(os.environ.get("MISSION_TEST_CONCURRENCY", "1"))))
+    total = triage_count + investigation_count + build_count + test_count
 
-    if not mission_triage_worker.WORKER_TOKEN or not mission_investigation_worker.WORKER_TOKEN:
+    if not all([
+        mission_triage_worker.WORKER_TOKEN,
+        mission_investigation_worker.WORKER_TOKEN,
+        mission_build_worker.WORKER_TOKEN,
+        mission_test_worker.WORKER_TOKEN,
+    ]):
         raise SystemExit("MISSION_WORKER_TOKEN is required")
 
     print(
-        f"JakeAI mission worker pool starting: triage={triage_count} investigation={investigation_count} total={total}",
+        f"JakeAI mission worker pool starting: triage={triage_count} investigation={investigation_count} build={build_count} test={test_count} total={total}",
         flush=True,
     )
 
@@ -52,6 +61,10 @@ def main() -> None:
             pool.submit(mission_triage_worker.worker_loop, slot + 1)
         for slot in range(investigation_count):
             pool.submit(mission_investigation_worker.worker_loop, slot + 1)
+        for slot in range(build_count):
+            pool.submit(mission_build_worker.worker_loop, slot + 1)
+        for slot in range(test_count):
+            pool.submit(mission_test_worker.worker_loop, slot + 1)
 
         while True:
             time.sleep(3600)
