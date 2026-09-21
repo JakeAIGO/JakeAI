@@ -195,6 +195,13 @@ def _safe(v, limit=2000):
     return str(v or "").strip()[:limit]
 
 
+def _contact_approval_allowed(consent_status, consent_evidence):
+    return (
+        _safe(consent_status, 40).lower() == "opt_in_verified"
+        and bool(_safe(consent_evidence, 2000))
+    )
+
+
 def register_insurance_growth_routes(app):
     _init_db()
 
@@ -365,7 +372,7 @@ def register_insurance_growth_routes(app):
             conn.close()
             raise HTTPException(404, "Lead not found")
         if status == "contact_approved":
-            if row["consent_status"] != "opt_in_verified" or not _safe(row["consent_evidence"]):
+            if not _contact_approval_allowed(row["consent_status"], row["consent_evidence"]):
                 conn.close()
                 raise HTTPException(409, "Contact approval requires verified opt-in evidence")
         conn.execute("UPDATE insurance_leads SET status=?,updated_at=? WHERE id=?", (status, _now(), lead_id))
