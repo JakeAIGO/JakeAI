@@ -1024,8 +1024,14 @@ def register_mission_dispatcher_routes(app) -> None:
         mission_id = _clean(mission.get("id"), 100)
         if not mission_id:
             raise HTTPException(status_code=400, detail="Mission ID is required")
-        built = _call_build_runtime(mission)
-        artifact = _persist_build_artifact(mission_id, built["package"])
+        try:
+            built = _call_build_runtime(mission)
+            artifact = _persist_build_artifact(mission_id, built["package"])
+        except HTTPException:
+            raise
+        except Exception as exc:
+            print(f"Mission build failure {mission_id}: {type(exc).__name__}: {exc}", flush=True)
+            raise HTTPException(status_code=500, detail=f"Mission build persistence failed: {type(exc).__name__}") from exc
         return {
             "ok": True,
             "mission_id": mission_id,
