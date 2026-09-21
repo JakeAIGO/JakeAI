@@ -178,4 +178,8 @@ register_mission_dispatcher_routes(app)
 from insurance_growth_desk import register_insurance_growth_routes
 register_insurance_growth_routes(app)
 
+# Shared private pilot diagnostics for controlled testers such as Jim.
+from pilot_diagnostics import register_pilot_diagnostics_routes
+register_pilot_diagnostics_routes(app)
+
 app.mount("/", legacy_app)
