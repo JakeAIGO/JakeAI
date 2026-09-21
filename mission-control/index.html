@@ -66,23 +66,42 @@ async function load(){
   showApp();render();
 }
 function render(){
-  const c=data.counts||{}, active=(c.triaging||0)+(c.investigating||0)+(c.building||0)+(c.testing||0);
+  const counts=data.counts||{}, active=(counts.triaging||0)+(counts.investigating||0)+(counts.building||0)+(counts.testing||0);
   document.getElementById("mTotal").textContent=data.total||0;
-  document.getElementById("mReceived").textContent=c.received||0;
+  document.getElementById("mReceived").textContent=counts.received||0;
   document.getElementById("mActive").textContent=active;
-  document.getElementById("mNeeds").textContent=c.needs_information||0;
-  document.getElementById("mReady").textContent=c.ready_for_review||0;
-  document.getElementById("mClosed").textContent=c.closed||0;
+  document.getElementById("mNeeds").textContent=counts.needs_information||0;
+  document.getElementById("mReady").textContent=counts.ready_for_review||0;
+  document.getElementById("mClosed").textContent=counts.closed||0;
   document.getElementById("stamp").textContent="Queue refreshed "+new Date().toLocaleTimeString()+" · "+(data.total||0)+" mission"+((data.total||0)===1?"":"s")+" recorded · "+Number(data.leased||0)+" actively leased";
+
   const status=document.getElementById("filter").value;
   const q=document.getElementById("search").value.trim().toLowerCase();
   const rows=(data.missions||[]).filter(m=>(!status||m.status===status)&&(!q||(m.id+" "+m.signal+" "+m.outcome+" "+m.boundaries).toLowerCase().includes(q)));
   if(!rows.length){grid.innerHTML='<div class="empty">No missions match this view.</div>';return}
+
   grid.innerHTML=rows.map(m=>{
-    const tri=m.triage||{};
+    const tri=m.triage||{}, analysis=m.analysis||{}, investigation=analysis.investigation||{}, build=analysis.build||{}, validation=analysis.build_validation||{};
     const created=m.created?new Date(m.created).toLocaleString():"Unknown";
-    return '<article class="card" data-id="'+esc(m.id)+'"><div class="cardHead"><div><div class="id">'+esc(m.id)+'</div><div class="meta"><span>'+esc(created)+'</span><span>'+esc(tri.category||"general")+'</span><span>'+esc(tri.completeness||"unclassified")+'</span></div></div><span class="status">'+esc(m.status)+'</span></div><div class="body"><div class="field"><small>PROBLEM SIGNAL</small><div>'+esc(m.signal||"")+'</div></div><div class="field"><small>DESIRED OUTCOME</small><div>'+esc(m.outcome||"")+'</div></div><div class="field"><small>BOUNDARIES</small><div>'+esc(m.boundaries||"")+'</div></div></div><div class="triage">Missing: '+esc((tri.missing||[]).join(", ")||"none")+' · Priority: '+esc(tri.priority||"normal")+'</div>'+(m.analysis?'<div class="field" style="margin-top:10px"><small>AUTONOMOUS TRIAGE</small><div><b>'+esc(m.analysis.recommendation||"triaged")+'</b><br>'+esc((m.analysis.candidate_capability_matches||[]).slice(0,3).map(x=>x.id+" "+x.name+" · score "+x.score).join("\n")||"No strong existing capability match; continue investigation.")+'</div></div>':'')+'<div class="actions"><select class="statusSelect">'+STATUSES.map(s=>'<option value="'+s+'" '+(m.status===s?'selected':'')+'>'+s+'</option>').join("")+'</select><input class="note" placeholder="Optional internal status note"><button class="btn small save">Update state</button></div></article>';
+    const triageBlock=m.analysis
+      ? '<div class="field" style="margin-top:10px"><small>AUTONOMOUS TRIAGE</small><div><b>'+esc(analysis.recommendation||"triaged")+'</b><br>'+esc((analysis.candidate_capability_matches||[]).slice(0,3).map(x=>x.id+" "+x.name+" · score "+x.score).join("\n")||"No strong existing capability match; continue investigation.")+'</div></div>'
+      : '';
+    const investigationBlock=analysis.investigation
+      ? '<div class="field" style="margin-top:10px"><small>AUTONOMOUS INVESTIGATION</small><div><b>'+esc(investigation.recommended_route||"review")+' · '+esc(investigation.confidence||"unknown")+' confidence</b><br>'+esc(investigation.summary||"Investigation completed.")+'<br><br><b>Problem:</b> '+esc(investigation.problem_definition||"")+'<br><b>Unknowns:</b> '+esc((investigation.unknowns||[]).join("; ")||"none recorded")+'<br><b>Evidence needed:</b> '+esc((investigation.evidence_needed||[]).join("; ")||"none recorded")+'<br><b>Next:</b> '+esc(investigation.proposed_next_step||"Human review.")+'</div></div>'
+      : '';
+    const buildBlock=analysis.build
+      ? '<div class="field" style="margin-top:10px"><small>AUTONOMOUS BUILD</small><div><b>'+esc(build.title||"Draft artifact")+'</b><br>'+esc(build.summary||"")+'<br><b>Artifact:</b> '+esc(build.artifact_id||"pending")+' · '+Number(build.file_count||0)+' file(s)<br><b>Deployed:</b> NO<br><b>Next:</b> '+esc(build.next_step||"Human review.")+'</div></div>'
+      : '';
+    const validationBlock=analysis.build_validation
+      ? '<div class="field" style="margin-top:10px"><small>STATIC VALIDATION</small><div><b>'+esc(validation.status||"review_required")+'</b><br>Errors: '+esc((validation.errors||[]).join("; ")||"none")+'<br>Warnings: '+esc((validation.warnings||[]).join("; ")||"none")+'<br>Code executed: NO · Deployed: NO</div></div>'
+      : '';
+    const artifactsBlock=(m.artifacts||[]).length
+      ? '<div class="field" style="margin-top:10px"><small>DRAFT ARTIFACTS</small><div>'+esc((m.artifacts||[]).map(a=>a.artifact_id+" · "+a.title+" · "+a.status).join("\n"))+'</div></div>'
+      : '';
+
+    return '<article class="card" data-id="'+esc(m.id)+'"><div class="cardHead"><div><div class="id">'+esc(m.id)+'</div><div class="meta"><span>'+esc(created)+'</span><span>'+esc(tri.category||"general")+'</span><span>'+esc(tri.completeness||"unclassified")+'</span></div></div><span class="status">'+esc(m.status)+'</span></div><div class="body"><div class="field"><small>PROBLEM SIGNAL</small><div>'+esc(m.signal||"")+'</div></div><div class="field"><small>DESIRED OUTCOME</small><div>'+esc(m.outcome||"")+'</div></div><div class="field"><small>BOUNDARIES</small><div>'+esc(m.boundaries||"")+'</div></div></div><div class="triage">Missing: '+esc((tri.missing||[]).join(", ")||"none")+' · Priority: '+esc(tri.priority||"normal")+'</div>'+triageBlock+investigationBlock+buildBlock+validationBlock+artifactsBlock+'<div class="actions"><select class="statusSelect">'+STATUSES.map(s=>'<option value="'+s+'" '+(m.status===s?'selected':'')+'>'+s+'</option>').join("")+'</select><input class="note" placeholder="Optional internal status note"><button class="btn small save">Update state</button></div></article>';
   }).join("");
+
   grid.querySelectorAll(".save").forEach(btn=>btn.onclick=async()=>{
     const card=btn.closest(".card"),id=card.dataset.id,status=card.querySelector(".statusSelect").value,note=card.querySelector(".note").value;
     btn.disabled=true;btn.textContent="Updating…";
