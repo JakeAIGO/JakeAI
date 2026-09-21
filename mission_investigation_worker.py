@@ -71,6 +71,10 @@ def investigate_one(worker_id: str, mission: dict, lease: dict) -> None:
                 "response_id": runtime.get("response_id"),
                 "input_tokens": int(runtime.get("input_tokens") or 0),
                 "output_tokens": int(runtime.get("output_tokens") or 0),
+                "external_evidence_used": bool(runtime.get("external_evidence_used")),
+                "evidence_adapter": runtime.get("evidence_adapter"),
+                "search_result_count": int(runtime.get("search_result_count") or 0),
+                "fetched_page_count": int(runtime.get("fetched_page_count") or 0),
             },
         }
         note = (
@@ -85,7 +89,13 @@ def investigate_one(worker_id: str, mission: dict, lease: dict) -> None:
             note=note,
             result=result,
         )
-        print(f"{worker_id} investigated {mission['id']} -> {route}", flush=True)
+        print(
+            f"{worker_id} investigated {mission['id']} -> {route} "
+            + f"evidence={bool(runtime.get('external_evidence_used'))} "
+            + f"search={int(runtime.get('search_result_count') or 0)} "
+            + f"fetch={int(runtime.get('fetched_page_count') or 0)}",
+            flush=True,
+        )
     except Exception as exc:
         detail = str(exc)[:900]
         try:
