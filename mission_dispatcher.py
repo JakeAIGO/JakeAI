@@ -1088,7 +1088,7 @@ def register_mission_dispatcher_routes(app) -> None:
                     WHERE is_internal=0 AND event_type='page_view' AND created_at>=?
                     GROUP BY source ORDER BY n DESC,source ASC LIMIT 12
                     """,
-                    (cut_window,),
+                    (quality_cut(cut_window),),
                 ).fetchall()
             ]
             devices = [
@@ -1099,7 +1099,7 @@ def register_mission_dispatcher_routes(app) -> None:
                     WHERE is_internal=0 AND event_type='page_view' AND created_at>=?
                     GROUP BY device ORDER BY n DESC,device ASC
                     """,
-                    (cut_window,),
+                    (quality_cut(cut_window),),
                 ).fetchall()
             ]
             daily = [
