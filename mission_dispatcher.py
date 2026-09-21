@@ -28,6 +28,7 @@ ALLOWED_STATUSES = {
     "testing",
     "needs_information",
     "ready_for_review",
+    "approved",
     "closed",
 }
 WORKER_STATUSES = {
@@ -146,6 +147,11 @@ def _init_db() -> None:
         columns = {row["name"] for row in conn.execute("PRAGMA table_info(missions)").fetchall()}
         if "analysis_json" not in columns:
             conn.execute("ALTER TABLE missions ADD COLUMN analysis_json TEXT")
+        artifact_columns = {row["name"] for row in conn.execute("PRAGMA table_info(mission_artifacts)").fetchall()}
+        if "review_note" not in artifact_columns:
+            conn.execute("ALTER TABLE mission_artifacts ADD COLUMN review_note TEXT")
+        if "reviewed_at" not in artifact_columns:
+            conn.execute("ALTER TABLE mission_artifacts ADD COLUMN reviewed_at TEXT")
         conn.execute("CREATE INDEX IF NOT EXISTS idx_missions_status_lease ON missions(status, lease_expires_at, created_at)")
         conn.execute("CREATE INDEX IF NOT EXISTS idx_missions_lease_owner ON missions(lease_owner, lease_expires_at)")
         conn.execute("CREATE INDEX IF NOT EXISTS idx_mission_events_mission ON mission_events(mission_id, id)")
@@ -917,6 +923,12 @@ class MissionBuildRequest(BaseModel):
 class MissionBuildTestRequest(BaseModel):
     mission: dict
 
+class ArtifactReviewRequest(BaseModel):
+    artifact_id: str = Field(min_length=8, max_length=100)
+    decision: str = Field(max_length=20)
+    note: str = Field(default="", max_length=2000)
+
+
 class TrafficEvent(BaseModel):
     event_id: str = Field(min_length=8, max_length=120)
     visitor_id: str = Field(min_length=8, max_length=200)
@@ -1241,7 +1253,7 @@ def register_mission_dispatcher_routes(app) -> None:
                 item["events"] = [dict(e) for e in events]
                 artifact_rows = conn.execute(
                     """
-                    SELECT artifact_id,artifact_type,title,summary,status,human_approved,deployed,created_at,updated_at,validation_json
+                    SELECT artifact_id,artifact_type,title,summary,status,human_approved,deployed,created_at,updated_at,validation_json,review_note,reviewed_at
                     FROM mission_artifacts WHERE mission_id=? ORDER BY created_at DESC LIMIT 5
                     """,
                     (row["id"],),
@@ -1263,6 +1275,8 @@ def register_mission_dispatcher_routes(app) -> None:
                         "created": artifact_row["created_at"],
                         "updated": artifact_row["updated_at"],
                         "validation": validation,
+                        "review_note": artifact_row["review_note"],
+                        "reviewed_at": artifact_row["reviewed_at"],
                     })
                 item["artifacts"] = artifacts
                 missions.append(item)
@@ -1314,12 +1328,131 @@ def register_mission_dispatcher_routes(app) -> None:
                 "validation": validation,
                 "created": row["created_at"],
                 "updated": row["updated_at"],
+                "review_note": row["review_note"] if "review_note" in row.keys() else None,
+                "reviewed_at": row["reviewed_at"] if "reviewed_at" in row.keys() else None,
                 "controls": {
                     "human_release_gate": True,
                     "outbound_authorized": False,
                     "deployed": bool(row["deployed"]),
                 },
             }
+        finally:
+            conn.close()
+
+    @app.post("/v1/mission-control/artifacts/review")
+    @app.post("/api/v1/mission-control/artifacts/review")
+    def mission_control_artifact_review(
+        req: ArtifactReviewRequest,
+        authorization: Optional[str] = Header(None, alias="Authorization"),
+    ):
+        _require_control(authorization)
+        decision = _clean(req.decision, 20).lower()
+        note = _clean(req.note, 2000)
+        if decision not in {"approve", "revise", "reject"}:
+            raise HTTPException(status_code=400, detail="Invalid artifact review decision")
+        if decision == "revise" and not note:
+            raise HTTPException(status_code=400, detail="Revision instructions are required")
+
+        conn = _connect()
+        try:
+            conn.execute("BEGIN IMMEDIATE")
+            artifact = conn.execute(
+                "SELECT * FROM mission_artifacts WHERE artifact_id=?",
+                (_clean(req.artifact_id, 100),),
+            ).fetchone()
+            if not artifact:
+                conn.execute("ROLLBACK")
+                raise HTTPException(status_code=404, detail="Artifact not found")
+
+            mission = conn.execute("SELECT * FROM missions WHERE id=?", (artifact["mission_id"],)).fetchone()
+            if not mission:
+                conn.execute("ROLLBACK")
+                raise HTTPException(status_code=404, detail="Mission not found")
+
+            now = _now_iso()
+            old_status = mission["status"]
+            if decision == "approve":
+                artifact_status = "approved"
+                mission_status = "approved"
+                approved = 1
+                event_type = "human_approved"
+                event_note = note or "Human approved the validated draft for a future controlled release. No external action executed."
+            elif decision == "revise":
+                artifact_status = "revision_requested"
+                mission_status = "building"
+                approved = 0
+                event_type = "human_revision_requested"
+                event_note = note
+            else:
+                artifact_status = "rejected"
+                mission_status = "closed"
+                approved = 0
+                event_type = "human_rejected"
+                event_note = note or "Human rejected the draft. Mission closed without external action."
+
+            conn.execute(
+                """
+                UPDATE mission_artifacts
+                SET status=?,human_approved=?,review_note=?,reviewed_at=?,updated_at=?,deployed=0
+                WHERE artifact_id=?
+                """,
+                (artifact_status, approved, note or None, now, now, artifact["artifact_id"]),
+            )
+
+            analysis = {}
+            try:
+                if mission["analysis_json"]:
+                    loaded = json.loads(mission["analysis_json"])
+                    if isinstance(loaded, dict):
+                        analysis = loaded
+            except Exception:
+                analysis = {}
+            analysis["human_review"] = {
+                "decision": decision,
+                "artifact_id": artifact["artifact_id"],
+                "note": note,
+                "at": now,
+                "external_actions_executed": False,
+            }
+
+            conn.execute(
+                """
+                UPDATE missions
+                SET status=?,analysis_json=?,updated_at=?,outbound_authorized=0,human_release_gate=1,
+                    lease_owner=NULL,lease_token_hash=NULL,lease_expires_at=NULL
+                WHERE id=?
+                """,
+                (mission_status, json.dumps(analysis, ensure_ascii=False)[:20000], now, mission["id"]),
+            )
+            _event(conn, mission["id"], event_type, old_status, mission_status, "human-mission-control", event_note)
+            conn.execute("COMMIT")
+            return {
+                "ok": True,
+                "decision": decision,
+                "mission_id": mission["id"],
+                "mission_status": mission_status,
+                "artifact": {
+                    "artifact_id": artifact["artifact_id"],
+                    "status": artifact_status,
+                    "human_approved": bool(approved),
+                    "deployed": False,
+                    "reviewed_at": now,
+                },
+                "controls": {
+                    "human_release_gate": True,
+                    "outbound_authorized": False,
+                    "external_actions_executed": False,
+                    "deployment_executed": False,
+                },
+            }
+        except HTTPException:
+            raise
+        except Exception:
+            try:
+                conn.execute("ROLLBACK")
+            except Exception:
+                pass
+            raise
         finally:
             conn.close()
 
