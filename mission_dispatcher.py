@@ -103,6 +103,9 @@ def _init_db() -> None:
             )
             """
         )
+        columns = {row["name"] for row in conn.execute("PRAGMA table_info(missions)").fetchall()}
+        if "analysis_json" not in columns:
+            conn.execute("ALTER TABLE missions ADD COLUMN analysis_json TEXT")
         conn.execute("CREATE INDEX IF NOT EXISTS idx_missions_status_lease ON missions(status, lease_expires_at, created_at)")
         conn.execute("CREATE INDEX IF NOT EXISTS idx_missions_lease_owner ON missions(lease_owner, lease_expires_at)")
         conn.execute("CREATE INDEX IF NOT EXISTS idx_mission_events_mission ON mission_events(mission_id, id)")
@@ -185,6 +188,7 @@ def _mission_dict(row: sqlite3.Row, *, include_private: bool = True) -> dict:
             "human_release_gate": bool(row["human_release_gate"]),
             "outbound_authorized": bool(row["outbound_authorized"]),
         },
+        "analysis": json.loads(row["analysis_json"]) if row["analysis_json"] else None,
     }
     if include_private:
         base.update(
@@ -248,6 +252,7 @@ class MissionReleaseRequest(MissionLeaseRequest):
     next_status: str = Field(default="received", max_length=40)
     note: str = Field(default="", max_length=1200)
     error: str = Field(default="", max_length=1200)
+    result: Optional[dict] = None
 
 
 def register_mission_dispatcher_routes(app) -> None:
@@ -510,10 +515,16 @@ def register_mission_dispatcher_routes(app) -> None:
                 """
                 UPDATE missions
                 SET status=?, lease_owner=NULL, lease_token_hash=NULL, lease_expires_at=NULL,
-                    last_error=?, updated_at=?, outbound_authorized=0, human_release_gate=1
+                    last_error=?, analysis_json=?, updated_at=?, outbound_authorized=0, human_release_gate=1
                 WHERE id=?
                 """,
-                (req.next_status, _clean(req.error, 1200) or None, _now_iso(), req.mission_id),
+                (
+                    req.next_status,
+                    _clean(req.error, 1200) or None,
+                    json.dumps(req.result, ensure_ascii=False)[:20000] if req.result is not None else row["analysis_json"],
+                    _now_iso(),
+                    req.mission_id,
+                ),
             )
             _event(conn, req.mission_id, "lease_released", old, req.next_status, req.worker_id, req.note or req.error)
             updated = conn.execute("SELECT * FROM missions WHERE id=?", (req.mission_id,)).fetchone()
