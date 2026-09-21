@@ -13,7 +13,7 @@ import urllib.error
 import urllib.request
 import urllib.parse
 from concurrent.futures import ThreadPoolExecutor
-from datetime import datetime, timezone
+from datetime import datetime, timezone, timedelta
 from typing import Optional
 
 from fastapi import Header, HTTPException, Request
@@ -124,6 +124,25 @@ def _init_db() -> None:
             )
             """
         )
+        conn.execute(
+            """
+            CREATE TABLE IF NOT EXISTS traffic_events (
+                id INTEGER PRIMARY KEY AUTOINCREMENT,
+                event_id TEXT NOT NULL UNIQUE,
+                visitor_hash TEXT NOT NULL,
+                session_hash TEXT NOT NULL,
+                event_type TEXT NOT NULL,
+                path TEXT NOT NULL,
+                referrer_host TEXT NOT NULL DEFAULT '',
+                source TEXT NOT NULL DEFAULT 'direct',
+                medium TEXT NOT NULL DEFAULT '',
+                campaign TEXT NOT NULL DEFAULT '',
+                device TEXT NOT NULL DEFAULT 'unknown',
+                is_internal INTEGER NOT NULL DEFAULT 0,
+                created_at TEXT NOT NULL
+            )
+            """
+        )
         columns = {row["name"] for row in conn.execute("PRAGMA table_info(missions)").fetchall()}
         if "analysis_json" not in columns:
             conn.execute("ALTER TABLE missions ADD COLUMN analysis_json TEXT")
@@ -131,6 +150,10 @@ def _init_db() -> None:
         conn.execute("CREATE INDEX IF NOT EXISTS idx_missions_lease_owner ON missions(lease_owner, lease_expires_at)")
         conn.execute("CREATE INDEX IF NOT EXISTS idx_mission_events_mission ON mission_events(mission_id, id)")
         conn.execute("CREATE INDEX IF NOT EXISTS idx_mission_artifacts_mission ON mission_artifacts(mission_id, created_at)")
+        conn.execute("CREATE INDEX IF NOT EXISTS idx_traffic_created ON traffic_events(created_at)")
+        conn.execute("CREATE INDEX IF NOT EXISTS idx_traffic_type_created ON traffic_events(event_type, created_at)")
+        conn.execute("CREATE INDEX IF NOT EXISTS idx_traffic_visitor_created ON traffic_events(visitor_hash, created_at)")
+        conn.execute("CREATE INDEX IF NOT EXISTS idx_traffic_session_created ON traffic_events(session_hash, created_at)")
     finally:
         conn.close()
 
@@ -894,9 +917,187 @@ class MissionBuildRequest(BaseModel):
 class MissionBuildTestRequest(BaseModel):
     mission: dict
 
+class TrafficEvent(BaseModel):
+    event_id: str = Field(min_length=8, max_length=120)
+    visitor_id: str = Field(min_length=8, max_length=200)
+    session_id: str = Field(min_length=8, max_length=200)
+    event_type: str = Field(default="page_view", max_length=40)
+    path: str = Field(default="/", max_length=500)
+    referrer_host: str = Field(default="", max_length=240)
+    source: str = Field(default="direct", max_length=160)
+    medium: str = Field(default="", max_length=120)
+    campaign: str = Field(default="", max_length=180)
+    device: str = Field(default="unknown", max_length=40)
+    internal: bool = False
+
+
 
 def register_mission_dispatcher_routes(app) -> None:
     _init_db()
+
+    @app.post("/v1/traffic/event")
+    @app.post("/api/v1/traffic/event")
+    def traffic_event(req: TrafficEvent):
+        allowed = {"page_view", "commission_view", "cta", "mission_submit"}
+        event_type = req.event_type if req.event_type in allowed else "page_view"
+        path = _clean(req.path, 500).split("?", 1)[0] or "/"
+        if not path.startswith("/"):
+            path = "/" + path
+        conn = _connect()
+        try:
+            conn.execute(
+                """
+                INSERT OR IGNORE INTO traffic_events(
+                    event_id,visitor_hash,session_hash,event_type,path,referrer_host,
+                    source,medium,campaign,device,is_internal,created_at
+                ) VALUES(?,?,?,?,?,?,?,?,?,?,?,?)
+                """,
+                (
+                    _clean(req.event_id, 120),
+                    _hash("traffic-visitor:" + req.visitor_id),
+                    _hash("traffic-session:" + req.session_id),
+                    event_type,
+                    path,
+                    _clean(req.referrer_host, 240).lower(),
+                    _clean(req.source, 160).lower() or "direct",
+                    _clean(req.medium, 120).lower(),
+                    _clean(req.campaign, 180),
+                    _clean(req.device, 40).lower() or "unknown",
+                    1 if req.internal else 0,
+                    _now_iso(),
+                ),
+            )
+            return {"ok": True, "accepted": True}
+        finally:
+            conn.close()
+
+    @app.get("/v1/traffic/summary")
+    @app.get("/api/v1/traffic/summary")
+    def traffic_summary(
+        days: int = 7,
+        authorization: Optional[str] = Header(None, alias="Authorization"),
+    ):
+        _require_control(authorization)
+        days = max(1, min(90, int(days or 7)))
+        now = datetime.now(timezone.utc)
+        cut24 = (now - timedelta(hours=24)).isoformat()
+        cut7 = (now - timedelta(days=7)).isoformat()
+        cut30 = (now - timedelta(days=30)).isoformat()
+        cut_window = (now - timedelta(days=days)).isoformat()
+        cut5m = (now - timedelta(minutes=5)).isoformat()
+        conn = _connect()
+        try:
+            def snapshot(cutoff: str) -> dict:
+                row = conn.execute(
+                    """
+                    SELECT
+                      SUM(CASE WHEN event_type='page_view' THEN 1 ELSE 0 END) AS pageviews,
+                      COUNT(DISTINCT CASE WHEN event_type='page_view' THEN visitor_hash END) AS visitors,
+                      COUNT(DISTINCT CASE WHEN event_type='page_view' THEN session_hash END) AS sessions,
+                      SUM(CASE WHEN event_type='commission_view' THEN 1 ELSE 0 END) AS commission_views,
+                      SUM(CASE WHEN event_type='mission_submit' THEN 1 ELSE 0 END) AS mission_submits
+                    FROM traffic_events
+                    WHERE is_internal=0 AND created_at>=?
+                    """,
+                    (cutoff,),
+                ).fetchone()
+                commission = int(row["commission_views"] or 0)
+                missions = int(row["mission_submits"] or 0)
+                return {
+                    "pageviews": int(row["pageviews"] or 0),
+                    "visitors": int(row["visitors"] or 0),
+                    "sessions": int(row["sessions"] or 0),
+                    "commission_views": commission,
+                    "mission_submits": missions,
+                    "commission_to_mission_rate": round((missions / commission) * 100, 1) if commission else 0.0,
+                }
+
+            active = conn.execute(
+                "SELECT COUNT(DISTINCT session_hash) AS n FROM traffic_events WHERE is_internal=0 AND created_at>=?",
+                (cut5m,),
+            ).fetchone()["n"]
+
+            top_pages = [
+                {"path": row["path"], "views": row["n"]}
+                for row in conn.execute(
+                    """
+                    SELECT path,COUNT(*) AS n FROM traffic_events
+                    WHERE is_internal=0 AND event_type='page_view' AND created_at>=?
+                    GROUP BY path ORDER BY n DESC,path ASC LIMIT 12
+                    """,
+                    (cut_window,),
+                ).fetchall()
+            ]
+            sources = [
+                {"source": row["source"] or "direct", "sessions": row["n"]}
+                for row in conn.execute(
+                    """
+                    SELECT source,COUNT(DISTINCT session_hash) AS n FROM traffic_events
+                    WHERE is_internal=0 AND event_type='page_view' AND created_at>=?
+                    GROUP BY source ORDER BY n DESC,source ASC LIMIT 12
+                    """,
+                    (cut_window,),
+                ).fetchall()
+            ]
+            devices = [
+                {"device": row["device"] or "unknown", "visitors": row["n"]}
+                for row in conn.execute(
+                    """
+                    SELECT device,COUNT(DISTINCT visitor_hash) AS n FROM traffic_events
+                    WHERE is_internal=0 AND event_type='page_view' AND created_at>=?
+                    GROUP BY device ORDER BY n DESC,device ASC
+                    """,
+                    (cut_window,),
+                ).fetchall()
+            ]
+            daily = [
+                {
+                    "date": row["day"],
+                    "pageviews": int(row["pageviews"] or 0),
+                    "visitors": int(row["visitors"] or 0),
+                    "sessions": int(row["sessions"] or 0),
+                    "missions": int(row["missions"] or 0),
+                }
+                for row in conn.execute(
+                    """
+                    SELECT substr(created_at,1,10) AS day,
+                      SUM(CASE WHEN event_type='page_view' THEN 1 ELSE 0 END) AS pageviews,
+                      COUNT(DISTINCT CASE WHEN event_type='page_view' THEN visitor_hash END) AS visitors,
+                      COUNT(DISTINCT CASE WHEN event_type='page_view' THEN session_hash END) AS sessions,
+                      SUM(CASE WHEN event_type='mission_submit' THEN 1 ELSE 0 END) AS missions
+                    FROM traffic_events
+                    WHERE is_internal=0 AND created_at>=?
+                    GROUP BY day ORDER BY day ASC
+                    """,
+                    ((now - timedelta(days=13)).isoformat(),),
+                ).fetchall()
+            ]
+            first = conn.execute("SELECT MIN(created_at) AS at FROM traffic_events WHERE is_internal=0").fetchone()["at"]
+            internal_views = conn.execute(
+                "SELECT COUNT(*) AS n FROM traffic_events WHERE is_internal=1 AND event_type='page_view' AND created_at>=?",
+                (cut_window,),
+            ).fetchone()["n"]
+            return {
+                "service": "JakeAI Traffic Monitor",
+                "measurement": "first-party privacy-minimized",
+                "started_at": first,
+                "window_days": days,
+                "active_sessions_5m": int(active or 0),
+                "periods": {"24h": snapshot(cut24), "7d": snapshot(cut7), "30d": snapshot(cut30)},
+                "top_pages": top_pages,
+                "sources": sources,
+                "devices": devices,
+                "daily": daily,
+                "internal_pageviews_excluded": int(internal_views or 0),
+                "privacy": {
+                    "raw_ip_stored": False,
+                    "raw_user_agent_stored": False,
+                    "full_referrer_url_stored": False,
+                    "visitor_identifier": "random first-party identifier stored only as a one-way hash server-side",
+                },
+            }
+        finally:
+            conn.close()
 
     @app.post("/v1/missions/intake")
     @app.post("/api/v1/missions/intake")
