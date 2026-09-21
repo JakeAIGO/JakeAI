@@ -57,7 +57,7 @@ function auth(){return {Authorization:"Bearer "+key}}
 function showApp(){gate.style.display="none";app.style.display="block"}
 function showGate(msg=""){gate.style.display="grid";app.style.display="none";document.getElementById("gateError").textContent=msg}
 async function load(){
-  const r=await fetch("/api/mission-control",{headers:auth(),cache:"no-store"});
+  const r=await fetch("/api/v1/mission-control",{headers:auth(),cache:"no-store"});
   if(r.status===401){sessionStorage.removeItem("jakeaiMissionControlKey");key="";showGate("Access key rejected.");throw 0}
   if(!r.ok)throw new Error("Mission Control unavailable");
   data=await r.json();
@@ -85,7 +85,7 @@ function render(){
     const card=btn.closest(".card"),id=card.dataset.id,status=card.querySelector(".statusSelect").value,note=card.querySelector(".note").value;
     btn.disabled=true;btn.textContent="Updating…";
     try{
-      const r=await fetch("/api/mission-control",{method:"PATCH",headers:{...auth(),"Content-Type":"application/json"},body:JSON.stringify({id,status,note})});
+      const r=await fetch("/api/v1/mission-control",{method:"PATCH",headers:{...auth(),"Content-Type":"application/json"},body:JSON.stringify({id,status,note})});
       if(r.status===401){showGate("Session locked.");return}
       if(!r.ok)throw 0;
       await load();
