@@ -1,4 +1,5 @@
 import base64
+import json
 import os
 import re
 import secrets
@@ -206,6 +207,22 @@ def register_pilot_diagnostics_routes(app):
         )
         conn.commit()
         conn.close()
+        print(
+            "JAKEAI_PILOT_DIAGNOSTIC "
+            + json.dumps(
+                {
+                    "report_code": report_code,
+                    "pilot": "jim-insurance-growth-desk",
+                    "area": _redact_diagnostic_text(body.area, 160),
+                    "action": action,
+                    "error_text": error_text,
+                    "classification": classification,
+                    "next_action": next_action,
+                },
+                separators=(",", ":"),
+            ),
+            flush=True,
+        )
         return {
             "status": "stored",
             "report_code": report_code,
