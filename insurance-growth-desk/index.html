@@ -1,0 +1,119 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
+<meta name="theme-color" content="#03070b">
+<title>JakeAI Insurance Growth Desk — Jim Pilot</title>
+<style>
+:root{--bg:#03070b;--panel:#07131c;--line:#254b60;--cyan:#74eaff;--green:#74efb7;--gold:#ffd36f;--text:#effcff;--muted:#91aebb;--violet:#a88cff}
+*{box-sizing:border-box}body{margin:0;min-height:100vh;background:radial-gradient(circle at 80% 4%,#40206b55,transparent 26%),radial-gradient(circle at 8% 20%,#07536b55,transparent 28%),linear-gradient(#02070b,#03090e 55%,#020509);color:var(--text);font-family:Inter,system-ui,-apple-system,Segoe UI,sans-serif}
+.shell{max-width:1180px;margin:auto;padding:18px 18px 70px}.top{display:flex;justify-content:space-between;align-items:center;gap:12px;margin-bottom:16px}.brand{font-size:20px;font-weight:950}.brand b{color:var(--cyan)}.pilot{font-size:10px;letter-spacing:.14em;color:var(--green);border:1px solid #65dca944;padding:7px 10px;border-radius:999px}
+.hero,.card,.login{border:1px solid #285066;border-radius:25px;background:linear-gradient(160deg,#081722ee,#0a1020ed);box-shadow:0 18px 60px #0007}.hero{padding:30px;position:relative;overflow:hidden}.hero:after{content:"";position:absolute;width:260px;height:260px;border:1px solid #72eaff44;border-radius:50%;right:-100px;top:-120px;box-shadow:0 0 90px #73eaff22}.eyebrow{font-size:10px;letter-spacing:.19em;color:var(--green);font-weight:950}.hero h1{font-size:clamp(40px,7vw,78px);line-height:.9;letter-spacing:-.05em;margin:11px 0 17px;position:relative;z-index:1}.hero h1 span{color:var(--cyan)}.hero p{max-width:760px;color:#b2c8d3;line-height:1.55;position:relative;z-index:1}.badges{display:flex;gap:8px;flex-wrap:wrap;margin-top:17px;position:relative;z-index:1}.badge{padding:7px 9px;border:1px solid #33596d;border-radius:999px;color:#b9d7e4;font-size:10px;font-weight:850}.badge.good{color:#8bf1c2;border-color:#58dca944}.badge.warn{color:#ffe3a0;border-color:#ffd36f55}
+.doors{display:grid;grid-template-columns:1fr 1fr;gap:14px;margin-top:15px}.door{padding:23px;border:1px solid #2c5369;border-radius:22px;background:linear-gradient(150deg,#0a1a25,#0b1021);cursor:pointer;min-height:165px;transition:.2s}.door:hover{transform:translateY(-2px);border-color:#6ce9ff88}.door small{color:var(--green);font-weight:900;letter-spacing:.12em}.door h2{margin:9px 0 8px;font-size:24px}.door p{margin:0;color:var(--muted);font-size:13px;line-height:1.5}.grid{display:grid;grid-template-columns:1.1fr .9fr;gap:14px;margin-top:15px}.card{padding:21px}.card h2{margin:0 0 6px;font-size:18px}.muted{color:var(--muted);font-size:12px;line-height:1.45}.approval{display:inline-block;color:#86f0be;border:1px solid #5fe0a444;border-radius:999px;padding:6px 8px;font-size:9px;letter-spacing:.12em;font-weight:900}
+textarea,input,select{width:100%;border:1px solid #285066;background:#040c12;color:#eefaff;border-radius:13px;padding:12px;font:inherit;outline:none}textarea{min-height:120px;resize:vertical}textarea:focus,input:focus,select:focus{border-color:#70eaff}.row{display:flex;gap:9px;align-items:center;margin-top:10px}.row>*{flex:1}.btn{border:1px solid #4a758a;background:#0c2430;color:#eaffff;border-radius:999px;padding:11px 15px;font-weight:900;cursor:pointer}.btn.primary{background:linear-gradient(135deg,#75eaff,#c7fbff);color:#041116;border-color:#75eaff}.btn.ghost{background:#07121a}.btn:disabled{opacity:.55;cursor:not-allowed}.output{display:none;margin-top:13px;padding:15px;border:1px solid #2d5165;border-radius:15px;background:#050d13;white-space:pre-wrap;line-height:1.5;color:#dcecf2;font-size:13px}.output.open{display:block}
+.metrics{display:grid;grid-template-columns:repeat(5,1fr);gap:8px;margin-top:13px}.metric{padding:12px;border:1px solid #234658;border-radius:14px;background:#061019}.metric b{display:block;font-size:23px;color:var(--cyan)}.metric span{font-size:9px;color:var(--muted);letter-spacing:.08em}.leadList{display:grid;gap:8px;margin-top:12px;max-height:430px;overflow:auto}.lead{padding:12px;border:1px solid #203e4e;border-radius:13px;background:#061019}.leadTop{display:flex;justify-content:space-between;gap:9px}.lead b{font-size:13px}.lead small{color:#8ca8b6}.leadMeta{margin-top:7px;color:#9cb5c1;font-size:11px;line-height:1.45}.formGrid{display:grid;grid-template-columns:1fr 1fr;gap:8px;margin-top:12px}.formGrid .wide{grid-column:1/-1}.fine{margin-top:15px;padding:15px;border-left:2px solid var(--gold);background:#15120a99;border-radius:0 12px 12px 0;color:#c9bd9e;font-size:11px;line-height:1.55}
+.login{max-width:540px;margin:12vh auto;padding:28px}.login h1{margin:8px 0 10px}.login p{color:var(--muted);line-height:1.5}.login .row{margin-top:16px}.hidden{display:none!important}.error{color:#ffaaa5;font-size:11px;margin-top:8px}.ok{color:#83efbb;font-size:11px;margin-top:8px}.footer{margin-top:24px;color:#607d8b;font-size:10px;display:flex;justify-content:space-between;gap:10px;flex-wrap:wrap}
+@media(max-width:860px){.grid,.doors{grid-template-columns:1fr}.metrics{grid-template-columns:1fr 1fr}.hero{padding:23px}.formGrid{grid-template-columns:1fr}.formGrid .wide{grid-column:auto}}@media(max-width:500px){.shell{padding:12px}.hero h1{font-size:44px}.metrics{grid-template-columns:1fr 1fr}.row{flex-direction:column;align-items:stretch}}
+</style>
+</head>
+<body>
+<div id="loginView" class="shell">
+  <section class="login">
+    <div class="eyebrow">JAKEAI PRIVATE PILOT</div>
+    <h1>Insurance Growth Desk</h1>
+    <p>Private workspace for Jim. Marketing, lead strategy and lead operations stay behind JakeAI's human approval gate.</p>
+    <div class="row"><input id="accessCode" type="password" autocomplete="current-password" placeholder="Pilot access code"><button class="btn primary" id="loginBtn">ENTER →</button></div>
+    <div id="loginStatus"></div>
+  </section>
+</div>
+
+<div id="appView" class="shell hidden">
+  <header class="top"><div class="brand">Jake<b>AI</b> Insurance Growth Desk</div><div class="pilot">JIM PILOT · FREE VALIDATION</div></header>
+  <section class="hero">
+    <div class="eyebrow">CONTROLLED INSURANCE GROWTH WORKSPACE</div>
+    <h1>Find intent.<br><span>Build demand.</span></h1>
+    <p>One private place for IUL and annuity lead-generation strategy, First Term marketing, lead organization and outcome tracking. JakeAI prepares the work; humans authorize consequential external actions.</p>
+    <div class="badges"><span class="badge good">HUMAN APPROVAL · ON</span><span class="badge">PUBLIC LEAD CAPTURE · OFF</span><span class="badge" id="brandBadge">BRAND VERIFICATION · PENDING</span><span class="badge">NO AUTO OUTREACH</span></div>
+  </section>
+
+  <section class="doors">
+    <article class="door" data-mode="iul_annuity_leads"><small>DOOR 01</small><h2>IUL + Annuity Lead Foundry</h2><p>Design permission-based acquisition funnels, educational offers, referral paths, qualification flows, consent capture and measurable conversion experiments.</p></article>
+    <article class="door" data-mode="first_term_marketing"><small>DOOR 02</small><h2>First Term Marketing</h2><p>Reuse JakeAI Campaign Builder for positioning, landing pages, SEO, advertising concepts, creative briefs and campaign tests — staged, never auto-published.</p></article>
+  </section>
+
+  <section class="grid">
+    <article class="card">
+      <div style="display:flex;justify-content:space-between;gap:10px;align-items:center"><div><h2>Jim Direct</h2><div class="muted">Tell JakeAI what you want done. Desktop, laptop or phone.</div></div><span class="approval">APPROVAL GATE · ON</span></div>
+      <div class="row"><select id="mode"><option value="general">General Insurance Growth</option><option value="iul_annuity_leads">IUL + Annuity Lead Foundry</option><option value="first_term_marketing">First Term Marketing</option><option value="lead_review">Lead Review</option><option value="analytics">Results / Analytics</option></select></div>
+      <textarea id="prompt" placeholder="Example: Build a permission-based IUL educational campaign for Arizona. Give me the landing-page concept, opt-in offer, qualification flow, compliance checks and measurement plan."></textarea>
+      <div class="row"><button class="btn primary" id="runBtn">RUN JAKEAI →</button><button class="btn ghost" id="clearBtn">CLEAR</button></div>
+      <div id="runMeta" class="muted" style="margin-top:8px"></div>
+      <div id="output" class="output"></div>
+      <div class="fine"><b>Insurance boundary:</b> this pilot supports lead generation, marketing preparation and workflow organization. It does not make individualized insurance recommendations or annuity suitability/best-interest determinations. Outbound material remains draft until an authorized human approves it.</div>
+    </article>
+
+    <article class="card">
+      <h2>Results</h2><div class="muted">Pilot funnel state from the private lead ledger.</div>
+      <div class="metrics"><div class="metric"><b id="mTotal">0</b><span>TOTAL</span></div><div class="metric"><b id="mConsent">0</b><span>VERIFIED OPT-IN</span></div><div class="metric"><b id="mAppt">0</b><span>APPOINTMENTS</span></div><div class="metric"><b id="mApps">0</b><span>APPLICATIONS</span></div><div class="metric"><b id="mIssued">0</b><span>ISSUED</span></div></div>
+      <h2 style="margin-top:18px">Lead Inbox</h2>
+      <div class="muted">Manual/private CRM for the pilot. Public capture is intentionally disabled until brand, disclosures and consent language are verified.</div>
+      <div id="leadList" class="leadList"><div class="muted">No leads loaded.</div></div>
+    </article>
+  </section>
+
+  <section class="card" style="margin-top:15px">
+    <h2>Add pilot lead</h2><div class="muted">Use only information the person provided or that Jim is authorized to maintain. Do not enter medical diagnoses, passwords, financial-account credentials or other unnecessary sensitive data.</div>
+    <div class="formGrid">
+      <input id="lName" placeholder="Name"><input id="lState" placeholder="State">
+      <input id="lEmail" type="email" placeholder="Email"><input id="lPhone" placeholder="Phone">
+      <select id="lInterest"><option value="unsure">Product interest: Unsure</option><option value="iul">IUL</option><option value="annuity">Annuity</option><option value="term">Term life</option></select>
+      <select id="lConsent"><option value="consent_pending">Consent: Pending</option><option value="opt_in_verified">Consent: Verified opt-in</option><option value="do_not_contact">Do not contact</option></select>
+      <input id="lSource" class="wide" placeholder="Source / campaign / referral">
+      <input id="lEvidence" class="wide" placeholder="Consent evidence (required for verified opt-in: form/event/reference + date/time)">
+      <textarea id="lNotes" class="wide" placeholder="Notes — avoid unnecessary sensitive data"></textarea>
+    </div>
+    <div class="row"><button class="btn primary" id="addLeadBtn">ADD TO PRIVATE LEDGER →</button><div id="leadStatus" class="muted"></div></div>
+  </section>
+  <footer class="footer"><span>JakeAI · Learn. Discover. Create. Provide value.</span><button class="btn ghost" id="logoutBtn">LOG OUT</button></footer>
+</div>
+
+<script>
+const $=id=>document.getElementById(id);
+let leads=[];
+
+async function api(path,opts={}){
+  const r=await fetch(path,{credentials:'include',headers:{'Content-Type':'application/json',...(opts.headers||{})},...opts});
+  const d=await r.json().catch(()=>({}));
+  if(!r.ok) throw new Error(typeof d.detail==='string'?d.detail:'Request failed');
+  return d;
+}
+function esc(s){return String(s||'').replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]))}
+async function boot(){
+  try{
+    const me=await api('/api/v1/insurance/me');
+    $('loginView').classList.add('hidden');$('appView').classList.remove('hidden');
+    $('brandBadge').textContent=(me.brand_display_name||'First Term Insurance')+' · '+(me.brand_verified?'VERIFIED':'IDENTITY PENDING');
+    $('brandBadge').classList.toggle('warn',!me.brand_verified);
+    $('runMeta').textContent='Runs today: '+me.runs_today+' / '+me.daily_run_limit;
+    await loadLeads();
+  }catch(e){$('loginView').classList.remove('hidden');$('appView').classList.add('hidden')}
+}
+$('loginBtn').onclick=async()=>{const s=$('loginStatus');s.className='muted';s.textContent='Checking access…';try{await api('/api/v1/insurance/login',{method:'POST',body:JSON.stringify({access_code:$('accessCode').value})});s.className='ok';s.textContent='Access confirmed.';await boot()}catch(e){s.className='error';s.textContent=e.message}};
+$('accessCode').addEventListener('keydown',e=>{if(e.key==='Enter')$('loginBtn').click()});
+document.querySelectorAll('.door').forEach(d=>d.onclick=()=>{$('mode').value=d.dataset.mode;$('prompt').focus();window.scrollTo({top:$('prompt').getBoundingClientRect().top+scrollY-100,behavior:'smooth'})});
+$('clearBtn').onclick=()=>{$('prompt').value='';$('output').classList.remove('open');$('output').textContent=''};
+$('runBtn').onclick=async()=>{const prompt=$('prompt').value.trim();if(!prompt)return;const b=$('runBtn');b.disabled=true;b.textContent='RUNNING…';$('output').classList.add('open');$('output').textContent='JakeAI is preparing the private draft…';try{const d=await api('/api/v1/insurance/run',{method:'POST',body:JSON.stringify({prompt,mode:$('mode').value})});$('output').textContent=d.text;$('runMeta').textContent='Run '+d.run_id+' · approval gate '+d.approval_gate+' · runs today '+d.runs_today+' / '+d.daily_run_limit}catch(e){$('output').textContent='Error: '+e.message}finally{b.disabled=false;b.textContent='RUN JAKEAI →'}};
+async function loadLeads(){try{const d=await api('/api/v1/insurance/leads');leads=d.leads||[];renderLeads()}catch(e){$('leadList').innerHTML='<div class="error">'+esc(e.message)+'</div>'}}
+function renderLeads(){
+  $('mTotal').textContent=leads.length;$('mConsent').textContent=leads.filter(x=>x.consent_status==='opt_in_verified').length;$('mAppt').textContent=leads.filter(x=>x.status==='appointment').length;$('mApps').textContent=leads.filter(x=>x.status==='application').length;$('mIssued').textContent=leads.filter(x=>x.status==='issued').length;
+  $('leadList').innerHTML=leads.length?leads.map(x=>'<div class="lead"><div class="leadTop"><b>'+esc(x.name||x.email||x.phone||x.id)+'</b><small>'+esc(x.status)+'</small></div><div class="leadMeta">'+esc((x.product_interest||'unsure').toUpperCase())+' · '+esc(x.state||'state not entered')+' · consent: '+esc(x.consent_status)+'<br>Source: '+esc(x.source||'not entered')+'</div><div class="row"><select data-lead="'+esc(x.id)+'"><option value="new">New</option><option value="review">Review</option><option value="contact_approved">Contact approved</option><option value="appointment">Appointment</option><option value="application">Application</option><option value="issued">Issued</option><option value="closed">Closed</option></select><button class="btn ghost" data-update="'+esc(x.id)+'">UPDATE</button></div></div>').join(''):'<div class="muted">No pilot leads yet.</div>';
+  leads.forEach(x=>{const sel=document.querySelector('select[data-lead="'+x.id+'"]');if(sel)sel.value=x.status});
+  document.querySelectorAll('[data-update]').forEach(b=>b.onclick=async()=>{const id=b.dataset.update,sel=document.querySelector('select[data-lead="'+id+'"]');try{await api('/api/v1/insurance/leads/'+encodeURIComponent(id)+'/status',{method:'POST',body:JSON.stringify({status:sel.value})});await loadLeads()}catch(e){alert(e.message)}});
+}
+$('addLeadBtn').onclick=async()=>{const s=$('leadStatus');s.textContent='Saving…';try{await api('/api/v1/insurance/leads',{method:'POST',body:JSON.stringify({name:$('lName').value,email:$('lEmail').value,phone:$('lPhone').value,state:$('lState').value,product_interest:$('lInterest').value,source:$('lSource').value,consent_status:$('lConsent').value,consent_evidence:$('lEvidence').value,notes:$('lNotes').value})});['lName','lEmail','lPhone','lState','lSource','lEvidence','lNotes'].forEach(id=>$(id).value='');$('lInterest').value='unsure';$('lConsent').value='consent_pending';s.textContent='Saved to private ledger.';await loadLeads()}catch(e){s.textContent=e.message}};
+$('logoutBtn').onclick=async()=>{try{await api('/api/v1/insurance/logout',{method:'POST',body:'{}'})}catch(e){}location.reload()};
+boot();
+</script>
+</body>
+</html>
