@@ -5,7 +5,7 @@ const uuid=()=>crypto.randomUUID?crypto.randomUUID():(Date.now().toString(36)+"-
 const getId=(store,key)=>{try{let v=store.getItem(key);if(!v){v=uuid();store.setItem(key,v)}return v}catch(e){return uuid()}};
 const visitor=getId(localStorage,"jakeai_anon_visitor");
 const session=getId(sessionStorage,"jakeai_anon_session");
-const internal=(()=>{try{return localStorage.getItem("jakeai_internal_operator")==="1"}catch(e){return false}})();
+const internal=(()=>{try{return localStorage.getItem("jakeai_internal_operator")==="1"||navigator.webdriver===true}catch(e){return navigator.webdriver===true}})();
 const params=new URLSearchParams(location.search);
 let source="",medium="",campaign="";
 try{
