@@ -278,7 +278,11 @@ def _tinyfish_search(query: str, purpose: str) -> list[dict]:
     try:
         with urllib.request.urlopen(req, timeout=25) as response:
             data = json.loads(response.read().decode("utf-8"))
-    except Exception:
+    except urllib.error.HTTPError as exc:
+        print(f"TinyFish search failed HTTP {exc.code}", flush=True)
+        return []
+    except Exception as exc:
+        print(f"TinyFish search failed: {type(exc).__name__}", flush=True)
         return []
     results = []
     for item in (data.get("results") or [])[:5]:
@@ -329,7 +333,11 @@ def _tinyfish_fetch(urls: list[str], purpose: str) -> list[dict]:
     try:
         with urllib.request.urlopen(req, timeout=45) as response:
             data = json.loads(response.read().decode("utf-8"))
-    except Exception:
+    except urllib.error.HTTPError as exc:
+        print(f"TinyFish fetch failed HTTP {exc.code}", flush=True)
+        return []
+    except Exception as exc:
+        print(f"TinyFish fetch failed: {type(exc).__name__}", flush=True)
         return []
 
     pages = []
@@ -497,6 +505,19 @@ Mission:
     pages = []
     external_evidence_used = False
     queries = [str(q).strip() for q in (report.get("research_queries") or []) if str(q).strip()][:2]
+    evidence_intent_text = " ".join([
+        str(mission.get("signal") or ""),
+        str(mission.get("outcome") or ""),
+        str(mission.get("boundaries") or ""),
+    ]).lower()
+    evidence_requested = any(term in evidence_intent_text for term in (
+        "research", "evidence", "source-backed", "sources", "public guidance",
+        "current guidance", "documentation", "standards", "verify", "compare",
+    ))
+    if _tinyfish_key() and not queries and evidence_requested:
+        fallback = _clean(mission.get("signal"), 450)
+        if fallback:
+            queries = [fallback]
     if _tinyfish_key() and queries and report.get("recommended_route") != "needs_information":
         purpose = "Gather public evidence for JakeAI mission " + _clean(mission.get("id"), 100)
         seen_urls = []
@@ -1005,7 +1026,13 @@ def register_mission_dispatcher_routes(app) -> None:
                     if isinstance(investigation, dict):
                         investigation_reports += 1
                         sources = investigation.get("sources_used") or []
-                        if isinstance(sources, list) and any(isinstance(s, dict) and s.get("url") for s in sources):
+                        runtime = analysis.get("investigation_runtime") or {}
+                        if (
+                            isinstance(sources, list)
+                            and any(isinstance(s, dict) and s.get("url") for s in sources)
+                        ) or (
+                            isinstance(runtime, dict) and bool(runtime.get("external_evidence_used"))
+                        ):
                             evidence_backed_reports += 1
                 except Exception:
                     continue
