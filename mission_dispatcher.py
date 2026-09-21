@@ -506,7 +506,65 @@ MISSION:
     except Exception as exc:
         raise HTTPException(status_code=502, detail="JakeAI build runtime is unavailable") from exc
 
-    package = _extract_json_object(str(data.get("text") or ""))
+    raw_text = str(data.get("text") or "").strip()
+    try:
+        package = _extract_json_object(raw_text)
+    except Exception:
+        fallback_prompt = f"""Create ONE compact draft artifact for this mission.
+
+Return ONLY the complete file contents, with no markdown fences and no explanation.
+Keep it under 3500 characters.
+If the mission is for a browser/site tool, return one self-contained HTML file with inline CSS/JS and no network calls.
+Otherwise return a concise Markdown implementation artifact.
+Do not include secrets, credentials, destructive commands, deployment steps, outreach, purchases, or external actions.
+
+MISSION:
+{json.dumps(mission, ensure_ascii=False)[:14000]}
+"""
+        fallback_payload = {"prompt": fallback_prompt, "workflow": "site"}
+        fallback_request = urllib.request.Request(
+            runtime_url,
+            data=json.dumps(fallback_payload).encode("utf-8"),
+            headers={
+                "X-JakeAI-Internal-Token": runtime_token,
+                "Content-Type": "application/json",
+                "User-Agent": "JakeAI-Mission-Builder-Fallback/1.0",
+            },
+            method="POST",
+        )
+        try:
+            with urllib.request.urlopen(fallback_request, timeout=55) as response:
+                fallback_data = json.loads(response.read().decode("utf-8"))
+            artifact_text = str(fallback_data.get("text") or "").strip()
+        except Exception as exc:
+            raise HTTPException(status_code=502, detail="JakeAI build runtime returned malformed output") from exc
+        if artifact_text.startswith("```") and artifact_text.endswith("```"):
+            artifact_text = artifact_text.split("\n", 1)[-1].rsplit("\n```", 1)[0]
+        if not artifact_text:
+            raise HTTPException(status_code=502, detail="JakeAI build runtime returned no usable fallback artifact")
+        mission_text = " ".join([
+            str(mission.get("signal") or ""),
+            str(mission.get("outcome") or ""),
+        ]).lower()
+        is_web = any(term in mission_text for term in ("browser", "html", "web", "website", "site", "page"))
+        package = {
+            "title": "JakeAI Mission Prototype",
+            "artifact_type": "prototype" if is_web else "document_bundle",
+            "summary": "Compact bounded prototype generated for human review.",
+            "files": [{
+                "path": "prototype.html" if is_web else "prototype.md",
+                "purpose": "Primary review artifact",
+                "content": artifact_text[:12000],
+            }],
+            "test_plan": [
+                "Review the artifact content manually.",
+                "Confirm it stays within the mission boundaries before any execution or deployment.",
+            ],
+            "limitations": ["Fallback single-file build used because the structured build response was incomplete."],
+            "approval_requirements": ["Human approval required before deployment, publication, outreach, purchase, or external action."],
+            "next_step": "Review the draft artifact and its static validation results.",
+        }
+
     files = package.get("files")
     if not isinstance(files, list) or not files or len(files) > 5:
         raise HTTPException(status_code=502, detail="JakeAI build runtime returned an invalid file manifest")
