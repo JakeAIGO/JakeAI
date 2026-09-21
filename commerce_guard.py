@@ -174,4 +174,8 @@ register_unreal_bridge_routes(app)
 from mission_dispatcher import register_mission_dispatcher_routes
 register_mission_dispatcher_routes(app)
 
+# Private Jim insurance-growth pilot. Fail-closed unless its server-side access code is configured.
+from insurance_growth_desk import register_insurance_growth_routes
+register_insurance_growth_routes(app)
+
 app.mount("/", legacy_app)
