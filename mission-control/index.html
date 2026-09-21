@@ -1,0 +1,104 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
+<meta name="robots" content="noindex,nofollow,noarchive">
+<meta name="theme-color" content="#020508">
+<title>JakeAI Mission Control</title>
+<style>
+:root{--bg:#020508;--panel:#07111a;--line:#214457;--cyan:#72eaff;--green:#6ff0b7;--gold:#f2c66d;--violet:#9f89ff;--text:#effcff;--muted:#8fa8b7;--danger:#ff9b9b}*{box-sizing:border-box}html,body{margin:0;background:radial-gradient(circle at 82% 0,#34206455,transparent 27%),radial-gradient(circle at 10% 16%,#0a4c6255,transparent 26%),var(--bg);color:var(--text);font-family:Inter,system-ui,-apple-system,Segoe UI,sans-serif;min-height:100%}button,input,select,textarea{font:inherit}.wrap{max-width:1260px;margin:auto;padding:16px 16px 60px}.top{display:flex;justify-content:space-between;gap:14px;align-items:center;padding:8px 0 18px}.brand{font-weight:950}.brand b{color:var(--cyan)}.private{font-size:10px;letter-spacing:.16em;color:var(--gold);font-weight:900}.gate{min-height:72vh;display:grid;place-items:center}.gateCard{width:min(540px,100%);border:1px solid #2b5369;border-radius:26px;padding:28px;background:#061019ee;box-shadow:0 24px 90px #0009}.gateCard h1{font-size:42px;letter-spacing:-.04em;margin:6px 0 10px}.gateCard p{color:var(--muted);line-height:1.5}.keyRow{display:flex;gap:9px;margin-top:18px}.keyRow input{flex:1;min-width:0;border:1px solid #31566a;border-radius:14px;padding:13px;background:#02070b;color:#fff}.btn{border:1px solid #31566a;border-radius:999px;padding:10px 14px;background:#0a1a24;color:#dffaff;font-weight:900;cursor:pointer}.btn.primary{background:linear-gradient(135deg,#69e9ff,#b7f8ff);color:#031015;border-color:#70eaff}.btn.small{font-size:11px;padding:8px 11px}.error{color:var(--danger);font-size:12px;margin-top:10px}.app{display:none}.hero{border:1px solid #285167;border-radius:26px;padding:24px;background:linear-gradient(135deg,#06121bf0,#100b25ed);box-shadow:0 24px 80px #0007}.heroRow{display:flex;justify-content:space-between;gap:18px;align-items:flex-end;flex-wrap:wrap}.hero h1{font-size:clamp(38px,7vw,76px);line-height:.9;letter-spacing:-.055em;margin:8px 0}.hero p{margin:0;color:#9fb8c6}.controlNote{font-size:11px;color:#89a6b5;max-width:440px}.metrics{display:grid;grid-template-columns:repeat(6,1fr);gap:10px;margin-top:14px}.metric{border:1px solid #203f51;border-radius:18px;padding:15px;background:#07121acc}.metric small{display:block;color:#7895a5;font-size:9px;letter-spacing:.12em;font-weight:900}.metric b{display:block;font-size:28px;margin-top:7px}.toolbar{display:flex;gap:9px;flex-wrap:wrap;margin:16px 0}.toolbar select,.toolbar input{border:1px solid #294b5e;border-radius:999px;padding:10px 13px;background:#061019;color:#e9fbff}.toolbar input{flex:1;min-width:220px}.grid{display:grid;gap:12px}.card{border:1px solid #214457;border-radius:20px;padding:18px;background:linear-gradient(180deg,#08151fee,#050d13f2)}.cardHead{display:flex;justify-content:space-between;gap:14px;align-items:flex-start;flex-wrap:wrap}.id{color:var(--cyan);font-size:12px;font-weight:950;letter-spacing:.06em}.status{display:inline-flex;border:1px solid #365d70;border-radius:999px;padding:6px 9px;font-size:10px;font-weight:900;text-transform:uppercase;letter-spacing:.08em}.meta{display:flex;gap:8px;flex-wrap:wrap;margin:8px 0 0;color:#809aaa;font-size:11px}.body{display:grid;grid-template-columns:1.1fr .9fr .9fr;gap:10px;margin-top:14px}.field{border:1px solid #173747;border-radius:14px;padding:12px;background:#050d13}.field small{display:block;color:#6f8998;font-size:9px;letter-spacing:.12em;font-weight:900;margin-bottom:6px}.field div{white-space:pre-wrap;font-size:13px;line-height:1.45;color:#c9d9e1}.triage{margin-top:11px;color:#8ea9b8;font-size:11px}.actions{display:flex;gap:8px;flex-wrap:wrap;margin-top:14px}.actions select,.actions input{border:1px solid #294b5e;border-radius:12px;padding:9px 10px;background:#061019;color:#e9fbff}.actions input{flex:1;min-width:180px}.empty{padding:36px;text-align:center;color:#7892a0;border:1px dashed #214457;border-radius:18px}.footer{margin-top:22px;color:#5f7887;font-size:10px;text-align:center}@media(max-width:900px){.metrics{grid-template-columns:repeat(3,1fr)}.body{grid-template-columns:1fr}.hero{padding:20px}}@media(max-width:560px){.metrics{grid-template-columns:1fr 1fr}.keyRow{display:grid}.toolbar{display:grid}.toolbar input{min-width:0}.actions{display:grid}.actions input{min-width:0}.gateCard h1{font-size:36px}}
+</style>
+</head>
+<body>
+<div class="wrap">
+  <header class="top"><div class="brand">Jake<b>AI</b> Mission Control</div><div class="private">PRIVATE OPERATIONS</div></header>
+
+  <section class="gate" id="gate">
+    <div class="gateCard">
+      <div class="private">JAKEAI INTERNAL</div>
+      <h1>Mission Control</h1>
+      <p>Private queue visibility and mission state control. Customer mission details are never exposed through the public queue endpoint.</p>
+      <div class="keyRow"><input id="key" type="password" autocomplete="off" placeholder="Mission Control access key"><button class="btn primary" id="unlock">UNLOCK →</button></div>
+      <div class="error" id="gateError"></div>
+    </div>
+  </section>
+
+  <main class="app" id="app">
+    <section class="hero">
+      <div class="heroRow"><div><div class="private">LIVE INTAKE OPERATIONS</div><h1>Mission Control</h1><p id="stamp">Loading queue…</p></div><div class="controlNote">Human release gate: ON · Outbound contact: BLOCKED by default · Status changes here do not authorize customer outreach, purchases, publication or deployment.</div></div>
+      <div class="metrics">
+        <div class="metric"><small>TOTAL</small><b id="mTotal">0</b></div>
+        <div class="metric"><small>RECEIVED</small><b id="mReceived">0</b></div>
+        <div class="metric"><small>ACTIVE</small><b id="mActive">0</b></div>
+        <div class="metric"><small>NEEDS INFO</small><b id="mNeeds">0</b></div>
+        <div class="metric"><small>READY REVIEW</small><b id="mReady">0</b></div>
+        <div class="metric"><small>CLOSED</small><b id="mClosed">0</b></div>
+      </div>
+    </section>
+
+    <div class="toolbar">
+      <select id="filter"><option value="">All statuses</option><option>received</option><option>triaging</option><option>investigating</option><option>building</option><option>testing</option><option>needs_information</option><option>ready_for_review</option><option>closed</option></select>
+      <input id="search" placeholder="Search mission ID or text">
+      <button class="btn" id="refresh">Refresh</button>
+      <button class="btn small" id="forget">Lock</button>
+    </div>
+    <section class="grid" id="grid"></section>
+    <div class="footer">JakeAI Mission Control · private operational surface · no public release without approval</div>
+  </main>
+</div>
+<script>
+const STATUSES=["received","triaging","investigating","building","testing","needs_information","ready_for_review","closed"];
+let key=sessionStorage.getItem("jakeaiMissionControlKey")||"";
+let data={missions:[],counts:{}};
+const gate=document.getElementById("gate"),app=document.getElementById("app"),grid=document.getElementById("grid");
+const esc=s=>String(s??"").replace(/[&<>"']/g,c=>({"&":"&amp;","<":"&lt;",">":"&gt;","\"":"&quot;","'":"&#39;"}[c]));
+function auth(){return {Authorization:"Bearer "+key}}
+function showApp(){gate.style.display="none";app.style.display="block"}
+function showGate(msg=""){gate.style.display="grid";app.style.display="none";document.getElementById("gateError").textContent=msg}
+async function load(){
+  const r=await fetch("/api/mission-control",{headers:auth(),cache:"no-store"});
+  if(r.status===401){sessionStorage.removeItem("jakeaiMissionControlKey");key="";showGate("Access key rejected.");throw 0}
+  if(!r.ok)throw new Error("Mission Control unavailable");
+  data=await r.json();
+  showApp();render();
+}
+function render(){
+  const c=data.counts||{}, active=(c.triaging||0)+(c.investigating||0)+(c.building||0)+(c.testing||0);
+  document.getElementById("mTotal").textContent=data.total||0;
+  document.getElementById("mReceived").textContent=c.received||0;
+  document.getElementById("mActive").textContent=active;
+  document.getElementById("mNeeds").textContent=c.needs_information||0;
+  document.getElementById("mReady").textContent=c.ready_for_review||0;
+  document.getElementById("mClosed").textContent=c.closed||0;
+  document.getElementById("stamp").textContent="Queue refreshed "+new Date().toLocaleTimeString()+" · "+(data.total||0)+" mission"+((data.total||0)===1?"":"s")+" recorded";
+  const status=document.getElementById("filter").value;
+  const q=document.getElementById("search").value.trim().toLowerCase();
+  const rows=(data.missions||[]).filter(m=>(!status||m.status===status)&&(!q||(m.id+" "+m.signal+" "+m.outcome+" "+m.boundaries).toLowerCase().includes(q)));
+  if(!rows.length){grid.innerHTML='<div class="empty">No missions match this view.</div>';return}
+  grid.innerHTML=rows.map(m=>{
+    const tri=m.triage||{};
+    const created=m.created?new Date(m.created).toLocaleString():"Unknown";
+    return '<article class="card" data-id="'+esc(m.id)+'"><div class="cardHead"><div><div class="id">'+esc(m.id)+'</div><div class="meta"><span>'+esc(created)+'</span><span>'+esc(tri.category||"general")+'</span><span>'+esc(tri.completeness||"unclassified")+'</span></div></div><span class="status">'+esc(m.status)+'</span></div><div class="body"><div class="field"><small>PROBLEM SIGNAL</small><div>'+esc(m.signal||"")+'</div></div><div class="field"><small>DESIRED OUTCOME</small><div>'+esc(m.outcome||"")+'</div></div><div class="field"><small>BOUNDARIES</small><div>'+esc(m.boundaries||"")+'</div></div></div><div class="triage">Missing: '+esc((tri.missing||[]).join(", ")||"none")+' · Priority: '+esc(tri.priority||"normal")+'</div><div class="actions"><select class="statusSelect">'+STATUSES.map(s=>'<option value="'+s+'" '+(m.status===s?'selected':'')+'>'+s+'</option>').join("")+'</select><input class="note" placeholder="Optional internal status note"><button class="btn small save">Update state</button></div></article>';
+  }).join("");
+  grid.querySelectorAll(".save").forEach(btn=>btn.onclick=async()=>{
+    const card=btn.closest(".card"),id=card.dataset.id,status=card.querySelector(".statusSelect").value,note=card.querySelector(".note").value;
+    btn.disabled=true;btn.textContent="Updating…";
+    try{
+      const r=await fetch("/api/mission-control",{method:"PATCH",headers:{...auth(),"Content-Type":"application/json"},body:JSON.stringify({id,status,note})});
+      if(r.status===401){showGate("Session locked.");return}
+      if(!r.ok)throw 0;
+      await load();
+    }catch(e){btn.disabled=false;btn.textContent="Retry update"}
+  });
+}
+document.getElementById("unlock").onclick=async()=>{key=document.getElementById("key").value.trim();if(!key)return;sessionStorage.setItem("jakeaiMissionControlKey",key);try{await load()}catch(e){if(key)document.getElementById("gateError").textContent="Could not open Mission Control."}};
+document.getElementById("key").addEventListener("keydown",e=>{if(e.key==="Enter")document.getElementById("unlock").click()});
+document.getElementById("refresh").onclick=()=>load().catch(()=>{});
+document.getElementById("forget").onclick=()=>{sessionStorage.removeItem("jakeaiMissionControlKey");key="";showGate("Mission Control locked.")};
+document.getElementById("filter").onchange=render;document.getElementById("search").oninput=render;
+if(key)load().catch(()=>showGate("Re-enter the Mission Control access key.")); else showGate();
+setInterval(()=>{if(key&&app.style.display!=="none")load().catch(()=>{})},15000);
+</script>
+</body>
+</html>
