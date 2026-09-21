@@ -963,11 +963,30 @@ def register_mission_dispatcher_routes(app) -> None:
                     _clean(req.medium, 120).lower(),
                     _clean(req.campaign, 180),
                     _clean(req.device, 40).lower() or "unknown",
-                    1 if req.internal else 0,
+                    1 if (req.internal or _clean(req.source, 160).lower() == "jakeai-qa") else 0,
                     _now_iso(),
                 ),
             )
             return {"ok": True, "accepted": True}
+        finally:
+            conn.close()
+
+    @app.get("/v1/traffic/health")
+    @app.get("/api/v1/traffic/health")
+    def traffic_health():
+        conn = _connect()
+        try:
+            total = conn.execute("SELECT COUNT(*) AS n FROM traffic_events").fetchone()["n"]
+            internal = conn.execute("SELECT COUNT(*) AS n FROM traffic_events WHERE is_internal=1").fetchone()["n"]
+            first = conn.execute("SELECT MIN(created_at) AS at FROM traffic_events").fetchone()["at"]
+            return {
+                "status": "ready",
+                "tracker": "first-party-privacy-minimized-v1",
+                "total_events": int(total or 0),
+                "internal_events": int(internal or 0),
+                "external_events": int((total or 0) - (internal or 0)),
+                "started_at": first,
+            }
         finally:
             conn.close()
 
