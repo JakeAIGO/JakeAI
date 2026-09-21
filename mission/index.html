@@ -1,0 +1,58 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
+<meta name="robots" content="noindex,nofollow,noarchive">
+<meta name="theme-color" content="#020508">
+<title>JakeAI — Private Mission Status</title>
+<style>
+:root{--bg:#020508;--panel:#07111a;--line:#214457;--cyan:#72eaff;--gold:#f2c66d;--text:#effcff;--muted:#8fa8b7}*{box-sizing:border-box}body{margin:0;min-height:100vh;background:radial-gradient(circle at 82% 0,#34206455,transparent 27%),radial-gradient(circle at 10% 16%,#0a4c6255,transparent 26%),var(--bg);color:var(--text);font-family:Inter,system-ui,-apple-system,Segoe UI,sans-serif}.wrap{max-width:900px;margin:auto;padding:20px 16px 70px}.top{display:flex;justify-content:space-between;gap:10px;align-items:center}.brand{font-weight:950;font-size:22px}.brand b{color:var(--cyan)}.private{font-size:10px;letter-spacing:.16em;color:var(--gold);font-weight:900}.card{margin-top:60px;border:1px solid #2b5369;border-radius:26px;padding:26px;background:#061019ee;box-shadow:0 24px 90px #0009}h1{font-size:clamp(38px,8vw,66px);letter-spacing:-.05em;line-height:.95;margin:10px 0 14px}p{color:var(--muted);line-height:1.55}.mission{color:var(--cyan);font-size:12px;font-weight:950;letter-spacing:.06em}.status{display:inline-flex;margin-top:10px;border:1px solid #365d70;border-radius:999px;padding:7px 10px;font-size:11px;font-weight:900;text-transform:uppercase;letter-spacing:.08em}.result{margin-top:18px;border:1px solid #244b60;border-radius:18px;padding:16px;background:#040c12}.file{margin-top:12px;border:1px solid #173747;border-radius:14px;padding:12px;background:#02070b}.file pre{white-space:pre-wrap;word-break:break-word;color:#cfe5ef;font-size:12px;line-height:1.45}.note{font-size:11px;color:#7892a0;margin-top:16px}.error{color:#ff9b9b}.btn{display:inline-flex;margin-top:14px;border:1px solid #31566a;border-radius:999px;padding:10px 14px;background:#0a1a24;color:#dffaff;font-weight:900;text-decoration:none;cursor:pointer}
+</style>
+<script defer src="/assets/traffic.js"></script>
+</head>
+<body>
+<div class="wrap">
+  <header class="top"><div class="brand">Jake<b>AI</b></div><div class="private">PRIVATE MISSION PORTAL</div></header>
+  <main class="card">
+    <div class="private">CUSTOM MISSION STATUS</div>
+    <h1>Your mission.</h1>
+    <div class="mission" id="missionId">Reading private receipt…</div>
+    <div class="status" id="status">LOADING</div>
+    <p id="message">Checking the JakeAI pipeline.</p>
+    <div id="result"></div>
+    <button class="btn" id="refresh">Refresh status</button>
+    <p class="note">This page uses the private access token stored after the # in your link. That token is not sent as part of the page URL request. Keep this link private.</p>
+  </main>
+</div>
+<script>
+const esc=s=>String(s??"").replace(/[&<>"']/g,c=>({"&":"&amp;","<":"&lt;",">":"&gt;","\"":"&quot;","'":"&#39;"}[c]));
+function receipt(){
+  const p=new URLSearchParams(location.hash.replace(/^#/,""));
+  return {id:p.get("id")||"",key:p.get("key")||""};
+}
+async function load(){
+  const rcp=receipt(),mid=document.getElementById("missionId"),status=document.getElementById("status"),msg=document.getElementById("message"),result=document.getElementById("result");
+  if(!rcp.id||!rcp.key){mid.textContent="PRIVATE RECEIPT MISSING";status.textContent="NO ACCESS";msg.className="error";msg.textContent="Open the private status link supplied when the mission was submitted.";result.innerHTML="";return}
+  mid.textContent=rcp.id;status.textContent="CHECKING";msg.className="";msg.textContent="Checking the JakeAI pipeline…";result.innerHTML="";
+  try{
+    const r=await fetch("/api/v1/missions/customer-status",{method:"POST",headers:{"Content-Type":"application/json"},body:JSON.stringify({mission_id:rcp.id,access_token:rcp.key}),cache:"no-store"});
+    const d=await r.json().catch(()=>({}));
+    if(!r.ok)throw 0;
+    status.textContent=(d.mission?.status||"unknown").replaceAll("_"," ");
+    msg.textContent=d.message||"Mission status updated.";
+    if(d.artifact){
+      result.innerHTML='<section class="result"><div class="private">HUMAN-RELEASED RESULT</div><h2>'+esc(d.artifact.title||"JakeAI result")+'</h2><p>'+esc(d.artifact.summary||"")+'</p><div id="files"></div><p class="note">'+esc(d.artifact.next_step||"")+'</p></section>';
+      const files=document.getElementById("files");
+      files.innerHTML=(d.artifact.files||[]).map(f=>'<div class="file"><b>'+esc(f.path||"file")+'</b><p>'+esc(f.purpose||"")+'</p><pre>'+esc(f.content||"")+'</pre></div>').join("");
+    }else{
+      result.innerHTML='<section class="result"><b>No result has been released yet.</b><p>Your mission can move through triage, investigation, build and validation without exposing a result until a human explicitly releases it here.</p></section>';
+    }
+  }catch(e){status.textContent="UNAVAILABLE";msg.className="error";msg.textContent="This private mission receipt could not be verified.";result.innerHTML=""}
+}
+document.getElementById("refresh").onclick=load;
+load();
+setInterval(load,60000);
+</script>
+</body>
+</html>
