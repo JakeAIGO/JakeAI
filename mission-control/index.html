@@ -41,8 +41,10 @@
       <select id="filter"><option value="">All statuses</option><option>received</option><option>triaging</option><option>investigating</option><option>building</option><option>testing</option><option>needs_information</option><option>ready_for_review</option><option>closed</option></select>
       <input id="search" placeholder="Search mission ID or text">
       <button class="btn" id="refresh">Refresh</button>
+      <button class="btn small" id="diag">Run dispatcher diagnostic</button>
       <button class="btn small" id="forget">Lock</button>
     </div>
+    <div class="controlNote" id="diagResult"></div>
     <section class="grid" id="grid"></section>
     <div class="footer">JakeAI Mission Control · private operational surface · no public release without approval</div>
   </main>
@@ -95,6 +97,7 @@ function render(){
 document.getElementById("unlock").onclick=async()=>{key=document.getElementById("key").value.trim();if(!key)return;sessionStorage.setItem("jakeaiMissionControlKey",key);try{await load()}catch(e){if(key)document.getElementById("gateError").textContent="Could not open Mission Control."}};
 document.getElementById("key").addEventListener("keydown",e=>{if(e.key==="Enter")document.getElementById("unlock").click()});
 document.getElementById("refresh").onclick=()=>load().catch(()=>{});
+document.getElementById("diag").onclick=async()=>{const out=document.getElementById("diagResult"),btn=document.getElementById("diag");btn.disabled=true;out.textContent="Testing simultaneous lease claims…";try{const r=await fetch("/api/v1/mission-control/dispatcher-self-test",{method:"POST",headers:auth()});const d=await r.json();if(!r.ok)throw 0;out.textContent=d.status==="passed"?"Dispatcher diagnostic PASSED · 2 contenders · 1 winner · synthetic mission removed.":"Dispatcher diagnostic FAILED · review before enabling workers."}catch(e){out.textContent="Dispatcher diagnostic could not complete."}finally{btn.disabled=false}};
 document.getElementById("forget").onclick=()=>{sessionStorage.removeItem("jakeaiMissionControlKey");key="";showGate("Mission Control locked.")};
 document.getElementById("filter").onchange=render;document.getElementById("search").oninput=render;
 if(key)load().catch(()=>showGate("Re-enter the Mission Control access key.")); else showGate();
