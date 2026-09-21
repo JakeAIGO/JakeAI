@@ -89,6 +89,7 @@ def _init_db() -> None:
                 lease_expires_at INTEGER,
                 attempts INTEGER NOT NULL DEFAULT 0,
                 last_error TEXT,
+                customer_token_hash TEXT,
                 created_at TEXT NOT NULL,
                 updated_at TEXT NOT NULL
             )
@@ -121,6 +122,8 @@ def _init_db() -> None:
                 status TEXT NOT NULL DEFAULT 'draft',
                 human_approved INTEGER NOT NULL DEFAULT 0,
                 deployed INTEGER NOT NULL DEFAULT 0,
+                released_to_customer INTEGER NOT NULL DEFAULT 0,
+                released_at TEXT,
                 created_at TEXT NOT NULL,
                 updated_at TEXT NOT NULL
             )
@@ -148,11 +151,17 @@ def _init_db() -> None:
         columns = {row["name"] for row in conn.execute("PRAGMA table_info(missions)").fetchall()}
         if "analysis_json" not in columns:
             conn.execute("ALTER TABLE missions ADD COLUMN analysis_json TEXT")
+        if "customer_token_hash" not in columns:
+            conn.execute("ALTER TABLE missions ADD COLUMN customer_token_hash TEXT")
         artifact_columns = {row["name"] for row in conn.execute("PRAGMA table_info(mission_artifacts)").fetchall()}
         if "review_note" not in artifact_columns:
             conn.execute("ALTER TABLE mission_artifacts ADD COLUMN review_note TEXT")
         if "reviewed_at" not in artifact_columns:
             conn.execute("ALTER TABLE mission_artifacts ADD COLUMN reviewed_at TEXT")
+        if "released_to_customer" not in artifact_columns:
+            conn.execute("ALTER TABLE mission_artifacts ADD COLUMN released_to_customer INTEGER NOT NULL DEFAULT 0")
+        if "released_at" not in artifact_columns:
+            conn.execute("ALTER TABLE mission_artifacts ADD COLUMN released_at TEXT")
         conn.execute("CREATE INDEX IF NOT EXISTS idx_missions_status_lease ON missions(status, lease_expires_at, created_at)")
         conn.execute("CREATE INDEX IF NOT EXISTS idx_missions_lease_owner ON missions(lease_owner, lease_expires_at)")
         conn.execute("CREATE INDEX IF NOT EXISTS idx_mission_events_mission ON mission_events(mission_id, id)")
@@ -171,6 +180,17 @@ def _hash(value: str) -> str:
 
 def _clean(value, maximum: int = 5000) -> str:
     return str(value or "").strip()[:maximum]
+
+
+def _customer_token(idempotency_key: str) -> str:
+    secret = os.environ.get("MISSION_CONTROL_TOKEN", "").strip()
+    if not secret:
+        raise HTTPException(status_code=503, detail="Customer mission portal is not configured")
+    return hmac.new(
+        secret.encode("utf-8"),
+        ("customer-portal:" + idempotency_key).encode("utf-8"),
+        hashlib.sha256,
+    ).hexdigest()[:48]
 
 
 def _classify(signal: str, outcome: str, boundaries: str) -> dict:
@@ -930,6 +950,16 @@ class ArtifactReviewRequest(BaseModel):
     note: str = Field(default="", max_length=2000)
 
 
+class CustomerMissionStatusRequest(BaseModel):
+    mission_id: str = Field(min_length=8, max_length=100)
+    access_token: str = Field(min_length=20, max_length=100)
+
+
+class ArtifactReleaseRequest(BaseModel):
+    artifact_id: str = Field(min_length=8, max_length=100)
+    note: str = Field(default="", max_length=2000)
+
+
 class TrafficEvent(BaseModel):
     event_id: str = Field(min_length=8, max_length=120)
     visitor_id: str = Field(min_length=8, max_length=200)
@@ -1170,6 +1200,8 @@ def register_mission_dispatcher_routes(app) -> None:
         outcome = _clean(req.outcome)
         boundaries = _clean(req.boundaries)
         idem_hash = _hash(req.idempotency_key)
+        customer_token = _customer_token(req.idempotency_key)
+        customer_token_hash = _hash(customer_token)
         body_hash = _hash(json.dumps({"signal": signal, "outcome": outcome, "boundaries": boundaries}, sort_keys=True))
         triage = _classify(signal, outcome, boundaries)
         initial_status = "needs_information" if triage["completeness"] == "needs_detail" else "received"
@@ -1185,15 +1217,19 @@ def register_mission_dispatcher_routes(app) -> None:
                     conn.execute("ROLLBACK")
                     raise HTTPException(status_code=409, detail="Idempotency key was already used for different mission data")
                 conn.execute("COMMIT")
-                return {"ok": True, "duplicate": True, "mission": _mission_dict(existing, include_private=False)}
+                mission_out = _mission_dict(existing, include_private=False)
+                if existing["customer_token_hash"] and hmac.compare_digest(existing["customer_token_hash"], customer_token_hash):
+                    mission_out["customer_access_token"] = customer_token
+                    mission_out["status_url"] = "/mission/#id=" + existing["id"] + "&key=" + customer_token
+                return {"ok": True, "duplicate": True, "mission": mission_out}
 
             conn.execute(
                 """
                 INSERT INTO missions(
                     id,idempotency_hash,body_hash,signal,outcome,boundaries,category,completeness,
                     missing_json,priority,status,source,outbound_authorized,human_release_gate,
-                    created_at,updated_at
-                ) VALUES(?,?,?,?,?,?,?,?,?,?,?,?,0,1,?,?)
+                    created_at,updated_at,customer_token_hash
+                ) VALUES(?,?,?,?,?,?,?,?,?,?,?,?,0,1,?,?,?)
                 """,
                 (
                     mission_id,
@@ -1210,12 +1246,16 @@ def register_mission_dispatcher_routes(app) -> None:
                     "commission-bay",
                     now,
                     now,
+                    customer_token_hash,
                 ),
             )
             _event(conn, mission_id, "received", None, initial_status, "commission-bay")
             row = conn.execute("SELECT * FROM missions WHERE id=?", (mission_id,)).fetchone()
             conn.execute("COMMIT")
-            return {"ok": True, "duplicate": False, "mission": _mission_dict(row, include_private=False)}
+            mission_out = _mission_dict(row, include_private=False)
+            mission_out["customer_access_token"] = customer_token
+            mission_out["status_url"] = "/mission/#id=" + mission_id + "&key=" + customer_token
+            return {"ok": True, "duplicate": False, "mission": mission_out}
         except HTTPException:
             raise
         except Exception:
@@ -1224,6 +1264,55 @@ def register_mission_dispatcher_routes(app) -> None:
             except Exception:
                 pass
             raise HTTPException(status_code=500, detail="Mission intake could not be persisted")
+        finally:
+            conn.close()
+
+    @app.post("/v1/missions/customer-status")
+    @app.post("/api/v1/missions/customer-status")
+    def mission_customer_status(req: CustomerMissionStatusRequest):
+        mission_id = _clean(req.mission_id, 100)
+        token_hash = _hash(_clean(req.access_token, 100))
+        conn = _connect()
+        try:
+            mission = conn.execute("SELECT * FROM missions WHERE id=?", (mission_id,)).fetchone()
+            if not mission or not mission["customer_token_hash"] or not hmac.compare_digest(mission["customer_token_hash"], token_hash):
+                raise HTTPException(status_code=404, detail="Mission not found")
+
+            artifact = conn.execute(
+                """
+                SELECT * FROM mission_artifacts
+                WHERE mission_id=? AND released_to_customer=1
+                ORDER BY released_at DESC,created_at DESC LIMIT 1
+                """,
+                (mission_id,),
+            ).fetchone()
+
+            result = {
+                "mission": {
+                    "id": mission["id"],
+                    "status": mission["status"],
+                    "created": mission["created_at"],
+                    "updated": mission["updated_at"],
+                    "released": bool(artifact),
+                },
+                "message": "Your mission is being worked through the JakeAI pipeline." if not artifact else "A human-approved result has been released to your private mission portal.",
+            }
+            if artifact:
+                try:
+                    manifest = json.loads(artifact["manifest_json"] or "{}")
+                except Exception:
+                    manifest = {}
+                result["artifact"] = {
+                    "artifact_id": artifact["artifact_id"],
+                    "title": artifact["title"],
+                    "summary": artifact["summary"],
+                    "artifact_type": artifact["artifact_type"],
+                    "released_at": artifact["released_at"],
+                    "files": manifest.get("files") or [],
+                    "next_step": manifest.get("next_step") or "",
+                    "limitations": manifest.get("limitations") or [],
+                }
+            return result
         finally:
             conn.close()
 
@@ -1267,7 +1356,7 @@ def register_mission_dispatcher_routes(app) -> None:
                 item["events"] = [dict(e) for e in events]
                 artifact_rows = conn.execute(
                     """
-                    SELECT artifact_id,artifact_type,title,summary,status,human_approved,deployed,created_at,updated_at,validation_json,review_note,reviewed_at
+                    SELECT artifact_id,artifact_type,title,summary,status,human_approved,deployed,created_at,updated_at,validation_json,review_note,reviewed_at,released_to_customer,released_at
                     FROM mission_artifacts WHERE mission_id=? ORDER BY created_at DESC LIMIT 5
                     """,
                     (row["id"],),
@@ -1291,6 +1380,8 @@ def register_mission_dispatcher_routes(app) -> None:
                         "validation": validation,
                         "review_note": artifact_row["review_note"],
                         "reviewed_at": artifact_row["reviewed_at"],
+                        "released_to_customer": bool(artifact_row["released_to_customer"]),
+                        "released_at": artifact_row["released_at"],
                     })
                 item["artifacts"] = artifacts
                 missions.append(item)
@@ -1344,6 +1435,8 @@ def register_mission_dispatcher_routes(app) -> None:
                 "updated": row["updated_at"],
                 "review_note": row["review_note"] if "review_note" in row.keys() else None,
                 "reviewed_at": row["reviewed_at"] if "reviewed_at" in row.keys() else None,
+                "released_to_customer": bool(row["released_to_customer"]) if "released_to_customer" in row.keys() else False,
+                "released_at": row["released_at"] if "released_at" in row.keys() else None,
                 "controls": {
                     "human_release_gate": True,
                     "outbound_authorized": False,
@@ -1407,7 +1500,7 @@ def register_mission_dispatcher_routes(app) -> None:
             conn.execute(
                 """
                 UPDATE mission_artifacts
-                SET status=?,human_approved=?,review_note=?,reviewed_at=?,updated_at=?,deployed=0
+                SET status=?,human_approved=?,review_note=?,reviewed_at=?,updated_at=?,deployed=0,released_to_customer=0,released_at=NULL
                 WHERE artifact_id=?
                 """,
                 (artifact_status, approved, note or None, now, now, artifact["artifact_id"]),
@@ -1456,6 +1549,84 @@ def register_mission_dispatcher_routes(app) -> None:
                     "human_release_gate": True,
                     "outbound_authorized": False,
                     "external_actions_executed": False,
+                    "deployment_executed": False,
+                },
+            }
+        except HTTPException:
+            raise
+        except Exception:
+            try:
+                conn.execute("ROLLBACK")
+            except Exception:
+                pass
+            raise
+        finally:
+            conn.close()
+
+    @app.post("/v1/mission-control/artifacts/release")
+    @app.post("/api/v1/mission-control/artifacts/release")
+    def mission_control_artifact_release(
+        req: ArtifactReleaseRequest,
+        authorization: Optional[str] = Header(None, alias="Authorization"),
+    ):
+        _require_control(authorization)
+        artifact_id = _clean(req.artifact_id, 100)
+        note = _clean(req.note, 2000)
+        conn = _connect()
+        try:
+            conn.execute("BEGIN IMMEDIATE")
+            artifact = conn.execute("SELECT * FROM mission_artifacts WHERE artifact_id=?", (artifact_id,)).fetchone()
+            if not artifact:
+                conn.execute("ROLLBACK")
+                raise HTTPException(status_code=404, detail="Artifact not found")
+            if not bool(artifact["human_approved"]):
+                conn.execute("ROLLBACK")
+                raise HTTPException(status_code=409, detail="Artifact must be human-approved before release")
+            if bool(artifact["released_to_customer"]):
+                conn.execute("COMMIT")
+                return {"ok": True, "already_released": True, "artifact_id": artifact_id}
+
+            mission = conn.execute("SELECT * FROM missions WHERE id=?", (artifact["mission_id"],)).fetchone()
+            if not mission:
+                conn.execute("ROLLBACK")
+                raise HTTPException(status_code=404, detail="Mission not found")
+
+            now = _now_iso()
+            conn.execute(
+                """
+                UPDATE mission_artifacts
+                SET status='released',released_to_customer=1,released_at=?,updated_at=?
+                WHERE artifact_id=?
+                """,
+                (now, now, artifact_id),
+            )
+            conn.execute(
+                """
+                UPDATE missions SET status='closed',updated_at=?,outbound_authorized=0,human_release_gate=1
+                WHERE id=?
+                """,
+                (now, mission["id"]),
+            )
+            _event(
+                conn,
+                mission["id"],
+                "human_released_to_customer_portal",
+                mission["status"],
+                "closed",
+                "human-mission-control",
+                note or "Human released the approved artifact to the mission's private customer portal. No outbound message was sent.",
+            )
+            conn.execute("COMMIT")
+            return {
+                "ok": True,
+                "artifact_id": artifact_id,
+                "mission_id": mission["id"],
+                "released_at": now,
+                "channel": "private-customer-portal",
+                "controls": {
+                    "public_release": False,
+                    "outbound_authorized": False,
+                    "external_message_sent": False,
                     "deployment_executed": False,
                 },
             }
