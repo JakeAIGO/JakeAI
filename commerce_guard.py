@@ -182,4 +182,8 @@ register_insurance_growth_routes(app)
 from pilot_diagnostics import register_pilot_diagnostics_routes
 register_pilot_diagnostics_routes(app)
 
+# Controlled $1 Pool Coach commerce proof. Sandbox-only and fail-closed.
+from pool_coach_fulfillment import register_pool_coach_routes
+register_pool_coach_routes(app)
+
 app.mount("/", legacy_app)
