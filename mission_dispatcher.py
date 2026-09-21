@@ -8,6 +8,8 @@ import secrets
 import sqlite3
 import time
 import uuid
+import threading
+from concurrent.futures import ThreadPoolExecutor
 from datetime import datetime, timezone
 from typing import Optional
 
@@ -519,6 +521,109 @@ def register_mission_dispatcher_routes(app) -> None:
             return {"ok": True, "mission": _mission_dict(updated)}
         finally:
             conn.close()
+
+    @app.post("/v1/mission-control/dispatcher-self-test")
+    @app.post("/api/v1/mission-control/dispatcher-self-test")
+    def mission_dispatcher_self_test(authorization: Optional[str] = Header(None, alias="Authorization")):
+        _require_control(authorization)
+        test_id = "JAI-QA-" + uuid.uuid4().hex[:16].upper()
+        idem = _hash("dispatcher-self-test-" + test_id)
+        now_iso = _now_iso()
+        conn = _connect()
+        try:
+            conn.execute("BEGIN IMMEDIATE")
+            conn.execute(
+                """
+                INSERT INTO missions(
+                    id,idempotency_hash,body_hash,signal,outcome,boundaries,category,completeness,
+                    missing_json,priority,status,source,outbound_authorized,human_release_gate,created_at,updated_at
+                ) VALUES(?,?,?,?,?,?,?,?,?,?,?,?,0,1,?,?)
+                """,
+                (
+                    test_id,
+                    idem,
+                    idem,
+                    "Internal dispatcher concurrency self-test",
+                    "Exactly one of two simultaneous workers may acquire the lease.",
+                    "Synthetic QA only; never leaves Mission Control.",
+                    "ai-operations",
+                    "ready_for_triage",
+                    "[]",
+                    "normal",
+                    "received",
+                    "dispatcher-self-test",
+                    now_iso,
+                    now_iso,
+                ),
+            )
+            conn.execute("COMMIT")
+        finally:
+            conn.close()
+
+        barrier = threading.Barrier(2)
+
+        def contender(worker_id: str) -> bool:
+            db = _connect()
+            try:
+                barrier.wait(timeout=5)
+                db.execute("BEGIN IMMEDIATE")
+                now = int(time.time())
+                row = db.execute(
+                    """
+                    SELECT id FROM missions
+                    WHERE id=? AND (lease_owner IS NULL OR lease_expires_at IS NULL OR lease_expires_at<=?)
+                    """,
+                    (test_id, now),
+                ).fetchone()
+                if not row:
+                    db.execute("COMMIT")
+                    return False
+                token_hash = _hash(secrets.token_urlsafe(32))
+                cur = db.execute(
+                    """
+                    UPDATE missions
+                    SET lease_owner=?,lease_token_hash=?,lease_expires_at=?,attempts=attempts+1,updated_at=?
+                    WHERE id=? AND (lease_owner IS NULL OR lease_expires_at IS NULL OR lease_expires_at<=?)
+                    """,
+                    (worker_id, token_hash, now + 60, _now_iso(), test_id, now),
+                )
+                db.execute("COMMIT")
+                return cur.rowcount == 1
+            except Exception:
+                try:
+                    db.execute("ROLLBACK")
+                except Exception:
+                    pass
+                return False
+            finally:
+                db.close()
+
+        with ThreadPoolExecutor(max_workers=2) as pool:
+            results = list(pool.map(contender, ("qa-worker-a", "qa-worker-b")))
+
+        winner_count = sum(1 for r in results if r)
+        verify = _connect()
+        try:
+            row = verify.execute("SELECT lease_owner,attempts FROM missions WHERE id=?", (test_id,)).fetchone()
+            lease_owner = row["lease_owner"] if row else None
+            attempts = row["attempts"] if row else 0
+            passed = winner_count == 1 and bool(lease_owner) and attempts == 1
+            verify.execute("BEGIN IMMEDIATE")
+            verify.execute("DELETE FROM mission_events WHERE mission_id=?", (test_id,))
+            verify.execute("DELETE FROM missions WHERE id=?", (test_id,))
+            verify.execute("COMMIT")
+        finally:
+            verify.close()
+
+        return {
+            "status": "passed" if passed else "failed",
+            "atomic_claim": passed,
+            "contenders": 2,
+            "winners": winner_count,
+            "recorded_attempts": attempts,
+            "winner": lease_owner,
+            "synthetic_mission_removed": True,
+        }
 
     @app.get("/v1/missions/dispatcher-health")
     @app.get("/api/v1/missions/dispatcher-health")
