@@ -156,25 +156,25 @@ Hard rules:
 - Outward-facing copy is always DRAFT — HUMAN APPROVAL REQUIRED.
 - Prefer concise, actionable output with assumptions, unknowns, compliance checks, next actions, and measurable outcomes."""
     modes = {
-        "iul_annuity_leads": "
-Focus on permission-based IUL and annuity lead acquisition: search intent, educational funnels, referrals, events, landing pages, qualification questions, consent evidence, attribution, and conversion measurement. Do not recommend a policy to an individual.",
-        "first_term_marketing": "
-Use the existing JakeAI Campaign Builder pattern. Prepare positioning, landing-page copy, educational content, ad concepts, creative briefs, SEO topics, campaign experiments, and measurement plans. Do not publish or spend.",
-        "lead_review": "
-Review only the lead information supplied. Summarize stated intent, source, consent status, missing information, and a compliant human next action. Do not infer suitability.",
-        "analytics": "
-Analyze supplied aggregate campaign and funnel data. Focus on attribution, conversion, cost, bottlenecks, experiments, and data quality; avoid sensitive-trait segmentation.",
-        "general": "
-Solve the request within the Insurance Growth Desk guardrails.",
+        "iul_annuity_leads": """
+Focus on permission-based IUL and annuity lead acquisition: search intent, educational funnels, referrals, events, landing pages, qualification questions, consent evidence, attribution, and conversion measurement. Do not recommend a policy to an individual.""",
+        "first_term_marketing": """
+Use the existing JakeAI Campaign Builder pattern. Prepare positioning, landing-page copy, educational content, ad concepts, creative briefs, SEO topics, campaign experiments, and measurement plans. Do not publish or spend.""",
+        "lead_review": """
+Review only the lead information supplied. Summarize stated intent, source, consent status, missing information, and a compliant human next action. Do not infer suitability.""",
+        "analytics": """
+Analyze supplied aggregate campaign and funnel data. Focus on attribution, conversion, cost, bottlenecks, experiments, and data quality; avoid sensitive-trait segmentation.""",
+        "general": """
+Solve the request within the Insurance Growth Desk guardrails.""",
     }
     return base + modes.get(mode, modes["general"])
 
 
 def _wrapped_prompt(prompt, mode):
-    return _insurance_instructions(mode) + "
+    return _insurance_instructions(mode) + """
 
 USER REQUEST:
-" + prompt.strip()
+""" + prompt.strip()
 
 
 def _underlying_workflow(mode):
