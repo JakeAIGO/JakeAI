@@ -24,6 +24,86 @@
   },
   "capabilities": [
     {
+      "id": "JAI-WF-0022",
+      "slug": "guitar-coach",
+      "name": "JakeAI Guitar Coach",
+      "type": "adaptive_skill_tutor",
+      "category": [
+        "Music Education",
+        "Adaptive Tutoring"
+      ],
+      "version": "1.0",
+      "lifecycle_status": "production",
+      "publication_status": "listed_live",
+      "summary": "Browser-based adaptive guitar tutor with live pitch listening, tuning, guided string-by-string chord checks, paid Goal Mode, tempo progression, spoken coaching, and practice memory.",
+      "problem_signals": [
+        "learn guitar",
+        "guitar tutor",
+        "guitar chord help",
+        "guitar tuning",
+        "practice guitar",
+        "improve chord changes"
+      ],
+      "inputs": [
+        "microphone audio processed in browser",
+        "selected lesson or playing goal",
+        "optional target tempo"
+      ],
+      "outputs": [
+        "live pitch feedback",
+        "guided chord diagnosis",
+        "practice checkpoint",
+        "goal-based drill progression"
+      ],
+      "human_url": "https://jakeaiofficial.com/guitar-coach.html",
+      "machine_url": "https://jakeaiofficial.com/catalog.json#JAI-WF-0022",
+      "commerce": {
+        "mode": "live",
+        "purchasable": true,
+        "currency": "USD",
+        "offers": [
+          {
+            "sku": "starter",
+            "price": 0,
+            "period": null,
+            "human_url": "https://jakeaiofficial.com/guitar-coach.html#try"
+          },
+          {
+            "sku": "prod_guitar_coach_monthly",
+            "price": 19.99,
+            "period": "month",
+            "checkout_url": "https://jakeaiofficial.com/api/v1/checkout/buy/prod_guitar_coach_monthly"
+          },
+          {
+            "sku": "prod_guitar_coach_annual",
+            "price": 149,
+            "period": "year",
+            "checkout_url": "https://jakeaiofficial.com/api/v1/checkout/buy/prod_guitar_coach_annual"
+          },
+          {
+            "sku": "prod_guitar_coach_sprint",
+            "price": 39,
+            "period": "30_days_one_time",
+            "checkout_url": "https://jakeaiofficial.com/api/v1/checkout/buy/prod_guitar_coach_sprint"
+          }
+        ]
+      },
+      "invocation": {
+        "mode": "human_page",
+        "endpoint": null
+      },
+      "capabilities": {
+        "audio_first": true,
+        "vision_assisted_coaching": "beta",
+        "raw_audio_stored_by_public_page": false
+      },
+      "trust": {
+        "human_release_gate": true,
+        "provenance": "repository_public_record",
+        "paid_access": "server_verified_stripe_entitlement"
+      }
+    },
+    {
       "id": "JAI-TATTOO-001",
       "slug": "tattoo-designer",
       "name": "JakeAI Tattoo Designer",
