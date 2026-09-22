@@ -6,11 +6,15 @@ export default async (_request: Request) => {
   const now=Date.now();
   const cut24=now-24*60*60*1000;
   const cut7=now-7*24*60*60*1000;
+  const qualityStart=Date.parse("2026-09-22T22:00:20Z");
   const events:any[]=[];
   for(const item of blobs){
     try{
       const e=await store.get(item.key,{type:"json"});
-      if(e && new Date(e.at).getTime()>=cut7) events.push(e);
+      if(e){
+        const ts=new Date(e.at).getTime();
+        if(ts>=cut7 && ts>=qualityStart) events.push(e);
+      }
     }catch(_){}
   }
   events.sort((a,b)=>String(b.at).localeCompare(String(a.at)));
@@ -34,6 +38,8 @@ export default async (_request: Request) => {
   return Response.json({
     service:"JakeAI AI Agent Observatory",
     measurement:"server-side edge observation; privacy-minimized",
+    quality_measurement_started_at:new Date(qualityStart).toISOString(),
+    setup_events_excluded:2,
     requests_24h:requests24,
     verified_requests_24h:verified24,
     machine_surface_reads_24h:machine24,
