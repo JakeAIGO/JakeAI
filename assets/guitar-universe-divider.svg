@@ -1,0 +1,9 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1440 420" role="img" aria-labelledby="t">
+<title id="t">JakeAI Guitar Practice Observatory</title>
+<defs><linearGradient id="b" x1="0" x2="1"><stop stop-color="#05090f"/><stop offset=".48" stop-color="#071925"/><stop offset="1" stop-color="#170e09"/></linearGradient><linearGradient id="g" x1="0" x2="1"><stop stop-color="#68e7ff"/><stop offset=".5" stop-color="#42c7ff"/><stop offset="1" stop-color="#ff9e42"/></linearGradient><filter id="glow"><feGaussianBlur stdDeviation="6" result="b"/><feMerge><feMergeNode in="b"/><feMergeNode in="SourceGraphic"/></feMerge></filter></defs>
+<rect width="1440" height="420" rx="34" fill="url(#b)"/>
+<g opacity=".22" stroke="#78e9ff" fill="none"><path d="M0 90h1440M0 210h1440M0 330h1440"/><path d="M120 0v420M340 0v420M560 0v420M780 0v420M1000 0v420M1220 0v420"/></g>
+<path d="M50 315C180 220 330 330 470 260s270-120 430-55 260 120 490 25" fill="none" stroke="url(#g)" stroke-width="5" filter="url(#glow)"/>
+<g fill="#07111d" stroke="#67ddf5" stroke-width="3"><circle cx="170" cy="270" r="20"/><circle cx="470" cy="260" r="20"/><circle cx="820" cy="200" r="20"/><circle cx="1150" cy="258" r="20"/></g>
+<g font-family="Arial,Helvetica,sans-serif"><text x="62" y="72" fill="#70e5ff" font-size="18" font-weight="800" letter-spacing="5">JAKEAI UNIVERSE · PRACTICE OBSERVATORY</text><text x="62" y="126" fill="#fff" font-size="40" font-weight="900">Listen → correct → remember → play.</text><text x="62" y="164" fill="#9fb7c4" font-size="18">A little atmosphere between the text. The content still wins.</text><text x="1060" y="382" fill="#ffb66d" font-size="18" font-weight="800">YOUR G CHORD HAS BEEN REPORTED.</text></g>
+</svg>
