@@ -44,4 +44,4 @@ export default async (_request: Request) => {
   },{headers:{"cache-control":"no-store"}});
 };
 
-export const config={path:"/api/agent-observatory-summary"};
+export const config={path:"/agent-observatory-summary.json"};
