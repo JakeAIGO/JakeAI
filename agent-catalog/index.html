@@ -1,0 +1,139 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
+<meta name="theme-color" content="#02070b">
+<title>JakeAI Agent Catalog — Machine-Readable Capabilities</title>
+<meta name="description" content="Technical JakeAI capability catalog for AI agents, developers and advanced users. Stable IDs, structured inputs and outputs, invocation state and commerce boundaries.">
+<link rel="canonical" href="https://jakeaiofficial.com/agent-catalog/">
+<link rel="alternate" type="application/json" href="https://jakeaiofficial.com/catalog.json" title="JakeAI Machine Capability Catalog">
+<style>
+:root{--bg:#02070b;--panel:#07131b;--line:#20465a;--text:#ecfbff;--muted:#94afbd;--cyan:#6ce8ff;--violet:#b39aff;--green:#79efbb}
+*{box-sizing:border-box}body{margin:0;background:radial-gradient(circle at 70% 0,#34205a55,transparent 28%),radial-gradient(circle at 20% 10%,#0a516355,transparent 30%),var(--bg);color:var(--text);font-family:Inter,system-ui,-apple-system,Segoe UI,sans-serif}
+.wrap{width:min(1180px,92vw);margin:auto}.top{display:flex;justify-content:space-between;align-items:center;padding:22px 0}.brand{font-weight:950;font-size:22px;text-decoration:none;color:var(--text)}.brand span{color:var(--cyan)}.back{color:#9fd5e4;text-decoration:none;font-weight:800;font-size:12px}
+.hero{padding:64px 0 34px}.eyebrow{color:var(--green);font-size:11px;letter-spacing:.2em;font-weight:950}.hero h1{font-size:clamp(48px,8vw,92px);line-height:.9;letter-spacing:-.05em;margin:12px 0 18px;max-width:1000px}.hero h1 span{color:var(--cyan)}.hero p{max-width:820px;color:#b1c9d4;font-size:18px;line-height:1.6}
+.surfaces{display:grid;grid-template-columns:1fr 1fr;gap:14px;margin:28px 0}.surface{border:1px solid var(--line);border-radius:22px;padding:22px;background:#07121adc}.surface b{font-size:18px}.surface p{color:var(--muted);line-height:1.5}.surface a{color:var(--cyan);font-weight:850}.surface .machineEndpoint{display:block;margin:12px 0 10px;padding:10px 11px;border:1px solid #3d4b76;border-radius:10px;background:#050b12;color:#b9c9d4;font:700 10px ui-monospace,monospace;overflow-wrap:anywhere}.copyBtn{appearance:none;border:1px solid #896fd6;border-radius:999px;padding:9px 12px;background:#0b1020;color:#d2c6ff;font:900 11px Inter,system-ui,sans-serif;cursor:pointer}.copyBtn.copied{border-color:#4b9f79;color:#a9f2cd}.machineHelp{display:block;margin-top:8px;color:#7692a0;font-size:10px;line-height:1.35}
+.bar{display:flex;gap:10px;flex-wrap:wrap;margin:24px 0 16px}.chip{border:1px solid #31596c;border-radius:999px;padding:8px 11px;color:#b8d4df;font-size:11px;font-weight:850}.chip.ai{border-color:#8e75df;color:#c9bcff}
+.grid{display:grid;grid-template-columns:repeat(2,1fr);gap:14px;padding:0 0 70px}.card{border:1px solid var(--line);border-radius:22px;padding:22px;background:linear-gradient(155deg,#091722,#060d13);min-height:255px}.cardTop{display:flex;justify-content:space-between;gap:12px;align-items:flex-start}.id{font:800 10px ui-monospace,monospace;color:var(--cyan);letter-spacing:.08em}.status{font-size:10px;font-weight:900;color:var(--green);text-transform:uppercase}.card h2{margin:10px 0 10px;font-size:26px}.card p{color:#9fb7c4;line-height:1.5}.tags{display:flex;gap:7px;flex-wrap:wrap;margin-top:14px}.tags span{font-size:10px;border:1px solid #27495b;border-radius:999px;padding:6px 8px;color:#a9c4d0}.actions{display:flex;gap:10px;flex-wrap:wrap;margin-top:18px}.actions a{border:1px solid #3f6578;border-radius:999px;padding:9px 12px;color:#dffaff;text-decoration:none;font-size:11px;font-weight:900}.actions a.machine{border-color:#896fd6;color:#d2c6ff}.actions button.machine{border:1px solid #896fd6;border-radius:999px;padding:9px 12px;background:transparent;color:#d2c6ff;text-decoration:none;font-size:11px;font-weight:900;cursor:pointer}
+.empty{padding:28px;border:1px solid var(--line);border-radius:18px;color:var(--muted)}
+footer{border-top:1px solid #142b38;padding:26px 0 40px;color:#6f8996;font-size:12px}
+@media(max-width:760px){.surfaces,.grid{grid-template-columns:1fr}.hero{padding-top:38px}.hero p{font-size:16px}}
+</style>
+<script type="application/ld+json">
+{"@context":"https://schema.org","@type":"CollectionPage","name":"JakeAI Autonomous Workflow Marketplace & Capability Catalog","url":"https://jakeaiofficial.com/catalog/","about":{"@type":"Organization","name":"JakeAI","url":"https://jakeaiofficial.com/"},"isPartOf":{"@type":"WebSite","name":"JakeAI","url":"https://jakeaiofficial.com/"}}
+</script>
+<script type="application/ld+json">{"@context":"https://schema.org","@type":"ItemList","name":"JakeAI Capability Catalog","itemListElement":[{"@type":"ListItem","position":1,"url":"https://jakeaiofficial.com/workflow-rescue.html","name":"Workflow Rescue","description":"Diagnose failed or fragile AI-agent workflows and structure a bounded recovery path for human review."},{"@type":"ListItem","position":2,"url":"https://jakeaiofficial.com/supplier-quote-compare.html","name":"Supplier Quote Compare","description":"Normalize supplier quotes and compare price, scope, terms and constraints for human decision-making."},{"@type":"ListItem","position":3,"url":"https://jakeaiofficial.com/inventory-replenishment-autopilot.html","name":"Inventory Replenishment Autopilot","description":"Structure repeatable inventory replenishment decisions from supplied operational inputs while keeping consequential actions human-approved."},{"@type":"ListItem","position":4,"url":"https://jakeaiofficial.com/autonomous-employee.html","name":"Autonomous Employee Foundry","description":"A founding-pilot intake and build path that turns a recurring job into a bounded autonomous capability with explicit tools, tests and approval gates."},{"@type":"ListItem","position":5,"url":"https://jakeaiofficial.com/product-factory/","name":"Make the Damn Thing for Free™","description":"A JakeAI production-orchestration workflow listed in the public registry."},{"@type":"ListItem","position":6,"url":"https://jakeaiofficial.com/product-factory/","name":"Agent Readability Auditor","description":"Designed to audit whether a public property presents clear, structured and discoverable information for AI agents."},{"@type":"ListItem","position":7,"url":"https://jakeaiofficial.com/product-factory/","name":"Web-to-Markdown Extraction API","description":"Designed to convert web content into normalized Markdown for downstream workflows."},{"@type":"ListItem","position":8,"url":"https://jakeaiofficial.com/product-factory/","name":"Utility Tariff Normalizer API","description":"Designed to normalize utility tariff information into structured outputs for downstream analysis."},{"@type":"ListItem","position":9,"url":"https://jakeaiofficial.com/product-factory/","name":"Multi-Model Advisory Council Audit API","description":"Designed to compare or audit outputs across multiple AI models and preserve a traceable human review path."},{"@type":"ListItem","position":10,"url":"https://jakeaiofficial.com/product-factory/","name":"IRA / Section 48 Calculator API","description":"Designed to support structured IRA / Section 48 tax-modeling calculations from supplied inputs; outputs require qualified human review."},{"@type":"ListItem","position":11,"url":"https://jakeaiofficial.com/guitar-coach.html","name":"JakeAI Guitar Coach","description":"Audio-first adaptive guitar tutor with live pitch feedback and guarded paid Coach access."}]}</script>
+<script defer src="/assets/traffic.js"></script></head>
+<body>
+<div class="wrap">
+<header class="top"><a class="brand" href="/">Jake<span>AI</span></a><a class="back" href="/catalog/">MARKETPLACE →</a></header>
+<section class="hero">
+<div class="eyebrow">DUAL-SURFACE CATALOG · HUMAN + AI</div>
+<h1>AI / Agent catalog.<br><span>Structured capability records.</span></h1>
+<p>This is the technical side of JakeAI: stable capability IDs, structured metadata, availability, invocation status and explicit commerce boundaries. Looking to buy or browse products as a person? Use the Marketplace.</p>
+<div class="surfaces">
+<div class="surface"><b>HUMAN MARKETPLACE</b><p>Product-first browsing, pricing and clear calls to action.</p><a href="/catalog/">Open Marketplace →</a></div>
+<div class="surface"><b>AI SURFACE</b><p>The machine catalog stays public for crawlers and authorized agents, but people should not have to navigate a wall of raw JSON.</p><code class="machineEndpoint">https://jakeaiofficial.com/catalog.json</code><button class="copyBtn" type="button" data-copy="https://jakeaiofficial.com/catalog.json">COPY MACHINE ENDPOINT</button> <a href="/docs">API docs →</a><span class="machineHelp">Agents can fetch the endpoint directly. Gated records remain gated; discovery never grants purchase or invocation rights.</span></div>
+</div>
+<div class="bar"><span class="chip">STABLE CAPABILITY IDs</span><span class="chip">ONE SOURCE OF TRUTH</span><span class="chip ai">MACHINE READABLE</span><span class="chip ai">AGENT-COMMERCE READY</span></div>
+</section>
+<main id="capabilities" class="grid"><article class="card" id="JAI-GUITAR-001">\n<div class="cardTop"><span class="id">JAI-GUITAR-001 · v1.0</span><span class="status">listed_live</span></div>\n<h2>JakeAI Guitar Coach</h2>\n<p>Audio-first adaptive guitar tutor with a free browser tuner and guided G-chord lesson, plus Stripe-verified paid Coach exercises, Goal Mode and practice memory.</p>\n<div class="tags"><span>Music Education</span><span>Practice Tools</span><span>Adaptive Coaching</span></div>\n<div class="actions"><a href="https://jakeaiofficial.com/guitar-coach.html">HUMAN VIEW →</a><button class="machine" type="button" data-copy="https://jakeaiofficial.com/catalog.json#JAI-GUITAR-001">COPY AI RECORD</button></div>\n</article>\n<article class="card" id="JAI-WF-0019">
+<div class="cardTop"><span class="id">JAI-WF-0019 · v1.0</span><span class="status">public_page</span></div>
+<h2>Workflow Rescue</h2>
+<p>Diagnose failed or fragile AI-agent workflows and structure a bounded recovery path for human review.</p>
+<div class="tags"><span>AI Agent Operations</span></div>
+<div class="actions"><a href="https://jakeaiofficial.com/workflow-rescue.html">HUMAN VIEW →</a><button class="machine" type="button" data-copy="https://jakeaiofficial.com/catalog.json#JAI-WF-0019">COPY AI RECORD</button></div>
+</article>
+<article class="card" id="JAI-WF-0018">
+<div class="cardTop"><span class="id">JAI-WF-0018 · v1.0</span><span class="status">public_page</span></div>
+<h2>Supplier Quote Compare</h2>
+<p>Normalize supplier quotes and compare price, scope, terms and constraints for human decision-making.</p>
+<div class="tags"><span>Procurement</span></div>
+<div class="actions"><a href="https://jakeaiofficial.com/supplier-quote-compare.html">HUMAN VIEW →</a><button class="machine" type="button" data-copy="https://jakeaiofficial.com/catalog.json#JAI-WF-0018">COPY AI RECORD</button></div>
+</article>
+<article class="card" id="JAI-WF-0017">
+<div class="cardTop"><span class="id">JAI-WF-0017 · v1.0</span><span class="status">public_page</span></div>
+<h2>Inventory Replenishment Autopilot</h2>
+<p>Structure repeatable inventory replenishment decisions from supplied operational inputs while keeping consequential actions human-approved.</p>
+<div class="tags"><span>Business Operations</span></div>
+<div class="actions"><a href="https://jakeaiofficial.com/inventory-replenishment-autopilot.html">HUMAN VIEW →</a><button class="machine" type="button" data-copy="https://jakeaiofficial.com/catalog.json#JAI-WF-0017">COPY AI RECORD</button></div>
+</article>
+<article class="card" id="JAI-WF-0020">
+<div class="cardTop"><span class="id">JAI-WF-0020 · v0.1</span><span class="status">public_intake</span></div>
+<h2>Autonomous Employee Foundry</h2>
+<p>A founding-pilot intake and build path that turns a recurring job into a bounded autonomous capability with explicit tools, tests and approval gates.</p>
+<div class="tags"><span>AI Agent Operations</span><span>Business Automation</span></div>
+<div class="actions"><a href="https://jakeaiofficial.com/autonomous-employee.html">HUMAN VIEW →</a><button class="machine" type="button" data-copy="https://jakeaiofficial.com/catalog.json#JAI-WF-0020">COPY AI RECORD</button></div>
+</article>
+<article class="card" id="JAI-WF-0002">
+<div class="cardTop"><span class="id">JAI-WF-0002 · v1.0</span><span class="status">listed_live</span></div>
+<h2>Make the Damn Thing for Free™</h2>
+<p>A JakeAI production-orchestration workflow listed in the public registry.</p>
+<div class="tags"><span>Production Orchestration</span></div>
+<div class="actions"><a href="https://jakeaiofficial.com/product-factory/">HUMAN VIEW →</a><button class="machine" type="button" data-copy="https://jakeaiofficial.com/catalog.json#JAI-WF-0002">COPY AI RECORD</button></div>
+</article>
+<article class="card" id="JAI-WF-0008">
+<div class="cardTop"><span class="id">JAI-WF-0008 · v1.0</span><span class="status">listed_gated</span></div>
+<h2>Agent Readability Auditor</h2>
+<p>Designed to audit whether a public property presents clear, structured and discoverable information for AI agents.</p>
+<div class="tags"><span>AI Agent Operations</span></div>
+<div class="actions"><a href="https://jakeaiofficial.com/product-factory/">HUMAN VIEW →</a><button class="machine" type="button" data-copy="https://jakeaiofficial.com/catalog.json#JAI-WF-0008">COPY AI RECORD</button></div>
+</article>
+<article class="card" id="JAI-WF-0007">
+<div class="cardTop"><span class="id">JAI-WF-0007 · v1.0</span><span class="status">listed_gated</span></div>
+<h2>Web-to-Markdown Extraction API</h2>
+<p>Designed to convert web content into normalized Markdown for downstream workflows.</p>
+<div class="tags"><span>Data Tools</span></div>
+<div class="actions"><a href="https://jakeaiofficial.com/product-factory/">HUMAN VIEW →</a><button class="machine" type="button" data-copy="https://jakeaiofficial.com/catalog.json#JAI-WF-0007">COPY AI RECORD</button></div>
+</article>
+<article class="card" id="JAI-WF-0010">
+<div class="cardTop"><span class="id">JAI-WF-0010 · v1.0</span><span class="status">listed_gated</span></div>
+<h2>Utility Tariff Normalizer API</h2>
+<p>Designed to normalize utility tariff information into structured outputs for downstream analysis.</p>
+<div class="tags"><span>Energy</span><span>Data Tools</span></div>
+<div class="actions"><a href="https://jakeaiofficial.com/product-factory/">HUMAN VIEW →</a><button class="machine" type="button" data-copy="https://jakeaiofficial.com/catalog.json#JAI-WF-0010">COPY AI RECORD</button></div>
+</article>
+<article class="card" id="JAI-WF-0011">
+<div class="cardTop"><span class="id">JAI-WF-0011 · v1.0</span><span class="status">listed_gated</span></div>
+<h2>Multi-Model Advisory Council Audit API</h2>
+<p>Designed to compare or audit outputs across multiple AI models and preserve a traceable human review path.</p>
+<div class="tags"><span>AI Governance</span></div>
+<div class="actions"><a href="https://jakeaiofficial.com/product-factory/">HUMAN VIEW →</a><button class="machine" type="button" data-copy="https://jakeaiofficial.com/catalog.json#JAI-WF-0011">COPY AI RECORD</button></div>
+</article>
+<article class="card" id="JAI-WF-0006">
+<div class="cardTop"><span class="id">JAI-WF-0006 · v1.0</span><span class="status">listed_gated</span></div>
+<h2>IRA / Section 48 Calculator API</h2>
+<p>Designed to support structured IRA / Section 48 tax-modeling calculations from supplied inputs; outputs require qualified human review.</p>
+<div class="tags"><span>Energy</span><span>Tax Modeling</span></div>
+<div class="actions"><a href="https://jakeaiofficial.com/product-factory/">HUMAN VIEW →</a><button class="machine" type="button" data-copy="https://jakeaiofficial.com/catalog.json#JAI-WF-0006">COPY AI RECORD</button></div>
+</article></main>
+<footer>JakeAI · Learn. Discover. Create. Provide value. · Human authority remains explicit where consequential actions are involved.</footer>
+</div>
+<script>
+(function(){
+  function fallbackCopy(text){
+    var t=document.createElement('textarea');
+    t.value=text;t.setAttribute('readonly','');t.style.position='fixed';t.style.opacity='0';
+    document.body.appendChild(t);t.select();
+    try{document.execCommand('copy');}catch(e){}
+    document.body.removeChild(t);
+  }
+  document.querySelectorAll('[data-copy]').forEach(function(btn){
+    btn.addEventListener('click',function(){
+      var text=btn.getAttribute('data-copy');
+      var done=function(){
+        var original=btn.textContent;
+        btn.textContent='COPIED ✓';btn.classList.add('copied');
+        setTimeout(function(){btn.textContent=original;btn.classList.remove('copied');},1400);
+      };
+      if(navigator.clipboard&&window.isSecureContext){
+        navigator.clipboard.writeText(text).then(done,function(){fallbackCopy(text);done();});
+      }else{fallbackCopy(text);done();}
+    });
+  });
+})();
+</script>
+
+</body>
+</html>
