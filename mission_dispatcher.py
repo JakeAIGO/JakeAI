@@ -2,6 +2,7 @@ from __future__ import annotations
 
 import hashlib
 import hmac
+import ipaddress
 import json
 import os
 import secrets
@@ -159,6 +160,24 @@ def _init_db() -> None:
             )
             """
         )
+        conn.execute(
+            """
+            CREATE TABLE IF NOT EXISTS agent_events (
+                id INTEGER PRIMARY KEY AUTOINCREMENT,
+                event_id TEXT NOT NULL UNIQUE,
+                provider TEXT NOT NULL,
+                agent TEXT NOT NULL,
+                purpose TEXT NOT NULL,
+                verification TEXT NOT NULL,
+                path TEXT NOT NULL,
+                method TEXT NOT NULL,
+                response_status INTEGER,
+                referrer_host TEXT NOT NULL DEFAULT '',
+                machine_surface INTEGER NOT NULL DEFAULT 0,
+                created_at TEXT NOT NULL
+            )
+            """
+        )
         columns = {row["name"] for row in conn.execute("PRAGMA table_info(missions)").fetchall()}
         if "analysis_json" not in columns:
             conn.execute("ALTER TABLE missions ADD COLUMN analysis_json TEXT")
@@ -181,6 +200,9 @@ def _init_db() -> None:
         conn.execute("CREATE INDEX IF NOT EXISTS idx_traffic_type_created ON traffic_events(event_type, created_at)")
         conn.execute("CREATE INDEX IF NOT EXISTS idx_traffic_visitor_created ON traffic_events(visitor_hash, created_at)")
         conn.execute("CREATE INDEX IF NOT EXISTS idx_traffic_session_created ON traffic_events(session_hash, created_at)")
+        conn.execute("CREATE INDEX IF NOT EXISTS idx_agent_created ON agent_events(created_at)")
+        conn.execute("CREATE INDEX IF NOT EXISTS idx_agent_provider_created ON agent_events(provider, created_at)")
+        conn.execute("CREATE INDEX IF NOT EXISTS idx_agent_path_created ON agent_events(path, created_at)")
     finally:
         conn.close()
 
@@ -1012,6 +1034,17 @@ class OwnerEnrollRequest(BaseModel):
     token: str = Field(min_length=20, max_length=500)
 
 
+class AgentObserverEvent(BaseModel):
+    event_id: str = Field(min_length=8, max_length=120)
+    path: str = Field(default="/", max_length=500)
+    method: str = Field(default="GET", max_length=12)
+    user_agent: str = Field(default="", max_length=1000)
+    client_ip: str = Field(default="", max_length=100)
+    referrer_host: str = Field(default="", max_length=240)
+    response_status: int = Field(default=0, ge=0, le=599)
+    machine_surface: bool = False
+
+
 class TrafficEvent(BaseModel):
     event_id: str = Field(min_length=8, max_length=120)
     visitor_id: str = Field(min_length=8, max_length=200)
@@ -1025,6 +1058,116 @@ class TrafficEvent(BaseModel):
     device: str = Field(default="unknown", max_length=40)
     internal: bool = False
 
+
+
+_AGENT_PREFIX_CACHE = {}
+
+
+def _agent_machine_surface(path: str) -> bool:
+    path = (path or "/").split("?", 1)[0]
+    return path in {
+        "/llms.txt",
+        "/robots.txt",
+        "/sitemap.xml",
+        "/catalog.json",
+        "/workflow-registry.json",
+        "/.well-known/agent.json",
+    } or path.startswith("/agent-catalog/")
+
+
+def _classify_agent_user_agent(user_agent: str, machine_surface: bool = False) -> dict:
+    ua = (user_agent or "").lower()
+    signatures = [
+        ("openai", "OAI-SearchBot", "search", "oai-searchbot"),
+        ("openai", "GPTBot", "training-crawler", "gptbot"),
+        ("openai", "ChatGPT-User", "user-fetch", "chatgpt-user"),
+        ("openai", "OAI-AdsBot", "ads-validation", "oai-adsbot"),
+        ("anthropic", "Claude-SearchBot", "search", "claude-searchbot"),
+        ("anthropic", "Claude-User", "user-fetch", "claude-user"),
+        ("anthropic", "ClaudeBot", "training-crawler", "claudebot"),
+        ("perplexity", "Perplexity-User", "user-fetch", "perplexity-user"),
+        ("perplexity", "PerplexityBot", "search", "perplexitybot"),
+        ("google", "Googlebot", "search", "googlebot"),
+        ("microsoft", "bingbot", "search", "bingbot"),
+        ("apple", "Applebot", "search-ai", "applebot"),
+        ("amazon", "Amazonbot", "search-ai", "amazonbot"),
+        ("meta", "Meta-ExternalAgent", "ai-crawler", "meta-externalagent"),
+        ("commoncrawl", "CCBot", "web-crawler", "ccbot"),
+    ]
+    for provider, agent, purpose, needle in signatures:
+        if needle in ua:
+            return {"provider": provider, "agent": agent, "purpose": purpose}
+    if any(needle in ua for needle in ("bot", "crawler", "spider", "slurp", "headless")):
+        return {"provider": "other", "agent": "UnidentifiedBot", "purpose": "crawler"}
+    if machine_surface:
+        return {"provider": "unknown", "agent": "MachineClient", "purpose": "machine-discovery"}
+    return {"provider": "unknown", "agent": "UnknownClient", "purpose": "unknown"}
+
+
+def _published_prefixes(url: str) -> list:
+    now = int(time.time())
+    cached = _AGENT_PREFIX_CACHE.get(url)
+    if cached and now - int(cached.get("at", 0)) < 21600:
+        return cached.get("prefixes", [])
+    try:
+        req = urllib.request.Request(url, headers={"User-Agent": "JakeAI-Agent-Observer/1.0"})
+        with urllib.request.urlopen(req, timeout=3) as response:
+            data = json.loads(response.read().decode("utf-8"))
+        prefixes = []
+        for item in data.get("prefixes") or []:
+            value = item.get("ipv4Prefix") or item.get("ipv6Prefix") or item.get("prefix")
+            if value:
+                prefixes.append(str(value))
+        _AGENT_PREFIX_CACHE[url] = {"at": now, "prefixes": prefixes}
+        return prefixes
+    except Exception:
+        return cached.get("prefixes", []) if cached else []
+
+
+def _ip_in_prefixes(client_ip: str, prefixes: list) -> bool:
+    try:
+        ip = ipaddress.ip_address((client_ip or "").split(",", 1)[0].strip())
+    except Exception:
+        return False
+    for prefix in prefixes:
+        try:
+            if ip in ipaddress.ip_network(prefix, strict=False):
+                return True
+        except Exception:
+            continue
+    return False
+
+
+def _verify_agent(provider: str, agent: str, client_ip: str) -> str:
+    source = None
+    if provider == "openai":
+        source = {
+            "OAI-SearchBot": "https://openai.com/searchbot.json",
+            "GPTBot": "https://openai.com/gptbot.json",
+            "OAI-AdsBot": "https://openai.com/adsbot.json",
+        }.get(agent)
+    elif provider == "perplexity":
+        source = {
+            "PerplexityBot": "https://www.perplexity.com/perplexitybot.json",
+            "Perplexity-User": "https://www.perplexity.com/perplexity-user.json",
+        }.get(agent)
+    if source:
+        prefixes = _published_prefixes(source)
+        if prefixes and _ip_in_prefixes(client_ip, prefixes):
+            return "verified-ip"
+        return "claimed-ua"
+    if provider in {"anthropic", "google", "microsoft", "apple", "amazon", "meta", "commoncrawl"}:
+        return "claimed-ua"
+    return "machine-surface" if agent == "MachineClient" else "generic-bot"
+
+
+def _require_agent_observer(value: Optional[str]) -> None:
+    expected = os.environ.get("AGENT_OBSERVER_TOKEN", "").strip()
+    candidate = (value or "").strip()
+    if not expected:
+        raise HTTPException(status_code=503, detail="Agent observer authorization is not configured")
+    if not candidate or not hmac.compare_digest(candidate, expected):
+        raise HTTPException(status_code=401, detail="Unauthorized")
 
 
 def register_mission_dispatcher_routes(app) -> None:
@@ -1116,6 +1259,58 @@ def register_mission_dispatcher_routes(app) -> None:
             path="/",
         )
         return response
+
+    @app.post("/v1/agent-observer/event")
+    @app.post("/api/v1/agent-observer/event")
+    def agent_observer_event(
+        req: AgentObserverEvent,
+        x_agent_observer_token: Optional[str] = Header(None, alias="X-JakeAI-Agent-Observer"),
+    ):
+        _require_agent_observer(x_agent_observer_token)
+        path = _clean(req.path, 500).split("?", 1)[0] or "/"
+        if not path.startswith("/"):
+            path = "/" + path
+        machine_surface = bool(req.machine_surface or _agent_machine_surface(path))
+        classification = _classify_agent_user_agent(req.user_agent, machine_surface)
+        if classification["agent"] == "UnknownClient":
+            return {"ok": True, "accepted": False}
+        verification = _verify_agent(
+            classification["provider"],
+            classification["agent"],
+            _clean(req.client_ip, 100),
+        )
+        conn = _connect()
+        try:
+            conn.execute(
+                """
+                INSERT OR IGNORE INTO agent_events(
+                    event_id,provider,agent,purpose,verification,path,method,
+                    response_status,referrer_host,machine_surface,created_at
+                ) VALUES(?,?,?,?,?,?,?,?,?,?,?)
+                """,
+                (
+                    _clean(req.event_id, 120),
+                    classification["provider"],
+                    classification["agent"],
+                    classification["purpose"],
+                    verification,
+                    path,
+                    _clean(req.method, 12).upper() or "GET",
+                    int(req.response_status or 0),
+                    _clean(req.referrer_host, 240).lower(),
+                    1 if machine_surface else 0,
+                    _now_iso(),
+                ),
+            )
+            return {
+                "ok": True,
+                "accepted": True,
+                "provider": classification["provider"],
+                "agent": classification["agent"],
+                "verification": verification,
+            }
+        finally:
+            conn.close()
 
     @app.post("/v1/traffic/event")
     @app.post("/api/v1/traffic/event")
@@ -1283,6 +1478,84 @@ def register_mission_dispatcher_routes(app) -> None:
                     (quality_cut(cut_window),),
                 ).fetchall()
             ]
+            agent_24h = conn.execute(
+                "SELECT COUNT(*) AS n FROM agent_events WHERE created_at>=?",
+                (cut24,),
+            ).fetchone()["n"]
+            agent_verified_24h = conn.execute(
+                "SELECT COUNT(*) AS n FROM agent_events WHERE created_at>=? AND verification='verified-ip'",
+                (cut24,),
+            ).fetchone()["n"]
+            agent_machine_24h = conn.execute(
+                "SELECT COUNT(*) AS n FROM agent_events WHERE created_at>=? AND machine_surface=1",
+                (cut24,),
+            ).fetchone()["n"]
+            agent_families = [
+                {
+                    "provider": row["provider"],
+                    "agent": row["agent"],
+                    "purpose": row["purpose"],
+                    "verification": row["verification"],
+                    "requests": int(row["n"] or 0),
+                }
+                for row in conn.execute(
+                    """
+                    SELECT provider,agent,purpose,verification,COUNT(*) AS n
+                    FROM agent_events
+                    WHERE created_at>=?
+                    GROUP BY provider,agent,purpose,verification
+                    ORDER BY n DESC,provider ASC,agent ASC
+                    LIMIT 20
+                    """,
+                    (quality_cut(cut_window),),
+                ).fetchall()
+            ]
+            agent_surfaces = [
+                {"path": row["path"], "requests": int(row["n"] or 0)}
+                for row in conn.execute(
+                    """
+                    SELECT path,COUNT(*) AS n
+                    FROM agent_events
+                    WHERE created_at>=? AND machine_surface=1
+                    GROUP BY path
+                    ORDER BY n DESC,path ASC
+                    LIMIT 20
+                    """,
+                    (quality_cut(cut_window),),
+                ).fetchall()
+            ]
+            agent_latest = [
+                {
+                    "at": row["created_at"],
+                    "provider": row["provider"],
+                    "agent": row["agent"],
+                    "purpose": row["purpose"],
+                    "verification": row["verification"],
+                    "path": row["path"],
+                    "status": int(row["response_status"] or 0),
+                }
+                for row in conn.execute(
+                    """
+                    SELECT created_at,provider,agent,purpose,verification,path,response_status
+                    FROM agent_events
+                    WHERE created_at>=?
+                    ORDER BY created_at DESC
+                    LIMIT 20
+                    """,
+                    (quality_cut(cut_window),),
+                ).fetchall()
+            ]
+            referral_rows = conn.execute(
+                """
+                SELECT
+                  COUNT(DISTINCT CASE WHEN source LIKE '%chatgpt%' OR referrer_host LIKE '%chatgpt%' THEN session_hash END) AS chatgpt,
+                  COUNT(DISTINCT CASE WHEN source LIKE '%perplexity%' OR referrer_host LIKE '%perplexity%' THEN session_hash END) AS perplexity,
+                  COUNT(DISTINCT CASE WHEN source LIKE '%claude%' OR referrer_host LIKE '%claude%' THEN session_hash END) AS claude
+                FROM traffic_events
+                WHERE is_internal=0 AND event_type='page_view' AND created_at>=?
+                """,
+                (quality_cut(cut_window),),
+            ).fetchone()
             devices = [
                 {"device": row["device"] or "unknown", "visitors": row["n"]}
                 for row in conn.execute(
@@ -1338,6 +1611,20 @@ def register_mission_dispatcher_routes(app) -> None:
                 "top_pages": top_pages,
                 "top_products": top_products,
                 "sources": sources,
+                "agent_observatory": {
+                    "requests_24h": int(agent_24h or 0),
+                    "verified_requests_24h": int(agent_verified_24h or 0),
+                    "machine_surface_reads_24h": int(agent_machine_24h or 0),
+                    "families": agent_families,
+                    "machine_surfaces": agent_surfaces,
+                    "latest": agent_latest,
+                    "referrals": {
+                        "chatgpt": int(referral_rows["chatgpt"] or 0),
+                        "perplexity": int(referral_rows["perplexity"] or 0),
+                        "claude": int(referral_rows["claude"] or 0),
+                    },
+                    "verification_note": "verified-ip means the claimed crawler user-agent also matched a provider-published IP range; claimed-ua is not independently verified.",
+                },
                 "devices": devices,
                 "daily": daily,
                 "internal_pageviews_excluded": int(internal_views or 0),
