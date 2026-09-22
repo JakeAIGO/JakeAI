@@ -1,25 +1,116 @@
 {
   "schema_version": "1.1",
-  "generated_at": "2026-09-13",
-  "release": "jakeai-universe-2026-09-13",
+  "generated_at": "2026-09-22",
+  "release": "jakeai-universe-guitar-coach-2026-09-22",
   "release_principle": "A public label must match the deployed implementation and its verified fulfillment state.",
   "destinations": [
-    {"id":"foundry","name":"The Foundry","path":"/#foundry","status":"live"},
-    {"id":"arcade","name":"JakeAI Arcade","path":"/arcade/","status":"live"},
-    {"id":"radio","name":"JakeAI Radio","path":"/radio.html","status":"development","public_audio":"rights-gated"},
-    {"id":"jukebox","name":"The Jukebox","path":"/jukebox.html","status":"development","public_audio":"rights-gated"},
-    {"id":"tv","name":"JakeAI TV","path":"/tv.html","status":"development"}
+    {
+      "id": "foundry",
+      "name": "The Foundry",
+      "path": "/#foundry",
+      "status": "live"
+    },
+    {
+      "id": "arcade",
+      "name": "JakeAI Arcade",
+      "path": "/arcade/",
+      "status": "live"
+    },
+    {
+      "id": "radio",
+      "name": "JakeAI Radio",
+      "path": "/radio.html",
+      "status": "development",
+      "public_audio": "rights-gated"
+    },
+    {
+      "id": "jukebox",
+      "name": "The Jukebox",
+      "path": "/jukebox.html",
+      "status": "development",
+      "public_audio": "rights-gated"
+    },
+    {
+      "id": "tv",
+      "name": "JakeAI TV",
+      "path": "/tv.html",
+      "status": "development"
+    }
   ],
   "arcade": [
-    {"id":"game-001","name":"Cosmic Vending Machine","path":"/arcade/cosmic-vending-machine.html","status":"live"},
-    {"id":"game-002","name":"Mantlecore: Skyfall","path":"/arcade/mantlecore-skyfall.html","status":"live","mobile_controls":"verified repaired build"},
-    {"id":"game-003","name":"Neon Breach","path":"/arcade/neon-breach.html","status":"live","visual_engine":"v2 asset-based production build"}
+    {
+      "id": "game-001",
+      "name": "Cosmic Vending Machine",
+      "path": "/arcade/cosmic-vending-machine.html",
+      "status": "live"
+    },
+    {
+      "id": "game-002",
+      "name": "Mantlecore: Skyfall",
+      "path": "/arcade/mantlecore-skyfall.html",
+      "status": "live",
+      "mobile_controls": "verified repaired build"
+    },
+    {
+      "id": "game-003",
+      "name": "Neon Breach",
+      "path": "/arcade/neon-breach.html",
+      "status": "live",
+      "visual_engine": "v2 asset-based production build"
+    }
   ],
   "commerce": [
-    {"id":"prod_make_free_00","name":"Make the Damn Thing for Free™","status":"live","price_usd":0},
-    {"id":"prod_game_qa_autopilot_01","name":"Game QA Autopilot v1.0","status":"gated","price_usd":9.99,"gate":"controlled delivery QA"},
-    {"id":"prod_where_the_hell_are_my_glasses_01","name":"Where the Hell Are My Glasses?","status":"gated","price_usd":2.99,"gate":"controlled delivery QA"},
-    {"id":"prod_pool_coach_01","name":"Pool Coach Autopilot v1.0","status":"unavailable","price_usd":1.00,"gate":"checkout and delivery review"}
+    {
+      "id": "prod_make_free_00",
+      "name": "Make the Damn Thing for Free™",
+      "status": "live",
+      "price_usd": 0
+    },
+    {
+      "id": "prod_game_qa_autopilot_01",
+      "name": "Game QA Autopilot v1.0",
+      "status": "gated",
+      "price_usd": 9.99,
+      "gate": "controlled delivery QA"
+    },
+    {
+      "id": "prod_where_the_hell_are_my_glasses_01",
+      "name": "Where the Hell Are My Glasses?",
+      "status": "gated",
+      "price_usd": 2.99,
+      "gate": "controlled delivery QA"
+    },
+    {
+      "id": "prod_pool_coach_01",
+      "name": "Pool Coach Autopilot v1.0",
+      "status": "unavailable",
+      "price_usd": 1,
+      "gate": "checkout and delivery review"
+    },
+    {
+      "id": "prod_guitar_coach_monthly",
+      "name": "JakeAI Guitar Coach — Coach Monthly",
+      "status": "live",
+      "price_usd": 19.99,
+      "billing_period": "month",
+      "fulfillment": "Stripe-verified subscription entitlement"
+    },
+    {
+      "id": "prod_guitar_coach_annual",
+      "name": "JakeAI Guitar Coach — Coach Annual",
+      "status": "live",
+      "price_usd": 149,
+      "billing_period": "year",
+      "fulfillment": "Stripe-verified subscription entitlement"
+    },
+    {
+      "id": "prod_guitar_coach_sprint",
+      "name": "JakeAI Guitar Coach — Goal Sprint",
+      "status": "live",
+      "price_usd": 39,
+      "billing_period": "one_time_30_day_access",
+      "fulfillment": "Stripe-verified timed entitlement"
+    }
   ],
   "release_controls": {
     "human_approval_required": true,
