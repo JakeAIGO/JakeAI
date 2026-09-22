@@ -56,6 +56,16 @@ const send=(event_type,extra={})=>{
 };
 window.JakeAITraffic={track:(type,extra)=>send(type,extra||{})};
 send("page_view");
+const productPaths=new Set([
+  "/guitar-coach.html",
+  "/tattoo.html",
+  "/game-qa-autopilot.html",
+  "/boss-fight-lab.html",
+  "/inventory-replenishment-autopilot.html",
+  "/pool-coach-autopilot.html",
+  "/where-the-hell-are-my-glasses.html"
+]);
+if(productPaths.has(location.pathname))send("product_view",{path:location.pathname});
 const section=()=>{if(location.hash==="#commission")send("commission_view",{path:"/#commission"})};
 section();
 addEventListener("hashchange",section,{passive:true});
@@ -63,6 +73,11 @@ document.addEventListener("click",e=>{
   const a=e.target&&e.target.closest?e.target.closest("a[href]"):null;
   if(!a)return;
   let u;try{u=new URL(a.href,location.href)}catch(err){return}
+  const checkout=(u.hostname==="buy.stripe.com"||u.pathname.includes("/checkout/")||u.pathname.includes("/v1/checkout/buy/")||u.pathname.includes("/crypto-checkout"));
+  if(checkout){
+    send("checkout_start",{path:location.pathname});
+    return;
+  }
   if(u.origin!==location.origin)return;
   if(/^\/(product-factory|arcade|catalog|direct)\/?/.test(u.pathname)||u.hash==="#commission"){
     send("cta",{path:u.pathname+(u.hash||"")});
