@@ -86,7 +86,7 @@
 }
 
 /* Desktop gateway framing fix v2 2026-09-21 */
-@media (min-width:761px){
+@media (min-width:761px) and (orientation:landscape){
   .stage{
     overflow:hidden;
     background:#020508;
@@ -112,7 +112,7 @@
 }
 
 /* Desktop hero source hardening 2026-09-21 */
-@media (min-width:761px){
+@media (min-width:761px) and (orientation:landscape){
   .landscapeScene{
     display:block !important;
     width:100% !important;
@@ -128,7 +128,7 @@
 }
 
 /* Desktop hero source hardening v2 2026-09-21 */
-@media (min-width:761px){
+@media (min-width:761px) and (orientation:landscape){
   .stage{background:#020508 !important;overflow:hidden !important}
   .landscapeScene{
     display:block !important;
@@ -145,11 +145,11 @@
 }
 html,body{height:100%;overflow:hidden!important}body.homeGatewayOnly main{height:100%;overflow:hidden}body.homeGatewayOnly #home{position:fixed!important;inset:0!important;width:100vw!important;height:100dvh!important;min-height:100dvh!important;overflow:hidden!important}body.homeGatewayOnly main>section:not(#home),body.homeGatewayOnly footer,body.homeGatewayOnly .foot{display:none!important}body.homeGatewayOnly .landscapeScene{max-width:none!important;object-fit:cover!important;image-rendering:auto!important;filter:none!important;transform:none!important}
 /* Homepage gateway: preserve the full approved composition on every landscape viewport. */
-@media (min-width:761px){body.homeGatewayOnly #home .landscapeScene{object-fit:contain!important;object-position:center center!important;width:100vw!important;height:100dvh!important;background:#020508!important}}
+@media (min-width:761px) and (orientation:landscape){body.homeGatewayOnly #home .landscapeScene{object-fit:contain!important;object-position:center center!important;width:100vw!important;height:100dvh!important;background:#020508!important}}
 
 /* Crisp desktop gateway: source-rendered UI, no stretched raster artwork. */
 .desktopGateway{display:none}
-@media (min-width:761px){
+@media (min-width:761px) and (orientation:landscape){
  body.homeGatewayOnly #home{background:#020611!important}
  body.homeGatewayOnly .landscapeScene{display:none!important}
  body.homeGatewayOnly .desktopGateway{display:flex;position:absolute;inset:0;z-index:2;overflow:hidden;flex-direction:column;padding:clamp(22px,3vw,52px);box-sizing:border-box;background:radial-gradient(circle at 50% 15%,#0c3970 0,#07182f 28%,#020611 68%);color:#fff;font-family:Inter,system-ui,sans-serif}
