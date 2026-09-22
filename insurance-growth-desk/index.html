@@ -31,21 +31,21 @@ textarea,input,select{width:100%;border:1px solid #285066;background:#040c12;col
 <div id="appView" class="shell hidden">
   <header class="top"><div class="brand">Jake<b>AI</b> Insurance Growth Desk</div><div class="pilot">JIM PILOT · FREE VALIDATION</div></header>
   <section class="hero">
-    <div class="eyebrow">CONTROLLED INSURANCE GROWTH WORKSPACE</div>
-    <h1>Find intent.<br><span>Build demand.</span></h1>
-    <p>One private place for IUL and annuity lead-generation strategy, First Term marketing, lead organization and outcome tracking. JakeAI prepares the work; humans authorize consequential external actions.</p>
+    <div class="eyebrow">JIM'S OPPORTUNITY FINDER</div>
+    <h1>What are you looking<br><span>for?</span></h1>
+    <p>Pick what you want, choose where to look, and let JakeAI handle the sorting.</p>
     <div class="badges"><span class="badge good">HUMAN APPROVAL · ON</span><span class="badge">PUBLIC LEAD CAPTURE · OFF</span><span class="badge" id="brandBadge">BRAND VERIFICATION · PENDING</span><span class="badge">NO AUTO OUTREACH</span></div>
   </section>
 
   <section class="doors">
-    <article class="door intentDoor" data-query="Find permission-based opportunities from people actively looking for annuities. Show the public or opt-in source, stated intent, location, freshness, consent/contact status, and next compliant human action."><small>SEARCH LANE 01</small><h2>Annuities</h2><p>Find demonstrated annuity interest and preserve the evidence behind every opportunity.</p></article>
-    <article class="door intentDoor" data-query="Find permission-based opportunities from people actively looking for retirement rollover help, including 401(k), 403(b), pension or IRA rollover questions. Show source, stated intent, location, freshness, consent/contact status, and next compliant human action."><small>SEARCH LANE 02</small><h2>Retirement Rollovers</h2><p>Surface people asking for rollover information or help — without turning a mention into permission to contact.</p></article>
-    <article class="door intentDoor" data-query="Find permission-based opportunities from people actively looking for indexed universal life or IUL information. Show source, stated intent, location, freshness, consent/contact status, and next compliant human action."><small>SEARCH LANE 03</small><h2>Indexed Universal Life</h2><p>Organize evidence-backed IUL demand around the person's stated need rather than a product pitch.</p></article>
+    <article class="door intentDoor" data-query="Find permission-based opportunities from people actively looking for annuities. Show the public or opt-in source, stated intent, location, freshness, consent/contact status, and next compliant human action."><small>OPTION 1</small><h2>Annuities</h2><p>Find people currently looking for annuity information or help.</p></article>
+    <article class="door intentDoor" data-query="Find permission-based opportunities from people actively looking for retirement rollover help, including 401(k), 403(b), pension or IRA rollover questions. Show source, stated intent, location, freshness, consent/contact status, and next compliant human action."><small>OPTION 2</small><h2>Retirement Rollovers</h2><p>Find people currently asking about moving or rolling over retirement money.</p></article>
+    <article class="door intentDoor" data-query="Find permission-based opportunities from people actively looking for indexed universal life or IUL information. Show source, stated intent, location, freshness, consent/contact status, and next compliant human action."><small>OPTION 3</small><h2>Indexed Universal Life</h2><p>Find people currently looking for IUL information or help.</p></article>
   </section>
   <section class="card" style="margin-top:15px">
-    <div style="display:flex;justify-content:space-between;gap:12px;align-items:center;flex-wrap:wrap"><div><div class="eyebrow">JIM'S SIMPLE SEARCH</div><h2 style="margin-top:7px">Tell JakeAI what to look for.</h2></div><span class="approval">NO AUTO OUTREACH</span></div>
+    <div style="display:flex;justify-content:space-between;gap:12px;align-items:center;flex-wrap:wrap"><div><div class="eyebrow">JIM'S SIMPLE SEARCH</div><h2 style="margin-top:7px">Where should we look?</h2></div><span class="approval">NO AUTO OUTREACH</span></div>
     <div class="row"><input id="searchLocation" placeholder="Location: city, state, region or nationwide"><select id="searchFreshness"><option value="current">Current / fresh opportunities</option><option value="7 days">Past 7 days</option><option value="30 days">Past 30 days</option></select></div>
-    <div class="muted" style="margin-top:9px">Choose a lane above, optionally add a location, then review the prepared search in Jim Direct. JakeAI keeps evidence and consent separate from sales judgment.</div>
+    <div class="row"><button class="btn primary" id="simpleRunBtn">FIND OPPORTUNITIES →</button></div><div class="muted" style="margin-top:9px">Choose one of the three options above, add a location if you want, then press FIND OPPORTUNITIES.</div>
   </section>
 
   <section class="grid">
@@ -96,7 +96,7 @@ window.JAKEAI_PILOT_DIAGNOSTICS={
 <script src="/pilot-diagnostics.js"></script>
 <script>
 const $=id=>document.getElementById(id);
-let leads=[];
+let leads=[];let selectedDoor=null;
 
 async function api(path,opts={}){
   const r=await fetch(path,{credentials:'include',headers:{'Content-Type':'application/json',...(opts.headers||{})},...opts});
@@ -117,7 +117,7 @@ async function boot(){
 }
 $('loginBtn').onclick=async()=>{const s=$('loginStatus');s.className='muted';s.textContent='Checking access…';try{await api('/api/v1/insurance/login',{method:'POST',body:JSON.stringify({access_code:$('accessCode').value})});s.className='ok';s.textContent='Access confirmed.';await boot()}catch(e){s.className='error';s.textContent=e.message}};
 $('accessCode').addEventListener('keydown',e=>{if(e.key==='Enter')$('loginBtn').click()});
-document.querySelectorAll('.intentDoor').forEach(d=>d.onclick=()=>{const loc=$('searchLocation').value.trim(),fresh=$('searchFreshness').value;$('mode').value='iul_annuity_leads';$('prompt').value=d.dataset.query+(loc?' Location: '+loc+'.':' Location: nationwide.')+' Freshness: '+fresh+'.';$('prompt').focus();window.scrollTo({top:$('prompt').getBoundingClientRect().top+scrollY-100,behavior:'smooth'})});
+document.querySelectorAll('.intentDoor').forEach(d=>d.onclick=()=>{document.querySelectorAll('.intentDoor').forEach(x=>x.style.borderColor='');d.style.borderColor='#74eaff';selectedDoor=d;});$('simpleRunBtn').onclick=()=>{if(!selectedDoor){alert('Choose Annuities, Retirement Rollovers, or Indexed Universal Life first.');return;}const loc=$('searchLocation').value.trim(),fresh=$('searchFreshness').value;$('mode').value='iul_annuity_leads';$('prompt').value=selectedDoor.dataset.query+(loc?' Location: '+loc+'.':' Location: nationwide.')+' Freshness: '+fresh+'.';$('runBtn').click();window.scrollTo({top:$('output').getBoundingClientRect().top+scrollY-120,behavior:'smooth'});};
 $('clearBtn').onclick=()=>{$('prompt').value='';$('output').classList.remove('open');$('output').textContent=''};
 $('runBtn').onclick=async()=>{const prompt=$('prompt').value.trim();if(!prompt)return;const b=$('runBtn');b.disabled=true;b.textContent='RUNNING…';$('output').classList.add('open');$('output').textContent='JakeAI is preparing the private draft…';try{const d=await api('/api/v1/insurance/run',{method:'POST',body:JSON.stringify({prompt,mode:$('mode').value})});$('output').textContent=d.text;$('runMeta').textContent='Run '+d.run_id+' · approval gate '+d.approval_gate+' · runs today '+d.runs_today+' / '+d.daily_run_limit}catch(e){$('output').textContent='Error: '+e.message}finally{b.disabled=false;b.textContent='RUN JAKEAI →'}};
 async function loadLeads(){try{const d=await api('/api/v1/insurance/leads');leads=d.leads||[];renderLeads()}catch(e){$('leadList').innerHTML='<div class="error">'+esc(e.message)+'</div>'}}
