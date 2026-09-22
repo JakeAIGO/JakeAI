@@ -343,7 +343,11 @@ def create_crypto_checkout(product_id: str, req: CryptoCheckoutRequest):
         raise HTTPException(status_code=409, detail="Crypto checkout is not enabled for this product")
     if not req.acknowledge_irreversible_payment:
         raise HTTPException(status_code=422, detail="Blockchain payment acknowledgement is required")
-    if not commerce_app.is_product_checkout_enabled(product_id):
+    # Genesis #001 uses its own single-slot checkout state machine for Stripe,
+    # so it is intentionally absent from the generic COMMERCE_ENABLED set.
+    # Crypto has an independent explicit product allowlist; honor that gate for
+    # Genesis while retaining the generic commerce gate for all other products.
+    if product_id != commerce_app.GENESIS_PRODUCT_ID and not commerce_app.is_product_checkout_enabled(product_id):
         raise HTTPException(status_code=409, detail="Checkout is not active for this product")
 
     product = commerce_app.main.GENESIS_CATALOG.get(product_id)
