@@ -1,0 +1,28 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1440 520" role="img" aria-labelledby="t d">
+<title id="t">How JakeAI Guitar Coach works</title><desc id="d">A seven-step JakeAI Guitar Coach workflow from setting a goal through listening, diagnosis, correction, repetition, progress memory, and playing the song.</desc>
+<defs>
+<linearGradient id="bg" x1="0" y1="0" x2="1" y2="1"><stop stop-color="#050a12"/><stop offset=".5" stop-color="#071a27"/><stop offset="1" stop-color="#160d0a"/></linearGradient>
+<linearGradient id="g" x1="0" x2="1"><stop stop-color="#68e7ff"/><stop offset=".55" stop-color="#39bfff"/><stop offset="1" stop-color="#ff9f43"/></linearGradient>
+<filter id="glow"><feGaussianBlur stdDeviation="5" result="b"/><feMerge><feMergeNode in="b"/><feMergeNode in="SourceGraphic"/></feMerge></filter>
+<pattern id="grid" width="58" height="58" patternUnits="userSpaceOnUse"><path d="M58 0H0V58" fill="none" stroke="#68e7ff" stroke-opacity=".05"/></pattern>
+</defs>
+<rect width="1440" height="520" rx="34" fill="url(#bg)"/><rect width="1440" height="520" rx="34" fill="url(#grid)"/>
+<path d="M0 410C210 320 360 470 540 390S900 270 1100 380s250 50 340-20" fill="none" stroke="url(#g)" stroke-opacity=".18" stroke-width="4"/>
+<g font-family="Arial,Helvetica,sans-serif"><text x="58" y="72" fill="#72e8ff" font-size="20" font-weight="800" letter-spacing="5">JAKEAI GUITAR COACH · AUTONOMOUS PRACTICE LOOP</text><text x="58" y="124" fill="#fff" font-size="44" font-weight="900">A simple loop. Real progress.</text><text x="58" y="158" fill="#9fb8c7" font-size="18">The coach listens, diagnoses, corrects, remembers — and only moves on when the next step is earned.</text></g>
+<g transform="translate(46 208)" font-family="Arial,Helvetica,sans-serif">
+<g><rect width="174" height="204" rx="20" fill="#091522" stroke="#2e6074"/><circle cx="87" cy="55" r="29" fill="#10283a" stroke="#6ce8ff" stroke-width="2"/><path d="M87 38v34M70 55h34" stroke="#6ce8ff" stroke-width="5" stroke-linecap="round"/><text x="56" y="116" fill="#fff" font-size="21" font-weight="800">1. GOAL</text><text x="26" y="150" fill="#9db3c0" font-size="14">Pick a song, skill</text><text x="26" y="172" fill="#9db3c0" font-size="14">or milestone.</text></g>
+<text x="184" y="112" fill="#6ce8ff" font-size="38">→</text>
+<g transform="translate(204)"><rect width="174" height="204" rx="20" fill="#091522" stroke="#2e6074"/><path d="M54 55h12m10-18v36m12-25v14m12-33v52m12-43v34m12-18v12" stroke="#6ce8ff" stroke-width="5" stroke-linecap="round"/><text x="45" y="116" fill="#fff" font-size="21" font-weight="800">2. LISTEN</text><text x="26" y="150" fill="#9db3c0" font-size="14">JakeAI hears</text><text x="26" y="172" fill="#9db3c0" font-size="14">what you play.</text></g>
+<text x="388" y="112" fill="#6ce8ff" font-size="38">→</text>
+<g transform="translate(408)"><rect width="174" height="204" rx="20" fill="#091522" stroke="#2e6074"/><circle cx="75" cy="52" r="25" fill="none" stroke="#6ce8ff" stroke-width="4"/><path d="M94 71l24 24" stroke="#6ce8ff" stroke-width="5" stroke-linecap="round"/><text x="24" y="116" fill="#fff" font-size="21" font-weight="800">3. DIAGNOSE</text><text x="24" y="150" fill="#9db3c0" font-size="14">Find what's right</text><text x="24" y="172" fill="#9db3c0" font-size="14">and what to fix.</text></g>
+<text x="592" y="112" fill="#6ce8ff" font-size="38">→</text>
+<g transform="translate(612)"><rect width="174" height="204" rx="20" fill="#091522" stroke="#2e6074"/><path d="M45 62h12m8-11v22m12-30v38m12-19v18m12-43v50m12-32v30" stroke="#ffad58" stroke-width="5" stroke-linecap="round"/><text x="19" y="116" fill="#fff" font-size="18" font-weight="800">4. MICRO-CORRECT</text><text x="24" y="150" fill="#9db3c0" font-size="14">One focused fix.</text><text x="24" y="172" fill="#9db3c0" font-size="14">Try again.</text></g>
+<text x="796" y="112" fill="#6ce8ff" font-size="38">→</text>
+<g transform="translate(816)"><rect width="174" height="204" rx="20" fill="#091522" stroke="#2e6074"/><path d="M58 49a31 31 0 1 1-2 35M50 87l6-20 18 9" fill="none" stroke="#6ce8ff" stroke-width="5" stroke-linecap="round" stroke-linejoin="round"/><text x="35" y="116" fill="#fff" font-size="21" font-weight="800">5. REPEAT</text><text x="24" y="150" fill="#9db3c0" font-size="14">Practice. Adapt.</text><text x="24" y="172" fill="#9db3c0" font-size="14">Earn the next step.</text></g>
+<text x="1000" y="112" fill="#6ce8ff" font-size="38">→</text>
+<g transform="translate(1020)"><rect width="174" height="204" rx="20" fill="#091522" stroke="#2e6074"/><ellipse cx="87" cy="45" rx="29" ry="12" fill="none" stroke="#6ce8ff" stroke-width="4"/><path d="M58 45v37c0 7 13 13 29 13s29-6 29-13V45M58 63c0 7 13 13 29 13s29-6 29-13" fill="none" stroke="#6ce8ff" stroke-width="4"/><text x="18" y="116" fill="#fff" font-size="19" font-weight="800">6. REMEMBER</text><text x="24" y="150" fill="#9db3c0" font-size="14">Progress memory</text><text x="24" y="172" fill="#9db3c0" font-size="14">starts you smarter.</text></g>
+<text x="1204" y="112" fill="#ffad58" font-size="38">→</text>
+<g transform="translate(1224)"><rect width="174" height="204" rx="20" fill="#101516" stroke="#ff9f43"/><path d="M96 31v52c-14-8-37 0-37 16 0 15 22 21 33 10 5-5 6-11 6-18V52l31-8v37c-14-8-36 0-36 16 0 15 22 21 33 10 5-5 6-11 6-18V26z" fill="#ffad58" filter="url(#glow)"/><text x="28" y="116" fill="#fff" font-size="20" font-weight="800">7. PLAY</text><text x="24" y="150" fill="#d5b38d" font-size="14">Turn practice</text><text x="24" y="172" fill="#d5b38d" font-size="14">into real music.</text></g>
+</g>
+<text x="58" y="478" fill="#ffba72" font-family="Arial" font-size="19" font-weight="800">SMALL STEPS. BIG RIFFS. SAME GUITAR. SMARTER YOU.</text>
+</svg>
