@@ -981,7 +981,7 @@ def register_mission_dispatcher_routes(app) -> None:
     @app.post("/v1/traffic/event")
     @app.post("/api/v1/traffic/event")
     def traffic_event(req: TrafficEvent):
-        allowed = {"page_view", "commission_view", "cta", "mission_submit"}
+        allowed = {"page_view", "commission_view", "cta", "product_view", "checkout_start", "mission_submit"}
         event_type = req.event_type if req.event_type in allowed else "page_view"
         path = _clean(req.path, 500).split("?", 1)[0] or "/"
         if not path.startswith("/"):
@@ -1028,6 +1028,8 @@ def register_mission_dispatcher_routes(app) -> None:
                   COUNT(DISTINCT CASE WHEN event_type='page_view' THEN visitor_hash END) AS visitors,
                   COUNT(DISTINCT CASE WHEN event_type='page_view' THEN session_hash END) AS sessions,
                   SUM(CASE WHEN event_type='commission_view' THEN 1 ELSE 0 END) AS commission_views,
+                  SUM(CASE WHEN event_type='product_view' THEN 1 ELSE 0 END) AS product_views,
+                  SUM(CASE WHEN event_type='checkout_start' THEN 1 ELSE 0 END) AS checkout_starts,
                   SUM(CASE WHEN event_type='mission_submit' THEN 1 ELSE 0 END) AS mission_submits
                 FROM traffic_events WHERE is_internal=0 AND created_at>=?
                 """,
@@ -1044,6 +1046,8 @@ def register_mission_dispatcher_routes(app) -> None:
                 "external_visitors": int(ext["visitors"] or 0),
                 "external_sessions": int(ext["sessions"] or 0),
                 "external_commission_views": int(ext["commission_views"] or 0),
+                "external_product_views": int(ext["product_views"] or 0),
+                "external_checkout_starts": int(ext["checkout_starts"] or 0),
                 "external_mission_submits": int(ext["mission_submits"] or 0),
                 "started_at": first,
                 "quality_measurement_started_at": TRAFFIC_QUALITY_START,
@@ -1077,6 +1081,8 @@ def register_mission_dispatcher_routes(app) -> None:
                       COUNT(DISTINCT CASE WHEN event_type='page_view' THEN visitor_hash END) AS visitors,
                       COUNT(DISTINCT CASE WHEN event_type='page_view' THEN session_hash END) AS sessions,
                       SUM(CASE WHEN event_type='commission_view' THEN 1 ELSE 0 END) AS commission_views,
+                      SUM(CASE WHEN event_type='product_view' THEN 1 ELSE 0 END) AS product_views,
+                      SUM(CASE WHEN event_type='checkout_start' THEN 1 ELSE 0 END) AS checkout_starts,
                       SUM(CASE WHEN event_type='mission_submit' THEN 1 ELSE 0 END) AS mission_submits
                     FROM traffic_events
                     WHERE is_internal=0 AND created_at>=?
@@ -1084,13 +1090,18 @@ def register_mission_dispatcher_routes(app) -> None:
                     (quality_cut(cutoff),),
                 ).fetchone()
                 commission = int(row["commission_views"] or 0)
+                product_views = int(row["product_views"] or 0)
+                checkout_starts = int(row["checkout_starts"] or 0)
                 missions = int(row["mission_submits"] or 0)
                 return {
                     "pageviews": int(row["pageviews"] or 0),
                     "visitors": int(row["visitors"] or 0),
                     "sessions": int(row["sessions"] or 0),
                     "commission_views": commission,
+                    "product_views": product_views,
+                    "checkout_starts": checkout_starts,
                     "mission_submits": missions,
+                    "product_to_checkout_rate": round((checkout_starts / product_views) * 100, 1) if product_views else 0.0,
                     "commission_to_mission_rate": round((missions / commission) * 100, 1) if commission else 0.0,
                 }
 
@@ -1105,6 +1116,17 @@ def register_mission_dispatcher_routes(app) -> None:
                     """
                     SELECT path,COUNT(*) AS n FROM traffic_events
                     WHERE is_internal=0 AND event_type='page_view' AND created_at>=?
+                    GROUP BY path ORDER BY n DESC,path ASC LIMIT 12
+                    """,
+                    (quality_cut(cut_window),),
+                ).fetchall()
+            ]
+            top_products = [
+                {"path": row["path"], "views": row["n"]}
+                for row in conn.execute(
+                    """
+                    SELECT path,COUNT(*) AS n FROM traffic_events
+                    WHERE is_internal=0 AND event_type='product_view' AND created_at>=?
                     GROUP BY path ORDER BY n DESC,path ASC LIMIT 12
                     """,
                     (quality_cut(cut_window),),
@@ -1174,6 +1196,7 @@ def register_mission_dispatcher_routes(app) -> None:
                 "active_sessions_5m": int(active or 0),
                 "periods": {"24h": snapshot(cut24), "7d": snapshot(cut7), "30d": snapshot(cut30)},
                 "top_pages": top_pages,
+                "top_products": top_products,
                 "sources": sources,
                 "devices": devices,
                 "daily": daily,
