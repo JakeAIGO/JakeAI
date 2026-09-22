@@ -109,6 +109,82 @@
       }
     },
     {
+      "id": "JAI-GUITAR-001",
+      "slug": "guitar-coach",
+      "name": "JakeAI Guitar Coach",
+      "type": "adaptive_practice_workflow",
+      "category": [
+        "Music Education",
+        "Practice Tools",
+        "Adaptive Coaching"
+      ],
+      "version": "0.1",
+      "lifecycle_status": "founding_beta",
+      "publication_status": "listed_live",
+      "summary": "Audio-first adaptive guitar practice coach with a free browser tuner and first guided practice, plus paid founding-beta coaching paths.",
+      "problem_signals": [
+        "guitar practice",
+        "guitar tuner",
+        "open chord cleanup",
+        "rhythm practice",
+        "adaptive guitar lesson"
+      ],
+      "inputs": [
+        "microphone pitch input",
+        "player level",
+        "practice goal",
+        "progress and trouble spots"
+      ],
+      "outputs": [
+        "tuning feedback",
+        "guided practice steps",
+        "adaptive next-step coaching",
+        "progress memory"
+      ],
+      "human_url": "https://jakeaiofficial.com/guitar-coach.html",
+      "machine_url": "https://jakeaiofficial.com/catalog.json#JAI-GUITAR-001",
+      "commerce": {
+        "mode": "stripe_payment_link",
+        "purchasable": true,
+        "currency": "USD",
+        "free_starter": true,
+        "plans": [
+          {
+            "id": "JAI-GUITAR-COACH-MONTHLY",
+            "name": "JakeAI Guitar Coach",
+            "price": 19.99,
+            "billing": "monthly",
+            "purchase_url": "https://buy.stripe.com/bJe6oId0LdhSasdgfKaAw06"
+          },
+          {
+            "id": "JAI-GUITAR-COACH-ANNUAL",
+            "name": "JakeAI Guitar Coach Annual",
+            "price": 149,
+            "billing": "annual",
+            "purchase_url": "https://buy.stripe.com/eVqfZi1i3gu40RDfbGaAw07"
+          },
+          {
+            "id": "JAI-GUITAR-SPRINT",
+            "name": "JakeAI Guitar Coach — Goal Sprint",
+            "price": 39,
+            "billing": "one_time_30_day",
+            "purchase_url": "https://buy.stripe.com/6oUcN6aSD5Pq43PbZuaAw08"
+          }
+        ]
+      },
+      "invocation": {
+        "mode": "human_page",
+        "endpoint": null,
+        "note": "Founding beta. Browser tuner runs locally; camera/fret diagnosis remains experimental and is not represented as production-ready."
+      },
+      "trust": {
+        "human_release_gate": true,
+        "teacher_review_track": true,
+        "no_teacher_replacement_claim": true,
+        "provenance": "repository_public_record"
+      }
+    },
+    {
       "id": "JAI-WF-0019",
       "slug": "workflow-rescue",
       "name": "Workflow Rescue",
