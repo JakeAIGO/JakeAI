@@ -61,6 +61,24 @@
       <div class="trafficNote">First-party privacy-minimized measurement. Raw IP addresses, raw user-agent strings and full referrer URLs are not stored. Product views and checkout starts are measured as behavior signals; verified sales remain a separate commerce truth source.</div>
     </section>
 
+    <section class="hero trafficPanel" id="agents">
+      <div class="heroRow"><div><div class="private">SERVER-SIDE DISCOVERY · AI / BOT OBSERVATORY</div><h2 style="font-size:30px;margin:8px 0 4px">AI Agent Observatory</h2><p id="agentStamp">Watching crawler and machine-readable discovery requests that browser analytics cannot see.</p></div></div>
+      <div class="metrics">
+        <div class="metric"><small>AI / BOT REQUESTS · 24H</small><b id="aRequests24">0</b></div>
+        <div class="metric"><small>VERIFIED · 24H</small><b id="aVerified24">0</b></div>
+        <div class="metric"><small>MACHINE READS · 24H</small><b id="aMachine24">0</b></div>
+        <div class="metric"><small>CHATGPT REFERRALS · 7D</small><b id="aChatGPT7">0</b></div>
+        <div class="metric"><small>PERPLEXITY REFERRALS · 7D</small><b id="aPerplexity7">0</b></div>
+        <div class="metric"><small>CLAUDE REFERRALS · 7D</small><b id="aClaude7">0</b></div>
+      </div>
+      <div class="trafficCols">
+        <div class="trafficBox"><h3>AI CRAWLERS & FETCHERS · 7 DAYS</h3><div class="trafficRows" id="agentFamilies"></div></div>
+        <div class="trafficBox"><h3>MACHINE SURFACES · 7 DAYS</h3><div class="trafficRows" id="agentSurfaces"></div></div>
+        <div class="trafficBox" style="grid-column:1/-1"><h3>LATEST AGENT ACTIVITY</h3><div class="trafficRows" id="agentLatest"></div></div>
+      </div>
+      <div class="trafficNote" id="agentNote">Verified means a claimed crawler user-agent also matched a provider-published IP range. Claimed-UA means the name is visible but not independently verified. Raw IP addresses and raw user-agent strings are discarded after classification.</div>
+    </section>
+
     <div class="toolbar">
       <select id="filter"><option value="">All statuses</option><option>received</option><option>triaging</option><option>investigating</option><option>building</option><option>testing</option><option>needs_information</option><option>ready_for_review</option><option>closed</option></select>
       <input id="search" placeholder="Search mission ID or text">
@@ -129,6 +147,18 @@ function renderTraffic(){
   document.getElementById("trafficSources").innerHTML=rows(traffic.sources,"source","sessions","No acquisition sources yet.");
   document.getElementById("trafficDevices").innerHTML=rows(traffic.devices,"device","visitors","No device data yet.");
   document.getElementById("trafficDaily").innerHTML=(traffic.daily||[]).length?(traffic.daily||[]).slice(-14).map(x=>'<div class="trafficRow"><span>'+esc(x.date)+'</span><b>'+Number(x.visitors||0)+' visitors · '+Number(x.pageviews||0)+' views · '+Number(x.missions||0)+' missions</b></div>').join(""):'<div class="trafficEmpty">Trend begins with this deployment.</div>';
+
+  const agents=traffic.agent_observatory||{},refs=agents.referrals||{};
+  document.getElementById("aRequests24").textContent=Number(agents.requests_24h||0);
+  document.getElementById("aVerified24").textContent=Number(agents.verified_requests_24h||0);
+  document.getElementById("aMachine24").textContent=Number(agents.machine_surface_reads_24h||0);
+  document.getElementById("aChatGPT7").textContent=Number(refs.chatgpt||0);
+  document.getElementById("aPerplexity7").textContent=Number(refs.perplexity||0);
+  document.getElementById("aClaude7").textContent=Number(refs.claude||0);
+  document.getElementById("agentFamilies").innerHTML=(agents.families||[]).length?(agents.families||[]).map(x=>'<div class="trafficRow"><span><b>'+esc(x.agent||"unknown")+'</b><br><small>'+esc((x.provider||"unknown")+' · '+(x.purpose||"unknown")+' · '+(x.verification||"unverified"))+'</small></span><b>'+Number(x.requests||0)+'</b></div>').join(""):'<div class="trafficEmpty">No AI crawler or fetcher has been observed since server-side monitoring began.</div>';
+  document.getElementById("agentSurfaces").innerHTML=(agents.machine_surfaces||[]).length?(agents.machine_surfaces||[]).map(x=>'<div class="trafficRow"><span>'+esc(x.path||"/")+'</span><b>'+Number(x.requests||0)+'</b></div>').join(""):'<div class="trafficEmpty">No machine-readable surface reads observed yet.</div>';
+  document.getElementById("agentLatest").innerHTML=(agents.latest||[]).length?(agents.latest||[]).slice(0,12).map(x=>'<div class="trafficRow"><span><b>'+esc(x.agent||"unknown")+'</b> · '+esc(x.path||"/")+'<br><small>'+esc((x.provider||"unknown")+' · '+(x.purpose||"unknown")+' · '+(x.verification||"unverified")+' · '+new Date(x.at).toLocaleString())+'</small></span><b>'+Number(x.status||0)+'</b></div>').join(""):'<div class="trafficEmpty">Waiting for the first server-side AI/bot observation.</div>';
+  document.getElementById("agentNote").textContent=agents.verification_note||"Verified requests match provider-published IP ranges where those ranges are available. Raw IP and raw user-agent data are not retained.";
 }
 function render(){
   const counts=data.counts||{}, active=(counts.triaging||0)+(counts.investigating||0)+(counts.building||0)+(counts.testing||0);
