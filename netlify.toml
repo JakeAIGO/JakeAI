@@ -2,6 +2,15 @@
   publish = "."
   command = ""
 
+[functions]
+  directory = "netlify/functions"
+
+[[redirects]]
+  from = "/discord/interactions"
+  to = "/.netlify/functions/discord"
+  status = 200
+  force = true
+
 [[redirects]]
   from = "/v1/*"
   to = "https://agent-commerce-network-production.up.railway.app/v1/:splat"
