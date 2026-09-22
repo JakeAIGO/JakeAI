@@ -1,0 +1,3 @@
+Jim simplified opportunity finder deploy trigger
+2026-09-22
+source commit: 16deaa9e8dbde9d45aff4bd24fa1616fbaa32158
