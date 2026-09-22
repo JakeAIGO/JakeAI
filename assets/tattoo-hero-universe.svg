@@ -1,0 +1,29 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1440 900" role="img" aria-labelledby="t d">
+<title id="t">JakeAI Tattoo Design Bay</title><desc id="d">A cinematic JakeAI Universe tattoo design studio with an AI guide, holographic tattoo concepts and neon controls.</desc>
+<defs>
+<linearGradient id="bg" x1="0" y1="0" x2="1" y2="1"><stop stop-color="#050816"/><stop offset=".48" stop-color="#0a1830"/><stop offset="1" stop-color="#170c22"/></linearGradient>
+<linearGradient id="cyan" x1="0" x2="1"><stop stop-color="#68e7ff"/><stop offset="1" stop-color="#a88cff"/></linearGradient>
+<linearGradient id="amber" x1="0" x2="1"><stop stop-color="#ff9e42"/><stop offset="1" stop-color="#ffd082"/></linearGradient>
+<filter id="glow"><feGaussianBlur stdDeviation="8" result="b"/><feMerge><feMergeNode in="b"/><feMergeNode in="SourceGraphic"/></feMerge></filter>
+<pattern id="grid" width="64" height="64" patternUnits="userSpaceOnUse"><path d="M64 0H0V64" fill="none" stroke="#6ce8ff" stroke-opacity=".06"/></pattern>
+</defs>
+<rect width="1440" height="900" rx="44" fill="url(#bg)"/><rect width="1440" height="900" rx="44" fill="url(#grid)"/>
+<path d="M0 120H1440M0 760H1440" stroke="#6ce8ff" stroke-opacity=".18"/><circle cx="1190" cy="190" r="260" fill="#5d40ff" opacity=".08"/><circle cx="180" cy="720" r="300" fill="#ff9e42" opacity=".07"/>
+<g font-family="Arial,Helvetica,sans-serif"><text x="82" y="104" fill="#76e7ff" font-size="24" font-weight="700" letter-spacing="6">JAKEAI UNIVERSE · TATTOO DESIGN BAY</text><text x="82" y="180" fill="#fff" font-size="62" font-weight="900">Ideas → Designs → Artist-Ready</text><text x="84" y="224" fill="#b9c8dc" font-size="24">AI creativity. Human artistry. Permanent decisions deserve a good brief.</text></g>
+<g transform="translate(86 305)">
+<rect width="830" height="402" rx="30" fill="#08101e" stroke="#415979" stroke-width="2"/><rect x="28" y="28" width="774" height="62" rx="16" fill="#0d1930" stroke="#274963"/>
+<circle cx="62" cy="59" r="16" fill="#72e6ff"/><circle cx="62" cy="59" r="7" fill="#07111d"/><text x="96" y="68" fill="#dff9ff" font-family="Arial" font-size="24" font-weight="700">LIVE CONCEPT MATRIX</text>
+<g transform="translate(34 118)">
+<g><rect width="170" height="232" rx="18" fill="#eef5ff"/><path d="M85 35c-30 24-42 59-24 88 15 24 41 28 52 49 9 17 2 35-10 51" fill="none" stroke="#111827" stroke-width="8"/><path d="M52 94c20-22 48-22 67 0M48 146c22-18 52-18 74 0" fill="none" stroke="#111827" stroke-width="5"/><text x="19" y="218" fill="#354153" font-family="Arial" font-size="14">SERPENT · BLACKWORK</text></g>
+<g transform="translate(194)"><rect width="170" height="232" rx="18" fill="#eef5ff"/><circle cx="85" cy="92" r="45" fill="none" stroke="#111827" stroke-width="8"/><path d="M85 38V146M31 92H139M53 60l64 64M117 60l-64 64" stroke="#111827" stroke-width="4"/><path d="M85 152l-34 54h68z" fill="none" stroke="#111827" stroke-width="7"/><text x="20" y="218" fill="#354153" font-family="Arial" font-size="14">COMPASS · GEOMETRIC</text></g>
+<g transform="translate(388)"><rect width="170" height="232" rx="18" fill="#eef5ff"/><path d="M85 42c-50 22-58 73-20 96 18 11 25 28 20 58 22-17 39-35 42-57 5-37-13-75-42-97z" fill="none" stroke="#111827" stroke-width="7"/><path d="M45 115c31-8 61-25 83-51" fill="none" stroke="#111827" stroke-width="4"/><text x="22" y="218" fill="#354153" font-family="Arial" font-size="14">RAVEN · ILLUSTRATIVE</text></g>
+<g transform="translate(582)"><rect width="170" height="232" rx="18" fill="#eef5ff"/><circle cx="85" cy="100" r="36" fill="none" stroke="#111827" stroke-width="7"/><path d="M85 47c-14 22-15 34 0 53 15-19 14-31 0-53zm0 106c-14-22-15-34 0-53 15 19 14 31 0 53zM32 100c22-14 34-15 53 0-19 15-31 14-53 0zm106 0c-22-14-34-15-53 0 19 15 31 14 53 0z" fill="#111827"/><text x="24" y="218" fill="#354153" font-family="Arial" font-size="14">ROSE · FINE LINE</text></g></g>
+</g>
+<g transform="translate(1010 296)">
+<path d="M120 28c68 0 124 56 124 124v34c0 28-13 55-36 72l-28 20v78l58 42v120H18V398l58-42v-78l-28-20c-23-17-36-44-36-72v-34C12 84 60 28 120 28z" fill="#0a1425" stroke="#6ce8ff" stroke-width="4"/>
+<path d="M50 147c15-62 126-62 142 0l-19 85H69z" fill="#111d31" stroke="#9c8fff" stroke-width="4"/><path d="M70 160h45l-19 18H72zm99 0h-45l19 18h24z" fill="#72e6ff" filter="url(#glow)"/>
+<path d="M91 219h58" stroke="#ffb55f" stroke-width="5"/><circle cx="120" cy="120" r="106" fill="none" stroke="#6ce8ff" stroke-opacity=".12" stroke-width="18"/>
+<path d="M24 420h192M38 458h164" stroke="url(#cyan)" stroke-width="8" stroke-linecap="round"/><text x="56" y="515" fill="#fff" font-family="Arial" font-weight="900" font-size="34">JakeAI</text><text x="48" y="548" fill="#6ce8ff" font-family="Arial" font-size="16" letter-spacing="4">DESIGN GUIDE</text>
+</g>
+<g transform="translate(84 786)" font-family="Arial"><rect width="1270" height="64" rx="30" fill="#08101c" stroke="#304d67"/><text x="34" y="41" fill="#dce9f4" font-size="21">STORY</text><text x="162" y="41" fill="#6ce8ff" font-size="21">→</text><text x="222" y="41" fill="#dce9f4" font-size="21">STYLE</text><text x="334" y="41" fill="#6ce8ff" font-size="21">→</text><text x="394" y="41" fill="#dce9f4" font-size="21">REFINE</text><text x="526" y="41" fill="#6ce8ff" font-size="21">→</text><text x="586" y="41" fill="#dce9f4" font-size="21">ARTIST REVIEW</text><text x="780" y="41" fill="#6ce8ff" font-size="21">→</text><text x="840" y="41" fill="#ffbe69" font-size="21" font-weight="700">TATTOO ONCE.</text></g>
+</svg>
