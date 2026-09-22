@@ -21,15 +21,15 @@ textarea,input,select{width:100%;border:1px solid #285066;background:#040c12;col
 <div id="loginView" class="shell">
   <section class="login">
     <div class="eyebrow">JAKEAI PRIVATE PILOT</div>
-    <h1>Insurance Growth Desk</h1>
-    <p>Private workspace for Jim. Marketing, lead strategy and lead operations stay behind JakeAI's human approval gate.</p>
-    <div class="row"><input id="accessCode" type="password" autocomplete="current-password" placeholder="Pilot access code"><button class="btn primary" id="loginBtn">ENTER →</button></div>
+    <h1>Welcome back, Jim.</h1>
+    <p>Your JakeAI opportunity finder. Enter your access code and pick what you want to find.</p>
+    <div class="row"><input id="accessCode" type="password" autocomplete="current-password" placeholder="Your access code"><button class="btn primary" id="loginBtn">OPEN MY DESK →</button></div>
     <div id="loginStatus"></div>
   </section>
 </div>
 
 <div id="appView" class="shell hidden">
-  <header class="top"><div class="brand">Jake<b>AI</b> Insurance Growth Desk</div><div class="pilot">JIM PILOT · FREE VALIDATION</div></header>
+  <header class="top"><div class="brand">Jake<b>AI</b> · Jim's Desk</div><div class="pilot">PRIVATE</div></header>
   <section class="hero">
     <div class="eyebrow">JIM'S OPPORTUNITY FINDER</div>
     <h1>What are you looking<br><span>for?</span></h1>
@@ -115,7 +115,7 @@ async function boot(){
     await loadLeads();
   }catch(e){$('loginView').classList.remove('hidden');$('appView').classList.add('hidden')}
 }
-$('loginBtn').onclick=async()=>{const s=$('loginStatus');s.className='muted';s.textContent='Checking access…';try{await api('/api/v1/insurance/login',{method:'POST',body:JSON.stringify({access_code:$('accessCode').value})});s.className='ok';s.textContent='Access confirmed.';await boot()}catch(e){s.className='error';s.textContent=e.message}};
+$('loginBtn').onclick=async()=>{const s=$('loginStatus');s.className='muted';s.textContent='Checking access…';try{await api('/api/v1/insurance/login',{method:'POST',body:JSON.stringify({access_code:$('accessCode').value})});s.className='ok';s.textContent='Opening your desk…';await boot()}catch(e){s.className='error';s.textContent=e.message}};
 $('accessCode').addEventListener('keydown',e=>{if(e.key==='Enter')$('loginBtn').click()});
 document.querySelectorAll('.intentDoor').forEach(d=>d.onclick=()=>{document.querySelectorAll('.intentDoor').forEach(x=>x.style.borderColor='');d.style.borderColor='#74eaff';selectedDoor=d;});$('simpleRunBtn').onclick=()=>{if(!selectedDoor){alert('Choose Annuities, Retirement Rollovers, or Indexed Universal Life first.');return;}const loc=$('searchLocation').value.trim(),fresh=$('searchFreshness').value;$('mode').value='iul_annuity_leads';$('prompt').value=selectedDoor.dataset.query+(loc?' Location: '+loc+'.':' Location: nationwide.')+' Freshness: '+fresh+'.';$('runBtn').click();window.scrollTo({top:$('output').getBoundingClientRect().top+scrollY-120,behavior:'smooth'});};
 $('clearBtn').onclick=()=>{$('prompt').value='';$('output').classList.remove('open');$('output').textContent=''};
