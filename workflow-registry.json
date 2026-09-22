@@ -1,6 +1,6 @@
 {
   "schema_version": "1.3",
-  "generated_at": "2026-09-19",
+  "generated_at": "2026-09-22",
   "scope_note": "Bootstrap registry containing repository-verified and currently public JakeAI workflow/product records. The lifetime metric is intentionally a verified minimum until historical chat-origin workflows are reconciled. Retired records remain historical and do not reduce the lifetime count.",
   "integrity_rules": {
     "lifetime_counter_monotonic": true,
@@ -10,11 +10,11 @@
     "unknown_origin_dates_must_remain_null_until_verified": true
   },
   "metrics": {
-    "lifetime_distinct_workflows_developed_minimum": 21,
-    "active_working_workflows": 13,
-    "available_now": 4,
-    "public_product_listings": 17,
-    "active_available_now": 4
+    "lifetime_distinct_workflows_developed_minimum": 22,
+    "active_working_workflows": 14,
+    "available_now": 5,
+    "public_product_listings": 18,
+    "active_available_now": 5
   },
   "entries": [
     {
@@ -396,6 +396,25 @@
         "verification_basis": "repository_branch_record",
         "historical_reconciliation": "not_required",
         "notes": "Internal founding-pilot qualification, scope-draft and approval-queue workflow. No automated customer contact or consequential action."
+      }
+    },
+    {
+      "id": "JAI-WF-0022",
+      "distinct_key": "guitar-coach",
+      "canonical_name": "JakeAI Guitar Coach",
+      "date_originated": "2026-09-22",
+      "category": "Music Education / Adaptive Tutoring",
+      "status": "production",
+      "version": "1.0",
+      "website_publication_status": "listed_live",
+      "relationships": {
+        "parent_id": null,
+        "child_ids": []
+      },
+      "provenance": {
+        "verification_basis": "repository_public_record",
+        "historical_reconciliation": "not_required",
+        "notes": "Audio-first public release with browser microphone analysis and Stripe-verified paid Coach/Sprint access. Vision-assisted fret/hand diagnosis remains beta and is not represented as production-grade."
       }
     }
   ]
