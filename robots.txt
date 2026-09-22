@@ -1,23 +1,72 @@
 User-agent: *
 Allow: /
 Disallow: /pilot-concierge-operator.html
+Disallow: /mission-control/
+Disallow: /traffic-monitor/
 
-# Dedicated AI Agent Crawlers
+# OpenAI discovery and user-directed fetchers
+User-agent: OAI-SearchBot
+Allow: /
+Disallow: /pilot-concierge-operator.html
+Disallow: /mission-control/
+Disallow: /traffic-monitor/
+
+User-agent: ChatGPT-User
+Allow: /
+Disallow: /pilot-concierge-operator.html
+Disallow: /mission-control/
+Disallow: /traffic-monitor/
+
 User-agent: GPTBot
 Allow: /
 Disallow: /pilot-concierge-operator.html
+Disallow: /mission-control/
+Disallow: /traffic-monitor/
+
+User-agent: OAI-AdsBot
+Allow: /
+Disallow: /pilot-concierge-operator.html
+Disallow: /mission-control/
+Disallow: /traffic-monitor/
+
+# Anthropic discovery and user-directed fetchers
+User-agent: Claude-SearchBot
+Allow: /
+Disallow: /pilot-concierge-operator.html
+Disallow: /mission-control/
+Disallow: /traffic-monitor/
+
+User-agent: Claude-User
+Allow: /
+Disallow: /pilot-concierge-operator.html
+Disallow: /mission-control/
+Disallow: /traffic-monitor/
 
 User-agent: ClaudeBot
 Allow: /
 Disallow: /pilot-concierge-operator.html
+Disallow: /mission-control/
+Disallow: /traffic-monitor/
 
+# Perplexity discovery and user-directed fetchers
 User-agent: PerplexityBot
 Allow: /
 Disallow: /pilot-concierge-operator.html
+Disallow: /mission-control/
+Disallow: /traffic-monitor/
 
+User-agent: Perplexity-User
+Allow: /
+Disallow: /pilot-concierge-operator.html
+Disallow: /mission-control/
+Disallow: /traffic-monitor/
+
+# Google AI usage control token (separate from Google Search crawling)
 User-agent: Google-Extended
 Allow: /
 Disallow: /pilot-concierge-operator.html
+Disallow: /mission-control/
+Disallow: /traffic-monitor/
 
 Sitemap: https://jakeaiofficial.com/sitemap.xml
 LLMs-Txt: https://jakeaiofficial.com/llms.txt
