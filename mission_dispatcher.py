@@ -1370,6 +1370,9 @@ def register_mission_dispatcher_routes(app) -> None:
                 (TRAFFIC_QUALITY_START,),
             ).fetchone()
             first = conn.execute("SELECT MIN(created_at) AS at FROM traffic_events").fetchone()["at"]
+            agent_total = conn.execute("SELECT COUNT(*) AS n FROM agent_events").fetchone()["n"]
+            agent_verified = conn.execute("SELECT COUNT(*) AS n FROM agent_events WHERE verification='verified-ip'").fetchone()["n"]
+            agent_machine = conn.execute("SELECT COUNT(*) AS n FROM agent_events WHERE machine_surface=1").fetchone()["n"]
             return {
                 "status": "ready",
                 "tracker": "first-party-privacy-minimized-v1",
@@ -1383,6 +1386,9 @@ def register_mission_dispatcher_routes(app) -> None:
                 "external_product_views": int(ext["product_views"] or 0),
                 "external_checkout_starts": int(ext["checkout_starts"] or 0),
                 "external_mission_submits": int(ext["mission_submits"] or 0),
+                "agent_observer_events": int(agent_total or 0),
+                "agent_observer_verified": int(agent_verified or 0),
+                "agent_observer_machine_reads": int(agent_machine or 0),
                 "started_at": first,
                 "quality_measurement_started_at": TRAFFIC_QUALITY_START,
             }
