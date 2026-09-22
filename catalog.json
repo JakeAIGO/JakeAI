@@ -118,10 +118,10 @@
         "Practice Tools",
         "Adaptive Coaching"
       ],
-      "version": "0.1",
-      "lifecycle_status": "founding_beta",
+      "version": "1.0",
+      "lifecycle_status": "production",
       "publication_status": "listed_live",
-      "summary": "Audio-first adaptive guitar practice coach with a free browser tuner and first guided practice, plus paid founding-beta coaching paths.",
+      "summary": "Audio-first adaptive guitar tutor with a free browser tuner and guided G-chord lesson, plus Stripe-verified paid Coach exercises, Goal Mode, tempo progression, spoken coaching, and practice memory.",
       "problem_signals": [
         "guitar practice",
         "guitar tuner",
@@ -144,43 +144,45 @@
       "human_url": "https://jakeaiofficial.com/guitar-coach.html",
       "machine_url": "https://jakeaiofficial.com/catalog.json#JAI-GUITAR-001",
       "commerce": {
-        "mode": "stripe_payment_link",
+        "mode": "guarded_stripe_checkout",
         "purchasable": true,
         "currency": "USD",
         "free_starter": true,
         "plans": [
           {
-            "id": "JAI-GUITAR-COACH-MONTHLY",
+            "id": "prod_guitar_coach_monthly",
             "name": "JakeAI Guitar Coach",
             "price": 19.99,
             "billing": "monthly",
-            "purchase_url": "https://buy.stripe.com/bJe6oId0LdhSasdgfKaAw06"
+            "purchase_url": "https://jakeaiofficial.com/api/v1/checkout/buy/prod_guitar_coach_monthly"
           },
           {
-            "id": "JAI-GUITAR-COACH-ANNUAL",
+            "id": "prod_guitar_coach_annual",
             "name": "JakeAI Guitar Coach Annual",
             "price": 149,
             "billing": "annual",
-            "purchase_url": "https://buy.stripe.com/eVqfZi1i3gu40RDfbGaAw07"
+            "purchase_url": "https://jakeaiofficial.com/api/v1/checkout/buy/prod_guitar_coach_annual"
           },
           {
-            "id": "JAI-GUITAR-SPRINT",
+            "id": "prod_guitar_coach_sprint",
             "name": "JakeAI Guitar Coach — Goal Sprint",
             "price": 39,
             "billing": "one_time_30_day",
-            "purchase_url": "https://buy.stripe.com/6oUcN6aSD5Pq43PbZuaAw08"
+            "purchase_url": "https://jakeaiofficial.com/api/v1/checkout/buy/prod_guitar_coach_sprint"
           }
-        ]
+        ],
+        "entitlement": "server_verified_stripe_session"
       },
       "invocation": {
         "mode": "human_page",
         "endpoint": null,
-        "note": "Founding beta. Browser tuner runs locally; camera/fret diagnosis remains experimental and is not represented as production-ready."
+        "note": "Audio-first live release. Camera/fret diagnosis remains experimental and is not represented as production-ready."
       },
       "trust": {
         "human_release_gate": true,
         "teacher_review_track": true,
         "no_teacher_replacement_claim": true,
+        "raw_audio_stored_by_public_page": false,
         "provenance": "repository_public_record"
       }
     },
