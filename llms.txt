@@ -1,6 +1,6 @@
 # JakeAI — Autonomous Workflow Marketplace & Machine-Readable Capability Surface
 > Host: https://jakeaiofficial.com
-> Release: jakeai-universe-launch-candidate-2026-09-18
+> Release: jakeai-universe-guitar-coach-2026-09-22
 > Public release authority remains human-gated.
 > Commerce is fail-closed when fulfillment, entitlement, claims, or safety are not verified.
 >
@@ -22,6 +22,12 @@
 ## Public Commerce
 - Make the Damn Thing for Free™ — $0 — LIVE
   - GET /api/v1/checkout/buy/prod_make_free_00
+- JakeAI Guitar Coach — LIVE
+  - Starter — $0 — https://jakeaiofficial.com/guitar-coach.html#try
+  - Coach Monthly — $19.99/month — GET /api/v1/checkout/buy/prod_guitar_coach_monthly
+  - Coach Annual — $149/year — GET /api/v1/checkout/buy/prod_guitar_coach_annual
+  - Goal Sprint — $39 one-time / 30 days — GET /api/v1/checkout/buy/prod_guitar_coach_sprint
+  - Paid access is granted only after server-side Stripe verification. Vision-assisted fret/hand diagnosis remains beta.
 - Game QA Autopilot v1.0 — CHECKOUT GATED pending controlled-delivery QA.
 - Where the Hell Are My Glasses? — CHECKOUT GATED pending controlled-delivery QA.
 - Pool Coach Autopilot v1.0 — TEMPORARILY UNAVAILABLE while checkout and delivery are reviewed.
