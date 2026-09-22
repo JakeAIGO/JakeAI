@@ -62,14 +62,14 @@ textarea,input,select{width:100%;border:1px solid #285066;background:#040c12;col
     <article class="card">
       <h2>Results</h2><div class="muted">Pilot funnel state from the private lead ledger.</div>
       <div class="metrics"><div class="metric"><b id="mTotal">0</b><span>TOTAL</span></div><div class="metric"><b id="mConsent">0</b><span>VERIFIED OPT-IN</span></div><div class="metric"><b id="mAppt">0</b><span>APPOINTMENTS</span></div><div class="metric"><b id="mApps">0</b><span>APPLICATIONS</span></div><div class="metric"><b id="mIssued">0</b><span>ISSUED</span></div></div>
-      <h2 style="margin-top:18px">Lead Inbox</h2>
-      <div class="muted">Manual/private CRM for the pilot. Public capture is intentionally disabled until brand, disclosures and consent language are verified.</div>
+      <h2 style="margin-top:18px">Opportunity Inbox</h2>
+      <div class="muted">Evidence-first review queue. A discovered signal is not permission to contact. Verified opt-in is tracked separately.</div>
       <div id="leadList" class="leadList"><div class="muted">No leads loaded.</div></div>
     </article>
   </section>
 
   <section class="card" style="margin-top:15px">
-    <h2>Add pilot lead</h2><div class="muted">Use only information the person provided or that Jim is authorized to maintain. Do not enter medical diagnoses, passwords, financial-account credentials or other unnecessary sensitive data.</div>
+    <h2>Add / verify opportunity</h2><div class="muted">Use only information the person provided or that Jim is authorized to maintain. Do not enter medical diagnoses, passwords, financial-account credentials or other unnecessary sensitive data.</div>
     <div class="formGrid">
       <input id="lName" placeholder="Name"><input id="lState" placeholder="State">
       <input id="lEmail" type="email" placeholder="Email"><input id="lPhone" placeholder="Phone">
@@ -80,7 +80,7 @@ textarea,input,select{width:100%;border:1px solid #285066;background:#040c12;col
       <input id="lFreshness" placeholder="Observed date/time or freshness"><input id="lEvidence" placeholder="Consent evidence (required only for verified opt-in)">
       <textarea id="lNotes" class="wide" placeholder="Notes — avoid unnecessary sensitive data"></textarea>
     </div>
-    <div class="row"><button class="btn primary" id="addLeadBtn">ADD TO PRIVATE LEDGER →</button><div id="leadStatus" class="muted"></div></div>
+    <div class="row"><button class="btn primary" id="addLeadBtn">SAVE OPPORTUNITY →</button><div id="leadStatus" class="muted"></div></div>
   </section>
   <footer class="footer"><span>JakeAI · Learn. Discover. Create. Provide value.</span><button class="btn ghost" id="logoutBtn">LOG OUT</button></footer>
 </div>
