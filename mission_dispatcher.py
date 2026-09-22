@@ -17,10 +17,13 @@ from datetime import datetime, timezone, timedelta
 from typing import Optional
 
 from fastapi import Header, HTTPException, Request
+from fastapi.responses import JSONResponse
 from pydantic import BaseModel, Field
 
 MISSION_DB_PATH = os.environ.get("MISSION_DATABASE_PATH", "/data/jakeai-missions.db")
 TRAFFIC_QUALITY_START = os.environ.get("TRAFFIC_QUALITY_START", "2026-09-21T02:07:00+00:00")
+MISSION_CONTROL_COOKIE = "jakeai_owner_session"
+MISSION_CONTROL_SESSION_DAYS = 30
 ALLOWED_STATUSES = {
     "received",
     "triaging",
@@ -275,13 +278,46 @@ def _mission_dict(row: sqlite3.Row, *, include_private: bool = True) -> dict:
     return base
 
 
-def _require_control(authorization: Optional[str]) -> None:
+def _session_secret() -> str:
+    return os.environ.get("MISSION_CONTROL_SESSION_SECRET", "").strip() or os.environ.get("MISSION_CONTROL_TOKEN", "").strip()
+
+
+def _issue_owner_session() -> str:
+    secret = _session_secret()
+    if not secret:
+        raise HTTPException(status_code=503, detail="Mission Control session authorization is not configured")
+    expires = int(time.time()) + (MISSION_CONTROL_SESSION_DAYS * 86400)
+    payload = f"owner:{expires}"
+    signature = hmac.new(secret.encode("utf-8"), payload.encode("utf-8"), hashlib.sha256).hexdigest()
+    return f"{expires}.{signature}"
+
+
+def _valid_owner_session(value: str) -> bool:
+    try:
+        expires_text, signature = (value or "").split(".", 1)
+        expires = int(expires_text)
+    except Exception:
+        return False
+    if expires <= int(time.time()):
+        return False
+    secret = _session_secret()
+    if not secret:
+        return False
+    payload = f"owner:{expires}"
+    expected_signature = hmac.new(secret.encode("utf-8"), payload.encode("utf-8"), hashlib.sha256).hexdigest()
+    return hmac.compare_digest(signature, expected_signature)
+
+
+def _require_control(authorization: Optional[str], request: Optional[Request] = None) -> None:
     expected = os.environ.get("MISSION_CONTROL_TOKEN", "").strip()
     candidate = (authorization or "").removeprefix("Bearer ").strip()
     if not expected:
         raise HTTPException(status_code=503, detail="Mission Control authorization is not configured")
-    if not candidate or not hmac.compare_digest(candidate, expected):
-        raise HTTPException(status_code=401, detail="Unauthorized")
+    if candidate and hmac.compare_digest(candidate, expected):
+        return
+    if request and _valid_owner_session(request.cookies.get(MISSION_CONTROL_COOKIE, "")):
+        return
+    raise HTTPException(status_code=401, detail="Unauthorized")
 
 
 def _require_worker(worker_token: Optional[str]) -> None:
@@ -960,6 +996,10 @@ class ArtifactReleaseRequest(BaseModel):
     note: str = Field(default="", max_length=2000)
 
 
+class OwnerLoginRequest(BaseModel):
+    access_key: str = Field(min_length=8, max_length=500)
+
+
 class TrafficEvent(BaseModel):
     event_id: str = Field(min_length=8, max_length=120)
     visitor_id: str = Field(min_length=8, max_length=200)
@@ -977,6 +1017,40 @@ class TrafficEvent(BaseModel):
 
 def register_mission_dispatcher_routes(app) -> None:
     _init_db()
+
+    @app.post("/v1/mission-control/login")
+    @app.post("/api/v1/mission-control/login")
+    def mission_control_login(req: OwnerLoginRequest):
+        expected = os.environ.get("MISSION_CONTROL_TOKEN", "").strip()
+        candidate = _clean(req.access_key, 500)
+        if not expected:
+            raise HTTPException(status_code=503, detail="Mission Control authorization is not configured")
+        if not candidate or not hmac.compare_digest(candidate, expected):
+            raise HTTPException(status_code=401, detail="Owner access key rejected")
+        response = JSONResponse({"ok": True, "authenticated": True, "remembered_days": MISSION_CONTROL_SESSION_DAYS})
+        response.set_cookie(
+            key=MISSION_CONTROL_COOKIE,
+            value=_issue_owner_session(),
+            max_age=MISSION_CONTROL_SESSION_DAYS * 86400,
+            httponly=True,
+            secure=True,
+            samesite="strict",
+            path="/",
+        )
+        return response
+
+    @app.post("/v1/mission-control/logout")
+    @app.post("/api/v1/mission-control/logout")
+    def mission_control_logout():
+        response = JSONResponse({"ok": True, "authenticated": False})
+        response.delete_cookie(
+            key=MISSION_CONTROL_COOKIE,
+            httponly=True,
+            secure=True,
+            samesite="strict",
+            path="/",
+        )
+        return response
 
     @app.post("/v1/traffic/event")
     @app.post("/api/v1/traffic/event")
@@ -1058,10 +1132,11 @@ def register_mission_dispatcher_routes(app) -> None:
     @app.get("/v1/traffic/summary")
     @app.get("/api/v1/traffic/summary")
     def traffic_summary(
+        request: Request,
         days: int = 7,
         authorization: Optional[str] = Header(None, alias="Authorization"),
     ):
-        _require_control(authorization)
+        _require_control(authorization, request)
         days = max(1, min(90, int(days or 7)))
         now = datetime.now(timezone.utc)
         cut24 = (now - timedelta(hours=24)).isoformat()
@@ -1361,8 +1436,8 @@ def register_mission_dispatcher_routes(app) -> None:
 
     @app.get("/v1/mission-control")
     @app.get("/api/v1/mission-control")
-    def mission_control_list(authorization: Optional[str] = Header(None, alias="Authorization")):
-        _require_control(authorization)
+    def mission_control_list(request: Request, authorization: Optional[str] = Header(None, alias="Authorization")):
+        _require_control(authorization, request)
         conn = _connect()
         try:
             rows = conn.execute("SELECT * FROM missions ORDER BY created_at DESC LIMIT 250").fetchall()
@@ -1424,9 +1499,10 @@ def register_mission_dispatcher_routes(app) -> None:
     @app.get("/api/v1/mission-control/artifacts/{artifact_id}")
     def mission_control_artifact(
         artifact_id: str,
+        request: Request,
         authorization: Optional[str] = Header(None, alias="Authorization"),
     ):
-        _require_control(authorization)
+        _require_control(authorization, request)
         conn = _connect()
         try:
             row = conn.execute(
@@ -1473,9 +1549,10 @@ def register_mission_dispatcher_routes(app) -> None:
     @app.post("/api/v1/mission-control/artifacts/review")
     def mission_control_artifact_review(
         req: ArtifactReviewRequest,
+        request: Request,
         authorization: Optional[str] = Header(None, alias="Authorization"),
     ):
-        _require_control(authorization)
+        _require_control(authorization, request)
         decision = _clean(req.decision, 20).lower()
         note = _clean(req.note, 2000)
         if decision not in {"approve", "revise", "reject"}:
@@ -1590,9 +1667,10 @@ def register_mission_dispatcher_routes(app) -> None:
     @app.post("/api/v1/mission-control/artifacts/release")
     def mission_control_artifact_release(
         req: ArtifactReleaseRequest,
+        request: Request,
         authorization: Optional[str] = Header(None, alias="Authorization"),
     ):
-        _require_control(authorization)
+        _require_control(authorization, request)
         artifact_id = _clean(req.artifact_id, 100)
         note = _clean(req.note, 2000)
         conn = _connect()
@@ -1666,8 +1744,8 @@ def register_mission_dispatcher_routes(app) -> None:
 
     @app.patch("/v1/mission-control")
     @app.patch("/api/v1/mission-control")
-    def mission_control_update(req: MissionAdminUpdate, authorization: Optional[str] = Header(None, alias="Authorization")):
-        _require_control(authorization)
+    def mission_control_update(req: MissionAdminUpdate, request: Request, authorization: Optional[str] = Header(None, alias="Authorization")):
+        _require_control(authorization, request)
         if req.status not in ALLOWED_STATUSES:
             raise HTTPException(status_code=400, detail="Invalid mission state")
         conn = _connect()
@@ -1940,8 +2018,8 @@ def register_mission_dispatcher_routes(app) -> None:
 
     @app.post("/v1/mission-control/dispatcher-self-test")
     @app.post("/api/v1/mission-control/dispatcher-self-test")
-    def mission_dispatcher_self_test(authorization: Optional[str] = Header(None, alias="Authorization")):
-        _require_control(authorization)
+    def mission_dispatcher_self_test(request: Request, authorization: Optional[str] = Header(None, alias="Authorization")):
+        _require_control(authorization, request)
         test_id = "JAI-QA-" + uuid.uuid4().hex[:16].upper()
         idem = _hash("dispatcher-self-test-" + test_id)
         now_iso = _now_iso()
