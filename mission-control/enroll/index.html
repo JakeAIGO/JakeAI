@@ -1,0 +1,48 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
+<meta name="robots" content="noindex,nofollow,noarchive">
+<meta name="referrer" content="no-referrer">
+<meta name="theme-color" content="#020508">
+<title>JakeAI Owner Activation</title>
+<style>
+:root{--bg:#020508;--panel:#07111a;--line:#214457;--cyan:#72eaff;--gold:#f2c66d;--text:#effcff;--muted:#8fa8b7;--danger:#ff9b9b}
+*{box-sizing:border-box}html,body{margin:0;min-height:100%;background:radial-gradient(circle at 80% 0,#34206455,transparent 28%),radial-gradient(circle at 10% 18%,#0a4c6255,transparent 28%),var(--bg);color:var(--text);font-family:Inter,system-ui,-apple-system,Segoe UI,sans-serif}
+.wrap{min-height:100vh;display:grid;place-items:center;padding:22px}.card{width:min(560px,100%);border:1px solid #2b5369;border-radius:28px;padding:28px;background:#061019ee;box-shadow:0 24px 90px #0009}.eyebrow{font-size:11px;letter-spacing:.16em;color:var(--gold);font-weight:900}.brand{font-weight:950;margin-bottom:26px}.brand b{color:var(--cyan)}h1{font-size:clamp(40px,9vw,64px);line-height:.95;letter-spacing:-.05em;margin:10px 0 14px}p{color:var(--muted);line-height:1.55}.state{margin-top:18px;border:1px solid #203f51;border-radius:18px;padding:15px;background:#050d13;font-weight:800;color:#dffaff}.bad{color:var(--danger)}.spinner{display:inline-block;width:14px;height:14px;border:2px solid #35596b;border-top-color:var(--cyan);border-radius:50%;animation:s .8s linear infinite;vertical-align:-2px;margin-right:8px}@keyframes s{to{transform:rotate(360deg)}}
+</style>
+</head>
+<body>
+<div class="wrap"><main class="card">
+<div class="brand">Jake<b>AI</b> Mission Control</div>
+<div class="eyebrow">OWNER DEVICE ACTIVATION</div>
+<h1>Securing this device.</h1>
+<p>This one-time activation creates a private 30-day owner session. The activation token is never stored as your ongoing login credential.</p>
+<div class="state" id="state"><span class="spinner"></span>Activating this device…</div>
+</main></div>
+<script>
+(async()=>{
+  const state=document.getElementById("state");
+  const token=location.hash.slice(1).trim();
+  if(!token){state.classList.add("bad");state.textContent="This activation link is incomplete.";return}
+  try{
+    const r=await fetch("/api/v1/mission-control/enroll",{
+      method:"POST",
+      headers:{"Content-Type":"application/json"},
+      credentials:"same-origin",
+      body:JSON.stringify({token})
+    });
+    const d=await r.json().catch(()=>({}));
+    if(!r.ok)throw new Error(d.detail||"Activation failed");
+    localStorage.setItem("jakeai_internal_operator","1");
+    state.textContent="Owner device activated. Opening Mission Control…";
+    setTimeout(()=>location.replace("/mission-control/#traffic"),350);
+  }catch(e){
+    state.classList.add("bad");
+    state.textContent=e.message||"Could not activate this device.";
+  }
+})();
+</script>
+</body>
+</html>
