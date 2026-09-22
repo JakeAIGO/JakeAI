@@ -4,6 +4,7 @@ from fastapi.responses import RedirectResponse, PlainTextResponse
 from fastapi.middleware.cors import CORSMiddleware
 from main import create_checkout_session as legacy_create_checkout_session
 from crypto_commerce_app import app as legacy_app
+from guitar_coach_commerce import create_guitar_checkout, register_guitar_coach_routes
 
 PUBLIC_BASE_URL = os.environ.get("PUBLIC_BASE_URL", "https://jakeaiofficial.com").rstrip("/")
 FREE_DELIVERY_URL = "https://docs.google.com/document/d/14Ayw4pxjnYy5MddTGdLSZEeQGKJGU3CRSmW7384Lfhk/edit?usp=sharing"
@@ -13,6 +14,9 @@ PUBLIC_PRODUCTS = {
     "prod_game_qa_autopilot_01": {"id":"prod_game_qa_autopilot_01","title":"Game QA Autopilot v1.0","description":"Structured game QA workflow kit.","category":"gaming-qa","price":9.99,"status":"gated"},
     "prod_where_the_hell_are_my_glasses_01": {"id":"prod_where_the_hell_are_my_glasses_01","title":"Where the Hell Are My Glasses?","description":"Guided lost-object recovery workflow.","category":"personal-productivity","price":2.99,"status":"gated"},
     "prod_genesis_commission_001": {"id":"prod_genesis_commission_001","title":"JakeAI Genesis Commission #001","description":"The first JakeAI customer commission. JakeAI evaluates feasibility, safety, and scope before accepting the commission.","category":"commission","price":49.00,"status":"live"},
+    "prod_guitar_coach_monthly": {"id":"prod_guitar_coach_monthly","title":"JakeAI Guitar Coach — Coach Monthly","description":"Adaptive browser guitar tutor with live listening, goal mode, guided chord checks, and practice memory.","category":"music-education","price":19.99,"status":"live"},
+    "prod_guitar_coach_annual": {"id":"prod_guitar_coach_annual","title":"JakeAI Guitar Coach — Coach Annual","description":"Annual access to JakeAI Guitar Coach paid features.","category":"music-education","price":149.00,"status":"live"},
+    "prod_guitar_coach_sprint": {"id":"prod_guitar_coach_sprint","title":"JakeAI Guitar Coach — Goal Sprint","description":"Thirty days of Guitar Coach paid access for one focused playing goal.","category":"music-education","price":39.00,"status":"live"},
 }
 
 app = FastAPI(title="JakeAI Commerce Guard", version="1.3.0")
@@ -59,6 +63,8 @@ def _create_checkout(product_id: str, idempotency_key: str | None):
         # product to the legacy commerce engine, which owns the reservation,
         # Stripe Checkout, payment verification, and persistent Genesis state.
         return legacy_create_checkout_session(product_id, idempotency_key)
+    if product_id in {"prod_guitar_coach_monthly", "prod_guitar_coach_annual", "prod_guitar_coach_sprint"}:
+        return create_guitar_checkout(product_id, idempotency_key)
     raise HTTPException(status_code=503, detail="Paid fulfillment is not configured for this public product")
 
 @app.get("/v1/checkout/buy/{product_id}")
@@ -91,6 +97,9 @@ JakeAI publishes one public capability record for both human and AI discovery. C
 ## CURRENT COMMERCE ALLOWLIST
 - Make the Damn Thing for Free™ — $0 — Product ID: prod_make_free_00
 - JakeAI Genesis Commission #001 — $49 — Product ID: prod_genesis_commission_001
+- JakeAI Guitar Coach — Coach Monthly — $19.99/month — Product ID: prod_guitar_coach_monthly
+- JakeAI Guitar Coach — Coach Annual — $149/year — Product ID: prod_guitar_coach_annual
+- JakeAI Guitar Coach — Goal Sprint — $39 one-time / 30 days — Product ID: prod_guitar_coach_sprint
 
 ## FAIL-CLOSED RULE
 Any product or capability not explicitly marked live by the commerce service is not available for automated purchase. Gated API routes may return a service-unavailable response until delivery, provenance, entitlement, safety, or claims validation is complete.
@@ -185,5 +194,8 @@ register_pilot_diagnostics_routes(app)
 # Controlled $1 Pool Coach commerce proof. Sandbox-only and fail-closed.
 from pool_coach_fulfillment import register_pool_coach_routes
 register_pool_coach_routes(app)
+
+# Public Guitar Coach checkout, entitlement, and billing self-service routes.
+register_guitar_coach_routes(app)
 
 app.mount("/", legacy_app)
