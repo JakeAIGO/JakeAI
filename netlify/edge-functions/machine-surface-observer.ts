@@ -14,7 +14,7 @@ async function observe(request: Request, context: any, machineSurface: boolean) 
   const controller = new AbortController();
   const timer = setTimeout(() => controller.abort(), 1500);
   try {
-    await fetch(new URL("/api/v1/agent-observer/event", url.origin), {
+    await fetch("https://agent-commerce-network-production.up.railway.app/v1/agent-observer/event", {
       method: "POST",
       headers: {
         "content-type": "application/json",
