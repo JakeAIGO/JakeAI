@@ -134,6 +134,14 @@ def _init_db() -> None:
         )
         conn.execute(
             """
+            CREATE TABLE IF NOT EXISTS owner_enrollment_uses (
+                token_hash TEXT PRIMARY KEY,
+                used_at TEXT NOT NULL
+            )
+            """
+        )
+        conn.execute(
+            """
             CREATE TABLE IF NOT EXISTS traffic_events (
                 id INTEGER PRIMARY KEY AUTOINCREMENT,
                 event_id TEXT NOT NULL UNIQUE,
@@ -1000,6 +1008,10 @@ class OwnerLoginRequest(BaseModel):
     access_key: str = Field(min_length=8, max_length=500)
 
 
+class OwnerEnrollRequest(BaseModel):
+    token: str = Field(min_length=20, max_length=500)
+
+
 class TrafficEvent(BaseModel):
     event_id: str = Field(min_length=8, max_length=120)
     visitor_id: str = Field(min_length=8, max_length=200)
@@ -1017,6 +1029,59 @@ class TrafficEvent(BaseModel):
 
 def register_mission_dispatcher_routes(app) -> None:
     _init_db()
+
+    @app.post("/v1/mission-control/enroll")
+    @app.post("/api/v1/mission-control/enroll")
+    def mission_control_enroll(req: OwnerEnrollRequest):
+        expected_hash = os.environ.get("MISSION_CONTROL_ENROLL_HASH", "").strip().lower()
+        expires_raw = os.environ.get("MISSION_CONTROL_ENROLL_EXPIRES", "").strip()
+        try:
+            expires = int(expires_raw)
+        except Exception:
+            expires = 0
+        if not expected_hash or not expires:
+            raise HTTPException(status_code=503, detail="Owner device enrollment is not configured")
+        if int(time.time()) > expires:
+            raise HTTPException(status_code=410, detail="Owner activation link has expired")
+        candidate_hash = hashlib.sha256(req.token.encode("utf-8")).hexdigest()
+        if not hmac.compare_digest(candidate_hash, expected_hash):
+            raise HTTPException(status_code=401, detail="Owner activation link rejected")
+        conn = _connect()
+        try:
+            conn.execute("BEGIN IMMEDIATE")
+            used = conn.execute(
+                "SELECT used_at FROM owner_enrollment_uses WHERE token_hash=?",
+                (candidate_hash,),
+            ).fetchone()
+            if used:
+                conn.execute("ROLLBACK")
+                raise HTTPException(status_code=409, detail="Owner activation link has already been used")
+            conn.execute(
+                "INSERT INTO owner_enrollment_uses(token_hash,used_at) VALUES(?,?)",
+                (candidate_hash, _now_iso()),
+            )
+            conn.execute("COMMIT")
+        except HTTPException:
+            raise
+        except Exception:
+            try:
+                conn.execute("ROLLBACK")
+            except Exception:
+                pass
+            raise
+        finally:
+            conn.close()
+        response = JSONResponse({"ok": True, "authenticated": True, "remembered_days": MISSION_CONTROL_SESSION_DAYS})
+        response.set_cookie(
+            key=MISSION_CONTROL_COOKIE,
+            value=_issue_owner_session(),
+            max_age=MISSION_CONTROL_SESSION_DAYS * 86400,
+            httponly=True,
+            secure=True,
+            samesite="strict",
+            path="/",
+        )
+        return response
 
     @app.post("/v1/mission-control/login")
     @app.post("/api/v1/mission-control/login")
