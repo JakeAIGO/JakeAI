@@ -1,55 +1,59 @@
-async function observe(request: Request, context: any, machineSurface: boolean) {
-  const response = await context.next();
-  if (request.method !== "GET" && request.method !== "HEAD") return response;
-  const token = Netlify.env.get("AGENT_OBSERVER_TOKEN");
-  if (!token) return response;
-
-  const url = new URL(request.url);
-  let referrerHost = "";
-  try {
-    const ref = request.headers.get("referer") || "";
-    referrerHost = ref ? new URL(ref).hostname : "";
-  } catch (_) {}
-
-  const controller = new AbortController();
-  const timer = setTimeout(() => controller.abort(), 1500);
-  try {
-    await fetch("https://agent-commerce-network-production.up.railway.app/v1/agent-observer/event", {
-      method: "POST",
-      headers: {
-        "content-type": "application/json",
-        "x-jakeai-agent-observer": token,
-      },
-      body: JSON.stringify({
-        event_id: String(context.requestId || crypto.randomUUID()),
-        path: url.pathname,
-        method: request.method,
-        user_agent: request.headers.get("user-agent") || "",
-        client_ip: String(context.ip || ""),
-        referrer_host: referrerHost,
-        response_status: response.status,
-        machine_surface: machineSurface,
-      }),
-      signal: controller.signal,
-    });
-  } catch (_) {
-    // Measurement must never break public delivery.
-  } finally {
-    clearTimeout(timer);
+import { getStore } from "@netlify/blobs";
+function classify(ua: string, machineSurface: boolean) {
+  const s=(ua||"").toLowerCase();
+  const signatures=[
+    ["openai","OAI-SearchBot","search","oai-searchbot"],
+    ["openai","GPTBot","training-crawler","gptbot"],
+    ["openai","ChatGPT-User","user-fetch","chatgpt-user"],
+    ["openai","OAI-AdsBot","ads-validation","oai-adsbot"],
+    ["anthropic","Claude-SearchBot","search","claude-searchbot"],
+    ["anthropic","Claude-User","user-fetch","claude-user"],
+    ["anthropic","ClaudeBot","training-crawler","claudebot"],
+    ["perplexity","Perplexity-User","user-fetch","perplexity-user"],
+    ["perplexity","PerplexityBot","search","perplexitybot"],
+    ["google","Googlebot","search","googlebot"],
+    ["microsoft","bingbot","search","bingbot"],
+    ["apple","Applebot","search-ai","applebot"],
+    ["amazon","Amazonbot","search-ai","amazonbot"],
+    ["meta","Meta-ExternalAgent","ai-crawler","meta-externalagent"],
+    ["commoncrawl","CCBot","web-crawler","ccbot"],
+  ];
+  for(const [provider,agent,purpose,needle] of signatures){
+    if(s.includes(needle)) return {provider,agent,purpose,verification:"claimed-ua"};
   }
-  return response;
+  if(/bot|crawler|spider|slurp|headless/.test(s)) return {provider:"other",agent:"UnidentifiedBot",purpose:"crawler",verification:"generic-bot"};
+  if(machineSurface) return {provider:"unknown",agent:"MachineClient",purpose:"machine-discovery",verification:"machine-surface"};
+  return null;
 }
 
-export default async (request: Request, context: any) => observe(request, context, true);
+async function record(request: Request, context: any, response: Response, machineSurface: boolean) {
+  if (request.method!=="GET" && request.method!=="HEAD") return;
+  const url=new URL(request.url);
+  if(url.hostname!=="jakeaiofficial.com") return;
+  const info=classify(request.headers.get("user-agent")||"",machineSurface);
+  if(!info) return;
+  const now=new Date();
+  const event={
+    at:now.toISOString(),
+    provider:info.provider,
+    agent:info.agent,
+    purpose:info.purpose,
+    verification:info.verification,
+    path:url.pathname,
+    status:response.status,
+    machine_surface:Boolean(machineSurface)
+  };
+  const key=now.toISOString().slice(0,10)+"/"+String(context.requestId||crypto.randomUUID());
+  const store=getStore("jakeai-agent-observatory",{consistency:"strong"});
+  await store.setJSON(key,event);
+}
 
-export const config = {
-  path: [
-    "/llms.txt",
-    "/robots.txt",
-    "/sitemap.xml",
-    "/catalog.json",
-    "/workflow-registry.json",
-    "/.well-known/*",
-    "/agent-catalog/*"
-  ]
+
+export default async (request: Request, context: any) => {
+  const response=await context.next();
+  try{await record(request,context,response,true)}catch(_){}
+  return response;
+};
+export const config={
+  path:["/llms.txt","/robots.txt","/sitemap.xml","/catalog.json","/workflow-registry.json","/.well-known/*","/agent-catalog/*"]
 };
