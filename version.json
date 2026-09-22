@@ -1,8 +1,8 @@
 {
   "project": "JakeAI",
-  "release": "jakeai-universe-rc4-commerce-backbone-2026-09-20",
-  "date": "2026-09-20",
-  "version": "3.0.1",
+  "release": "jakeai-universe-guitar-coach-2026-09-22",
+  "date": "2026-09-22",
+  "version": "3.1.0",
   "frontend_host_target": "Netlify",
   "backend_host": "https://agent-commerce-network-production.up.railway.app",
   "checkout_strategy": "fail-closed public commerce with verified fulfillment",
@@ -14,5 +14,7 @@
   "media_rights_gate": true,
   "human_release_gate": true,
   "mobile_gateway_release": "RC4",
-  "universe_hub": "/universe-hub.html"
+  "universe_hub": "/universe-hub.html",
+  "guitar_coach_live": true,
+  "guitar_coach_path": "/guitar-coach.html"
 }
