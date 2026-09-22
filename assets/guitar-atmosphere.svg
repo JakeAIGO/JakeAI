@@ -1,0 +1,14 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1440 1600" aria-hidden="true">
+<defs><linearGradient id="g" x1="0" y1="0" x2="1" y2="1"><stop stop-color="#68e7ff"/><stop offset=".65" stop-color="#2abcf6"/><stop offset="1" stop-color="#ff9f43"/></linearGradient></defs>
+<rect width="1440" height="1600" fill="none"/>
+<g fill="none" stroke="url(#g)" opacity=".12">
+<path d="M-40 250h640v150H-40zM20 250v150M100 250v150M180 250v150M260 250v150M340 250v150M420 250v150M500 250v150M580 250v150" stroke-width="3"/>
+<path d="M0 275h600M0 300h600M0 325h600M0 350h600M0 375h600" stroke-width="2"/>
+<path d="M880 170c65 0 118 53 118 118s-53 118-118 118-118-53-118-118 53-118 118-118z" stroke-width="5"/>
+<path d="M832 282h30m38 0h30" stroke-width="10" stroke-linecap="round"/>
+<path d="M760 720c35-70 70 70 105 0s70 70 105 0 70 70 105 0 70 70 105 0 70 70 105 0" stroke-width="5"/>
+<path d="M110 1120h1220M110 1180h1220" stroke-width="2"/>
+<path d="M180 1130v40M360 1130v40M540 1130v40M720 1130v40M900 1130v40M1080 1130v40M1260 1130v40" stroke-width="3"/>
+</g>
+<g fill="#70e5ff" opacity=".1" font-family="Arial" font-size="80"><text x="1040" y="550">♪</text><text x="1210" y="690">♫</text><text x="180" y="900">♪</text></g>
+</svg>
