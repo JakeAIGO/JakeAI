@@ -8,7 +8,7 @@
     "machine_catalog_url": "https://jakeaiofficial.com/catalog.json",
     "workflow_registry_url": "https://jakeaiofficial.com/workflow-registry.json"
   },
-  "generated_at": "2026-09-20",
+  "generated_at": "2026-09-22",
   "audience": [
     "human",
     "ai_agent"
@@ -23,6 +23,91 @@
     "agent_guidance": "Do not infer that a gated capability is purchasable or invokable. Use each record's commerce and invocation fields."
   },
   "capabilities": [
+    {
+      "id": "JAI-TATTOO-001",
+      "slug": "tattoo-designer",
+      "name": "JakeAI Tattoo Designer",
+      "type": "creative_workflow",
+      "category": [
+        "Creative Tools",
+        "Tattoo Design",
+        "Creator Commerce"
+      ],
+      "version": "1.2",
+      "lifecycle_status": "production",
+      "publication_status": "listed_live",
+      "summary": "Guided custom tattoo concept development with placement and scale planning, revision continuity, tattooability review, an Artist-Ready Pack, and optional creator-marketplace launch tools.",
+      "problem_signals": [
+        "custom tattoo idea",
+        "tattoo concept",
+        "artist-ready tattoo brief",
+        "sell tattoo flash",
+        "tattoo creator marketing"
+      ],
+      "inputs": [
+        "tattoo idea or story",
+        "placement",
+        "approximate size",
+        "style preferences",
+        "required and forbidden elements",
+        "optional references"
+      ],
+      "outputs": [
+        "structured tattoo concept",
+        "revision lineage",
+        "tattooability review",
+        "Artist-Ready Pack",
+        "optional creator listing and launch brief"
+      ],
+      "human_url": "https://jakeaiofficial.com/tattoo.html",
+      "machine_url": "https://jakeaiofficial.com/catalog.json#JAI-TATTOO-001",
+      "commerce": {
+        "mode": "stripe_payment_link",
+        "purchasable": true,
+        "currency": "USD",
+        "price": 19.99,
+        "purchase_url": "https://buy.stripe.com/28E8wQaSD5Pq7g1fbGaAw03",
+        "artist_plans": [
+          {
+            "id": "JAI-TATTOO-PRO",
+            "name": "JakeAI Tattoo Studio Pro",
+            "price": 39,
+            "billing": "monthly",
+            "purchase_url": "https://buy.stripe.com/7sYbJ25yjcdOdEpbZuaAw04"
+          },
+          {
+            "id": "JAI-TATTOO-STUDIO",
+            "name": "JakeAI Tattoo Studio",
+            "price": 99,
+            "billing": "monthly",
+            "seats": 5,
+            "purchase_url": "https://buy.stripe.com/14A28sgcX4LmdEp7JeaAw05"
+          }
+        ]
+      },
+      "invocation": {
+        "mode": "human_page",
+        "endpoint": null,
+        "note": "V1 uses controlled fulfillment and human-reviewed intake; no public autonomous tattoo-generation endpoint is declared."
+      },
+      "marketplace": {
+        "license_modes": [
+          "one_of_one",
+          "limited_edition",
+          "open_flash",
+          "customizable",
+          "commission_me"
+        ],
+        "external_marketing_requires_creator_approval": true,
+        "creator_launch_kit": true
+      },
+      "trust": {
+        "human_release_gate": true,
+        "artist_final_authority": true,
+        "creator_rights_confirmation": true,
+        "provenance": "repository_public_record"
+      }
+    },
     {
       "id": "JAI-WF-0019",
       "slug": "workflow-rescue",
