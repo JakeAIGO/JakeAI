@@ -118,14 +118,20 @@ function auth(){return key?{Authorization:"Bearer "+key}:{}}
 function showApp(){gate.style.display="none";app.style.display="block"}
 function showGate(msg=""){gate.style.display="grid";app.style.display="none";document.getElementById("gateError").textContent=msg}
 async function load(){
-  const [r,t]=await Promise.all([
+  const [r,t,a]=await Promise.all([
     fetch("/api/v1/mission-control",{headers:auth(),cache:"no-store"}),
-    fetch("/api/v1/traffic/summary?days=7",{headers:auth(),cache:"no-store"})
+    fetch("/api/v1/traffic/summary?days=7",{headers:auth(),cache:"no-store"}),
+    fetch("/api/agent-observatory-summary",{cache:"no-store"})
   ]);
   if(r.status===401||t.status===401){key="";showGate("Owner session expired. Sign in once to continue.");throw 0}
   if(!r.ok)throw new Error("Mission Control unavailable");
   data=await r.json();
   if(t.ok)traffic=await t.json();
+  if(a.ok){
+    const edgeAgents=await a.json();
+    const existing=(traffic.agent_observatory||{});
+    traffic.agent_observatory={...existing,...edgeAgents,referrals:existing.referrals||{}};
+  }
   showApp();render();renderTraffic();
   if(location.hash==="#traffic")setTimeout(()=>document.getElementById("traffic")?.scrollIntoView({behavior:"smooth",block:"start"}),80);
 }
