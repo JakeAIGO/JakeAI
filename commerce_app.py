@@ -29,12 +29,16 @@ POOL_PRODUCT_ID = "prod_pool_coach_autopilot_01"
 POOL_PRODUCT = {"title":"JakeAI Pool Coach Autopilot v1.0","description":"A lightweight pool-practice companion that turns plain-language session notes into recurring-pattern tracking and a focused next-session warmup. Recreational training aid; no wagering, guaranteed shot prediction, or camera analysis in v1.0.","category":"sports-practice-workflow","price":1.00,"download_url":SECURE_DELIVERY_URL,"delivery_mode":"protected_order","vendor_did":"did:a2a:jakeai_core"}
 GLASSES_PRODUCT_ID = "prod_where_the_hell_are_my_glasses_01"
 GENESIS_PRODUCT_ID = "prod_genesis_commission_001"
+SCOPE_CREEP_PRODUCT_ID = "prod_scope_creep_guard_01"
+INVOICE_NUDGE_PRODUCT_ID = "prod_invoice_nudge_01"
 GLASSES_PRODUCT = {"title":"Where the Hell Are My Glasses? v1.0","description":"Humorous stateful guided-search workflow that remembers checked locations, reconstructs the last-use context, supports opt-in pattern learning, and includes safety guardrails. No camera-based object detection in v1.0.","category":"life-automation-comedy","price":2.99,"download_url":SECURE_DELIVERY_URL,"delivery_mode":"protected_order","vendor_did":"did:a2a:jakeai_core"}
+SCOPE_CREEP_PRODUCT = {"title":"JakeAI Scope Creep Guard v1.0","description":"Browser-based change-control tool that turns an extra client request into a documented change request, added-effort estimate, proposed fee, margin-leak estimate, and client-safe message. No messages are sent automatically.","category":"small-business-change-control","price":12.99,"download_url":"https://jakeaiofficial.com/scope-creep-guard.html?paid=1","delivery_mode":"protected_order","vendor_did":"did:a2a:jakeai_core"}
+INVOICE_NUDGE_PRODUCT = {"title":"JakeAI Invoice Nudge v1.0","description":"Browser-based overdue-invoice follow-up builder that creates a staged reminder sequence, copy-ready messages, and calendar reminders without auto-sending or making legal claims.","category":"small-business-receivables","price":9.99,"download_url":"https://jakeaiofficial.com/invoice-nudge.html?paid=1","delivery_mode":"protected_order","vendor_did":"did:a2a:jakeai_core"}
 
-PROMOTED_PRODUCTS={GAME_QA_PRODUCT_ID:GAME_QA_PRODUCT,BOSS_FIGHT_PRODUCT_ID:BOSS_FIGHT_PRODUCT,INVENTORY_PRODUCT_ID:INVENTORY_PRODUCT,POOL_PRODUCT_ID:POOL_PRODUCT,GLASSES_PRODUCT_ID:GLASSES_PRODUCT}
+PROMOTED_PRODUCTS={GAME_QA_PRODUCT_ID:GAME_QA_PRODUCT,BOSS_FIGHT_PRODUCT_ID:BOSS_FIGHT_PRODUCT,INVENTORY_PRODUCT_ID:INVENTORY_PRODUCT,POOL_PRODUCT_ID:POOL_PRODUCT,GLASSES_PRODUCT_ID:GLASSES_PRODUCT,SCOPE_CREEP_PRODUCT_ID:SCOPE_CREEP_PRODUCT,INVOICE_NUDGE_PRODUCT_ID:INVOICE_NUDGE_PRODUCT}
 main.GENESIS_CATALOG.update(PROMOTED_PRODUCTS)
 # Pool Coach is intentionally omitted while its checkout/delivery flow is under review.
-COMMERCE_ENABLED={"prod_make_free_00","prod_solar_guide_04",GAME_QA_PRODUCT_ID,BOSS_FIGHT_PRODUCT_ID,INVENTORY_PRODUCT_ID,GLASSES_PRODUCT_ID}
+COMMERCE_ENABLED={"prod_make_free_00","prod_solar_guide_04",GAME_QA_PRODUCT_ID,BOSS_FIGHT_PRODUCT_ID,INVENTORY_PRODUCT_ID,GLASSES_PRODUCT_ID,SCOPE_CREEP_PRODUCT_ID,INVOICE_NUDGE_PRODUCT_ID}
 
 PRODUCT_PAGE_PATHS={
     GAME_QA_PRODUCT_ID:"/game-qa-autopilot.html",
@@ -42,6 +46,8 @@ PRODUCT_PAGE_PATHS={
     INVENTORY_PRODUCT_ID:"/inventory-replenishment-autopilot.html",
     POOL_PRODUCT_ID:"/pool-coach-autopilot.html",
     GLASSES_PRODUCT_ID:"/where-the-hell-are-my-glasses.html",
+    SCOPE_CREEP_PRODUCT_ID:"/scope-creep-guard.html",
+    INVOICE_NUDGE_PRODUCT_ID:"/invoice-nudge.html",
 }
 
 app.user_middleware=[m for m in app.user_middleware if m.cls is not CORSMiddleware]
