@@ -14,6 +14,14 @@ from fastapi import Header, HTTPException, Request
 from fastapi.responses import HTMLResponse, JSONResponse, RedirectResponse
 from pydantic import BaseModel
 
+from model_router import (
+    ModelRouterError,
+    execution_configured as _provider_execution_configured,
+    run_text as _provider_run_text,
+    selected_model as _provider_selected_model,
+    selected_provider as _provider_selected_provider,
+)
+
 DIRECT_PLAN_ID = "direct_founding_edition"
 DIRECT_PRICE_CENTS = 2900
 DEFAULT_ALLOWANCE_CENTS = 1000
@@ -373,10 +381,21 @@ def _runtime_token():
     return os.environ.get("DIRECT_RUNTIME_INTERNAL_TOKEN", "").strip()
 
 def _execution_configured():
-    return bool((_runtime_url() and _runtime_token()) or _openai_key())
+    return bool((_runtime_url() and _runtime_token()) or _provider_execution_configured())
 
 def _direct_model():
-    return os.environ.get("DIRECT_OPENAI_MODEL", "gpt-5.6-luna").strip() or "gpt-5.6-luna"
+    try:
+        return _provider_selected_model()
+    except ModelRouterError:
+        return ""
+
+def _direct_provider():
+    if _runtime_url() and _runtime_token():
+        return "remote_runtime"
+    try:
+        return _provider_selected_provider()
+    except ModelRouterError:
+        return "invalid"
 
 def _refund_usage(subscription_id, amount_cents):
     if amount_cents <= 0:
@@ -475,47 +494,17 @@ def _call_openai(prompt, workflow):
             "output_tokens": int(data.get("output_tokens") or 0),
         }
 
-    key = _openai_key()
-    if not key:
+    if not _provider_execution_configured():
         raise HTTPException(503, "JakeAI Direct model runtime is not configured")
-    model = _direct_model()
-    payload = {
-        "model": model,
-        "instructions": _workflow_instructions(workflow),
-        "input": prompt,
-        "max_output_tokens": 1400,
-        "reasoning": {"effort": "low"},
-        "store": False,
-        "metadata": {"product": "jakeai_direct", "workflow": workflow},
-    }
-    req = urllib.request.Request(
-        "https://api.openai.com/v1/responses",
-        data=json.dumps(payload).encode("utf-8"),
-        headers={
-            "Authorization": "Bearer " + key,
-            "Content-Type": "application/json",
-            "User-Agent": "JakeAI-Direct/1.0",
-        },
-        method="POST",
-    )
     try:
-        with urllib.request.urlopen(req, timeout=45) as response:
-            data = json.loads(response.read().decode("utf-8"))
-    except urllib.error.HTTPError as exc:
-        raise HTTPException(502, "JakeAI Direct model provider rejected the request") from exc
-    except Exception as exc:
-        raise HTTPException(502, "JakeAI Direct model provider is unavailable") from exc
-    text = _extract_output_text(data)
-    if not text:
-        raise HTTPException(502, "JakeAI Direct received no usable model output")
-    usage = data.get("usage") or {}
-    return {
-        "text": text,
-        "model": str(data.get("model") or model),
-        "response_id": str(data.get("id") or ""),
-        "input_tokens": int(usage.get("input_tokens") or 0),
-        "output_tokens": int(usage.get("output_tokens") or 0),
-    }
+        return _provider_run_text(
+            prompt,
+            _workflow_instructions(workflow),
+            max_output_tokens=1400,
+            reasoning_effort="low",
+        )
+    except ModelRouterError as exc:
+        raise HTTPException(502, "JakeAI Direct model provider rejected or failed the request") from exc
 
 def _rounded_provider_cost_cents(input_tokens, output_tokens):
     input_rate = float(os.environ.get("DIRECT_INPUT_USD_PER_MILLION", "0.20"))
@@ -563,7 +552,8 @@ def register_direct_routes(app):
             "automatic_overages": False,
             "environment": _environment_name(),
             "execution_configured": _execution_configured(),
-            "execution_mode": "remote_runtime" if (_runtime_url() and _runtime_token()) else ("local_key" if _openai_key() else "disabled"),
+            "execution_mode": "remote_runtime" if (_runtime_url() and _runtime_token()) else ("provider" if _provider_execution_configured() else "disabled"),
+            "execution_provider": _direct_provider(),
             "execution_model": _direct_model(),
             "event_count": counts["events"],
             "entitlement_count": counts["entitlements"],
@@ -625,7 +615,8 @@ def register_direct_routes(app):
             "automatic_overages": False,
             "environment": _environment_name(),
             "execution_configured": _execution_configured(),
-            "execution_mode": "remote_runtime" if (_runtime_url() and _runtime_token()) else ("local_key" if _openai_key() else "disabled"),
+            "execution_mode": "remote_runtime" if (_runtime_url() and _runtime_token()) else ("provider" if _provider_execution_configured() else "disabled"),
+            "execution_provider": _direct_provider(),
             "execution_model": _direct_model(),
         }
 
