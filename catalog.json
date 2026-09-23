@@ -106,6 +106,18 @@
         "artist_final_authority": true,
         "creator_rights_confirmation": true,
         "provenance": "repository_public_record"
+      },
+      "distribution": {
+        "shopify": {
+          "enabled": true,
+          "security_review": "passed",
+          "release_state": "draft",
+          "require_image": true,
+          "image_url": "https://jakeaiofficial.com/assets/tattoo-designer-approved-20260922.webp",
+          "variant_mode": "base_only",
+          "sku": "JAI-TATTOO-001",
+          "product_type": "Digital Workflow"
+        }
       }
     },
     {
@@ -184,6 +196,17 @@
         "no_teacher_replacement_claim": true,
         "raw_audio_stored_by_public_page": false,
         "provenance": "repository_public_record"
+      },
+      "distribution": {
+        "shopify": {
+          "enabled": true,
+          "security_review": "passed",
+          "release_state": "draft",
+          "require_image": true,
+          "image_url": "https://jakeaiofficial.com/assets/guitar-launch-v1.jpg",
+          "variant_mode": "plans",
+          "product_type": "Digital Coaching"
+        }
       }
     },
     {
@@ -245,6 +268,18 @@
         "legal_advice": false,
         "external_actions_executed": false,
         "provenance": "repository_public_record"
+      },
+      "distribution": {
+        "shopify": {
+          "enabled": true,
+          "security_review": "passed",
+          "release_state": "draft",
+          "require_image": true,
+          "image_url": "https://jakeaiofficial.com/assets/scope-creep-guard.svg",
+          "variant_mode": "base_only",
+          "sku": "JAI-SCOPE-001",
+          "product_type": "Digital Workflow"
+        }
       }
     },
     {
@@ -304,6 +339,18 @@
         "legal_advice": false,
         "external_actions_executed": false,
         "provenance": "repository_public_record"
+      },
+      "distribution": {
+        "shopify": {
+          "enabled": true,
+          "security_review": "passed",
+          "release_state": "draft",
+          "require_image": true,
+          "image_url": "https://jakeaiofficial.com/assets/invoice-nudge.svg",
+          "variant_mode": "base_only",
+          "sku": "JAI-INVOICE-001",
+          "product_type": "Digital Workflow"
+        }
       }
     },
     {
