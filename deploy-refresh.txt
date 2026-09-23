@@ -2,3 +2,4 @@ JakeAI production deployment refresh
 2026-09-17
 Mobile hero deployment recovery trigger.
 Insurance Growth Desk private pilot release trigger — 2026-09-21
+Factory Overdrive 1.5 Arcade integration production rebuild trigger — 2026-09-23
