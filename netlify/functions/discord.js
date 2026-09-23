@@ -59,23 +59,70 @@ export default async (request) => {
         type: 4,
         data: {
           content:
-            "JakeAI Discord bridge is online. Production actions remain human-gated.",
+            "JakeAI Discord command channel is online. Problems route into the owned Mission Dispatcher; production actions remain human-gated.",
         },
       });
     }
 
     if (command === "problem") {
-      const problem =
-        interaction.data?.options?.find((option) => option.name === "text")?.value ??
-        "No problem text supplied.";
+      const problem = String(
+        interaction.data?.options?.find((option) => option.name === "text")?.value ?? ""
+      ).trim().slice(0, 1800);
 
-      return json(200, {
-        type: 4,
-        data: {
-          content:
-            `Received: ${problem}\n\nStatus: intake captured for JakeAI triage. No external action has been taken.`,
-        },
-      });
+      if (!problem) {
+        return json(200, {
+          type: 4,
+          data: { content: "Give JakeAI a problem to work on." },
+        });
+      }
+
+      const controller = new AbortController();
+      const timeout = setTimeout(() => controller.abort(), 2200);
+      try {
+        const intake = await fetch(
+          "https://agent-commerce-network-production.up.railway.app/v1/missions/intake",
+          {
+            method: "POST",
+            headers: { "content-type": "application/json" },
+            body: JSON.stringify({
+              signal: problem,
+              outcome: "Investigate the problem, build the most useful bounded solution, and return it for human review.",
+              boundaries: "No outbound contact, purchase, publication, deployment, or other consequential external action without explicit human approval.",
+              idempotency_key: `discord-${interaction.id}`,
+              website: "",
+            }),
+            signal: controller.signal,
+          },
+        );
+        const body = await intake.json().catch(() => ({}));
+        const missionId = body?.mission?.id;
+        if (!intake.ok || !missionId) {
+          return json(200, {
+            type: 4,
+            data: {
+              content:
+                "JakeAI received the command, but the Mission Dispatcher did not accept it. Nothing external was done.",
+            },
+          });
+        }
+        return json(200, {
+          type: 4,
+          data: {
+            content:
+              `JakeAI mission accepted: ${missionId}\n\nThe owned Mission Dispatcher has it. Human release gate: ON. No external action has been taken.`,
+          },
+        });
+      } catch {
+        return json(200, {
+          type: 4,
+          data: {
+            content:
+              "JakeAI command channel is online, but the Mission Dispatcher could not be reached in time. Nothing external was done.",
+          },
+        });
+      } finally {
+        clearTimeout(timeout);
+      }
     }
   }
 
