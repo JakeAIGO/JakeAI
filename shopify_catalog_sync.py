@@ -150,8 +150,14 @@ def _variants(item: dict[str, Any]) -> tuple[list[dict[str, Any]], list[dict[str
             raise SyncError(f"{canonical_id}: variant_mode=plans but commerce.plans is empty")
         option_values = [{"name": str(p["name"])} for p in plans]
         variants = []
+        sku_map = cfg.get("variant_skus") or {}
         for p in plans:
-            sku = str(p.get("shopify_sku") or p.get("id") or f"{canonical_id}-{_slug(str(p['name']))}")
+            sku = str(
+                p.get("shopify_sku")
+                or sku_map.get(str(p.get("id") or ""))
+                or p.get("id")
+                or f"{canonical_id}-{_slug(str(p['name']))}"
+            )
             variants.append(
                 {
                     "optionValues": [{"optionName": "Plan", "name": str(p["name"])}],
