@@ -1,0 +1,37 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="1400" height="800" viewBox="0 0 1400 800">
+<defs>
+  <linearGradient id="bg" x1="0" x2="1"><stop stop-color="#07111c"/><stop offset=".6" stop-color="#101c2b"/><stop offset="1" stop-color="#21130d"/></linearGradient>
+  <linearGradient id="glow" x1="0" x2="1"><stop stop-color="#6ee8ff"/><stop offset="1" stop-color="#ff9a45"/></linearGradient>
+  <filter id="blur"><feGaussianBlur stdDeviation="28"/></filter>
+</defs>
+<rect width="1400" height="800" rx="34" fill="url(#bg)"/>
+<circle cx="1110" cy="145" r="190" fill="#ff8f3d" opacity=".12" filter="url(#blur)"/>
+<circle cx="265" cy="650" r="190" fill="#55dfff" opacity=".12" filter="url(#blur)"/>
+<text x="70" y="78" fill="#fff" font-family="Arial,sans-serif" font-weight="800" font-size="34">Jake<tspan fill="#ff9a45">AI</tspan></text>
+<text x="70" y="126" fill="#72eaff" font-family="Arial,sans-serif" font-weight="800" font-size="17" letter-spacing="4">SCOPE CREEP GUARD</text>
+<text x="70" y="216" fill="#fff" font-family="Arial,sans-serif" font-weight="900" font-size="58">“ONE QUICK THING”</text>
+<text x="70" y="280" fill="#ffb36e" font-family="Arial,sans-serif" font-weight="900" font-size="58">IS STILL A THING.</text>
+<text x="70" y="332" fill="#a9bfcc" font-family="Arial,sans-serif" font-size="24">Turn extra requests into a clean change request, fee, and client message.</text>
+<g transform="translate(70 405)">
+  <rect width="530" height="250" rx="24" fill="#091822" stroke="#315064"/>
+  <text x="28" y="42" fill="#7af1bd" font-family="Arial,sans-serif" font-weight="800" font-size="18">ORIGINAL SCOPE</text>
+  <rect x="28" y="66" width="474" height="24" rx="12" fill="#173040"/>
+  <rect x="28" y="106" width="390" height="18" rx="9" fill="#112737"/>
+  <rect x="28" y="138" width="430" height="18" rx="9" fill="#112737"/>
+  <path d="M28 190 H500" stroke="#294858"/>
+  <text x="28" y="224" fill="#9fb5c1" font-family="Arial,sans-serif" font-size="17">Budget protected · scope preserved</text>
+</g>
+<g transform="translate(760 345)">
+  <rect width="560" height="310" rx="28" fill="#17120e" stroke="#7b4c2d"/>
+  <text x="30" y="48" fill="#ffb36e" font-family="Arial,sans-serif" font-weight="800" font-size="18">NEW CLIENT REQUEST</text>
+  <text x="30" y="104" fill="#fff" font-family="Arial,sans-serif" font-weight="800" font-size="28">+ 6.0 hours</text>
+  <text x="30" y="146" fill="#fff" font-family="Arial,sans-serif" font-weight="800" font-size="28">+$750 change</text>
+  <path d="M30 176 H530" stroke="#6f452b"/>
+  <text x="30" y="218" fill="#d9b79e" font-family="Arial,sans-serif" font-size="19">Client-safe message</text>
+  <text x="30" y="252" fill="#d9b79e" font-family="Arial,sans-serif" font-size="19">Change order summary</text>
+  <text x="30" y="286" fill="#d9b79e" font-family="Arial,sans-serif" font-size="19">Margin leak estimate</text>
+</g>
+<path d="M610 530 C680 530 690 500 750 500" fill="none" stroke="url(#glow)" stroke-width="6"/>
+<circle cx="680" cy="514" r="12" fill="#75eaff"/>
+<text x="70" y="735" fill="#76909e" font-family="Arial,sans-serif" font-size="18">We annoy the problem, not you.</text>
+</svg>
