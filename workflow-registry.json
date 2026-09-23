@@ -10,11 +10,11 @@
     "unknown_origin_dates_must_remain_null_until_verified": true
   },
   "metrics": {
-    "lifetime_distinct_workflows_developed_minimum": 22,
-    "active_working_workflows": 14,
-    "available_now": 5,
-    "public_product_listings": 18,
-    "active_available_now": 5
+    "lifetime_distinct_workflows_developed_minimum": 24,
+    "active_working_workflows": 16,
+    "available_now": 7,
+    "public_product_listings": 20,
+    "active_available_now": 7
   },
   "entries": [
     {
@@ -415,6 +415,44 @@
         "verification_basis": "repository_public_record",
         "historical_reconciliation": "not_required",
         "notes": "Audio-first public release with Stripe-verified paid access. Vision-assisted fret/hand diagnosis remains beta."
+      }
+    },
+    {
+      "id": "JAI-SCOPE-001",
+      "distinct_key": "scope-creep-guard",
+      "canonical_name": "JakeAI Scope Creep Guard",
+      "date_originated": "2026-09-22",
+      "category": "Small Business / Change Control",
+      "status": "production",
+      "version": "1.0",
+      "website_publication_status": "listed_live",
+      "relationships": {
+        "parent_id": null,
+        "child_ids": []
+      },
+      "provenance": {
+        "verification_basis": "repository_public_record",
+        "historical_reconciliation": "not_required",
+        "notes": "Evidence-led micro-product: server-verified one-time checkout; browser-local inputs; produces change-request drafts only and does not send external messages."
+      }
+    },
+    {
+      "id": "JAI-INVOICE-001",
+      "distinct_key": "invoice-nudge",
+      "canonical_name": "JakeAI Invoice Nudge",
+      "date_originated": "2026-09-22",
+      "category": "Small Business / Accounts Receivable",
+      "status": "production",
+      "version": "1.0",
+      "website_publication_status": "listed_live",
+      "relationships": {
+        "parent_id": null,
+        "child_ids": []
+      },
+      "provenance": {
+        "verification_basis": "repository_public_record",
+        "historical_reconciliation": "not_required",
+        "notes": "Evidence-led micro-product: server-verified one-time checkout; browser-local invoice inputs; generates follow-up drafts and calendar reminders without auto-sending."
       }
     }
   ]
