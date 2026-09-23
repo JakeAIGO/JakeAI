@@ -3,6 +3,7 @@ from fastapi import FastAPI, HTTPException, Header, Request
 from fastapi.responses import RedirectResponse, PlainTextResponse
 from fastapi.middleware.cors import CORSMiddleware
 from main import create_checkout_session as legacy_create_checkout_session
+import commerce_app
 from crypto_commerce_app import app as legacy_app
 from guitar_coach_commerce import create_guitar_checkout, register_guitar_coach_routes
 
@@ -17,6 +18,8 @@ PUBLIC_PRODUCTS = {
     "prod_guitar_coach_monthly": {"id":"prod_guitar_coach_monthly","title":"JakeAI Guitar Coach — Coach Monthly","description":"Adaptive browser guitar tutor with live listening, goal mode, guided chord checks, and practice memory.","category":"music-education","price":19.99,"status":"live"},
     "prod_guitar_coach_annual": {"id":"prod_guitar_coach_annual","title":"JakeAI Guitar Coach — Coach Annual","description":"Annual access to JakeAI Guitar Coach paid features.","category":"music-education","price":149.00,"status":"live"},
     "prod_guitar_coach_sprint": {"id":"prod_guitar_coach_sprint","title":"JakeAI Guitar Coach — Goal Sprint","description":"Thirty days of Guitar Coach paid access for one focused playing goal.","category":"music-education","price":39.00,"status":"live"},
+    "prod_scope_creep_guard_01": {"id":"prod_scope_creep_guard_01","title":"JakeAI Scope Creep Guard","description":"Turn extra client requests into documented change requests, pricing, and client-safe messages.","category":"small-business-change-control","price":12.99,"status":"live"},
+    "prod_invoice_nudge_01": {"id":"prod_invoice_nudge_01","title":"JakeAI Invoice Nudge","description":"Build a staged overdue-invoice follow-up sequence and calendar without auto-sending.","category":"small-business-receivables","price":9.99,"status":"live"},
 }
 
 app = FastAPI(title="JakeAI Commerce Guard", version="1.3.0")
@@ -50,7 +53,7 @@ async def search_products(request: Request):
     matches = [p for p in PUBLIC_PRODUCTS.values() if q in p["title"].lower() or q in p["description"].lower() or q in p["category"].lower()]
     return {"status":"success","count":len(matches),"results":matches}
 
-def _create_checkout(product_id: str, idempotency_key: str | None):
+async def _create_checkout(product_id: str, request: Request, idempotency_key: str | None):
     product = PUBLIC_PRODUCTS.get(product_id)
     if not product:
         raise HTTPException(status_code=404, detail="Product is not in the public commerce allowlist")
@@ -65,17 +68,19 @@ def _create_checkout(product_id: str, idempotency_key: str | None):
         return legacy_create_checkout_session(product_id, idempotency_key)
     if product_id in {"prod_guitar_coach_monthly", "prod_guitar_coach_annual", "prod_guitar_coach_sprint"}:
         return create_guitar_checkout(product_id, idempotency_key)
+    if product_id in {"prod_scope_creep_guard_01", "prod_invoice_nudge_01"}:
+        return await commerce_app.buy_product(product_id, request, source="marketplace", idempotency_key=idempotency_key)
     raise HTTPException(status_code=503, detail="Paid fulfillment is not configured for this public product")
 
 @app.get("/v1/checkout/buy/{product_id}")
 @app.get("/api/v1/checkout/buy/{product_id}")
-def buy(product_id: str, idempotency_key: str | None = Header(default=None, alias="Idempotency-Key")):
-    return _create_checkout(product_id, idempotency_key)
+async def buy(request: Request, product_id: str, idempotency_key: str | None = Header(default=None, alias="Idempotency-Key")):
+    return await _create_checkout(product_id, request, idempotency_key)
 
 @app.post("/v1/checkout/create-session")
 @app.post("/api/v1/checkout/create-session")
-def create_session(product_id: str, idempotency_key: str | None = Header(default=None, alias="Idempotency-Key")):
-    return _create_checkout(product_id, idempotency_key)
+async def create_session(request: Request, product_id: str, idempotency_key: str | None = Header(default=None, alias="Idempotency-Key")):
+    return await _create_checkout(product_id, request, idempotency_key)
 
 @app.get("/v1/checkout/success")
 @app.get("/api/v1/checkout/success")
@@ -100,6 +105,8 @@ JakeAI publishes one public capability record for both human and AI discovery. C
 - JakeAI Guitar Coach — Coach Monthly — $19.99/month — Product ID: prod_guitar_coach_monthly
 - JakeAI Guitar Coach — Coach Annual — $149/year — Product ID: prod_guitar_coach_annual
 - JakeAI Guitar Coach — Goal Sprint — $39 one-time / 30 days — Product ID: prod_guitar_coach_sprint
+- JakeAI Scope Creep Guard — $12.99 one-time — Product ID: prod_scope_creep_guard_01
+- JakeAI Invoice Nudge — $9.99 one-time — Product ID: prod_invoice_nudge_01
 
 ## FAIL-CLOSED RULE
 Any product or capability not explicitly marked live by the commerce service is not available for automated purchase. Gated API routes may return a service-unavailable response until delivery, provenance, entitlement, safety, or claims validation is complete.
