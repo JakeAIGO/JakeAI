@@ -205,7 +205,12 @@
           "require_image": true,
           "image_url": "https://jakeaiofficial.com/assets/guitar-launch-v1.jpg",
           "variant_mode": "plans",
-          "product_type": "Digital Coaching"
+          "product_type": "Digital Coaching",
+          "variant_skus": {
+            "prod_guitar_coach_monthly": "JAI-GUITAR-001-MONTHLY",
+            "prod_guitar_coach_annual": "JAI-GUITAR-001-ANNUAL",
+            "prod_guitar_coach_sprint": "JAI-GUITAR-001-SPRINT"
+          }
         }
       }
     },
