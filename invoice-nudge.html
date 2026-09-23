@@ -1,0 +1,105 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
+<meta name="theme-color" content="#07111c">
+<title>JakeAI Invoice Nudge</title>
+<meta name="description" content="Build a calm overdue-invoice follow-up sequence, dates, copy-ready messages and calendar reminders without auto-sending anything.">
+<link rel="canonical" href="https://jakeaiofficial.com/invoice-nudge.html">
+<script defer src="/assets/traffic.js"></script>
+<style>
+:root{--bg:#050a10;--panel:#09151e;--line:#29495a;--text:#eefaff;--muted:#98adba;--cyan:#6ee8ff;--green:#72efb4;--gold:#ffd36f}
+*{box-sizing:border-box}body{margin:0;background:radial-gradient(circle at 82% 0,#124d3150,transparent 28%),radial-gradient(circle at 10% 8%,#0b4a6050,transparent 25%),var(--bg);color:var(--text);font-family:Inter,system-ui,-apple-system,Segoe UI,sans-serif}
+.wrap{width:min(1160px,92vw);margin:auto}.top{display:flex;justify-content:space-between;align-items:center;padding:18px 0}.brand{font-size:22px;font-weight:950;text-decoration:none;color:#fff}.brand b{color:var(--cyan)}.nav{display:flex;gap:12px;flex-wrap:wrap}.nav a{color:#b8d0dc;text-decoration:none;font-size:12px;font-weight:850}
+.hero{display:grid;grid-template-columns:1fr 1fr;gap:30px;align-items:center;padding:28px 0 42px}.hero img{width:100%;border-radius:28px;border:1px solid #35556a;box-shadow:0 28px 80px #0009}.eyebrow{font-size:11px;letter-spacing:.18em;color:var(--green);font-weight:950}.hero h1{font-size:clamp(48px,7vw,82px);line-height:.9;letter-spacing:-.055em;margin:12px 0}.hero h1 span{color:var(--cyan)}.lead{font-size:18px;color:#b3c6d1;line-height:1.55}.price{font-size:35px;font-weight:950;margin-top:18px}.fine{font-size:12px;color:#8297a4}.actions{display:flex;gap:10px;flex-wrap:wrap;margin-top:18px}.btn{border:1px solid #466477;border-radius:999px;padding:12px 16px;background:#0b1822;color:#e8faff;text-decoration:none;font-weight:900;cursor:pointer}.btn.primary{background:linear-gradient(90deg,#67e8ff,#9ef7d2);color:#041314;border-color:#7eeddd}.btn:disabled{opacity:.45;cursor:not-allowed}
+.band{margin:18px 0 30px;border:1px solid #2d4c5e;border-radius:24px;padding:22px;background:#08131c}.band h2{margin:0 0 8px}.band p{margin:0;color:var(--muted);line-height:1.55}
+.tool{display:grid;grid-template-columns:.9fr 1.1fr;gap:16px;margin:24px 0 55px}.card{border:1px solid #29495b;border-radius:24px;padding:22px;background:linear-gradient(180deg,#0b1721,#071019);box-shadow:0 16px 50px #0005}.card h2{margin:0 0 12px;font-size:20px}.field{margin:12px 0}.field label{display:block;font-size:11px;font-weight:900;color:#bcd2dd;margin-bottom:6px;letter-spacing:.06em}.field input,.field select{width:100%;border:1px solid #29495a;border-radius:14px;background:#050c12;color:#eefaff;padding:12px;font:inherit;outline:none}.field input:focus,.field select:focus{border-color:var(--cyan)}.row{display:grid;grid-template-columns:1fr 1fr;gap:10px}.check{display:flex;gap:9px;align-items:flex-start;color:#adbfca;font-size:12px;line-height:1.45;margin:10px 0}.check input{margin-top:3px}
+.lock{padding:12px 14px;border:1px solid #2f6950;border-radius:15px;background:#0c2118;color:#c3eed9;font-size:12px;line-height:1.45;margin-bottom:14px}.lock.off{border-color:#5e5632;background:#1d1a0c;color:#e2d5a0}.sequence{display:grid;gap:10px}.msg{border:1px solid #27495a;border-radius:16px;background:#050c12;padding:15px}.msg small{display:block;color:#72efb4;font-size:10px;font-weight:900;letter-spacing:.12em;margin-bottom:6px}.msg b{display:block;margin-bottom:7px}.msg p{white-space:pre-wrap;color:#cfe2eb;line-height:1.5;margin:0;font-size:13px}.note{font-size:11px;color:#79909d;line-height:1.5;margin-top:10px}
+footer{border-top:1px solid #162b38;padding:26px 0 42px;color:#667e8b;font-size:11px}
+@media(max-width:820px){.hero,.tool{grid-template-columns:1fr}.hero{padding-top:10px}.row{grid-template-columns:1fr}}
+</style></head>
+<body>
+<header class="wrap top"><a class="brand" href="/">Jake<b>AI</b></a><nav class="nav"><a href="/catalog/">Marketplace</a><a href="/problem-gateway.html">Bring a Problem</a><a href="/direct/">JakeAI Direct</a></nav></header>
+<main class="wrap">
+<section class="hero">
+<div><div class="eyebrow">JAKEAI · SMALL BUSINESS OPERATIONS</div><h1>Get paid. <span>Don’t write an essay.</span></h1>
+<p class="lead">Turn one overdue invoice into a clear follow-up sequence with dates, copy-ready messages and calendar reminders. No auto-send. No fake “collections department.”</p>
+<div class="price">$9.99 <span class="fine">one time</span></div>
+<div class="actions"><a class="btn primary" href="/api/v1/checkout/buy/prod_invoice_nudge_01">UNLOCK INVOICE NUDGE →</a><button class="btn" id="demoBtn">TRY THE EXAMPLE</button></div>
+<p class="fine">Your invoice details stay in your browser. Review every message before you send it.</p></div>
+<img src="/assets/invoice-nudge.svg" alt="JakeAI Invoice Nudge follow-up sequence">
+</section>
+
+<section class="band"><h2>Make the follow-up boring on purpose.</h2><p>Late-payment follow-up gets awkward when every message becomes a fresh writing decision. Invoice Nudge turns it into a repeatable sequence. It does not send emails, add legal threats, calculate statutory penalties or pretend to be someone else.</p></section>
+
+<section class="tool" id="tool">
+<article class="card">
+<h2>Invoice inputs</h2>
+<div class="lock off" id="gate">Locked. Use the example, or purchase once to unlock the working tool.</div>
+<div class="field"><label>CLIENT NAME</label><input id="client" placeholder="Northstar Design"></div>
+<div class="row"><div class="field"><label>INVOICE #</label><input id="invoice" placeholder="214"></div><div class="field"><label>AMOUNT ($)</label><input id="amount" type="number" min="0" step=".01" placeholder="2400"></div></div>
+<div class="row"><div class="field"><label>DUE DATE</label><input id="due" type="date"></div><div class="field"><label>TONE</label><select id="tone"><option value="neutral">Neutral</option><option value="warm">Warm</option><option value="firm">Firm</option></select></div></div>
+<label class="check"><input id="pause" type="checkbox" checked><span>Include a calm “new work pauses until the balance is resolved” line in the firmer reminder.</span></label>
+<div class="field"><label>PAYMENT LINK OR INSTRUCTIONS (OPTIONAL)</label><input id="paylink" placeholder="https://... or 'ACH details are on the invoice'"></div>
+<div class="actions"><button class="btn primary" id="runBtn" disabled>BUILD FOLLOW-UP SEQUENCE</button><button class="btn" id="resetBtn">RESET</button></div>
+</article>
+
+<article class="card">
+<h2>Follow-up sequence</h2>
+<div class="sequence" id="sequence"><div class="msg"><small>LOCKED</small><p>Purchase unlocks the working tool. The demo uses sample data only.</p></div></div>
+<div class="actions"><button class="btn" id="copyBtn" disabled>COPY ALL</button><button class="btn" id="icsBtn" disabled>DOWNLOAD CALENDAR</button></div>
+<p class="note">Guardrail: these are communication templates, not legal advice. Only mention late fees, interest, collections, work suspension or other consequences when they are actually part of your agreement and lawful where you operate.</p>
+</article>
+</section>
+</main>
+<footer><div class="wrap">JakeAI · Learn. Discover. Create. Provide value. · No auto-send. You stay in control.</div></footer>
+
+<script>
+const PRODUCT='prod_invoice_nudge_01';let unlocked=false,lastMessages=[],lastEvents=[];
+const $=id=>document.getElementById(id);
+const money=n=>new Intl.NumberFormat('en-US',{style:'currency',currency:'USD'}).format(Number(n)||0);
+const fmt=d=>new Intl.DateTimeFormat('en-US',{month:'short',day:'numeric',year:'numeric'}).format(d);
+const plus=(d,n)=>{const x=new Date(d);x.setDate(x.getDate()+n);return x};
+const startOfDay=d=>new Date(d.getFullYear(),d.getMonth(),d.getDate());
+function esc(s){return String(s||'').replace(/[&<>"]/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;'}[c]))}
+function getData(){
+ const due=$('due').value?new Date($('due').value+'T12:00:00'):null;
+ return {client:$('client').value.trim()||'Client',invoice:$('invoice').value.trim()||'Invoice',amount:Number($('amount').value||0),due,tone:$('tone').value,pause:$('pause').checked,paylink:$('paylink').value.trim()};
+}
+function toneLead(tone,stage){if(tone==='warm')return stage===1?'Quick heads-up':'Just following up';if(tone==='firm')return stage===1?'Payment reminder':'Payment follow-up';return stage===1?'Quick reminder':'Following up'}
+function build(d){
+ if(!d.due)return null;
+ const today=startOfDay(new Date()),due=startOfDay(d.due),overdue=Math.floor((today-due)/86400000);
+ let dates;
+ if(overdue>0)dates=[today,plus(today,5),plus(today,10),plus(today,17)];
+ else dates=[plus(due,-2),plus(due,2),plus(due,7),plus(due,14)];
+ const amount=money(d.amount),pay=d.paylink?'\nPayment: '+d.paylink:'';
+ const m1=toneLead(d.tone,1)+', '+d.client+' — Invoice #'+d.invoice+' for '+amount+' is '+(overdue>0?'past due':'due '+fmt(d.due))+'. Please let me know if anything is blocking payment or if you need the invoice resent.'+pay;
+ const m2=toneLead(d.tone,2)+', '+d.client+' — Invoice #'+d.invoice+' for '+amount+' remains outstanding. Please confirm the expected payment date so I can update my records.'+pay;
+ const pause=d.pause?' I’ll pause new work on this account until the balance is resolved.':'';
+ const m3='Hi '+d.client+' — I’m following up again on Invoice #'+d.invoice+' for '+amount+'. Please reply with the payment status or a firm payment date.'+pause+' If there is a problem with the invoice itself, tell me what needs resolving.'+pay;
+ const deadline=fmt(plus(dates[3],2));
+ const m4='Hi '+d.client+' — final administrative follow-up on Invoice #'+d.invoice+' for '+amount+'. Please reply by '+deadline+' with the payment date or any specific dispute so we can close the loop. If you need a copy of the invoice, I can resend it.'+pay;
+ return {dates,messages:[m1,m2,m3,m4],labels:['GENTLE REMINDER','DIRECT FOLLOW-UP','FIRM FOLLOW-UP','FINAL ADMIN FOLLOW-UP']};
+}
+function render(d){
+ const r=build(d);if(!r){$('sequence').innerHTML='<div class="msg"><small>NEEDS INPUT</small><p>Add a due date.</p></div>';return}
+ lastMessages=r.messages;lastEvents=r.dates.map((date,i)=>({date,label:r.labels[i],body:r.messages[i]}));
+ $('sequence').innerHTML=r.messages.map((m,i)=>'<div class="msg"><small>'+r.labels[i]+' · '+fmt(r.dates[i])+'</small><b>'+esc(d.client)+' · Invoice #'+esc(d.invoice)+'</b><p>'+esc(m)+'</p></div>').join('');
+ $('copyBtn').disabled=false;$('icsBtn').disabled=false;
+}
+$('runBtn').onclick=()=>{const d=getData();if(!d.due||!d.invoice||d.amount<=0){$('sequence').innerHTML='<div class="msg"><small>NEEDS INPUT</small><p>Add the invoice number, amount and due date.</p></div>';return}render(d)};
+$('demoBtn').onclick=()=>{const today=new Date(),due=plus(today,-12);render({client:'Northstar Studio',invoice:'214',amount:2400,due,tone:'neutral',pause:true,paylink:'ACH details are on the invoice'});$('tool').scrollIntoView({behavior:'smooth'})};
+$('resetBtn').onclick=()=>{['client','invoice','amount','due','paylink'].forEach(id=>$(id).value='');$('tone').value='neutral';$('pause').checked=true;$('sequence').innerHTML='<div class="msg"><small>READY</small><p>Add an invoice to build the sequence.</p></div>';$('copyBtn').disabled=true;$('icsBtn').disabled=true;lastMessages=[];lastEvents=[]};
+$('copyBtn').onclick=async()=>{if(!lastMessages.length)return;await navigator.clipboard.writeText(lastMessages.map((m,i)=>(i+1)+'. '+m).join('\n\n'));$('copyBtn').textContent='COPIED';setTimeout(()=>$('copyBtn').textContent='COPY ALL',1200)};
+function icsDate(d){const x=new Date(d);return x.getFullYear()+String(x.getMonth()+1).padStart(2,'0')+String(x.getDate()).padStart(2,'0')}
+function icsEscape(s){return String(s).replace(/\\/g,'\\\\').replace(/\n/g,'\\n').replace(/,/g,'\\,').replace(/;/g,'\\;')}
+$('icsBtn').onclick=()=>{if(!lastEvents.length)return;let s='BEGIN:VCALENDAR\r\nVERSION:2.0\r\nPRODID:-//JakeAI//Invoice Nudge//EN\r\n';lastEvents.forEach((e,i)=>{const dt=icsDate(e.date);s+='BEGIN:VEVENT\r\nUID:jakeai-invoice-'+Date.now()+'-'+i+'@jakeaiofficial.com\r\nDTSTART;VALUE=DATE:'+dt+'\r\nSUMMARY:'+icsEscape('Invoice follow-up: '+e.label)+'\r\nDESCRIPTION:'+icsEscape(e.body)+'\r\nEND:VEVENT\r\n'});s+='END:VCALENDAR\r\n';const a=document.createElement('a');a.href=URL.createObjectURL(new Blob([s],{type:'text/calendar'}));a.download='JakeAI-Invoice-Nudge.ics';a.click();setTimeout(()=>URL.revokeObjectURL(a.href),1000)};
+async function verify(){
+ const p=new URLSearchParams(location.search),order=p.get('order_id'),product=p.get('product_id');
+ if(p.get('paid')!=='1'||!order||product!==PRODUCT)return;
+ try{const res=await fetch('/api/v1/commerce/status/'+encodeURIComponent(order),{cache:'no-store'});if(!res.ok)return;const d=await res.json();if(d.status==='paid'&&d.product_id===PRODUCT){unlocked=true;$('runBtn').disabled=false;$('gate').className='lock';$('gate').textContent='Unlocked. Payment verified for this order. Your invoice details stay in this browser.';$('tool').scrollIntoView({behavior:'smooth'});}}catch(e){}
+}
+verify();
+</script>
+</body></html>
