@@ -97,13 +97,32 @@ def _shopify_cfg(item: dict[str, Any]) -> dict[str, Any]:
 
 def _eligible(item: dict[str, Any]) -> tuple[bool, str]:
     cfg = _shopify_cfg(item)
+    commerce = item.get("commerce") or {}
+    is_sellable_release = (
+        item.get("lifecycle_status") == "production"
+        and item.get("publication_status") == "listed_live"
+        and bool(commerce.get("purchasable"))
+    )
+
+    # Mandatory routing decision: every production/listed/purchasable JakeAI
+    # product must either enter Shopify or carry an explicit skip reason.
+    if is_sellable_release and not cfg:
+        raise SyncError(
+            f"{item.get('id')}: sellable release has no distribution.shopify decision"
+        )
+    if is_sellable_release and cfg.get("enabled") is False:
+        if not str(cfg.get("skip_reason") or "").strip():
+            raise SyncError(
+                f"{item.get('id')}: Shopify disabled without distribution.shopify.skip_reason"
+            )
+        return False, "explicit-shopify-skip"
+
     if not cfg.get("enabled"):
         return False, "shopify-disabled"
     if item.get("lifecycle_status") != "production":
         return False, "not-production"
     if item.get("publication_status") != "listed_live":
         return False, "not-uploaded/listed-live"
-    commerce = item.get("commerce") or {}
     if not commerce.get("purchasable"):
         return False, "not-purchasable"
     if cfg.get("security_review") != "passed":
