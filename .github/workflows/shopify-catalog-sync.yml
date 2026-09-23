@@ -1,0 +1,47 @@
+name: Shopify Catalog Sync
+
+on:
+  push:
+    branches: [main]
+    paths:
+      - "catalog.json"
+      - "shopify_catalog_sync.py"
+      - "assets/**"
+      - ".github/workflows/shopify-catalog-sync.yml"
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+concurrency:
+  group: shopify-catalog-sync
+  cancel-in-progress: false
+
+jobs:
+  sync:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Check out JakeAI
+        uses: actions/checkout@v4
+
+      - name: Set up Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+
+      - name: Validate sync code and catalog plan
+        run: |
+          python -m py_compile shopify_catalog_sync.py
+          python shopify_catalog_sync.py --catalog catalog.json --dry-run
+
+      - name: Sync approved catalog mirrors to Shopify
+        env:
+          SHOPIFY_STORE_DOMAIN: ${{ secrets.SHOPIFY_STORE_DOMAIN }}
+          SHOPIFY_ADMIN_ACCESS_TOKEN: ${{ secrets.SHOPIFY_ADMIN_ACCESS_TOKEN }}
+          SHOPIFY_API_VERSION: "2026-07"
+        run: |
+          if [ -z "$SHOPIFY_STORE_DOMAIN" ] || [ -z "$SHOPIFY_ADMIN_ACCESS_TOKEN" ]; then
+            echo "Shopify runtime credentials are not configured. Validation passed; remote sync skipped fail-closed."
+            exit 0
+          fi
+          python shopify_catalog_sync.py --catalog catalog.json
