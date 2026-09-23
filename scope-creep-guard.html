@@ -1,0 +1,97 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
+<meta name="theme-color" content="#07111c">
+<title>JakeAI Scope Creep Guard</title>
+<meta name="description" content="Turn an extra client request into a clear change request, fee, margin-impact estimate and client-safe message.">
+<link rel="canonical" href="https://jakeaiofficial.com/scope-creep-guard.html">
+<script defer src="/assets/traffic.js"></script>
+<style>
+:root{--bg:#050a10;--panel:#0a151f;--line:#29485a;--text:#eefaff;--muted:#98adba;--cyan:#6ee8ff;--orange:#ff9a45;--green:#72efb4}
+*{box-sizing:border-box}body{margin:0;background:radial-gradient(circle at 80% 0,#4c251450,transparent 28%),radial-gradient(circle at 10% 10%,#0c4d6050,transparent 25%),var(--bg);color:var(--text);font-family:Inter,system-ui,-apple-system,Segoe UI,sans-serif}
+.wrap{width:min(1160px,92vw);margin:auto}.top{display:flex;justify-content:space-between;align-items:center;padding:18px 0}.brand{font-size:22px;font-weight:950;text-decoration:none;color:#fff}.brand b{color:var(--orange)}.nav{display:flex;gap:12px;flex-wrap:wrap}.nav a{color:#b8d0dc;text-decoration:none;font-size:12px;font-weight:850}
+.hero{display:grid;grid-template-columns:1fr 1fr;gap:30px;align-items:center;padding:28px 0 42px}.hero img{width:100%;border-radius:28px;border:1px solid #35556a;box-shadow:0 28px 80px #0009}.eyebrow{font-size:11px;letter-spacing:.18em;color:var(--cyan);font-weight:950}.hero h1{font-size:clamp(48px,7vw,82px);line-height:.9;letter-spacing:-.055em;margin:12px 0}.hero h1 span{color:var(--orange)}.lead{font-size:18px;color:#b3c6d1;line-height:1.55}.price{font-size:35px;font-weight:950;margin-top:18px}.fine{font-size:12px;color:#8297a4}.actions{display:flex;gap:10px;flex-wrap:wrap;margin-top:18px}.btn{border:1px solid #466477;border-radius:999px;padding:12px 16px;background:#0b1822;color:#e8faff;text-decoration:none;font-weight:900;cursor:pointer}.btn.primary{background:linear-gradient(90deg,#ff8d2d,#ffb367);color:#1b0e03;border-color:#ffab5d}.btn:disabled{opacity:.45;cursor:not-allowed}
+.band{margin:18px 0 30px;border:1px solid #2d4c5e;border-radius:24px;padding:22px;background:#08131c}.band h2{margin:0 0 8px}.band p{margin:0;color:var(--muted);line-height:1.55}
+.tool{display:grid;grid-template-columns:.95fr 1.05fr;gap:16px;margin:24px 0 55px}.card{border:1px solid #29495b;border-radius:24px;padding:22px;background:linear-gradient(180deg,#0b1721,#071019);box-shadow:0 16px 50px #0005}.card h2{margin:0 0 12px;font-size:20px}.field{margin:12px 0}.field label{display:block;font-size:11px;font-weight:900;color:#bcd2dd;margin-bottom:6px;letter-spacing:.06em}.field input,.field textarea{width:100%;border:1px solid #29495a;border-radius:14px;background:#050c12;color:#eefaff;padding:12px;font:inherit;outline:none}.field textarea{min-height:100px;resize:vertical}.field input:focus,.field textarea:focus{border-color:var(--cyan)}.row{display:grid;grid-template-columns:1fr 1fr;gap:10px}.lock{padding:12px 14px;border:1px solid #7b4d2f;border-radius:15px;background:#1b110b;color:#e9c5aa;font-size:12px;line-height:1.45;margin-bottom:14px}.ok{border-color:#2f6b50;background:#0c2118;color:#bcefd6}
+.output{white-space:pre-wrap;border:1px solid #26485a;border-radius:16px;background:#050c12;padding:16px;min-height:210px;color:#dff8ff;line-height:1.55}.metrics{display:grid;grid-template-columns:repeat(3,1fr);gap:8px;margin-bottom:12px}.metric{border:1px solid #29495a;border-radius:14px;padding:12px;background:#07131c}.metric small{display:block;color:#8ba3b1;font-size:10px}.metric b{display:block;margin-top:4px;font-size:20px}.note{font-size:11px;color:#79909d;line-height:1.5;margin-top:10px}
+footer{border-top:1px solid #162b38;padding:26px 0 42px;color:#667e8b;font-size:11px}
+@media(max-width:820px){.hero,.tool{grid-template-columns:1fr}.hero{padding-top:10px}.row{grid-template-columns:1fr}.metrics{grid-template-columns:1fr}}
+</style></head>
+<body>
+<header class="wrap top"><a class="brand" href="/">Jake<b>AI</b></a><nav class="nav"><a href="/catalog/">Marketplace</a><a href="/problem-gateway.html">Bring a Problem</a><a href="/direct/">JakeAI Direct</a></nav></header>
+<main class="wrap">
+<section class="hero">
+<div><div class="eyebrow">JAKEAI · SMALL BUSINESS OPERATIONS</div><h1>Stop giving away <span>“one quick thing.”</span></h1>
+<p class="lead">Compare the new request with the agreed scope, estimate the added effort, price the change, and generate a calm client message plus a change-order summary.</p>
+<div class="price">$12.99 <span class="fine">one time</span></div>
+<div class="actions"><a class="btn primary" href="/api/v1/checkout/buy/prod_scope_creep_guard_01">UNLOCK SCOPE CREEP GUARD →</a><button class="btn" id="demoBtn">TRY THE EXAMPLE</button></div>
+<p class="fine">Runs in your browser after purchase. JakeAI does not send anything to your client.</p></div>
+<img src="/assets/scope-creep-guard.svg" alt="JakeAI Scope Creep Guard workflow">
+</section>
+
+<section class="band"><h2>Built for the awkward moment, not the contract lecture.</h2><p>A client asks for an extra page, revision, integration, visit, feature or “tiny tweak.” This tool helps you turn that moment into a documented change instead of unpaid work. It is operational support, not legal advice and not a substitute for your contract.</p></section>
+
+<section class="tool" id="tool">
+<article class="card">
+<h2>Change request inputs</h2>
+<div class="lock" id="gate">Locked. Use the example, or purchase once to unlock the working tool.</div>
+<div class="field"><label>CLIENT / PROJECT</label><input id="client" placeholder="Acme / Website Revamp"></div>
+<div class="field"><label>ORIGINAL AGREED SCOPE</label><textarea id="scope" placeholder="Example: redesign 5 existing pages using the current layout. Two revision rounds."></textarea></div>
+<div class="field"><label>NEW REQUEST</label><textarea id="request" placeholder="Example: add 4 new landing pages, analytics setup and a custom layout."></textarea></div>
+<div class="row"><div class="field"><label>ORIGINAL PROJECT PRICE ($)</label><input id="projectPrice" type="number" min="0" step=".01" placeholder="5000"></div><div class="field"><label>PLANNED HOURS</label><input id="plannedHours" type="number" min="0" step=".25" placeholder="40"></div></div>
+<div class="row"><div class="field"><label>ADDED HOURS ESTIMATE</label><input id="extraHours" type="number" min="0" step=".25" placeholder="6"></div><div class="field"><label>YOUR CHANGE RATE ($/HR)</label><input id="rate" type="number" min="0" step=".01" placeholder="125"></div></div>
+<div class="field"><label>EXPECTED TIMELINE IMPACT</label><input id="timeline" placeholder="Example: +3 business days after approval"></div>
+<div class="actions"><button class="btn primary" id="runBtn" disabled>BUILD CHANGE REQUEST</button><button class="btn" id="resetBtn">RESET</button></div>
+</article>
+
+<article class="card">
+<h2>Guard output</h2>
+<div class="metrics"><div class="metric"><small>WORKING CLASSIFICATION</small><b id="classMetric">—</b></div><div class="metric"><small>PROPOSED CHANGE</small><b id="feeMetric">—</b></div><div class="metric"><small>FREE-WORK LEAK</small><b id="leakMetric">—</b></div></div>
+<div class="output" id="output">Purchase unlocks the working tool. The demo uses sample data only.</div>
+<div class="actions"><button class="btn" id="copyBtn" disabled>COPY CLIENT MESSAGE</button><button class="btn" id="downloadBtn" disabled>DOWNLOAD CHANGE ORDER</button></div>
+<p class="note">Guardrail: this tool does not decide what your contract legally requires. It structures a business change request from the information you enter. Review the result before sending it.</p>
+</article>
+</section>
+</main>
+<footer><div class="wrap">JakeAI · Learn. Discover. Create. Provide value. · We annoy the problem, not you.</div></footer>
+
+<script>
+const PRODUCT='prod_scope_creep_guard_01';
+let unlocked=false,lastText='',lastClientMessage='';
+const $=id=>document.getElementById(id);
+const money=n=>new Intl.NumberFormat('en-US',{style:'currency',currency:'USD'}).format(Number(n)||0);
+const stop=new Set('the a an and or but to of for in on with from is are was were be been this that it your you our we as at by into using use current existing'.split(' '));
+function words(s){return new Set(String(s||'').toLowerCase().replace(/[^a-z0-9 ]/g,' ').split(/\s+/).filter(w=>w.length>2&&!stop.has(w)))}
+function similarity(a,b){const A=words(a),B=words(b);if(!A.size||!B.size)return 0;let hit=0;A.forEach(w=>{if(B.has(w))hit++});return hit/Math.max(1,Math.min(A.size,B.size))}
+function values(){
+ return {client:$('client').value.trim()||'Client / Project',scope:$('scope').value.trim(),request:$('request').value.trim(),projectPrice:Number($('projectPrice').value||0),plannedHours:Number($('plannedHours').value||0),extraHours:Number($('extraHours').value||0),rate:Number($('rate').value||0),timeline:$('timeline').value.trim()||'Confirm after approval'};
+}
+function build(v){
+ const sim=similarity(v.scope,v.request);
+ const classification=sim<.18?'LIKELY NEW SCOPE':'ADJACENT CHANGE';
+ const fee=v.extraHours*v.rate;
+ const originalEffective=v.plannedHours>0?v.projectPrice/v.plannedHours:0;
+ const leak=v.extraHours*originalEffective;
+ const freeEffective=(v.plannedHours+v.extraHours)>0?v.projectPrice/(v.plannedHours+v.extraHours):0;
+ const clientMessage='Hi — thanks for the request. I compared it with the current agreed scope for '+v.client+'. This adds work beyond the baseline we are currently working from, so I want to handle it as a change request and keep the original budget/timeline clear.\n\nRequested change: '+v.request+'\nEstimated added effort: '+v.extraHours.toFixed(1)+' hours\nProposed change: '+money(fee)+'\nTimeline impact: '+v.timeline+'\n\nIf you want me to proceed, reply with approval and I’ll add it to the schedule. Until then, the original scope stays unchanged.';
+ const order='JAKEAI SCOPE CREEP GUARD — CHANGE REQUEST\n\nProject: '+v.client+'\nWorking classification: '+classification+'\n\nORIGINAL SCOPE\n'+v.scope+'\n\nREQUESTED CHANGE\n'+v.request+'\n\nCOMMERCIAL IMPACT\nAdded effort: '+v.extraHours.toFixed(1)+' hours\nChange rate: '+money(v.rate)+'/hr\nProposed added fee: '+money(fee)+'\nEstimated value of free work if absorbed: '+money(leak)+'\nOriginal effective rate: '+money(originalEffective)+'/hr\nEffective rate if absorbed for free: '+money(freeEffective)+'/hr\nTimeline: '+v.timeline+'\n\nCLIENT MESSAGE\n'+clientMessage+'\n\nNote: operational change-control aid only; review against your contract and local requirements.';
+ return {classification,fee,leak,text:order,clientMessage};
+}
+function render(v){
+ const r=build(v);lastText=r.text;lastClientMessage=r.clientMessage;
+ $('classMetric').textContent=r.classification;$('feeMetric').textContent=money(r.fee);$('leakMetric').textContent=money(r.leak);$('output').textContent=r.text;$('copyBtn').disabled=false;$('downloadBtn').disabled=false;
+}
+$('runBtn').onclick=()=>{const v=values();if(!v.scope||!v.request||v.extraHours<0||v.rate<0){$('output').textContent='Add the original scope, new request, added hours and rate.';return}render(v)};
+$('demoBtn').onclick=()=>{const v={client:'Northstar Studio / Website Revamp',scope:'Redesign five existing pages using the current layout. Two revision rounds included.',request:'Add four new landing pages, a new layout, analytics setup and cookie consent configuration.',projectPrice:5000,plannedHours:40,extraHours:8,rate:125,timeline:'+4 business days after approval'};render(v);$('tool').scrollIntoView({behavior:'smooth'})};
+$('resetBtn').onclick=()=>{['client','scope','request','projectPrice','plannedHours','extraHours','rate','timeline'].forEach(id=>$(id).value='');$('output').textContent='Ready.';['classMetric','feeMetric','leakMetric'].forEach(id=>$(id).textContent='—');$('copyBtn').disabled=true;$('downloadBtn').disabled=true};
+$('copyBtn').onclick=async()=>{if(lastClientMessage)await navigator.clipboard.writeText(lastClientMessage);$('copyBtn').textContent='COPIED';setTimeout(()=>$('copyBtn').textContent='COPY CLIENT MESSAGE',1200)};
+$('downloadBtn').onclick=()=>{if(!lastText)return;const a=document.createElement('a');a.href=URL.createObjectURL(new Blob([lastText],{type:'text/plain'}));a.download='JakeAI-Scope-Creep-Change-Request.txt';a.click();setTimeout(()=>URL.revokeObjectURL(a.href),1000)};
+async function verify(){
+ const p=new URLSearchParams(location.search),order=p.get('order_id'),product=p.get('product_id');
+ if(p.get('paid')!=='1'||!order||product!==PRODUCT)return;
+ try{const res=await fetch('/api/v1/commerce/status/'+encodeURIComponent(order),{cache:'no-store'});if(!res.ok)return;const d=await res.json();if(d.status==='paid'&&d.product_id===PRODUCT){unlocked=true;$('runBtn').disabled=false;$('gate').className='lock ok';$('gate').textContent='Unlocked. Payment verified for this order. Your inputs stay in this browser.';$('tool').scrollIntoView({behavior:'smooth'});}}catch(e){}
+}
+verify();
+</script>
+</body></html>
