@@ -187,6 +187,126 @@
       }
     },
     {
+      "id": "JAI-SCOPE-001",
+      "slug": "scope-creep-guard",
+      "name": "JakeAI Scope Creep Guard",
+      "type": "business_change_control_workflow",
+      "category": [
+        "Small Business",
+        "Freelance Operations",
+        "Change Control"
+      ],
+      "version": "1.0",
+      "lifecycle_status": "production",
+      "publication_status": "listed_live",
+      "summary": "Browser-based change-control tool that compares an extra client request with the agreed scope, estimates added effort and margin leakage, prices the change, and produces a client-safe change request.",
+      "problem_signals": [
+        "scope creep",
+        "unpaid extra work",
+        "client asks for one more thing",
+        "change order",
+        "fixed-price project margin"
+      ],
+      "inputs": [
+        "original scope",
+        "new client request",
+        "project price",
+        "planned hours",
+        "added hours estimate",
+        "change rate",
+        "timeline impact"
+      ],
+      "outputs": [
+        "working scope classification",
+        "proposed added fee",
+        "free-work leak estimate",
+        "client message",
+        "downloadable change-order summary"
+      ],
+      "human_url": "https://jakeaiofficial.com/scope-creep-guard.html",
+      "machine_url": "https://jakeaiofficial.com/catalog.json#JAI-SCOPE-001",
+      "commerce": {
+        "mode": "guarded_stripe_checkout",
+        "purchasable": true,
+        "currency": "USD",
+        "price": 12.99,
+        "billing": "one_time",
+        "purchase_url": "https://jakeaiofficial.com/api/v1/checkout/buy/prod_scope_creep_guard_01",
+        "entitlement": "server_verified_order"
+      },
+      "invocation": {
+        "mode": "human_page",
+        "endpoint": null,
+        "note": "Paid order unlocks the browser tool after server-side payment verification. No outbound message is sent automatically."
+      },
+      "trust": {
+        "human_release_gate": true,
+        "local_input_processing": true,
+        "legal_advice": false,
+        "external_actions_executed": false,
+        "provenance": "repository_public_record"
+      }
+    },
+    {
+      "id": "JAI-INVOICE-001",
+      "slug": "invoice-nudge",
+      "name": "JakeAI Invoice Nudge",
+      "type": "receivables_followup_workflow",
+      "category": [
+        "Small Business",
+        "Accounts Receivable",
+        "Client Communication"
+      ],
+      "version": "1.0",
+      "lifecycle_status": "production",
+      "publication_status": "listed_live",
+      "summary": "Browser-based overdue-invoice follow-up builder that creates a staged reminder sequence, copy-ready messages and calendar reminders without auto-sending or inventing legal consequences.",
+      "problem_signals": [
+        "late invoice",
+        "overdue invoice",
+        "awkward payment reminder",
+        "invoice follow up",
+        "chasing client payment"
+      ],
+      "inputs": [
+        "client name",
+        "invoice number",
+        "amount",
+        "due date",
+        "tone",
+        "optional payment instructions"
+      ],
+      "outputs": [
+        "four-stage reminder sequence",
+        "follow-up dates",
+        "copy-ready messages",
+        "downloadable calendar reminders"
+      ],
+      "human_url": "https://jakeaiofficial.com/invoice-nudge.html",
+      "machine_url": "https://jakeaiofficial.com/catalog.json#JAI-INVOICE-001",
+      "commerce": {
+        "mode": "guarded_stripe_checkout",
+        "purchasable": true,
+        "currency": "USD",
+        "price": 9.99,
+        "billing": "one_time",
+        "purchase_url": "https://jakeaiofficial.com/api/v1/checkout/buy/prod_invoice_nudge_01",
+        "entitlement": "server_verified_order"
+      },
+      "invocation": {
+        "mode": "human_page",
+        "endpoint": null,
+        "note": "Paid order unlocks the browser tool after server-side payment verification. The tool produces drafts and reminders only; it never sends a message automatically."
+      },
+      "trust": {
+        "human_release_gate": true,
+        "local_input_processing": true,
+        "legal_advice": false,
+        "external_actions_executed": false,
+        "provenance": "repository_public_record"
+      }
+    },
+    {
       "id": "JAI-WF-0019",
       "slug": "workflow-rescue",
       "name": "Workflow Rescue",
