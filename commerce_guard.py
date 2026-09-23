@@ -205,4 +205,8 @@ register_pool_coach_routes(app)
 # Public Guitar Coach checkout, entitlement, and billing self-service routes.
 register_guitar_coach_routes(app)
 
+# Signed Shopify paid-order intake. Fail-closed until SHOPIFY_WEBHOOK_SECRET is configured.
+from shopify_order_bridge import register_shopify_order_bridge_routes
+register_shopify_order_bridge_routes(app)
+
 app.mount("/", legacy_app)
