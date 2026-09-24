@@ -981,6 +981,61 @@
         "rights_manifest": "https://jakeaiofficial.com/editions/time-machine-rights.json",
         "territory": "US_ONLY"
       }
+    },
+    {
+      "id": "JAI-BOOK-FACTORY-001",
+      "slug": "book-factory",
+      "name": "JakeAI Book Factory",
+      "type": "autonomous_content_production_workflow",
+      "category": [
+        "Publishing",
+        "Public Domain",
+        "Production Orchestration",
+        "AI Agent Operations"
+      ],
+      "version": "0.1",
+      "lifecycle_status": "working",
+      "publication_status": "public_page",
+      "summary": "Rights-gated autonomous pipeline for discovering candidate public-domain books, verifying title/source/territory evidence, preparing JakeAI Editions, running text/audio QA, and stopping at a human release gate.",
+      "problem_signals": [
+        "public-domain catalog modernization",
+        "ebook production",
+        "audiobook production",
+        "rights verification",
+        "large publishing backlist"
+      ],
+      "inputs": [
+        "candidate bibliographic record",
+        "territory",
+        "source evidence",
+        "edition configuration"
+      ],
+      "outputs": [
+        "rights decision",
+        "source manifest",
+        "edition production state",
+        "QA state",
+        "release packet"
+      ],
+      "human_url": "https://jakeaiofficial.com/book-factory/",
+      "machine_url": "https://jakeaiofficial.com/catalog.json#JAI-BOOK-FACTORY-001",
+      "commerce": {
+        "mode": "gated",
+        "purchasable": false,
+        "reason": "Factory is an active internal/public demonstration workflow; no external commercial offer is declared yet."
+      },
+      "invocation": {
+        "mode": "status_api",
+        "endpoint": "https://jakeaiofficial.com/api/v1/book-factory/status",
+        "method": "GET"
+      },
+      "trust": {
+        "human_release_gate": true,
+        "rights_fail_closed": true,
+        "territory": "US_ONLY",
+        "public_queue": "https://jakeaiofficial.com/book-factory/queue.json",
+        "provenance": "repository_public_record"
+      }
     }
   ]
 }
