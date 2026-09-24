@@ -31,15 +31,36 @@ footer{padding:27px 0 34px;border-top:1px solid rgba(70,220,255,.16);color:#7187
 @media(prefers-reduced-motion:reduce){.marqueeTrack{animation:none}}
 @media(max-width:940px){.hero{grid-template-columns:1fr}.arcadeWindow{min-height:260px}.grid{grid-template-columns:1fr 1fr}}
 @media(max-width:620px){.topinner{min-height:62px}.brand{font-size:22px}.hero{padding-top:34px}.hero h1{font-size:clamp(50px,16vw,76px)}.arcadeWindow{min-height:220px}.grid{grid-template-columns:1fr}.card{min-height:310px}.return{font-size:9px;padding:8px 10px}}
+
+.consoleRoom{position:relative;margin:18px 0 34px;padding:24px;border:1px solid rgba(93,235,255,.42);border-radius:26px;overflow:hidden;background:radial-gradient(circle at 82% 18%,rgba(67,236,255,.16),transparent 30%),linear-gradient(135deg,rgba(8,31,48,.96),rgba(8,7,20,.98));box-shadow:0 20px 62px #0007,0 0 34px rgba(67,236,255,.08)}
+.consoleRoom:before{content:"";position:absolute;inset:0;background:repeating-linear-gradient(180deg,transparent 0 5px,rgba(91,231,255,.025) 6px);pointer-events:none}
+.consoleInner{position:relative;display:grid;grid-template-columns:1.15fr .85fr;gap:22px;align-items:center}.consoleCopy .kicker{margin-bottom:8px}.consoleCopy h2{font-size:clamp(32px,5vw,58px);line-height:.92;margin:0 0 12px;letter-spacing:-.035em}.consoleCopy h2 span{color:var(--cyan)}.consoleCopy p{color:#a8bfd0;max-width:650px}.consoleEnter{display:inline-block;margin-top:12px;padding:12px 17px;border-radius:12px;background:linear-gradient(90deg,#6cecff,#35b7ef);color:#031018;text-decoration:none;font-weight:950;box-shadow:0 0 26px rgba(71,225,255,.18)}
+.consoleRack{display:grid;gap:10px}.miniGameCart{position:relative;border:1px solid rgba(98,232,255,.42);border-radius:14px;padding:13px 52px 13px 15px;background:linear-gradient(145deg,#182533,#0a1017);box-shadow:inset 0 0 24px #0006}.miniGameCart b{display:block;font-size:18px}.miniGameCart span{color:#82dff1;font:900 9px ui-monospace,monospace;letter-spacing:.13em}.miniGameCart em{position:absolute;right:14px;top:50%;transform:translateY(-50%);font:950 25px ui-monospace,monospace;color:#79eaff55;font-style:normal}
+@media(max-width:700px){.consoleInner{grid-template-columns:1fr}.consoleRoom{padding:19px}.consoleRack{grid-template-columns:1fr 1fr}.miniGameCart{padding:11px 38px 11px 11px}.miniGameCart b{font-size:14px}}
+
 </style>
 <script defer src="/assets/traffic.js"></script></head>
 <body><div class="scan"></div>
 <header class="topbar"><div class="wrap topinner"><a class="brand" href="/">Jake<span>AI</span> Arcade</a><a class="return" href="/">← RETURN TO UNIVERSE</a></div></header>
 <main class="wrap">
-<section class="hero"><div><div class="kicker">JAKEAI UNIVERSE // ARCADE</div><h1>PLAY THE <span>EXPERIMENTS.</span></h1><p>The room behind the Arcade door should feel like an arcade. Everything here tells the truth about what it is: playable games are playable, experiments stay experiments, and unfinished things do not get fake victory laps.</p><div class="heroNote"><span class="pill">8 PLAYABLE BUILDS</span><span class="pill">NO LOGIN</span><span class="pill">BUILT TO LEARN</span><span class="pill">WEIRD IS ALLOWED</span></div></div><div class="arcadeWindow"><img src="/assets/create-game.webp" alt="JakeAI Arcade creation bay"></div></section>
+<section class="hero"><div><div class="kicker">JAKEAI UNIVERSE // ARCADE</div><h1>PLAY THE <span>EXPERIMENTS.</span></h1><p>The room behind the Arcade door should feel like an arcade. Everything here tells the truth about what it is: playable games are playable, experiments stay experiments, and unfinished things do not get fake victory laps.</p><div class="heroNote"><span class="pill">8 ARCADE BUILDS</span><span class="pill">2 CONSOLE CARTRIDGES</span><span class="pill">NO LOGIN</span><span class="pill">BUILT TO LEARN</span><span class="pill">WEIRD IS ALLOWED</span></div></div><div class="arcadeWindow"><img src="/assets/create-game.webp" alt="JakeAI Arcade creation bay"></div></section>
 </main>
 <div class="marquee"><div class="marqueeTrack">INSERT CURIOSITY · PLAY SOMETHING STRANGE · BREAK IT RESPONSIBLY · THE ROBOTS ARE KEEPING SCORE · INSERT CURIOSITY · PLAY SOMETHING STRANGE · BREAK IT RESPONSIBLY · THE ROBOTS ARE KEEPING SCORE · </div></div>
 <main class="wrap">
+<section class="consoleRoom">
+  <div class="consoleInner">
+    <div class="consoleCopy">
+      <div class="kicker">NEW ROOM // JAKEAI CONSOLE CORNER</div>
+      <h2>THE CABINETS STAY.<br><span>THE CARTRIDGES ARRIVED.</span></h2>
+      <p>A separate console system inside the Arcade. Pick up a cartridge, watch it slot into the JakeAI console, let the system boot, then play. Cartridge 01 is the top-down run-and-gun <b>RIFT COMMANDO</b>. Cartridge 02 is the territory-tracing game <b>TRACEBOUND</b>.</p>
+      <a class="consoleEnter" href="/arcade/console-corner/">ENTER CONSOLE CORNER →</a>
+    </div>
+    <div class="consoleRack" aria-label="Console Corner cartridges">
+      <div class="miniGameCart"><span>CARTRIDGE 01 · CONSOLE ONLY</span><b>RIFT COMMANDO</b><em>01</em></div>
+      <div class="miniGameCart"><span>CARTRIDGE 02 · CONSOLE ONLY</span><b>TRACEBOUND</b><em>02</em></div>
+    </div>
+  </div>
+</section>
 <section class="grid">
 <article class="card g8 featured"><div class="status">● NEW · LIVE</div><div class="gameNo">FEATURED // GAME #008</div><h2>Riftfall</h2><p>Reality is coming apart over JakeAI Prime. Stack falling fragments, vault a piece for later, trigger Reality Breaches, and descend through the Prime district, the Foundry, the Wilds, Deep Space and Other Realms.</p><a class="btn" href="/arcade/riftfall.html">ENTER THE RIFT →</a></article>
 <article class="card g7 featured"><div class="status">● NEW · LIVE</div><div class="gameNo">FEATURED // GAME #007</div><h2>Foundry Breach</h2><p>Infiltrate a five-floor JakeAI facility, ride the central elevator shaft, search fifteen rooms, evade security robots, recover six Workflow Genome shards, solve the pocket-computer assembly puzzle, and reach the restricted Core.</p><a class="btn" href="/arcade/foundry-breach.html">BREACH THE FOUNDRY →</a></article>
@@ -50,7 +71,7 @@ footer{padding:27px 0 34px;border-top:1px solid rgba(70,220,255,.16);color:#7187
 <article class="card g3"><div class="status">● LIVE</div><div class="gameNo">GAME #003</div><h2>Neon Breach</h2><p>Breach the failing arcade core, clear each section objective, collect energy, overload the nodes, and defeat the Core Warden.</p><a class="btn" href="/arcade/neon-breach.html">PLAY NOW →</a></article>
 <article class="card g4"><div class="status">● LIVE</div><div class="gameNo">GAME #004</div><h2>Factory Panic</h2><p>A 60-second factory-defense sprint. Move the JakeAI repair bot between production lanes, fix incoming failures, protect factory integrity, and build the biggest combo you can.</p><a class="btn" href="/arcade/factory-panic.html">PLAY NOW →</a></article>
 </section>
-<section class="after"><b>Eight games in. One of them is tearing holes in reality.</b><span>Play, explore, meet somebody strange, break something useful, then head back into the Universe.</span><br><a href="/">BACK TO JAKEAI UNIVERSE →</a></section>
+<section class="after"><b>Eight arcade builds. Two console cartridges. More worlds loading.</b><span>Play, explore, meet somebody strange, break something useful, then head back into the Universe.</span><br><a href="/">BACK TO JAKEAI UNIVERSE →</a></section>
 </main>
 <footer><div class="wrap">JakeAI Universe • Build → Play → Learn → Build Again</div></footer>
 </body></html>
