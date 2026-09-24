@@ -8,7 +8,7 @@ router = APIRouter()
 QUEUE_PATH = Path(__file__).resolve().parent / "book-factory" / "queue.json"
 ALLOWED_RIGHTS_HOSTS = {"www.gutenberg.org", "gutenberg.org", "www.copyright.gov", "copyright.gov"}
 QUEUE_REVISION = "2026-09-24-exact-text-lock"
-PUBLIC_STAGES = {"candidate","rights_verified","source_verified","formatting","narration","text_qa","audio_qa","release_ready","public_preview","published"}
+PUBLIC_STAGES = {"candidate","rights_verified","source_verified","structure_verified","formatting","narration","text_qa","audio_qa","release_ready","public_preview","published"}
 
 def _load():
     return json.loads(QUEUE_PATH.read_text(encoding="utf-8"))
@@ -51,7 +51,7 @@ def validate_job(job):
         errors.append("public_release_without_green_rights")
 
     text_lock = job.get("text_lock") or {}
-    full_text_stage = stage in {"source_verified","formatting","narration","text_qa","audio_qa","release_ready","published"}
+    full_text_stage = stage in {"source_verified","structure_verified","formatting","narration","text_qa","audio_qa","release_ready","published"}
     full_text_release = job.get("release") == "published" or job.get("paid_release") is True
     if full_text_stage or full_text_release:
         if text_lock.get("status") != "locked":
