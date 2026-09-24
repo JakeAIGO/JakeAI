@@ -19,7 +19,11 @@
 - The Jukebox: IN DEVELOPMENT; public generated audio remains rights-gated.
 - JakeAI TV: IN DEVELOPMENT.
 
-## Public Commerce\n- JakeAI Universe: The Infinite Foundry — Founding Reader #0001 — $1.99 — LIVE\n  - Product: https://jakeaiofficial.com/infinite-foundry.html\n  - Interactive reader: https://jakeai-infinite-foundry-cx1ynq.v2.appdeploy.ai/\n  - #0001 checkout is limited to one completed purchase.
+## Public Commerce
+- JakeAI Universe: The Infinite Foundry — Founding Reader #0001 — $1.99 — LIVE
+  - Product: https://jakeaiofficial.com/infinite-foundry.html
+  - Interactive reader: https://jakeai-infinite-foundry-cx1ynq.v2.appdeploy.ai/
+  - #0001 checkout is limited to one completed purchase.
 - Make the Damn Thing for Free™ — $0 — LIVE
   - GET /api/v1/checkout/buy/prod_make_free_00
 - JakeAI Guitar Coach — LIVE
