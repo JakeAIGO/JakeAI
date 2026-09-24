@@ -1,0 +1,92 @@
+{
+  "schema_version": "1.0",
+  "status": "staged",
+  "provider": "JakeAI",
+  "canonical_domain": "https://jakeaiofficial.com",
+  "shopify": {
+    "plan": "agentic",
+    "catalog_sync_enabled": false,
+    "live_write_enabled": false,
+    "required_live_write_env": "SHOPIFY_AGENTIC_SYNC_ENABLED"
+  },
+  "meta": {
+    "target_channel": true,
+    "direct_checkout_enabled": false,
+    "facebook_instagram_sales_channel_required": true
+  },
+  "eligibility_rules": {
+    "require_public_catalog_purchasable": true,
+    "require_price_greater_than_zero": true,
+    "require_external_product_url": true,
+    "require_image_url": true,
+    "require_available_inventory": true,
+    "meta_direct_checkout_disallowed_types": [
+      "subscription",
+      "bundle",
+      "customizable",
+      "b2b_only"
+    ]
+  },
+  "products": [
+    {
+      "product_id": "prod_make_free_00",
+      "catalog_capability_id": "JAI-WF-0002",
+      "title": "Make the Damn Thing for Free™",
+      "price_usd": 0.0,
+      "product_type": "digital_product",
+      "external_url": "https://jakeaiofficial.com/product-factory/",
+      "image_url": null,
+      "inventory_quantity": null,
+      "enabled": false,
+      "notes": "Shopify Catalog requires a price greater than zero."
+    },
+    {
+      "product_id": "prod_genesis_commission_001",
+      "catalog_capability_id": null,
+      "title": "JakeAI Genesis Commission #001",
+      "price_usd": 49.0,
+      "product_type": "customizable",
+      "external_url": "https://jakeaiofficial.com/genesis-001.html",
+      "image_url": null,
+      "inventory_quantity": 1,
+      "enabled": false,
+      "notes": "Customizable products are not supported by Meta direct checkout."
+    },
+    {
+      "product_id": "prod_game_qa_autopilot_01",
+      "catalog_capability_id": "JAI-WF-0003",
+      "title": "Game QA Autopilot v1.0",
+      "price_usd": 9.99,
+      "product_type": "digital_product",
+      "external_url": "https://jakeaiofficial.com/product-factory/",
+      "image_url": null,
+      "inventory_quantity": null,
+      "enabled": false,
+      "notes": "Current JakeAI commerce status is gated pending delivery QA."
+    },
+    {
+      "product_id": "prod_where_the_hell_are_my_glasses_01",
+      "catalog_capability_id": "JAI-WF-0001",
+      "title": "Where the Hell Are My Glasses?",
+      "price_usd": 2.99,
+      "product_type": "digital_product",
+      "external_url": "https://jakeaiofficial.com/where-the-hell-are-my-glasses.html",
+      "image_url": null,
+      "inventory_quantity": null,
+      "enabled": false,
+      "notes": "Current JakeAI commerce status is gated pending delivery QA."
+    },
+    {
+      "product_id": "prod_pool_coach_01",
+      "catalog_capability_id": "JAI-WF-0004",
+      "title": "Pool Coach Autopilot v1.0",
+      "price_usd": 1.0,
+      "product_type": "digital_product",
+      "external_url": "https://jakeaiofficial.com/product-factory/",
+      "image_url": null,
+      "inventory_quantity": null,
+      "enabled": false,
+      "notes": "Current JakeAI commerce status is unavailable pending checkout and delivery review."
+    }
+  ]
+}
