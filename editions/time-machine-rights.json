@@ -1,0 +1,19 @@
+{
+  "product_id": "JAE-TTM-001",
+  "title": "The Time Machine",
+  "author": "H. G. Wells",
+  "original_publication_year": 1895,
+  "territory": "United States",
+  "underlying_text_status": "Public domain in the USA",
+  "verification_source": "https://www.gutenberg.org/ebooks/35",
+  "verification_date": "2026-09-24",
+  "release_state": "PUBLIC_PREVIEW_US_ONLY",
+  "paid_checkout": false,
+  "restrictions": [
+    "No modern copyrighted introductions/annotations without clearance",
+    "No third-party cover art/illustrations without clearance",
+    "No third-party audiobook recordings",
+    "No celebrity or identifiable-person voice clone without permission",
+    "No international distribution until jurisdiction-specific verification"
+  ]
+}
