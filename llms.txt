@@ -56,3 +56,10 @@
 - Terms: /terms.html
 - Privacy: /privacy.html
 - Refunds: /refunds.html
+
+## JakeAI Editions
+- JakeAI Editions hub: https://jakeaiofficial.com/editions/
+- JakeAI Editions — The Time Machine by H. G. Wells — PUBLIC PREVIEW · U.S. ONLY
+  - Human page: https://jakeaiofficial.com/editions/time-machine.html
+  - Rights manifest: https://jakeaiofficial.com/editions/time-machine-rights.json
+  - Underlying 1895 text is verified public domain in the USA; paid checkout remains gated pending complete reader/narration/fulfillment QA.
