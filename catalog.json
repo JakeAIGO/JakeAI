@@ -929,6 +929,58 @@
         "provenance": "repository_public_record",
         "notice": "Not tax or legal advice."
       }
+    },
+    {
+      "id": "JAE-TTM-001",
+      "slug": "time-machine-jakeai-edition",
+      "name": "The Time Machine — JakeAI Edition",
+      "type": "digital_edition",
+      "category": [
+        "Books",
+        "Audiobooks",
+        "JakeAI Editions"
+      ],
+      "version": "1.0",
+      "lifecycle_status": "working",
+      "publication_status": "public_page",
+      "summary": "A JakeAI reading-and-listening edition of H. G. Wells's 1895 public-domain science-fiction classic, currently published as a U.S.-only public preview.",
+      "problem_signals": [
+        "classic ebook reading",
+        "audiobook narration",
+        "public-domain literature",
+        "read-listen switching"
+      ],
+      "inputs": [
+        "reader choice",
+        "chapter selection",
+        "available device narration voice"
+      ],
+      "outputs": [
+        "styled web reader preview",
+        "chapter navigation",
+        "narrator audition"
+      ],
+      "human_url": "https://jakeaiofficial.com/editions/time-machine.html",
+      "machine_url": "https://jakeaiofficial.com/catalog.json#JAE-TTM-001",
+      "commerce": {
+        "mode": "gated",
+        "purchasable": false,
+        "planned_prices": {
+          "jakeai_credits_usd": 0.5,
+          "standalone_usd": 1.99
+        },
+        "reason": "Public preview only; paid checkout remains locked until complete text, narration, entitlement and fulfillment QA pass."
+      },
+      "invocation": {
+        "mode": "public_page",
+        "endpoint": null
+      },
+      "trust": {
+        "human_release_gate": true,
+        "provenance": "Project Gutenberg eBook #35 + JakeAI rights manifest",
+        "rights_manifest": "https://jakeaiofficial.com/editions/time-machine-rights.json",
+        "territory": "US_ONLY"
+      }
     }
   ]
 }
