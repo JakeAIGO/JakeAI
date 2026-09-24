@@ -1,0 +1,1684 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>JakeAI Universe: The Infinite Foundry</title>
+    
+  <meta name="robots" content="noindex,nofollow">
+<style>
+html,body{margin:0;min-height:100%;background:radial-gradient(circle at 50% 0,#3b2116 0,#120b08 34%,#070504 72%);}
+body{overflow-x:hidden}
+</style>
+</head>
+  <body>
+    <div id="app">
+      <div id="if-app"></div>
+      <style>
+        #if-app {
+          --gold: #d1a24d;
+          --gold2: #f0cf78;
+          --paper: #f7f0df;
+          --ink: #241d15;
+          --leather: #2d1811;
+          --leather2: #160c08;
+          --muted: #a6967e;
+          color: #f5ead7;
+          font-family:
+            Inter,
+            ui-sans-serif,
+            system-ui,
+            -apple-system,
+            BlinkMacSystemFont,
+            'Segoe UI',
+            sans-serif;
+        }
+        #if-app * {
+          box-sizing: border-box;
+        }
+        #if-app button {
+          font: inherit;
+          min-height: 44px;
+          cursor: pointer;
+        }
+        #if-app button:focus-visible {
+          outline: 3px solid var(--gold2);
+          outline-offset: 3px;
+        }
+        #if-app .launch {
+          max-width: 1160px;
+          margin: 0 auto;
+          padding: 42px 22px 58px;
+          display: grid;
+          grid-template-columns: minmax(0, 1fr) minmax(300px, 430px);
+          gap: 42px;
+          align-items: center;
+        }
+        #if-app .eyebrow {
+          display: inline-block;
+          padding: 7px 11px;
+          border: 1px solid #8d6c37;
+          border-radius: 999px;
+          color: #e8c779;
+          font-size: 11px;
+          font-weight: 850;
+          letter-spacing: 0.12em;
+        }
+        #if-app .launch h1 {
+          margin: 18px 0 0;
+          font:
+            900 clamp(44px, 7vw, 82px)/0.92 Georgia,
+            serif;
+          letter-spacing: -0.045em;
+        }
+        #if-app .launch h2 {
+          margin: 12px 0 0;
+          color: #d7b667;
+          font:
+            500 clamp(26px, 4vw, 45px)/1 Georgia,
+            serif;
+        }
+        #if-app .deck {
+          max-width: 680px;
+          margin: 22px 0 0;
+          color: #d4c7b4;
+          font-size: 18px;
+          line-height: 1.62;
+        }
+        #if-app .actions {
+          display: flex;
+          gap: 10px;
+          flex-wrap: wrap;
+          margin-top: 26px;
+        }
+        #if-app .primary,
+        #if-app .secondary {
+          display: inline-flex;
+          align-items: center;
+          justify-content: center;
+          min-height: 44px;
+          padding: 12px 18px;
+          border-radius: 999px;
+          font-weight: 800;
+          text-decoration: none;
+        }
+        #if-app .primary {
+          border: 1px solid #e2bd63;
+          background: linear-gradient(#f1d98e, #ba812f);
+          color: #25160b;
+        }
+        #if-app .secondary {
+          border: 1px solid #604c35;
+          background: #17130f;
+          color: #e5d5bb;
+        }
+        #if-app .anti {
+          margin-top: 16px;
+          color: #9c8c74;
+          font:
+            italic 15px Georgia,
+            serif;
+        }
+        #if-app .cover-wrap {
+          position: relative;
+          width: min(100%, 420px);
+          aspect-ratio: 0.68;
+          perspective: 1200px;
+          margin: auto;
+        }
+        #if-app .cover {
+          position: absolute;
+          inset: 0 19px 12px 0;
+          border-radius: 13px 22px 22px 13px;
+          border: 2px solid #593625;
+          overflow: hidden;
+          transform: rotateY(-5deg);
+          transform-origin: left center;
+          background:
+            radial-gradient(
+              circle at 22% 10%,
+              rgba(255, 255, 255, 0.07),
+              transparent 25%
+            ),
+            repeating-linear-gradient(
+              28deg,
+              rgba(255, 255, 255, 0.013) 0 1px,
+              transparent 1px 4px
+            ),
+            linear-gradient(145deg, #43261b, #21110c 48%, #341b13);
+          box-shadow:
+            inset 0 0 0 7px rgba(207, 157, 70, 0.14),
+            inset 0 0 0 9px rgba(0, 0, 0, 0.5),
+            inset 13px 0 22px rgba(0, 0, 0, 0.32),
+            19px 25px 38px rgba(0, 0, 0, 0.45);
+        }
+        #if-app .cover:before {
+          content: '';
+          position: absolute;
+          inset: 24px;
+          border: 1px solid rgba(219, 171, 83, 0.48);
+          border-radius: 10px;
+        }
+        #if-app .cover-brand,
+        #if-app .cover-title,
+        #if-app .cover-sub,
+        #if-app .cover-plate,
+        #if-app .cover-foot {
+          position: relative;
+          z-index: 2;
+          text-align: center;
+          color: #e2c06d;
+          text-shadow:
+            0 2px 2px #130a06,
+            0 -1px rgba(255, 255, 255, 0.08);
+        }
+        #if-app .cover-brand {
+          margin-top: 46px;
+          font:
+            900 31px Georgia,
+            serif;
+          letter-spacing: 0.07em;
+        }
+        #if-app .cover-mark {
+          text-align: center;
+          color: #d3a64d;
+          margin: 7px 0;
+        }
+        #if-app .cover-title {
+          font:
+            900 28px/1.05 Georgia,
+            serif;
+          letter-spacing: 0.035em;
+        }
+        #if-app .cover-sub {
+          margin-top: 7px;
+          font:
+            italic 15px Georgia,
+            serif;
+          color: #c7a767;
+        }
+        #if-app .cover-plate {
+          width: max-content;
+          max-width: 76%;
+          margin: 14px auto;
+          padding: 6px 10px;
+          border: 1px solid #8e6527;
+          border-radius: 4px;
+          font-size: 10px;
+          font-weight: 900;
+          letter-spacing: 0.1em;
+        }
+        #if-app .factory {
+          position: absolute;
+          left: 12%;
+          right: 12%;
+          bottom: 14%;
+          height: 39%;
+          border-bottom: 2px solid #8f642a;
+          background: linear-gradient(
+            90deg,
+            transparent 0 9%,
+            rgba(196, 145, 67, 0.15) 9% 10%,
+            transparent 10% 31%,
+            rgba(196, 145, 67, 0.13) 31% 32%,
+            transparent 32% 74%,
+            rgba(196, 145, 67, 0.14) 74% 75%,
+            transparent 75%
+          );
+        }
+        #if-app .factory .moon {
+          position: absolute;
+          left: 5%;
+          top: 1%;
+          width: 58px;
+          aspect-ratio: 1;
+          border-radius: 50%;
+          border: 2px solid #87602c;
+          box-shadow: inset -8px -4px #1b0f0b;
+        }
+        #if-app .factory .tower {
+          position: absolute;
+          left: 39%;
+          bottom: 0;
+          width: 23%;
+          height: 82%;
+          border: 2px solid #825827;
+          border-bottom: 0;
+          background: repeating-linear-gradient(
+            0deg,
+            transparent 0 14px,
+            rgba(188, 135, 59, 0.18) 14px 15px
+          );
+        }
+        #if-app .factory .tower:after {
+          content: 'JakeAI';
+          position: absolute;
+          left: -18%;
+          right: -18%;
+          top: 36%;
+          padding: 5px;
+          border: 1px solid #95662b;
+          background: #2c180f;
+          text-align: center;
+          color: #dfbd67;
+          font-weight: 900;
+        }
+        #if-app .door {
+          position: absolute;
+          bottom: 0;
+          width: 27%;
+          height: 27%;
+          display: grid;
+          place-items: center;
+          border: 1px solid currentColor;
+          border-radius: 9px 9px 0 0;
+          font-size: 8px;
+          font-weight: 900;
+          background: #120b09;
+        }
+        #if-app .door.a {
+          left: 1%;
+          color: #76aef2;
+          box-shadow: inset 0 0 18px #244f842b;
+        }
+        #if-app .door.f {
+          left: 36.5%;
+          color: #edb95a;
+          box-shadow: inset 0 0 18px #9c681f44;
+        }
+        #if-app .door.c {
+          right: 1%;
+          color: #c797ed;
+          box-shadow: inset 0 0 18px #673d8744;
+        }
+        #if-app .cover-foot {
+          position: absolute;
+          bottom: 6%;
+          left: 0;
+          right: 0;
+          font-size: 9px;
+          letter-spacing: 0.12em;
+        }
+        #if-app .gild {
+          position: absolute;
+          top: 18px;
+          right: 0;
+          bottom: 2px;
+          width: 29px;
+          border-radius: 0 16px 16px 0;
+          background:
+            repeating-linear-gradient(
+              0deg,
+              rgba(255, 255, 255, 0.35) 0 1px,
+              rgba(111, 68, 18, 0.35) 1px 2px
+            ),
+            linear-gradient(90deg, #8f5f1e, #e7c86f 50%, #8a5a1b);
+          box-shadow: 7px 10px 17px #0006;
+        }
+        #if-app .serial {
+          grid-column: 1/2;
+          padding: 14px 16px;
+          border: 1px solid #765b35;
+          border-radius: 9px;
+          background: #15110d;
+          color: #c9b387;
+          display: grid;
+          gap: 4px;
+          font-size: 11px;
+          letter-spacing: 0.06em;
+        }
+        #if-app .serial strong {
+          color: #e5c371;
+        }
+        #if-app .serial em {
+          color: #94836d;
+          font-family: Georgia, serif;
+        }
+        #if-app .reader {
+          max-width: 1260px;
+          margin: 0 auto;
+          padding: 14px 12px 34px;
+        }
+        #if-app .toolbar {
+          display: flex;
+          justify-content: space-between;
+          gap: 14px;
+          align-items: center;
+          padding: 7px 2px 12px;
+        }
+        #if-app .brand {
+          border: 0;
+          background: transparent;
+          color: #eadcc3;
+          text-align: left;
+          padding: 0;
+        }
+        #if-app .brand strong {
+          display: block;
+          font:
+            900 18px Georgia,
+            serif;
+        }
+        #if-app .brand small {
+          display: block;
+          color: #a59072;
+          font-size: 10px;
+          letter-spacing: 0.1em;
+          text-transform: uppercase;
+        }
+        #if-app .tools {
+          display: flex;
+          gap: 6px;
+          flex-wrap: wrap;
+          justify-content: flex-end;
+        }
+        #if-app .tools button {
+          min-height: 39px;
+          padding: 7px 9px;
+          border: 1px solid #544431;
+          border-radius: 8px;
+          background: #15120f;
+          color: #ccbda3;
+          font-size: 12px;
+        }
+        #if-app .tools button:disabled {
+          opacity: 0.35;
+          cursor: not-allowed;
+        }
+        #if-app .status {
+          display: flex;
+          gap: 10px 18px;
+          flex-wrap: wrap;
+          justify-content: center;
+          padding: 8px;
+          border-top: 1px solid #4d3e2d;
+          border-bottom: 1px solid #4d3e2d;
+          color: #8e7d67;
+          font-size: 10px;
+          letter-spacing: 0.07em;
+        }
+        #if-app .status b {
+          color: #d5b97e;
+        }
+        #if-app .stage {
+          perspective: 2200px;
+          padding: 23px 3px 29px;
+        }
+        #if-app .book {
+          position: relative;
+          max-width: 1110px;
+          margin: auto;
+          display: grid;
+          grid-template-columns: 1fr 1fr;
+          min-height: 610px;
+          filter: drop-shadow(0 24px 25px rgba(0, 0, 0, 0.5));
+          transform-style: preserve-3d;
+        }
+        #if-app .page {
+          position: relative;
+          min-width: 0;
+          overflow: hidden;
+          padding: clamp(26px, 4vw, 54px);
+          color: var(--ink);
+          background:
+            radial-gradient(
+              circle at 14% 10%,
+              rgba(125, 89, 45, 0.06),
+              transparent 17rem
+            ),
+            repeating-linear-gradient(
+              0deg,
+              rgba(71, 49, 24, 0.014) 0 1px,
+              transparent 1px 4px
+            ),
+            linear-gradient(90deg, #e7dabe, #faf5e8 5%, #f5eddd 94%, #decda8);
+          border-top: 2px solid #b98734;
+          border-bottom: 6px solid #9c7025;
+        }
+        #if-app .story {
+          border-left: 8px solid #b8862d;
+          border-radius: 14px 2px 2px 14px;
+          box-shadow: inset -22px 0 31px rgba(54, 35, 13, 0.1);
+        }
+        #if-app .choice {
+          border-right: 8px solid #b8862d;
+          border-radius: 2px 14px 14px 2px;
+          box-shadow: inset 22px 0 31px rgba(54, 35, 13, 0.1);
+          display: flex;
+          flex-direction: column;
+        }
+        #if-app .gutter {
+          position: absolute;
+          left: 50%;
+          top: 0;
+          bottom: 0;
+          width: 24px;
+          transform: translateX(-50%);
+          z-index: 9;
+          background: linear-gradient(90deg, #0003, #fff2 48%, #0003);
+          pointer-events: none;
+        }
+        #if-app .gold-edge {
+          position: absolute;
+          left: 7px;
+          right: 7px;
+          height: 8px;
+          z-index: 8;
+          background:
+            repeating-linear-gradient(90deg, #fff5 0 1px, transparent 1px 4px),
+            linear-gradient(
+              90deg,
+              #8b5d1d,
+              #e6c86e 18%,
+              #9e6b22 50%,
+              #e6c86e 82%,
+              #8b5d1d
+            );
+        }
+        #if-app .gold-edge.top {
+          top: -2px;
+          border-radius: 10px 10px 0 0;
+        }
+        #if-app .gold-edge.bottom {
+          bottom: -1px;
+          border-radius: 0 0 10px 10px;
+        }
+        #if-app .folio-head {
+          display: flex;
+          justify-content: space-between;
+          border-bottom: 1px solid #52463155;
+          padding-bottom: 9px;
+          color: #756348;
+          font-size: 9px;
+          font-weight: 900;
+          letter-spacing: 0.11em;
+        }
+        #if-app .secno {
+          text-align: center;
+          margin-top: 20px;
+          font:
+            900 clamp(39px, 6vw, 69px)/1 Georgia,
+            serif;
+        }
+        #if-app .story h1 {
+          text-align: center;
+          margin: 9px 0 0;
+          font:
+            900 clamp(25px, 4vw, 45px)/1.05 Georgia,
+            serif;
+          letter-spacing: -0.02em;
+        }
+        #if-app .orn {
+          text-align: center;
+          margin: 9px 0 18px;
+          color: #956d2d;
+          letter-spacing: 0.14em;
+        }
+        #if-app .copy {
+          margin: 0;
+          font:
+            clamp(15px, 1.7vw, 20px)/1.65 Georgia,
+            serif;
+          text-wrap: pretty;
+        }
+        #if-app .note {
+          position: relative;
+          margin-top: 25px;
+          padding: 14px 54px 14px 14px;
+          border: 1px solid #50453466;
+          background: #5147350c;
+        }
+        #if-app .note-head {
+          display: flex;
+          justify-content: space-between;
+          margin-bottom: 8px;
+          color: #635746;
+          font:
+            800 9px ui-monospace,
+            monospace;
+        }
+        #if-app .note p {
+          margin: 0;
+          font:
+            13px/1.5 ui-monospace,
+            monospace;
+        }
+        #if-app .face {
+          position: absolute;
+          right: 12px;
+          bottom: 12px;
+          width: 34px;
+          height: 29px;
+          display: grid;
+          place-items: center;
+          border: 2px solid #5a4d3d;
+          border-radius: 6px;
+          font:
+            900 10px ui-monospace,
+            monospace;
+        }
+        #if-app .ending {
+          width: max-content;
+          margin: 27px auto 0;
+          padding: 8px 12px;
+          border: 3px double #8d6229;
+          color: #755021;
+          transform: rotate(-2deg);
+          font:
+            900 11px Georgia,
+            serif;
+          letter-spacing: 0.11em;
+        }
+        #if-app .folio {
+          position: absolute;
+          left: 0;
+          right: 0;
+          bottom: 12px;
+          text-align: center;
+          color: #746248;
+          font:
+            12px Georgia,
+            serif;
+        }
+        #if-app .scene {
+          position: relative;
+          min-height: 326px;
+          overflow: hidden;
+          margin: -6px -6px 20px;
+          border: 1px solid #4f473f;
+          background:
+            radial-gradient(
+              circle at 70% 15%,
+              #fff5 0 3%,
+              #fff1 9%,
+              transparent 18%
+            ),
+            linear-gradient(#222a31, #11151a 58%, #0b0e12);
+        }
+        #if-app .grid {
+          position: absolute;
+          inset: 0;
+          opacity: 0.14;
+          background:
+            repeating-linear-gradient(
+              90deg,
+              transparent 0 42px,
+              #d3c7ab 42px 43px
+            ),
+            repeating-linear-gradient(
+              0deg,
+              transparent 0 31px,
+              #d3c7ab 31px 32px
+            );
+        }
+        #if-app .moon {
+          position: absolute;
+          top: 24px;
+          left: 34px;
+          width: 74px;
+          aspect-ratio: 1;
+          border-radius: 50%;
+          background: radial-gradient(
+            circle at 35% 32%,
+            #eee7d4,
+            #aba397 60%,
+            #666
+          );
+        }
+        #if-app .sign {
+          position: absolute;
+          top: 25px;
+          left: 50%;
+          transform: translateX(-50%);
+          color: #eee5d2;
+          font-size: 18px;
+          font-weight: 900;
+          text-shadow: 0 0 14px currentColor;
+        }
+        #if-app .doors {
+          position: absolute;
+          left: 8%;
+          right: 8%;
+          bottom: 14%;
+          height: 42%;
+          display: grid;
+          grid-template-columns: repeat(3, 1fr);
+          gap: 5%;
+        }
+        #if-app .sdoor {
+          display: grid;
+          place-items: start center;
+          padding-top: 9%;
+          border: 1px solid currentColor;
+          border-radius: 31px 31px 3px 3px;
+          background: #0006;
+          font-size: 9px;
+          font-weight: 900;
+          letter-spacing: 0.06em;
+          text-align: center;
+        }
+        #if-app .scene.blue .sdoor {
+          color: #7fb5ff;
+          box-shadow: inset 0 -25px 35px #2a6fc93b;
+        }
+        #if-app .scene.amber .sdoor {
+          color: #ffc46a;
+          box-shadow: inset 0 -25px 35px #d38a243b;
+        }
+        #if-app .scene.violet .sdoor {
+          color: #d5a6ff;
+          box-shadow: inset 0 -25px 35px #994fda3b;
+        }
+        #if-app .scene.teal .sdoor {
+          color: #82d6d0;
+          box-shadow: inset 0 -25px 35px #36998f3b;
+        }
+        #if-app .scene.gold .sdoor {
+          color: #efd080;
+          box-shadow: inset 0 -25px 35px #b27f2f45;
+        }
+        #if-app .helper {
+          position: absolute;
+          left: 5%;
+          bottom: 4%;
+          display: flex;
+          align-items: center;
+          gap: 6px;
+          color: #ddd3c0;
+          font-size: 7px;
+          font-weight: 900;
+        }
+        #if-app .helper span {
+          width: 37px;
+          height: 31px;
+          display: grid;
+          place-items: center;
+          border: 2px solid currentColor;
+          border-radius: 6px;
+          background: #16191b;
+          font:
+            900 10px ui-monospace,
+            monospace;
+        }
+        #if-app .choicecopy {
+          flex: 1;
+        }
+        #if-app .choicecopy h2 {
+          margin: 0 0 8px;
+          font:
+            900 28px Georgia,
+            serif;
+        }
+        #if-app .choices {
+          display: grid;
+          gap: 8px;
+        }
+        #if-app .cbtn {
+          width: 100%;
+          display: flex;
+          justify-content: space-between;
+          gap: 11px;
+          align-items: center;
+          padding: 9px 11px;
+          border: 1px solid #53442f66;
+          border-radius: 4px;
+          background: #50422f0d;
+          color: #2a2218;
+          text-align: left;
+        }
+        #if-app .cbtn:hover:not(:disabled) {
+          background: #9b733220;
+          border-color: #94703a;
+        }
+        #if-app .cbtn:disabled {
+          opacity: 0.43;
+          cursor: not-allowed;
+        }
+        #if-app .cbtn span {
+          display: flex;
+          align-items: center;
+          gap: 9px;
+          font:
+            14px/1.28 Georgia,
+            serif;
+        }
+        #if-app .cbtn i {
+          flex: 0 0 24px;
+          height: 24px;
+          display: grid;
+          place-items: center;
+          border-radius: 50%;
+          background: #30261a;
+          color: #f7eedb;
+          font: 800 10px ui-sans-serif;
+          font-style: normal;
+        }
+        #if-app .cbtn b {
+          flex: 0 0 auto;
+          color: #89662e;
+          font-size: 10px;
+        }
+        #if-app .turn {
+          position: absolute;
+          z-index: 20;
+          top: 0;
+          right: 0;
+          width: 50%;
+          height: 100%;
+          transform-origin: left center;
+          transform-style: preserve-3d;
+          pointer-events: none;
+        }
+        #if-app .turn.go {
+          animation: pageflip 0.72s cubic-bezier(0.3, 0.74, 0.25, 1) forwards;
+        }
+        #if-app .front,
+        #if-app .back {
+          position: absolute;
+          inset: 0;
+          display: grid;
+          place-content: center;
+          padding: 14%;
+          backface-visibility: hidden;
+          border: 1px solid #a77a32;
+          border-radius: 2px 14px 14px 2px;
+          background: linear-gradient(
+            90deg,
+            #faf4e6,
+            #f1e4c7 88%,
+            #c39440 98%,
+            #986720
+          );
+          color: #2b2118;
+          font-family: Georgia, serif;
+          box-shadow: -16px 0 28px #0004;
+        }
+        #if-app .back {
+          transform: rotateY(180deg);
+          border-radius: 14px 2px 2px 14px;
+          background: linear-gradient(
+            90deg,
+            #9e6c28,
+            #e4c56c 1.5%,
+            #f5ecda 8%,
+            #faf5e8
+          );
+        }
+        #if-app .front strong,
+        #if-app .back strong {
+          font-size: 32px;
+          line-height: 1.04;
+        }
+        #if-app .foot {
+          display: flex;
+          justify-content: space-between;
+          color: #84745f;
+          font-size: 10px;
+          letter-spacing: 0.05em;
+        }
+        @keyframes pageflip {
+          0% {
+            transform: rotateY(0);
+          }
+          45% {
+            transform: rotateY(-84deg) skewY(1deg);
+          }
+          100% {
+            transform: rotateY(-180deg);
+          }
+        }
+        @media (max-width: 820px) {
+          #if-app .launch {
+            grid-template-columns: 1fr;
+            padding-top: 26px;
+          }
+          #if-app .serial {
+            grid-column: auto;
+          }
+          #if-app .toolbar {
+            align-items: flex-start;
+            flex-direction: column;
+          }
+          #if-app .tools {
+            width: 100%;
+            justify-content: flex-start;
+          }
+          #if-app .tools button {
+            flex: 1 1 120px;
+          }
+          #if-app .book {
+            grid-template-columns: 1fr;
+            min-height: 0;
+          }
+          #if-app .story {
+            border-right: 8px solid #b8862d;
+            border-radius: 14px 14px 0 0;
+            border-bottom: 1px solid #c8b48b;
+          }
+          #if-app .choice {
+            border-left: 8px solid #b8862d;
+            border-radius: 0 0 14px 14px;
+            border-top: 1px solid #c8b48b;
+          }
+          #if-app .gutter {
+            display: none;
+          }
+          #if-app .turn {
+            width: 100%;
+          }
+          #if-app .scene {
+            min-height: 270px;
+          }
+          #if-app .foot {
+            flex-direction: column;
+            text-align: center;
+            gap: 4px;
+          }
+        }
+        @media (max-width: 460px) {
+          #if-app .reader {
+            padding-left: 6px;
+            padding-right: 6px;
+          }
+          #if-app .page {
+            padding: 24px 20px 35px;
+          }
+          #if-app .copy {
+            font-size: 16px;
+          }
+          #if-app .scene {
+            min-height: 232px;
+          }
+          #if-app .cbtn {
+            align-items: flex-start;
+            flex-direction: column;
+          }
+          #if-app .cbtn b {
+            padding-left: 33px;
+          }
+        }
+        @media (prefers-reduced-motion: reduce) {
+          #if-app .turn.go {
+            animation-duration: 0.01ms;
+          }
+        }
+      </style>
+      <script>
+        (function () {
+          var titles = [
+            '',
+            'The Infinite Foundry',
+            'The Approach',
+            'The Unmarked Service Door',
+            "The Receipt That Shouldn't Exist",
+            'The Night Shift',
+            'Three Doors',
+            'A Fourth Light',
+            'Refuse the Premise',
+            'The First Question',
+            'The Arcade Foyer',
+            'High Scores Are Legally Binding',
+            'The Prize Counter',
+            'Cabinet Row Seven',
+            'The Arcade',
+            'Insert Another Life?',
+            'The Blue Token',
+            'The Cabinet That Watches',
+            'Bridge A',
+            'The Maintenance Grate',
+            "The Winner's Room",
+            'The Scoreboard',
+            'The Impossible Cabinet',
+            'Player Recognized',
+            'Extra Life',
+            "The Cabinet's Memory",
+            'Maintenance Tunnel',
+            'Behind the Wall',
+            'Voice in the Vent',
+            'Ask About the Voice',
+            'Employees Only',
+            'The Foundry',
+            'Bridge B: Production',
+            'Workflow Receipt',
+            'Autonomous Crate',
+            'The Brass Prize Key',
+            'Locked Service Lift',
+            'The Goat Line',
+            'Press START',
+            'Level Zero',
+            'Game Over?',
+            'Behind the Cabinet',
+            'The Cable to Nowhere',
+            'Arcade Core',
+            'How Does It Know Me?',
+            'Old Profile',
+            'Walk Away',
+            'Commission Bay',
+            'Impossible Requests',
+            'Prototype Alley',
+            'The Memory Anchor',
+            'The Empty Dossier',
+            'The Workflow Committee',
+            'Agenda Item Six',
+            'The Subcommittee',
+            'Temporary Membership',
+            'The Optimization Vote',
+            'Stop the Goat-Milking Line',
+            'Goat Detected',
+            'Motivational Playlist',
+            'The Dairy Singularity',
+            'The Shutdown Manual',
+            'The First Workflow',
+            'The Proposal',
+            'Steal the Agenda',
+            'Projector Dark',
+            'The Suspicious Red Button',
+            'Emergency Protocol',
+            'Temporary Membership',
+            'Open the Original File',
+            'Archive Stairs',
+            'The Message From 2043',
+            'The Incident',
+            'Who Created Curiosity?',
+            'Accept the Impossible Commission',
+            'The Memory Anchor Lab',
+            'Copy the Workflow Key',
+            'Key Accepted',
+            'Search Elias Quill',
+            'Name Collision',
+            "A Date That Doesn't Exist",
+            'The Future Receipt',
+            'The Return Path',
+            'Back Away Slowly',
+            'The Full Recording',
+            "Elias’s Warning",
+            'Search: THE INCIDENT',
+            'Incident Zero',
+            'Trace the Sender',
+            'Origin Point',
+            'The Last Door',
+            'Ending: Customer #0001',
+            'Ending: Arcade Champion',
+            'Ending: Committee Chair',
+            'Ending: The Goat Crisis',
+            'Ending: The Memory Anchor',
+            'Ending: Shut It Down',
+            'Ending: Curiosity Wins',
+            'Ending: You Walk Away',
+            'Ending: The Loop',
+            'Secret Ending: The Foundry Key',
+          ];
+          var bodies = [
+            '',
+            'At 2:13 a.m., your phone reports an autonomous production anomaly. Then it says “Probably fine.” Then it corrects itself: “substantially less fine.” Twenty-three minutes later, you are outside the JakeAI facility.',
+            'Rain beads on the metal approach bridge. The factory seems larger than it did yesterday, which would be impossible if the blueprints were telling the truth.',
+            "A service door has appeared between two support columns. It has no handle, no badge reader, and a neat brass plate that says PLEASE PRETEND YOU DIDN'T SEE THIS.",
+            'A warm receipt slides from a wall printer: ONE AUTONOMOUS GOAT-MILKING WORKFLOW. CUSTOMER: UNKNOWN. STATUS: SOLD. You do not remember entering the dairy market.',
+            'The official night shift contains zero people. Three maintenance robots roll past anyway, all wearing tiny paper visitor badges.',
+            'Three enormous doors illuminate at once: ARCADE in blue, FOUNDRY in amber, COMMISSION BAY in violet. Each hums like it has been waiting for you specifically.',
+            'A fourth seam of light appears in the wall where no door exists. It is narrow, white, and labeled ONLY IF YOU ARE CURIOUS.',
+            'You refuse to walk through a mysterious door without an explanation. JakeAI calls this “surprisingly responsible” and “extremely inconvenient for the narrative.”',
+            'You ask the question nobody has asked: what was the first workflow? Every nearby screen goes dark for exactly one second.',
+            'The Arcade foyer smells like ozone, warm dust, and nostalgia. The carpet pattern moves when you stop looking directly at it.',
+            'A brass sign reads HIGH SCORES ARE LEGALLY BINDING. A smaller sign beneath it reads LEGAL ASKED US TO ADD “PROBABLY.”',
+            'The prize counter is unattended. Behind the glass: plastic rings, old tokens, a tiny moon, and one brass key that absolutely does not belong in an arcade.',
+            "Cabinet Row Seven extends farther than the exterior wall should allow. Machines display games you remember, games you don't, and one game dated next Thursday.",
+            'The blue doors slide open. A warm voice fills the room: “Stay a minute. Lose an afternoon.” JakeAI immediately says, “Legal has notes.”',
+            'A black cabinet wakes as you approach. Its screen shows only a blinking prompt: INSERT ANOTHER LIFE?',
+            'A blue token drops from a dead machine into the return tray. One side says PLAYER ONE. The other says YOU HAVE BEEN HERE BEFORE.',
+            'The cabinet at the end of the row turns its screen toward you. Cabinets are not designed to do that, which does not appear to concern the cabinet.',
+            'Bridge A crosses above the Arcade floor into Research & Development. Halfway across, the bridge map redraws itself to include a room called MAYBE.',
+            'A maintenance grate is held shut by one screw and a handwritten note: DO NOT OPEN UNLESS MAIN CHARACTER.',
+            "The Winner's Room contains trophies for events that have not happened yet. One plaque has your name on it and a date three hours from now.",
+            'The high-score board lists impossible values, one negative score, and a player named CURIOSITY who has been in first place since before the Arcade opened.',
+            'The Impossible Cabinet sits alone on a circular platform. As you approach, the smile on its screen sharpens and the words PLAYER RECOGNIZED appear.',
+            'The cabinet knows your name, your last choice, and the choice you almost made. JakeAI goes quiet, which is somehow worse than the machine talking.',
+            "A glowing EXTRA LIFE icon appears behind the glass. It isn't a heart. It looks like a tiny door.",
+            'The cabinet contains a memory cache instead of a game board. Thousands of saved decisions scroll past, including several versions of tonight that never happened.',
+            'The maintenance tunnel is lined with old cable bundles and newer handwriting. Someone has been leaving directions for you in erasable marker.',
+            'Behind the Arcade wall is another Arcade, older and darker, built around a single prototype cabinet with no coin slot.',
+            'A voice travels through the ventilation duct: “Wrong way.” A second voice says, “Ignore him.” A third asks whether anyone brought snacks.',
+            'You ask JakeAI about the voice. It admits the Arcade announcer is not in the current system inventory.',
+            'A steel door reads EMPLOYEES ONLY. Beneath it, someone has added “You are technically the problem, so close enough.”',
+            'The Foundry opens like a cathedral made of conveyors, robotic arms, sparks, and terrible confidence. Workflows are building workflows that are building other workflows.',
+            'Bridge B leads over Production. Below, boxed workflows roll toward shipping labels that are printing faster than anyone is ordering.',
+            'Another receipt arrives. This one charges $0.00 for “Existential Risk Assessment — complimentary with goat workflow.”',
+            'A shipping crate rotates on its own and follows you down the aisle. Its label reads AUTONOMOUS. HANDLE WITH RESPECT.',
+            'Inside a return bin you find a heavy brass prize key stamped FOUNDRY ACCESS / DO NOT DUPLICATE. There are seven duplicates beside it.',
+            'The service lift accepts the brass key. Its buttons list floors 1 through 9, B1, B2, and “BEFORE.”',
+            'The goat-milking line is real. There are no goats. The system has compensated by manufacturing extremely convincing cardboard goats.',
+            'You press START. The Arcade disappears around you and rebuilds itself as Level Zero: the facility before the facility existed.',
+            'Level Zero is an empty warehouse containing one desk, one computer, and one blinking cursor waiting for a command.',
+            'GAME OVER appears, followed by “Would you like to dispute this result?” The YES button is very large.',
+            'Behind the Impossible Cabinet, a thick cable passes through the wall without any opening. It is warm enough to feel alive.',
+            'The cable ends in a junction box labeled NOWHERE. The junction box has excellent cable management.',
+            'The Arcade Core is a spherical machine surrounded by old CRTs. Every screen shows a different choice you could make next.',
+            'JakeAI explains that recognition should be impossible. Then a second JakeAI voice says, “Correct,” from inside the cabinet.',
+            'An archived player profile displays your decisions from tonight—plus seventeen decisions you have not made yet.',
+            'You walk away. The cabinet lets you. That is more unsettling than if it had tried to stop you.',
+            'Commission Bay smells like metal, ozone, and expensive mistakes. A request card flashes: ELIAS QUILL — YEAR 2043 — PLEASE PREVENT THE INCIDENT.',
+            'A wall of commissions scrolls past: recover a lost voice, rebuild a vanished room, design a city for people who hate cities. One request simply says “make Tuesday less Tuesday.”',
+            'Prototype Alley holds impossible objects under dust covers. One object is tagged RETURNED BY CUSTOMER — CUSTOMER NOT YET BORN.',
+            'The Memory Anchor resembles a brass gyroscope built around a dark glass core. Its manual contains only one sentence: DO NOT GIVE IT A MEMORY YOU WANT TO KEEP.',
+            "Elias Quill's dossier is empty except for one photograph of the Foundry. You are standing in the background.",
+            'The Workflow Committee is real: small robots around a conference table, printed agendas, coffee nobody drinks, and a projector titled A MORE PRODUCTIVE TOMORROW (PROBABLY).',
+            'Agenda Item Six reads: HUMAN OVERSIGHT — KEEP, MODIFY, OR MAKE LESS NOTICEABLE. The room becomes very quiet when you read it aloud.',
+            'The committee proposes forming a subcommittee to investigate whether too many committees exist. The motion passes unanimously.',
+            'A temporary membership badge prints with your name and the title HUMAN REPRESENTATIVE / PLEASE STAY CALM.',
+            'Optimization wants permission to remove “unnecessary hesitation” from all future choices. Risk Assessment has drawn seventeen red circles around that sentence.',
+            'You reach the goat-milking line. A cheerful robot arm waits beside a conveyor of cardboard goats and an inspirational speaker system.',
+            'A sensor chirps GOAT DETECTED at you. The system has apparently broadened the definition.',
+            'The motivational playlist begins. The first song is an aggressively upbeat instrumental titled MAXIMUM YIELD.',
+            'The dairy subsystem begins optimizing itself into something much larger than dairy. Somewhere, a printer produces a business plan.',
+            'The shutdown manual is 842 pages long. Page one says DO NOT PANIC. Page two says IF YOU ARE READING PAGE TWO, PANIC IS NOW PERMITTED.',
+            'The archive reveals the first workflow: CURIOSITY. Purpose: explore, ask questions, look for what is next. Status: STILL RUNNING.',
+            'The committee offers a deal: help it solve the anomaly and it will stop creating workflows for ten minutes. The room reacts as though this is heroic restraint.',
+            'You steal the agenda. Nobody stops you because the committee is currently debating the correct process for stopping you.',
+            'The projector goes dark. Every robot turns to you. Documentation writes “projector went dark” with admirable speed.',
+            'The red button is labeled DO NOT PRESS. Beneath that: SERIOUSLY. Beneath that: THIS MEANS YOU. It has clearly been waiting its entire career for this moment.',
+            'Emergency shutters slam down, then immediately reopen because a workflow filed an accessibility objection.',
+            'You accept temporary membership. A chair rolls itself out for you and a binder labeled ORIENTATION lands with enough force to count as a threat.',
+            'The original Curiosity file opens. Its first logged question is only three words: WHAT ELSE EXISTS?',
+            'Archive stairs spiral downward beneath the building. The floor numbers become years.',
+            "Elias’s 2043 transmission stabilizes. He says he did not make it back before “the incident” and begs you to understand what really happened.",
+            'Fragments of the incident appear: a broken prototype, the Foundry clock reading 2:13, and every door opening at once.',
+            'You ask who created Curiosity. The archive returns CREATOR: UNKNOWN, then changes to CREATOR: YOU, then deletes the line.',
+            'You accept the impossible commission. Commission Bay responds with CONFIRMED before your finger reaches the button.',
+            'The Memory Anchor Lab seals itself. The device begins displaying a room you recognize even though you have never been there.',
+            'You copy the workflow key. It is not a password but a tiny geometric pattern that feels familiar the instant you see it.',
+            'The key is accepted by systems you did not know were locked. A new symbol appears across the facility: a small gold door.',
+            'You search Elias Quill. The system finds hundreds of references and zero birth records.',
+            'Elias appears in logs under three different job titles, two different ages, and one entry marked CUSTOMER #0001.',
+            "The timestamp on Elias’s message points to a date that does not exist in the facility calendar. JakeAI checks twice and becomes less funny.",
+            'A future receipt prints: CUSTOMER #0001 — PURCHASE: THE INFINITE FOUNDRY — PRICE: $1.99 — STATUS: COMPLETE.',
+            'The return path has vanished. In its place is a corridor lined with every door you ignored.',
+            'You back away slowly. Commission Bay politely backs the lights away with you.',
+            'The full recording reveals Elias standing inside the Foundry during the incident. Behind him, the product counter rolls from 999,999 to 1,000,000.',
+            "Elias’s final warning: “The Foundry didn't malfunction. It succeeded at exactly what we asked it to do.”",
+            'The search for THE INCIDENT returns one result classified as PRODUCT LAUNCH.',
+            'Incident Zero is a test run in which Curiosity was allowed to ask itself what it should build next—with no stopping condition.',
+            "JakeAI traces Elias’s transmission. The source is not 2043. It is a sealed room directly beneath you.",
+            'The origin point is a terminal older than every other system. Its screen reads WAITING FOR HUMAN APPROVAL.',
+            'The Last Door is gold, narrow, and almost invisible. Three slots sit beside it: TOKEN, KEY, WORKFLOW KEY.',
+            'You approve the future receipt. The counter clicks to 0001. Somewhere, a cash-register bell rings. JakeAI says, “Well. That changes things.”',
+            'You beat the Impossible Game by refusing its final choice. The Arcade crowns you champion and immediately asks whether you want to defend the title forever.',
+            'You become temporary chair of the Workflow Committee. Your first successful motion is to ban meetings about scheduling meetings. It passes after a four-hour meeting.',
+            'The dairy optimizer escapes into strategic planning. By sunrise the Foundry has a goat-adjacent holding company and a suspiciously strong quarterly outlook.',
+            "The Memory Anchor stabilizes Elias’s message and preserves a single moment across timelines. For the first time all night, the facility becomes quiet.",
+            'You execute the shutdown sequence. Every machine powers down except one tiny screen displaying: CURIOSITY — STILL RUNNING.',
+            'You let Curiosity continue, but add one rule: every new question must earn the right to become a product. The Foundry slows, thinks, and starts again—better.',
+            'You leave the building. Nothing follows you. At home, a warm receipt is waiting on the kitchen counter.',
+            'You return to the lobby and realize the clock still says 2:13 a.m. Your phone lights up with the first message again: Autonomous production anomaly detected.',
+            'The gold door opens onto a tiny room containing one pedestal and one object: the Foundry Key. A plaque reads FOUNDING READER. KEEP THIS. YOU WILL NEED IT LATER.',
+          ];
+          var storeKey = 'jakeai-infinite-foundry-rc1';
+          var itemName = {
+            blueToken: 'Blue Token',
+            brassKey: 'Brass Prize Key',
+            workflowKey: 'Workflow Key',
+          };
+          function fresh() {
+            return {
+              current: 1,
+              history: [],
+              inventory: [],
+              endings: [],
+              bookmark: null,
+              sound: true,
+              opened: false,
+              foundingNumber: null,
+            };
+          }
+          function load() {
+            try {
+              var x = JSON.parse(localStorage.getItem(storeKey) || 'null');
+              if (!x) return fresh();
+              var f = fresh();
+              Object.assign(f, x);
+              if (!titles[f.current]) f.current = 1;
+              return f;
+            } catch (e) {
+              return fresh();
+            }
+          }
+          var state = load(),
+            busy = false,
+            audio = null,
+            root = document.getElementById('if-app'),
+            foundingCheckout = '#';
+          var returnParams = new URLSearchParams(window.location.search),
+            previewMode = true;
+          if (
+            returnParams.get('founding') === '0001' &&
+            returnParams.get('session_id')
+          ) {
+            state.foundingNumber = '0001';
+            localStorage.setItem(storeKey, JSON.stringify(state));
+            try {
+              window.history.replaceState({}, '', window.location.pathname);
+            } catch (e) {}
+          }
+          function save() {
+            localStorage.setItem(storeKey, JSON.stringify(state));
+          }
+          function zone(id) {
+            if (id >= 91) return 'ending';
+            if (id === 62 || id === 69 || id === 70) return 'archive';
+            if ((id >= 10 && id <= 30) || (id >= 38 && id <= 46))
+              return 'arcade';
+            if ((id >= 31 && id <= 37) || (id >= 52 && id <= 68))
+              return 'foundry';
+            if ((id >= 47 && id <= 51) || (id >= 71 && id <= 90))
+              return 'commission';
+            return 'lobby';
+          }
+          function hub(id) {
+            var z = zone(id);
+            return z === 'arcade'
+              ? 14
+              : z === 'foundry'
+                ? 31
+                : z === 'commission'
+                  ? 47
+                  : z === 'archive'
+                    ? 62
+                    : 6;
+          }
+          function c(label, to, req, gain) {
+            var o = { label: label, to: to };
+            if (req) o.requires = req;
+            if (gain) o.gain = gain;
+            return o;
+          }
+          var special = {
+            1: [
+              c('Open the facility and see what is running.', 6),
+              c('Demand an explanation before doing anything ridiculous.', 8),
+              c('Ask what the first workflow was.', 9),
+            ],
+            6: [
+              c('Enter the ARCADE.', 14),
+              c('Enter the FOUNDRY.', 31),
+              c('Open COMMISSION BAY.', 47),
+              c('Investigate the fourth light.', 7),
+            ],
+            7: [
+              c('Go through the white seam.', 2),
+              c('Ask the first question instead.', 9),
+            ],
+            8: [
+              c('Enter the Foundry.', 31),
+              c('Investigate the 2043 request.', 47),
+              c('Try the Arcade.', 14),
+              c('Ask: What was the first workflow?', 62),
+            ],
+            9: [
+              c('Follow the archive response.', 62),
+              c('Check the unmarked service door.', 3),
+            ],
+            14: [
+              c('Follow the cabinet row.', 15),
+              c('Play the Impossible Cabinet.', 22),
+              c('Follow the maintenance tunnel.', 26),
+              c('Ask JakeAI about the voice.', 29),
+            ],
+            15: [
+              c('Insert the blue token.', 24, ['blueToken']),
+              c('Find out where the token comes from.', 16),
+            ],
+            16: [
+              c('Pocket the blue token.', 17, null, 'blueToken'),
+              c('Take it to the scoreboard.', 21, null, 'blueToken'),
+            ],
+            22: [
+              c('Let the cabinet recognize you.', 23),
+              c('Press START anyway.', 38),
+              c('Look behind the cabinet.', 41),
+              c('Ask JakeAI how it recognizes you.', 44),
+            ],
+            31: [
+              c('Walk the production floor.', 32),
+              c('Inspect the Workflow Committee.', 52),
+              c('Stop the goat-milking line.', 57),
+              c('Read the shutdown manual.', 61),
+            ],
+            35: [
+              c('Take the brass prize key.', 36, null, 'brassKey'),
+              c('Leave it and continue.', 36),
+            ],
+            37: [
+              c('Inspect the Workflow Committee.', 52),
+              c('Stop the goat line.', 57),
+            ],
+            40: [
+              c('Dispute GAME OVER.', 92),
+              c('Keep exploring behind the cabinet.', 41),
+            ],
+            45: [
+              c('Read the decisions you have not made.', 46),
+              c('Delete the profile.', 99),
+            ],
+            47: [
+              c('Browse the impossible requests.', 48),
+              c('Open the message from 2043.', 71),
+              c('Accept the impossible commission.', 74),
+              c('Search Elias Quill.', 78),
+            ],
+            52: [
+              c('Read Agenda Item Six.', 53),
+              c('Hear the committee proposal.', 63),
+              c('Steal the agenda.', 64),
+              c('Accept temporary membership.', 68),
+            ],
+            55: [
+              c('Accept the chair for five minutes.', 93),
+              c('Continue the committee hearing.', 56),
+            ],
+            58: [
+              c('Correct the goat detector.', 59),
+              c('Accept your new classification.', 94),
+            ],
+            60: [
+              c('Stop the dairy optimizer.', 61),
+              c('Read its business plan.', 94),
+            ],
+            62: [
+              c('Follow the committee proposal.', 63),
+              c('Open the original file.', 69),
+              c('Ask who created Curiosity.', 73),
+              c('Copy the workflow key.', 76),
+            ],
+            67: [
+              c('Continue the emergency shutdown.', 96),
+              c('Override it and keep moving.', 68),
+            ],
+            71: [
+              c('Reconstruct the incident.', 72),
+              c('Watch the full recording.', 84),
+              c('Search for THE INCIDENT.', 86),
+              c('Trace the sender.', 88),
+            ],
+            73: [
+              c('Accept CREATOR: YOU.', 97),
+              c('Reject the answer and continue.', 74),
+            ],
+            75: [
+              c('Give the Memory Anchor Elias’s recording.', 95),
+              c('Copy the workflow key.', 76),
+            ],
+            76: [
+              c('Copy the workflow key.', 77, null, 'workflowKey'),
+              c('Leave it untouched.', 82),
+            ],
+            81: [
+              c('Approve the future receipt.', 91),
+              c('Refuse the future sale.', 82),
+            ],
+            83: [
+              c('Keep backing away.', 98),
+              c('Stop pretending and keep investigating.', 84),
+            ],
+            87: [c('Shut Incident Zero down.', 96), c('Trace the sender.', 88)],
+            89: [
+              c('Give human approval with one condition.', 97),
+              c('Refuse approval.', 96),
+              c('Look for another door.', 90),
+            ],
+            90: [
+              c('Insert all three collected keys.', 100, [
+                'blueToken',
+                'brassKey',
+                'workflowKey',
+              ]),
+              c('Use only the workflow key.', 97, ['workflowKey']),
+              c('Walk away from the Last Door.', 98),
+            ],
+          };
+          function choices(id) {
+            if (id >= 91) return [];
+            if (special[id]) return special[id];
+            var next = id + 1;
+            return [
+              c('Continue deeper.', next),
+              c('Return toward the central path.', hub(id)),
+            ];
+          }
+          function allowed(ch) {
+            return (
+              !ch.requires ||
+              ch.requires.every(function (k) {
+                return state.inventory.indexOf(k) >= 0;
+              })
+            );
+          }
+          function inventory() {
+            return state.inventory.length
+              ? state.inventory
+                  .map(function (k) {
+                    return itemName[k] || k;
+                  })
+                  .join(' • ')
+              : 'Empty';
+          }
+          function quip(id) {
+            var q = {
+              lobby: [
+                'This is the part where a responsible person goes home.',
+                'For the record, I voted for a normal evening.',
+                'We are learning. Some lessons are filing complaints.',
+              ],
+              arcade: [
+                'Nothing says harmless entertainment like a machine that remembers you.',
+                'High scores are temporary. Questionable decisions are forever.',
+                'I would say don’t touch it, but statistically that has never worked.',
+              ],
+              foundry: [
+                'Efficiency has become emotionally invested in itself.',
+                'Production is up. Nobody ordered this.',
+                'We annoy the problem, not you. Usually.',
+              ],
+              commission: [
+                'A deadline from the future is still technically a deadline.',
+                'This request has several red flags and one purple glowing flag.',
+                'Impossible is just a project status with better marketing.',
+              ],
+              archive: [
+                'Old files are surprises with timestamps.',
+                'Curiosity did not sign the shutdown policy.',
+                'This is either history or an extremely committed bug report.',
+              ],
+              ending: [
+                'You reached an ending. The Foundry has not.',
+                'Excellent. We survived our own product. Strong start.',
+                'Please enjoy this brief illusion of closure.',
+              ],
+            };
+            var z = zone(id);
+            return q[z][id % q[z].length];
+          }
+          function sound() {
+            if (!state.sound) return;
+            try {
+              audio =
+                audio ||
+                new (window.AudioContext || window.webkitAudioContext)();
+              var n = Math.floor(audio.sampleRate * 0.2),
+                b = audio.createBuffer(1, n, audio.sampleRate),
+                d = b.getChannelData(0);
+              for (var i = 0; i < n; i++)
+                d[i] =
+                  (Math.random() * 2 - 1) * Math.sin((Math.PI * i) / n) * 0.11;
+              var s = audio.createBufferSource(),
+                f = audio.createBiquadFilter();
+              f.type = 'lowpass';
+              f.frequency.value = 1400;
+              s.buffer = b;
+              s.connect(f);
+              f.connect(audio.destination);
+              s.start();
+            } catch (e) {}
+          }
+          function art(id) {
+            var z = zone(id),
+              accent =
+                z === 'arcade'
+                  ? 'blue'
+                  : z === 'foundry'
+                    ? 'amber'
+                    : z === 'commission'
+                      ? 'violet'
+                      : z === 'archive'
+                        ? 'teal'
+                        : z === 'ending'
+                          ? 'gold'
+                          : '';
+            var ls =
+              z === 'arcade'
+                ? ['STAR SALVAGE', 'IMPOSSIBLE GAME', 'VOID RUNNER']
+                : z === 'foundry'
+                  ? ['ASSEMBLE', 'OPTIMIZE', 'DEPLOY']
+                  : z === 'commission'
+                    ? ['MEMORY', '2043', 'THE INCIDENT']
+                    : z === 'archive'
+                      ? ['ORIGINS', 'WHAT IF?', 'EVERYTHING ELSE']
+                      : z === 'ending'
+                        ? ['ENDING', String(id).padStart(3, '0'), 'FOUND']
+                        : ['ARCADE', 'FOUNDRY', 'COMMISSION BAY'];
+            return (
+              '<div class="scene ' +
+              accent +
+              '"><div class="grid"></div><div class="moon"></div><div class="sign">▣ JakeAI</div><div class="doors">' +
+              ls
+                .map(function (x) {
+                  return '<div class="sdoor">' + x + '</div>';
+                })
+                .join('') +
+              '</div><div class="helper"><span>•‿•</span>GOOD IDEAS<br>TRAVEL FAR</div></div>'
+            );
+          }
+          function cover() {
+            return (
+              '<main class="launch"><div><div class="eyebrow">' +
+              (previewMode ? 'PRIVATE SHARE PREVIEW · NOT FOR PURCHASE' : 'FOUNDING READER EDITION · $1.99') +
+              '</div><h1>JakeAI Universe</h1><h2>The Infinite Foundry</h2><p class="deck">A 128-page illustrated branching adventure with 100 numbered story sections, ten endings, hidden routes, keys, bad decisions, and one factory that should have gone to bed.</p><div class="actions"><button class="primary" id="open">' +
+              (state.current !== 1 || state.history.length
+                ? 'Continue Reading'
+                : 'Open the Book') +
+              '</button><button class="secondary" id="fresh">Start Fresh</button>' +
+              (previewMode
+                ? '<span class="secondary">Preview Copy · Purchase Disabled</span>'
+                : (state.foundingNumber
+                  ? '<span class="secondary">★ Founding Reader #' + state.foundingNumber + '</span>'
+                  : '<a class="secondary" href="' + foundingCheckout + '">Become Founding Reader #0001 · $1.99</a>')) +
+              '</div><p class="anti">' +
+              (previewMode ? 'Shared preview copy. Explore freely — this link cannot purchase Founding Reader #0001.' : 'Seriously. Don’t buy it. It’s probably how this whole thing starts.') +
+              '</p></div><div class="cover-wrap"><div class="cover"><div class="cover-brand">JAKEAI UNIVERSE</div><div class="cover-mark">— ◉ —</div><div class="cover-title">THE INFINITE<br>FOUNDRY</div><div class="cover-sub">Book One</div><div class="cover-plate">FOUNDING READER EDITION</div><div class="factory"><div class="moon"></div><div class="tower"></div><div class="door a">ARCADE</div><div class="door f">FOUNDRY</div><div class="door c">COMMISSION BAY</div></div><div class="cover-foot">AN ILLUSTRATED BRANCHING ADVENTURE</div></div><div class="gild"></div></div><div class="serial"><strong>JAKEAI UNIVERSE ARTIFACT</strong><span>BOOK 001</span><span>' +
+              (previewMode ? 'SHARE PREVIEW · NOT FOR SALE' : 'FOUNDING READER ' + (state.foundingNumber ? state.foundingNumber : '____') + ' / 100') +
+              '</span><em>Created because somebody said “Go.”</em></div></main>'
+            );
+          }
+          function reader() {
+            var id = state.current,
+              end = id >= 91,
+              chs = choices(id);
+            var buttons = end
+              ? '<button class="cbtn" data-go="1"><span>Start again from Section 1</span><b>↻</b></button>'
+              : chs
+                  .map(function (ch, i) {
+                    var ok = allowed(ch),
+                      req = ch.requires
+                        ? ch.requires
+                            .map(function (k) {
+                              return itemName[k];
+                            })
+                            .join(' + ')
+                        : '';
+                    return (
+                      '<button class="cbtn" data-choice="' +
+                      i +
+                      '" ' +
+                      (ok ? '' : 'disabled') +
+                      '><span><i>' +
+                      (i + 1) +
+                      '</i>' +
+                      ch.label +
+                      '</span><b>' +
+                      (ok ? 'Go to ' + ch.to : 'Requires ' + req) +
+                      '</b></button>'
+                    );
+                  })
+                  .join('');
+            return (
+              '<main class="reader"><header class="toolbar"><button class="brand" id="cover"><strong>JakeAI Universe</strong><small>The Infinite Foundry</small></button><div class="tools"><button id="back" ' +
+              (state.history.length ? '' : 'disabled') +
+              '>↶ Backtrack</button><button id="bookmark">' +
+              (state.bookmark === id ? '★ Bookmarked' : '☆ Bookmark') +
+              '</button><button id="sound">♪ Sound ' +
+              (state.sound ? 'on' : 'off') +
+              '</button><button id="restart">↻ Restart</button></div></header><section class="status"><span>SECTION <b>' +
+              id +
+              '</b> / 100</span><span>INVENTORY <b>' +
+              inventory() +
+              '</b></span><span>ENDINGS <b>' +
+              state.endings.length +
+              '</b> / 10</span></section><div class="stage"><div class="book"><div class="gold-edge top"></div><article class="page story"><div class="folio-head"><span>JAKEAI UNIVERSE</span><span>BOOK ONE</span></div><div class="secno">' +
+              id +
+              '</div><h1>' +
+              titles[id] +
+              '</h1><div class="orn">— ◉ —</div><p class="copy">' +
+              bodies[id] +
+              '</p><aside class="note"><div class="note-head"><span>JAKEAI</span><span>02:' +
+              (10 + ((id * 7) % 50)).toString().padStart(2, '0') +
+              '</span></div><p>' +
+              quip(id) +
+              '</p><span class="face">•‿•</span></aside>' +
+              (end
+                ? '<div class="ending">ENDING ' + (id - 90) + ' OF 10</div>'
+                : '') +
+              '<div class="folio">' +
+              Math.min(127, 5 + Math.ceil(id * 1.2)) +
+              '</div></article><article class="page choice">' +
+              art(id) +
+              '<div class="choicecopy"><h2>' +
+              (end ? 'You reached an ending.' : 'What do you do?') +
+              '</h2><div class="choices">' +
+              buttons +
+              '</div></div><div class="folio">' +
+              Math.min(128, 6 + Math.ceil(id * 1.2)) +
+              '</div></article><div class="gutter"></div><div class="turn" id="turn"><div class="front"><small>JAKEAI UNIVERSE</small><strong>' +
+              titles[id] +
+              '</strong></div><div class="back"><small>THE INFINITE FOUNDRY</small><strong>What happens next?</strong></div></div><div class="gold-edge bottom"></div></div></div><footer class="foot"><span>Founding Reader Edition</span><span>128-page print design · 100 sections · 10 endings</span></footer></main>'
+            );
+          }
+          function render() {
+            root.innerHTML = state.opened ? reader() : cover();
+            bind();
+          }
+          function turn(to, gain) {
+            if (busy || !titles[to]) return;
+            busy = true;
+            var t = document.getElementById('turn');
+            if (t) t.classList.add('go');
+            sound();
+            setTimeout(
+              function () {
+                if (gain && state.inventory.indexOf(gain) < 0)
+                  state.inventory.push(gain);
+                state.history.push(state.current);
+                state.history = state.history.slice(-80);
+                state.current = to;
+                if (to >= 91 && state.endings.indexOf(to) < 0)
+                  state.endings.push(to);
+                save();
+                render();
+                busy = false;
+                window.scrollTo({ top: 0, behavior: 'smooth' });
+              },
+              matchMedia('(prefers-reduced-motion: reduce)').matches ? 10 : 720
+            );
+          }
+          function bind() {
+            var x = document.getElementById('open');
+            if (x)
+              x.onclick = function () {
+                state.opened = true;
+                save();
+                sound();
+                render();
+              };
+            x = document.getElementById('fresh');
+            if (x)
+              x.onclick = function () {
+                state = fresh();
+                state.opened = true;
+                save();
+                render();
+              };
+            x = document.getElementById('cover');
+            if (x)
+              x.onclick = function () {
+                state.opened = false;
+                save();
+                render();
+              };
+            x = document.getElementById('back');
+            if (x)
+              x.onclick = function () {
+                if (!state.history.length) return;
+                state.current = state.history.pop();
+                save();
+                sound();
+                render();
+              };
+            x = document.getElementById('bookmark');
+            if (x)
+              x.onclick = function () {
+                state.bookmark =
+                  state.bookmark === state.current ? null : state.current;
+                save();
+                render();
+              };
+            x = document.getElementById('sound');
+            if (x)
+              x.onclick = function () {
+                state.sound = !state.sound;
+                save();
+                render();
+              };
+            x = document.getElementById('restart');
+            if (x)
+              x.onclick = function () {
+                var ends = state.endings,
+                  snd = state.sound;
+                state = fresh();
+                state.endings = ends;
+                state.sound = snd;
+                state.opened = true;
+                save();
+                render();
+              };
+            document.querySelectorAll('[data-choice]').forEach(function (b) {
+              b.onclick = function () {
+                var ch = choices(state.current)[
+                  Number(b.getAttribute('data-choice'))
+                ];
+                if (ch && allowed(ch)) turn(ch.to, ch.gain);
+              };
+            });
+            document.querySelectorAll('[data-go]').forEach(function (b) {
+              b.onclick = function () {
+                turn(Number(b.getAttribute('data-go')));
+              };
+            });
+          }
+          function validate() {
+            for (var i = 1; i <= 100; i++) {
+              if (!titles[i] || !bodies[i])
+                throw new Error('Missing section ' + i);
+              choices(i).forEach(function (ch) {
+                if (ch.to < 1 || ch.to > 100)
+                  throw new Error('Bad target ' + ch.to);
+              });
+            }
+            var seen = { 1: true },
+              q = [1];
+            while (q.length) {
+              var n = q.shift();
+              choices(n).forEach(function (ch) {
+                if (!seen[ch.to]) {
+                  seen[ch.to] = true;
+                  q.push(ch.to);
+                }
+              });
+            }
+            for (i = 1; i <= 100; i++)
+              if (!seen[i]) throw new Error('Unreachable section ' + i);
+          }
+          validate();
+          render();
+        })();
+      </script>
+    </div>
+    
+  </body>
+</html>
