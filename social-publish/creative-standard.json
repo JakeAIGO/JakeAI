@@ -1,0 +1,46 @@
+{
+  "version": 1,
+  "name": "JakeAI Connect QR Creative Standard",
+  "permanent_url": "https://jakeaiofficial.com/connect/",
+  "qr_asset": "/assets/jakeai-connect-qr.svg",
+  "default_for": [
+    "social-promo",
+    "product-promo",
+    "book-promo",
+    "game-promo",
+    "event-promo",
+    "youtube-end-card"
+  ],
+  "include_by_default": true,
+  "exceptions": [
+    "minimalist-layout",
+    "qr-would-obscure-primary-subject",
+    "platform-native-asset-with-no-safe-corner",
+    "non-promotional-conversation"
+  ],
+  "placement": {
+    "preferred": [
+      "bottom-right",
+      "bottom-left"
+    ],
+    "avoid": [
+      "over-face",
+      "over-primary-copy",
+      "busy-high-contrast-background"
+    ]
+  },
+  "sizing": {
+    "reference_canvas_px": 1080,
+    "recommended_qr_box_px": "160-210",
+    "minimum_qr_box_px": 150,
+    "quiet_zone_required": true
+  },
+  "label": "SCAN TO CONNECT",
+  "requirements": [
+    "Use the permanent QR asset, not a platform-specific QR.",
+    "Keep high contrast and a clear quiet zone.",
+    "Scan-test the final exported asset at intended delivery resolution.",
+    "Do not make the QR the dominant visual unless the campaign itself is about Connect.",
+    "On social promo creative, include it unless an exception applies."
+  ]
+}
