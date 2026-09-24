@@ -210,6 +210,11 @@ register_guitar_coach_routes(app)
 from jakeai_credits import register_credit_routes
 register_credit_routes(app)
 
+# Public Book Factory status surface. Internal prompts/automation remain private;
+# only rights-gate state and non-sensitive production status are exposed.
+from book_factory import register_book_factory_routes
+register_book_factory_routes(app)
+
 
 # Signed Shopify paid-order intake. Fail-closed until SHOPIFY_WEBHOOK_SECRET is configured.
 from shopify_order_bridge import register_shopify_order_bridge_routes
