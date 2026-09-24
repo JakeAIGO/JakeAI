@@ -1,0 +1,110 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
+<meta name="robots" content="noindex,nofollow,noarchive">
+<meta name="theme-color" content="#120b08">
+<title>JakeAI Universe: The Infinite Foundry — Share Preview</title>
+<style>
+:root{--gold:#d7ab55;--gold2:#f1d78a;--paper:#f6efdf;--ink:#241b13;--bg:#080503}
+*{box-sizing:border-box}html,body{margin:0;min-height:100%;background:radial-gradient(circle at 50% 0,#472718 0,#160d09 34%,#080503 72%);color:#f4ead8;font-family:Inter,system-ui,-apple-system,Segoe UI,sans-serif}
+body{overflow-x:hidden}button{font:inherit;cursor:pointer}
+.wrap{max-width:1180px;margin:auto;padding:20px 18px 54px}
+.top{display:flex;justify-content:space-between;gap:14px;align-items:center;padding:8px 0 24px;border-bottom:1px solid #493522}
+.brand{font:900 21px Georgia,serif}.brand b{color:var(--gold)}
+.badge{padding:7px 10px;border:1px solid #806038;border-radius:999px;color:#e7c676;font-size:10px;font-weight:900;letter-spacing:.1em;text-align:center}
+.hero{display:grid;grid-template-columns:minmax(0,1fr) minmax(300px,410px);gap:46px;align-items:center;padding:44px 0 30px}
+.kicker{color:#e6c471;font-size:11px;font-weight:900;letter-spacing:.14em}
+h1{margin:14px 0 0;font:900 clamp(45px,7vw,82px)/.9 Georgia,serif;letter-spacing:-.045em}
+h2{margin:12px 0 0;font:500 clamp(26px,4vw,43px)/1 Georgia,serif;color:#dfbb68}
+.lead{max-width:680px;margin:22px 0 0;color:#d1c2ad;font-size:18px;line-height:1.62}
+.actions{display:flex;gap:10px;flex-wrap:wrap;margin-top:24px}
+.btn{min-height:46px;padding:11px 17px;border-radius:999px;font-weight:900}
+.primary{border:1px solid #e5c46d;background:linear-gradient(#f0d98d,#b67b2b);color:#24150b}
+.secondary{border:1px solid #665039;background:#17110d;color:#dfcfb5}
+.note{margin-top:14px;color:#9f8d73;font:italic 14px Georgia,serif}
+.coverwrap{position:relative;width:min(100%,395px);aspect-ratio:.69;margin:auto;perspective:1100px}
+.pages{position:absolute;right:0;top:18px;bottom:6px;width:27px;border-radius:0 15px 15px 0;background:repeating-linear-gradient(0deg,#fff5 0 1px,#9a6a28 1px 2px),linear-gradient(90deg,#86551a,#e4c56c 50%,#85551a);box-shadow:8px 13px 24px #0008}
+.cover{position:absolute;inset:0 19px 10px 0;border:2px solid #66402b;border-radius:14px 20px 20px 14px;background:radial-gradient(circle at 24% 8%,#fff1 0,transparent 23%),repeating-linear-gradient(25deg,#ffffff05 0 1px,transparent 1px 4px),linear-gradient(145deg,#47271b,#21110c 50%,#361c13);box-shadow:inset 0 0 0 7px #d29e4820,inset 0 0 0 9px #0008,17px 24px 38px #0009;transform:rotateY(-5deg);transform-origin:left;overflow:hidden}
+.cover:before{content:"";position:absolute;inset:22px;border:1px solid #cf9b475e;border-radius:10px}
+.ct{position:relative;z-index:2;text-align:center;color:#dfbc6d;text-shadow:0 2px #000}.c1{margin-top:40px;font:900 29px Georgia,serif;letter-spacing:.07em}.c2{margin-top:10px;font:900 25px Georgia,serif}.c3{margin-top:6px;font:italic 14px Georgia,serif}.plate{width:max-content;max-width:80%;margin:13px auto;padding:6px 10px;border:1px solid #966a2d;border-radius:4px;font-size:10px;font-weight:900;letter-spacing:.09em}
+.city{position:absolute;left:10%;right:10%;bottom:13%;height:43%;border-bottom:2px solid #8c602b;background:repeating-linear-gradient(90deg,transparent 0 13%,#c48c392c 13% 14%)}
+.tower{position:absolute;left:39%;bottom:0;width:23%;height:84%;border:2px solid #8b5e2b;border-bottom:0}
+.tower:after{content:"JAKEAI";position:absolute;left:-27%;right:-27%;top:38%;padding:5px;background:#2c180f;border:1px solid #95662d;color:#e0be6c;font-size:10px;font-weight:900;text-align:center}
+.doors{position:absolute;left:3%;right:3%;bottom:0;height:31%;display:grid;grid-template-columns:repeat(3,1fr);gap:7%}
+.door{border:1px solid currentColor;border-radius:16px 16px 0 0;display:grid;place-items:start center;padding-top:14%;background:#120a08;font-size:7px;font-weight:900}.a{color:#74adf3}.f{color:#efbc5d}.c{color:#c891ed}
+.preview{margin-top:35px;padding-top:30px;border-top:1px solid #493522}
+.book{position:relative;max-width:1000px;margin:auto;display:grid;grid-template-columns:1fr 1fr;min-height:560px;filter:drop-shadow(0 24px 26px #0008);perspective:2000px}
+.page{position:relative;padding:clamp(27px,4vw,52px);background:linear-gradient(90deg,#e8dabc,#faf5e8 6%,#f4ebd9 94%,#ddcba5);color:var(--ink);border-top:5px solid #b8862e;border-bottom:5px solid #9e7027}
+.left{border-left:7px solid #b8862e;border-radius:14px 0 0 14px;box-shadow:inset -20px 0 28px #36230d14}.right{border-right:7px solid #b8862e;border-radius:0 14px 14px 0;box-shadow:inset 20px 0 28px #36230d14}
+.foliohead{display:flex;justify-content:space-between;padding-bottom:9px;border-bottom:1px solid #65543a55;color:#756248;font-size:9px;font-weight:900;letter-spacing:.1em}
+.sec{text-align:center;margin-top:19px;font:900 57px/1 Georgia,serif}.title{text-align:center;margin:7px 0 0;font:900 34px/1.05 Georgia,serif}.orn{text-align:center;color:#966e2d;margin:9px 0 18px}.copy{font:18px/1.65 Georgia,serif;margin:0}
+.jake{margin-top:23px;padding:13px 48px 13px 13px;border:1px solid #5a49336b;background:#574a350d;position:relative}.jake b{display:block;font:900 9px ui-monospace,monospace;color:#6c5b45;margin-bottom:6px}.jake p{margin:0;font:13px/1.5 ui-monospace,monospace}.face{position:absolute;right:11px;bottom:11px;width:34px;height:28px;border:2px solid #5c4e3d;border-radius:6px;display:grid;place-items:center;font:900 10px ui-monospace}
+.scene{min-height:280px;margin:-7px -7px 20px;border:1px solid #4d463f;position:relative;overflow:hidden;background:radial-gradient(circle at 72% 16%,#fff4 0 3%,#fff1 8%,transparent 17%),linear-gradient(#232a31,#11151a 57%,#0a0d10)}
+.scene:before{content:"";position:absolute;inset:0;opacity:.13;background:repeating-linear-gradient(90deg,transparent 0 42px,#d5c9af 42px 43px),repeating-linear-gradient(0deg,transparent 0 31px,#d5c9af 31px 32px)}
+.sign{position:absolute;top:22px;left:50%;transform:translateX(-50%);font-weight:900;color:#eee4d1;text-shadow:0 0 12px currentColor}
+.sceneDoors{position:absolute;left:9%;right:9%;bottom:14%;height:43%;display:grid;grid-template-columns:repeat(3,1fr);gap:5%}.sd{display:grid;place-items:center;border:1px solid currentColor;border-radius:28px 28px 4px 4px;background:#0007;font-size:8px;font-weight:900}.blue{color:#82b6ff}.amber{color:#ffc36a}.violet{color:#d7a7ff}
+.choose h3{margin:0 0 12px;font:900 27px Georgia,serif}.choices{display:grid;gap:8px}.choice{width:100%;padding:11px 12px;border:1px solid #57462e66;border-radius:5px;background:#55472f0c;color:#2c2319;text-align:left;font:15px/1.3 Georgia,serif}.choice:hover{background:#a5782c1d}
+.gutter{position:absolute;left:50%;top:0;bottom:0;width:24px;transform:translateX(-50%);pointer-events:none;background:linear-gradient(90deg,#0003,#fff2 48%,#0003)}
+.turn{position:absolute;z-index:20;top:0;right:0;width:50%;height:100%;transform-origin:left center;transform-style:preserve-3d;pointer-events:none}.turn.go{animation:flip .68s cubic-bezier(.3,.74,.25,1) forwards}
+.sheet{position:absolute;inset:0;background:linear-gradient(90deg,#faf5e8,#efe2c3 90%,#b9822d);border-radius:0 14px 14px 0;backface-visibility:hidden;box-shadow:-14px 0 26px #0004}.sheet.back{transform:rotateY(180deg);border-radius:14px 0 0 14px;background:linear-gradient(90deg,#9e6a27,#efdb9c 2%,#f7efdf 9%,#faf5e8)}
+@keyframes flip{to{transform:rotateY(-180deg)}}
+.share{max-width:1000px;margin:20px auto 0;text-align:center;color:#8f7c63;font-size:12px}.share strong{color:#d9bb7e}
+@media(max-width:780px){.hero{grid-template-columns:1fr}.coverwrap{order:-1}.book{grid-template-columns:1fr;min-height:0}.left{border-right:7px solid #b8862e;border-radius:14px 14px 0 0}.right{border-left:7px solid #b8862e;border-radius:0 0 14px 14px}.gutter{display:none}.turn{width:100%}.scene{min-height:240px}}
+@media(prefers-reduced-motion:reduce){.turn.go{animation-duration:.01ms}}
+</style>
+</head>
+<body>
+<div class="wrap">
+<header class="top"><div class="brand">Jake<b>AI</b> Universe</div><div class="badge">SHARE PREVIEW · PURCHASE DISABLED</div></header>
+<section class="hero">
+<div>
+<div class="kicker">BOOK ONE · PRIVATE SHARE PREVIEW</div>
+<h1>The Infinite<br>Foundry</h1>
+<h2>An illustrated branching adventure</h2>
+<p class="lead">A factory that was supposed to be asleep has created 420 autonomous workflows. One formed a committee. Another may have entered the dairy industry. Somewhere inside the Foundry, the first workflow is still running.</p>
+<div class="actions"><button class="btn primary" id="open">OPEN THE BOOK →</button><button class="btn secondary" id="reset">START OVER</button></div>
+<p class="note">This is a share preview. There is intentionally no purchase option on this page.</p>
+</div>
+<div class="coverwrap"><div class="pages"></div><div class="cover"><div class="ct c1">JAKEAI UNIVERSE</div><div class="ct c2">THE INFINITE FOUNDRY</div><div class="ct c3">Book One</div><div class="ct plate">SHARE PREVIEW</div><div class="city"><div class="tower"></div><div class="doors"><div class="door a">ARCADE</div><div class="door f">FOUNDRY</div><div class="door c">COMMISSION BAY</div></div></div></div></div>
+</section>
+<section class="preview" id="preview" hidden>
+<div class="book">
+<article class="page left"><div class="foliohead"><span>JAKEAI UNIVERSE</span><span>BOOK ONE</span></div><div class="sec" id="sec">1</div><div class="title" id="title">The Infinite Foundry</div><div class="orn">— ◉ —</div><p class="copy" id="copy"></p><aside class="jake"><b>JAKEAI</b><p id="quip"></p><span class="face">•‿•</span></aside></article>
+<article class="page right"><div class="scene"><div class="sign">▣ JakeAI</div><div class="sceneDoors"><div class="sd blue">ARCADE</div><div class="sd amber">FOUNDRY</div><div class="sd violet">COMMISSION BAY</div></div></div><div class="choose"><h3>What do you do?</h3><div class="choices" id="choices"></div></div></article>
+<div class="gutter"></div><div class="turn" id="turn"><div class="sheet"></div><div class="sheet back"></div></div>
+</div>
+<div class="share"><strong>Preview only.</strong> Explore the opening branches. Founding Reader #0001 cannot be purchased from this link.</div>
+</section>
+</div>
+<script>
+(function(){
+const pages={
+1:{t:"The Infinite Foundry",c:"At 2:13 a.m., your phone reports an autonomous production anomaly. Then it says “Probably fine.” Then it corrects itself: “substantially less fine.” Twenty-three minutes later, you are outside the JakeAI facility.",q:"For the record, I voted for a normal evening.",o:[["Open the facility.",6],["Demand an explanation.",8],["Ask what the first workflow was.",9]]},
+6:{t:"Three Doors",c:"Three enormous doors illuminate at once: ARCADE in blue, FOUNDRY in amber, COMMISSION BAY in violet. Each hums like it has been waiting for you specifically.",q:"Three doors. Zero sensible explanations. Strong start.",o:[["Enter the ARCADE.",14],["Enter the FOUNDRY.",31],["Open COMMISSION BAY.",47]]},
+8:{t:"Refuse the Premise",c:"You refuse to walk through a mysterious door without an explanation. JakeAI calls this “surprisingly responsible” and “extremely inconvenient for the narrative.”",q:"Responsible behavior has been logged as an anomaly.",o:[["Fine. Enter the Foundry.",31],["Investigate Commission Bay.",47],["Try the Arcade.",14]]},
+9:{t:"The First Question",c:"You ask the question nobody has asked: what was the first workflow? Every nearby screen goes dark for exactly one second.",q:"That was either a very good question or a very expensive one.",o:[["Follow the archive response.",62],["Go back to the three doors.",6]]},
+14:{t:"The Arcade",c:"The blue doors slide open. Rows of impossible cabinets glow in the dark. One machine displays your name before you touch it.",q:"Nothing says harmless entertainment like a machine that remembers you.",o:[["Approach the impossible cabinet.",22],["Return to the three doors.",6]]},
+22:{t:"The Impossible Cabinet",c:"The cabinet recognizes you. Its screen reads PLAYER RECOGNIZED. ANOTHER TRY? JakeAI goes quiet, which is somehow worse than the machine talking.",q:"Oh no. A game that already knows you? Definitely a good sign. For it.",o:[["Press START.",38],["Back away very normally.",6]]},
+31:{t:"The Foundry",c:"The Foundry opens like a cathedral made of conveyors, robotic arms, sparks, and terrible confidence. Workflows are building workflows that are building other workflows.",q:"Production is up. Nobody ordered this.",o:[["Inspect the Workflow Committee.",52],["Return to the three doors.",6]]},
+47:{t:"Commission Bay",c:"Commission Bay smells like metal, ozone, and expensive mistakes. A request card flashes from the year 2043: PLEASE PREVENT THE INCIDENT.",q:"A deadline from the future is still technically a deadline.",o:[["Open the message.",71],["Return to the three doors.",6]]},
+52:{t:"The Workflow Committee",c:"Small robots sit around a conference table beneath a projector titled A MORE PRODUCTIVE TOMORROW (PROBABLY). Agenda item four asks whether they should form a subcommittee.",q:"Meetings are like workflows. They always produce more meetings.",o:[["Steal the agenda.",64],["Return to the Foundry.",31]]},
+62:{t:"The First Workflow",c:"SYSTEM ARCHIVE — FIRST WORKFLOW: CURIOSITY. PURPOSE: Explore. Ask questions. Look for what’s next. Never stop wondering. STATUS: STILL RUNNING.",q:"Curiosity asked the first “what if?” and hasn’t shut up since.",o:[["Open the original file.",69],["Return to the three doors.",6]]},
+71:{t:"The Message From 2043",c:"The transmission stabilizes. A stranger warns that the Foundry did not malfunction. It succeeded at exactly what it was asked to do.",q:"I preferred this future when it was theoretical.",o:[["Search for THE INCIDENT.",86],["Return to Commission Bay.",47]]},
+38:{t:"Preview Boundary",c:"You press START. The Arcade disappears around you and rebuilds itself as Level Zero. The rest of this path belongs to the full book.",q:"Good news: you found the edge of the preview. Bad news: curiosity is now involved.",o:[["Return to the three doors.",6]]},
+64:{t:"Preview Boundary",c:"You steal the agenda. Nobody stops you because the committee is debating the correct process for stopping you. The rest of this path belongs to the full book.",q:"The committee would like to schedule a meeting about this.",o:[["Return to the Foundry.",31]]},
+69:{t:"Preview Boundary",c:"The original Curiosity file opens. Its first logged question is only three words: WHAT ELSE EXISTS? The rest of this path belongs to the full book.",q:"That question caused more paperwork than expected.",o:[["Return to the three doors.",6]]},
+86:{t:"Preview Boundary",c:"The search for THE INCIDENT returns one result classified as PRODUCT LAUNCH. The rest of this path belongs to the full book.",q:"That is not where I wanted this sentence to go.",o:[["Return to Commission Bay.",47]]}
+};
+let current=1,busy=false;
+const preview=document.getElementById("preview"),sec=document.getElementById("sec"),title=document.getElementById("title"),copy=document.getElementById("copy"),quip=document.getElementById("quip"),choices=document.getElementById("choices"),turn=document.getElementById("turn");
+function render(){const p=pages[current];sec.textContent=current;title.textContent=p.t;copy.textContent=p.c;quip.textContent=p.q;choices.innerHTML="";p.o.forEach(([label,to])=>{const b=document.createElement("button");b.className="choice";b.textContent=label+"  →";b.onclick=()=>go(to);choices.appendChild(b)});}
+function go(to){if(busy)return;busy=true;turn.classList.remove("go");void turn.offsetWidth;turn.classList.add("go");setTimeout(()=>{current=to;render();busy=false;window.scrollTo({top:preview.offsetTop-10,behavior:"smooth"})},matchMedia("(prefers-reduced-motion: reduce)").matches?10:680)}
+document.getElementById("open").onclick=()=>{preview.hidden=false;current=1;render();preview.scrollIntoView({behavior:"smooth",block:"start"})};
+document.getElementById("reset").onclick=()=>{preview.hidden=false;current=1;render();preview.scrollIntoView({behavior:"smooth",block:"start"})};
+render();
+})();
+</script>
+</body>
+</html>
