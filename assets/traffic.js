@@ -79,7 +79,7 @@ document.addEventListener("click",e=>{
     return;
   }
   if(u.origin!==location.origin)return;
-  if(/^\/(product-factory|arcade|catalog|direct)\/?/.test(u.pathname)||u.hash==="#commission"){
+  if(/^\/(product-factory|arcade|catalog|direct|connect)\/?/.test(u.pathname)||u.hash==="#commission"){
     send("cta",{path:u.pathname+(u.hash||"")});
   }
 },{passive:true});
