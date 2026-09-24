@@ -1,8 +1,8 @@
 {
   "project": "JakeAI",
-  "release": "jakeai-universe-guitar-coach-2026-09-22",
-  "date": "2026-09-22",
-  "version": "3.1.0",
+  "release": "jakeai-arcade-foundry-breach-2026-09-23",
+  "date": "2026-09-23",
+  "version": "3.2.0",
   "frontend_host_target": "Netlify",
   "backend_host": "https://agent-commerce-network-production.up.railway.app",
   "checkout_strategy": "fail-closed public commerce with verified fulfillment",
@@ -10,11 +10,13 @@
   "crypto_backbone_installed": true,
   "crypto_public_enabled": false,
   "crypto_auto_fulfillment_enabled": false,
-  "arcade_games_live": 3,
+  "arcade_games_live": 7,
   "media_rights_gate": true,
   "human_release_gate": true,
   "mobile_gateway_release": "RC4",
   "universe_hub": "/universe-hub.html",
   "guitar_coach_live": true,
-  "guitar_coach_path": "/guitar-coach.html"
+  "guitar_coach_path": "/guitar-coach.html",
+  "foundry_breach_live": true,
+  "foundry_breach_path": "/arcade/foundry-breach.html"
 }
