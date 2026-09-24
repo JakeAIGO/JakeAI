@@ -2,6 +2,7 @@ import json
 from pathlib import Path
 from fastapi import APIRouter
 from book_source_lock import list_locks, public_lock_record, start_autolock
+from book_structure_map import list_structures, public_structure, start_structure_mapper
 
 router = APIRouter()
 QUEUE_PATH = Path(__file__).resolve().parent / "book-factory" / "queue.json"
@@ -14,14 +15,20 @@ def _load():
 
 def _overlay_runtime_locks(jobs):
     locks=list_locks()
+    structures=list_structures()
     out=[]
     for original in jobs:
         job=dict(original)
         row=locks.get(job.get("id"))
+        structure_row=structures.get(job.get("id"))
         if row:
             job["text_lock"]=public_lock_record(row)
             if job.get("stage")=="rights_verified":
                 job["stage"]="source_verified"
+        if structure_row:
+            job["structure_map"]=public_structure(structure_row)
+            if job.get("stage")=="source_verified":
+                job["stage"]="structure_verified"
         out.append(job)
     return out
 
@@ -61,6 +68,19 @@ def validate_job(job):
     if job.get("release") == "public_preview" and text_lock.get("status") != "locked":
         if job.get("content_mode") != "marketing_preview_no_full_book_text":
             errors.append("preview_without_lock_must_not_contain_book_body")
+
+    structure = job.get("structure_map") or {}
+    if stage in {"structure_verified","formatting","narration","text_qa","audio_qa","release_ready","published"}:
+        if structure.get("status") != "verified":
+            errors.append("advanced_without_verified_structure")
+        if not structure.get("exact_reassembly_verified"):
+            errors.append("structure_without_exact_reassembly")
+        if structure.get("canonical_sha256") != text_lock.get("canonical_sha256"):
+            errors.append("structure_hash_does_not_match_text_lock")
+        if structure.get("text_modified") is not False:
+            errors.append("structure_modified_text")
+        if structure.get("normalization") != "none":
+            errors.append("structure_normalization_is_forbidden")
     return errors
 
 def snapshot():
@@ -74,6 +94,7 @@ def snapshot():
         "rights_pending":sum(1 for j in jobs if j.get("rights")=="pending"),
         "public_preview":sum(1 for j in jobs if j.get("release")=="public_preview"),
         "source_locked":sum(1 for j in jobs if (j.get("text_lock") or {}).get("status")=="locked"),
+        "structure_mapped":sum(1 for j in jobs if (j.get("structure_map") or {}).get("status")=="verified"),
         "published_paid":sum(1 for j in jobs if j.get("paid_release") is True),
         "invalid":len(invalid)
     }
@@ -94,3 +115,4 @@ def book_factory_jobs():
 def register_book_factory_routes(app):
     app.include_router(router)
     start_autolock(QUEUE_PATH)
+    start_structure_mapper()
