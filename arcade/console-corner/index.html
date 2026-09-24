@@ -1,167 +1,155 @@
 <!doctype html>
-<html lang="en">
-<head>
-<meta charset="utf-8">
-<meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover,user-scalable=no">
-<meta name="theme-color" content="#030811">
+<html lang="en"><head>
+<meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover,user-scalable=no">
+<meta name="theme-color" content="#03111c">
 <title>JakeAI Console Corner</title>
-<meta name="description" content="JakeAI Console Corner — choose a cartridge, insert it, boot the console, and play.">
+<meta name="description" content="JakeAI Console Corner — choose a cartridge, insert it, boot the world, and play.">
 <style>
-:root{
-  --c:#67ecff;--c2:#23b9ff;--p:#ff4fc4;--ink:#effbff;--muted:#86a6bb;
-  --panel:#06131d;--edge:#62e8ff;--dark:#02060b;--green:#61f1b1;
-}
-*{box-sizing:border-box;-webkit-tap-highlight-color:transparent}
-html,body{margin:0;min-height:100%;background:#02050a;color:var(--ink);font-family:Inter,system-ui,-apple-system,Segoe UI,sans-serif}
+:root{--c:#64eaff;--c2:#22b8ff;--pink:#ff55ca;--ink:#f4fbff;--muted:#89a8bc;--line:#4de8ff52;--glass:#061521e8}
+*{box-sizing:border-box;-webkit-tap-highlight-color:transparent}html,body{margin:0;min-height:100%;background:#02060b;color:var(--ink);font-family:Inter,system-ui,-apple-system,Segoe UI,sans-serif}
 body{overflow-x:hidden;background:
- radial-gradient(circle at 50% -12%,#123e5d 0,#07131f 31%,#02050a 72%),
- linear-gradient(180deg,#06101a,#02050a)}
-body:before{content:"";position:fixed;inset:0;pointer-events:none;z-index:-1;background:url('/assets/universe-arcade.webp') center top/cover no-repeat;opacity:.08;filter:saturate(1.4) contrast(1.1)}
-.scan{position:fixed;inset:0;pointer-events:none;z-index:100;opacity:.18;background:repeating-linear-gradient(180deg,#fff0 0 4px,#60e4ff08 5px);mix-blend-mode:screen}
-.wrap{width:min(1050px,94vw);margin:auto;padding:14px 0 46px}
-.top{display:flex;justify-content:space-between;align-items:center;gap:14px;padding:6px 3px 14px}
-.identity{min-width:0}.brand{font-size:clamp(22px,4vw,34px);font-weight:950;letter-spacing:-.04em;line-height:1}.brand b{color:var(--c)}
-.subbrand{margin-top:7px;color:#63daf3;font:800 10px ui-monospace,SFMono-Regular,Menlo,monospace;letter-spacing:.31em}
-.back{color:#b9f3ff;text-decoration:none;border:1px solid #67e6ff52;border-radius:999px;padding:9px 12px;font:900 10px ui-monospace,monospace;letter-spacing:.12em;background:#07141dbd;box-shadow:inset 0 0 22px #50dfff09;white-space:nowrap}
-.bay{overflow:hidden;border:1px solid #69e4ff4a;border-radius:28px;background:#06101a;box-shadow:0 26px 80px #000c,0 0 55px #38dfff16}
-.sign{position:relative;padding:18px 22px 15px;background:linear-gradient(90deg,#06121d,#0d2a3d,#06121d);border-bottom:1px solid #6deaff38;overflow:hidden}
-.sign:after{content:"TWO CARTRIDGES · INFINITE WORLDS";position:absolute;right:22px;top:18px;color:#72dff7;font:800 9px ui-monospace,monospace;letter-spacing:.14em;opacity:.72}
-.eyebrow{font:900 10px ui-monospace,monospace;letter-spacing:.2em;color:#7deaff}
-.sign h1{margin:5px 0 4px;font-size:clamp(34px,6vw,60px);line-height:.9;letter-spacing:-.045em;text-shadow:0 0 26px #5ceaff39}
-.sign p{margin:0;color:#91acbd;font-size:12px}
-.console{position:relative;height:610px;background:
- radial-gradient(circle at 50% 13%,#153c52 0,#081725 40%,#03070c 77%),
- linear-gradient(180deg,#07131d,#02070b)}
-.console:before{content:"";position:absolute;inset:0;background:linear-gradient(90deg,transparent,#54e8ff08 50%,transparent),repeating-linear-gradient(90deg,#fff0 0 72px,#52ddff05 73px);pointer-events:none}
-.screen{position:absolute;left:5.5%;right:5.5%;top:4.3%;height:48%;border:1px solid #77eaffb8;border-radius:22px;background:#02070c;overflow:hidden;box-shadow:inset 0 0 80px #0b354a,0 0 34px #58eaff2b}
-.screen:before{content:"";position:absolute;inset:0;background:url('/assets/universe-arcade.webp') center/cover;opacity:.11;filter:saturate(1.45)}
-.screen:after{content:"";position:absolute;inset:0;pointer-events:none;background:linear-gradient(#00111b10,#010509dd 92%),repeating-linear-gradient(180deg,#fff0 0 3px,#71eeff09 4px)}
-.cornerbits{position:absolute;inset:0;pointer-events:none;z-index:3}.cornerbits:before,.cornerbits:after{content:"";position:absolute;width:42px;height:10px;top:9px;border-top:2px solid #6eeaff}.cornerbits:before{left:10px;border-left:2px solid #6eeaff}.cornerbits:after{right:10px;border-right:2px solid #6eeaff}
-.attract,.boot,.ready{position:absolute;z-index:4;inset:0;display:grid;place-items:center;text-align:center;padding:20px}
-.attract h2{margin:6px 0 5px;font-size:clamp(30px,6vw,52px);line-height:.9}.attract h2 b{color:var(--c)}.attract p{max-width:560px;margin:10px auto;color:#91adbd;font-size:13px}
-.botface{width:54px;height:44px;margin:auto;border:2px solid #8bf2ff;border-radius:15px;background:#07141d;box-shadow:0 0 24px #56e8ff64;position:relative}
-.botface:after{content:"•  •";position:absolute;inset:2px 0 auto;text-align:center;color:#6ff0ff;font-size:28px;font-weight:950;letter-spacing:8px}
-.prompt{margin-top:12px;display:inline-flex;align-items:center;gap:7px;border:1px solid #6be9ff59;border-radius:999px;padding:7px 11px;color:#9cefff;background:#061522c9;font:900 10px ui-monospace,monospace;letter-spacing:.1em}
-.boot,.ready{display:none}.boot.on,.ready.on{display:grid}
-.term{width:min(94%,650px);text-align:left;border:1px solid #69e7ff91;border-radius:15px;background:#03101be8;padding:17px 18px;font:800 12px/1.85 ui-monospace,monospace;color:#82e6fa;box-shadow:0 0 40px #55e8ff2c,inset 0 0 38px #0d34482b}
-.termHead{display:flex;justify-content:space-between;gap:12px;align-items:start;border-bottom:1px solid #5ce8ff2e;padding-bottom:10px;margin-bottom:9px}.term strong{color:#fff;font-size:15px}.os{color:#4fcce6;font-size:9px;letter-spacing:.12em;white-space:nowrap}
-.line{display:flex;justify-content:space-between;gap:12px}.line em{font-style:normal;color:#9af1ff}.line .ok{color:#d8fbff;opacity:.85}.line.active em{color:#7af1ff;text-shadow:0 0 14px #5be8ff}.line.active .ok{color:#fff}
-.bar{height:14px;border:1px solid #67eaff87;border-radius:20px;margin-top:12px;overflow:hidden;padding:2px;background:#02070d}.bar i{display:block;width:0;height:100%;border-radius:9px;background:repeating-linear-gradient(90deg,#28aeff 0 34px,#69ecff 35px 38px);box-shadow:0 0 18px #66ecff;transition:width .32s ease}
-.progressMeta{display:flex;justify-content:space-between;margin-top:7px;color:#4dbcd4;font-size:9px;letter-spacing:.16em}.progressMeta b{color:#aaf4ff;font-size:11px}
-.readyCard{width:min(92%,620px);padding:18px;border:1px solid #66eaff7f;border-radius:18px;background:linear-gradient(145deg,#071a27e8,#04101ae8);box-shadow:0 0 36px #58eaff22;text-align:left}
-.readyTop{display:flex;align-items:center;justify-content:space-between;gap:12px}.readyBadge{display:inline-flex;align-items:center;gap:7px;color:#9ef6ce;background:#0b2b23;border:1px solid #58e5ad66;border-radius:999px;padding:6px 10px;font:900 9px ui-monospace,monospace;letter-spacing:.12em}.readyBadge:before{content:"";width:7px;height:7px;border-radius:50%;background:#5ff0ad;box-shadow:0 0 12px #5ff0ad}.ready h2{margin:12px 0 4px;font-size:clamp(27px,5vw,46px);line-height:.92}.ready p{margin:0;color:#8caabd;font-size:12px}.readyStats{display:grid;grid-template-columns:repeat(3,1fr);gap:7px;margin-top:13px}.readyStats span{padding:8px;border:1px solid #5be7ff24;border-radius:9px;background:#06131e;color:#75ddec;font:800 8px ui-monospace,monospace;letter-spacing:.1em}.readyStats b{display:block;margin-top:3px;color:#effcff;font-size:10px}
-.deck{position:absolute;left:6.5%;right:6.5%;bottom:7.5%;height:34%;border:1px solid #60e4ff66;border-radius:24px;background:linear-gradient(180deg,#152431,#081019 64%,#04090e);box-shadow:0 16px 50px #000d,0 0 34px #50e8ff1c,inset 0 0 48px #5ee9ff07}
-.deck:before{content:"";position:absolute;inset:9px;border:1px solid #5ce9ff14;border-radius:17px;pointer-events:none}
-.slotShell{position:absolute;left:50%;top:12%;transform:translateX(-50%);width:216px;height:76px;border:1px solid #66e9ff74;border-radius:12px;background:linear-gradient(#101e2a,#04080d);box-shadow:inset 0 0 20px #000,0 0 23px #4ee5ff1c;padding:10px 17px 11px}
-.slot{position:relative;width:100%;height:18px;border:1px solid #69e9ff7a;border-radius:8px;background:#010409;box-shadow:inset 0 0 18px #000,0 0 16px #4ee5ff20;transition:.25s}
-.slot.hot{animation:pulse .35s infinite alternate;box-shadow:0 0 40px #5ceaffaa,inset 0 0 20px #54eaff66}@keyframes pulse{to{filter:brightness(1.55)}}
-.cartInSlot{position:absolute;left:50%;bottom:4px;transform:translateX(-50%) translateY(58px);width:145px;height:56px;border:1px solid #7cefff;border-radius:8px 8px 11px 11px;background:linear-gradient(#243644,#0a121b);opacity:0;transition:transform .42s cubic-bezier(.2,.75,.2,1),opacity .18s;box-shadow:0 0 22px #60eaff55;overflow:hidden}.cartInSlot.visible{opacity:1;transform:translateX(-50%) translateY(0)}.cartInSlot:before{content:"";position:absolute;inset:7px;border-radius:4px;background:linear-gradient(135deg,#1c5035,#a36d3d);opacity:.95}.cartInSlot.trace:before{background:#06111a;background-image:linear-gradient(#16445d55 1px,transparent 1px),linear-gradient(90deg,#16445d55 1px,transparent 1px);background-size:12px 12px}.cartInSlot span{position:absolute;z-index:2;left:10px;bottom:10px;font:950 9px ui-monospace,monospace;text-shadow:0 1px 2px #000}.cartInSlot b{position:absolute;z-index:2;right:9px;top:9px;color:#7ceeff;font:950 18px ui-monospace,monospace}
-.robot{position:absolute;left:7%;top:22%;width:68px;height:58px;border-radius:21px;background:#eef8fb;border:3px solid #a8c4cc;box-shadow:0 0 22px #65eaff5e}.robot:before{content:"";position:absolute;left:10px;right:10px;top:9px;height:28px;border-radius:11px;background:#06131c}.robot:after{content:"⌒  ⌒";position:absolute;left:0;right:0;top:10px;text-align:center;color:#70efff;font-size:19px;font-weight:950;letter-spacing:5px;text-shadow:0 0 9px #63efff}.robot.wake{animation:bob .18s 5 alternate;filter:drop-shadow(0 0 20px #85f5ff) brightness(1.15)}@keyframes bob{to{transform:translateY(-5px)}}
-.decklogo{position:absolute;left:50%;bottom:25%;transform:translateX(-50%);font-size:20px;font-weight:950;white-space:nowrap}.decklogo b{color:var(--c)}
-.leds{position:absolute;left:50%;bottom:13%;transform:translateX(-50%);display:flex;gap:7px}.leds i{width:7px;height:7px;border-radius:50%;background:#1b4959;box-shadow:0 0 5px #000}.deck.loaded .leds i{background:#66edff;box-shadow:0 0 11px #66edff}
-.eject{appearance:none;position:absolute;right:6.2%;top:25%;width:62px;height:62px;border-radius:50%;border:2px solid #70ecff76;background:radial-gradient(circle,#132939,#06111a);display:grid;place-items:center;color:#98f3ff;box-shadow:inset 0 0 22px #54dfff12,0 0 16px #61eaff20;cursor:pointer;font:950 8px ui-monospace,monospace;letter-spacing:.1em;transition:.2s}.eject:before{content:"▲";position:absolute;top:10px;font-size:13px}.eject span{margin-top:14px}.eject:disabled{opacity:.22;cursor:default;filter:saturate(.4)}.eject:not(:disabled):active{transform:scale(.94)}.eject.nudge{animation:nudge .18s 4 alternate}@keyframes nudge{to{box-shadow:0 0 34px #ff67c6aa,inset 0 0 22px #ff67c622;border-color:#ff75cb}}
-.play{appearance:none;position:absolute;left:19%;right:19%;bottom:-28px;height:58px;border-radius:14px;border:1px solid #70efff;background:linear-gradient(90deg,#11baf1,#67efff 48%,#1bb9ed);color:#03131b;font-weight:1000;font-size:17px;letter-spacing:.17em;cursor:pointer;box-shadow:0 0 34px #58eaff4f,inset 0 2px #d9fbff;transition:.2s;opacity:0;pointer-events:none;transform:translateY(8px)}.play.visible{opacity:1;pointer-events:auto;transform:none}.play:active{transform:translateY(2px) scale(.99)}.play small{font-size:9px;letter-spacing:.04em;margin-left:8px;opacity:.72}
-.rackWrap{position:relative;background:linear-gradient(#02070b,#030910);border-top:1px solid #54dfff25;padding-top:22px}.rackTitle{display:flex;justify-content:space-between;align-items:center;gap:10px;padding:0 16px 9px;color:#6bdff5;font:900 9px ui-monospace,monospace;letter-spacing:.16em}.rack{display:grid;grid-template-columns:1fr 1fr;gap:12px;padding:0 14px 16px}.cart{appearance:none;color:#fff;text-align:left;position:relative;min-height:188px;border:1px solid #536b7c;border-radius:18px;background:linear-gradient(#192735,#091019);padding:12px;cursor:pointer;overflow:hidden;transition:.22s;box-shadow:inset 0 0 32px #0006}.cart:before{content:"";position:absolute;inset:0;background:linear-gradient(145deg,#6deaff08,transparent 34%,#ff55c908 72%,transparent);pointer-events:none}.cart:hover,.cart:focus-visible{outline:none;transform:translateY(-4px);border-color:#82efff;box-shadow:0 0 28px #58e8ff25}.cart.selected{transform:translateY(-7px) scale(1.01);border-color:#94f5ff;box-shadow:0 0 42px #5feaff55,inset 0 0 28px #4ce7ff0f}.cart.dim{opacity:.38;filter:saturate(.6)}.cart.locked{cursor:not-allowed}.cart.loaded:after{content:"● LOADED";position:absolute;right:10px;top:10px;color:#06141a;background:#6feeff;border-radius:999px;padding:5px 8px;font:950 8px ui-monospace,monospace;letter-spacing:.1em;box-shadow:0 0 16px #61eaff55}.carttop{font:900 10px ui-monospace,monospace;letter-spacing:.13em;color:#7cecff;padding-right:52px}.cover{height:99px;margin:8px 0 10px;border:1px solid #ffffff20;border-radius:10px;position:relative;overflow:hidden;box-shadow:inset 0 0 30px #0007}.cover.rift{background:linear-gradient(145deg,#183b2a,#8b6739)}.cover.rift:before{content:"";position:absolute;inset:0;background:radial-gradient(circle at 68% 32%,#ffcf63 0 6px,transparent 7px),linear-gradient(115deg,transparent 0 41%,#d29556 42% 58%,transparent 59%),repeating-linear-gradient(90deg,#2c6840 0 10px,#1f4e35 10px 20px);opacity:.94}.cover.rift:after{content:"";position:absolute;left:22%;bottom:12%;width:25px;height:40px;background:#071a25;clip-path:polygon(42% 0,68% 24%,100% 35%,76% 53%,88% 100%,50% 76%,18% 100%,28% 54%,0 42%,34% 24%);filter:drop-shadow(0 0 5px #5ce9ff)}
-.cover.trace{background:#02070c;background-image:linear-gradient(#0c405b55 1px,transparent 1px),linear-gradient(90deg,#0c405b55 1px,transparent 1px);background-size:15px 15px}.cover.trace:before{content:"";position:absolute;left:12%;right:18%;bottom:20%;height:3px;background:#68efff;box-shadow:70px -24px 0 #68efff,70px -55px 0 #68efff,0 0 14px #62ecff}.cover.trace:after{content:"◆";position:absolute;right:18%;top:22%;color:#ff526f;font-size:30px;text-shadow:0 0 15px #ff4e6b}.cart h3{margin:0;font-size:22px;letter-spacing:-.02em}.no{position:absolute;right:13px;bottom:11px;color:#76eaff55;font:950 28px ui-monospace,monospace}.genre{display:inline-block;margin-top:4px;color:#7896a9;font:800 8px ui-monospace,monospace;letter-spacing:.09em}
-.ghost{position:fixed;z-index:150;width:180px;height:116px;padding:8px;border:1px solid #7deeff;border-radius:12px;background:#172432;box-shadow:0 0 48px #64eaff9c;pointer-events:none;transition:transform .82s cubic-bezier(.2,.72,.2,1),opacity .18s}.ghost>div{height:100%;border-radius:7px;background:#07131c;display:grid;place-items:center;text-align:center;font-weight:950;font-size:17px;border:1px solid #ffffff18}.ghost small{color:#7deaff}.flash{position:fixed;z-index:200;inset:0;background:#a8f7ff;opacity:0;pointer-events:none}.flash.go{animation:flash .35s ease-out}@keyframes flash{0%{opacity:.78}100%{opacity:0}}
-.toast{position:fixed;left:50%;bottom:max(20px,env(safe-area-inset-bottom));transform:translate(-50%,20px);z-index:220;background:#07131fed;border:1px solid #6ceaff70;color:#c8f7ff;border-radius:999px;padding:9px 13px;font:900 9px ui-monospace,monospace;letter-spacing:.09em;opacity:0;transition:.22s;pointer-events:none;white-space:nowrap;box-shadow:0 8px 30px #000a,0 0 22px #55eaff22}.toast.on{opacity:1;transform:translate(-50%,0)}
-.foot{text-align:center;color:#718e9e;font-size:12px;padding:15px 16px 17px}.foot b{color:#9fefff}.foot span{display:block;margin-top:3px;color:#547487}
+ radial-gradient(circle at 50% -10%,#123c5b 0,#061523 36%,#02060b 76%),
+ linear-gradient(135deg,#040811,#07131e)}
+body:before{content:"";position:fixed;inset:0;z-index:-2;background:url('/assets/universe-arcade.webp') center/cover;opacity:.10;filter:saturate(1.5) blur(1px)}
+body:after{content:"";position:fixed;inset:0;z-index:50;pointer-events:none;opacity:.15;background:repeating-linear-gradient(180deg,transparent 0 4px,#7cefff0a 5px)}
+.wrap{width:min(1080px,96vw);margin:auto;padding:14px 0 38px}
+.top{display:flex;justify-content:space-between;align-items:center;gap:12px;padding:6px 5px 14px}
+.brand{font-weight:950;font-size:clamp(23px,4vw,34px);letter-spacing:-.04em}.brand b{color:var(--c)}.subbrand{display:block;margin-top:-2px;color:#55dfff;font:800 9px ui-monospace,monospace;letter-spacing:.34em}
+.back{color:#c7f6ff;text-decoration:none;border:1px solid #55e6ff4f;border-radius:999px;padding:9px 13px;font:900 10px ui-monospace,monospace;letter-spacing:.13em;background:#06111bd9;box-shadow:0 0 20px #42dbff11}
+.bay{position:relative;overflow:hidden;border:1px solid #63e8ff46;border-radius:28px;background:linear-gradient(180deg,#06131f,#02070c);box-shadow:0 25px 80px #000b,0 0 54px #3ee9ff16}
+.sign{display:flex;justify-content:space-between;align-items:center;gap:20px;padding:16px 22px;border-bottom:1px solid #62eaff30;background:linear-gradient(90deg,#06121d,#0b2434 50%,#06121d)}
+.sign .left .eyebrow{font:900 10px ui-monospace,monospace;letter-spacing:.2em;color:#69eaff}.sign h1{margin:2px 0 0;font-size:clamp(31px,5.4vw,58px);line-height:.9;letter-spacing:-.045em}.sign .tag{color:#8db2c5;font:800 10px/1.45 ui-monospace,monospace;letter-spacing:.12em;text-align:right}
+.console{position:relative;min-height:585px;padding:22px;background:radial-gradient(circle at 50% 22%,#12384f 0,#06121d 44%,#02070b 100%)}
+.screen{position:relative;margin:0 auto;width:min(880px,96%);height:310px;border:1px solid #74ecff7d;border-radius:22px;background:#02070c;overflow:hidden;box-shadow:inset 0 0 70px #0a3951,0 0 36px #5deaff27}
+.screen:before{content:"";position:absolute;inset:0;background:
+ linear-gradient(90deg,#67eaff08 1px,transparent 1px),
+ linear-gradient(#67eaff08 1px,transparent 1px);background-size:24px 24px;opacity:.6}
+.screen:after{content:"";position:absolute;inset:0;pointer-events:none;border:10px solid #0000;box-shadow:inset 0 0 35px #000b}
+.screenCorner{position:absolute;width:48px;height:18px;z-index:5}.sc1{left:10px;top:10px;border-left:2px solid var(--c);border-top:2px solid var(--c)}.sc2{right:10px;top:10px;border-right:2px solid var(--c);border-top:2px solid var(--c)}.sc3{left:10px;bottom:10px;border-left:2px solid var(--c);border-bottom:2px solid var(--c)}.sc4{right:10px;bottom:10px;border-right:2px solid var(--c);border-bottom:2px solid var(--c)}
+.panel{position:absolute;z-index:3;inset:0;padding:24px 28px;display:none}.panel.on{display:block}
+.idle{display:grid!important;place-items:center;text-align:center}.idle.off{display:none!important}.botface{width:58px;height:48px;margin:auto;border:2px solid #a1f5ff;border-radius:16px;background:#06131d;box-shadow:0 0 26px #55eaff77;position:relative}.botface:after{content:"⌣  ⌣";position:absolute;inset:7px 0 auto;text-align:center;color:#76f1ff;font-size:18px;font-weight:950;letter-spacing:5px}.idle h2{margin:11px 0 4px;font-size:clamp(28px,6vw,52px);line-height:.9}.idle h2 b{color:var(--c)}.idle p{max-width:530px;margin:8px auto;color:#8ea9bb;font-size:13px}
+.term{position:relative;height:100%;display:grid;grid-template-columns:1fr 200px;gap:20px}
+.termMain{font:800 13px/1.85 ui-monospace,monospace;color:#86eaff}.termMain strong{display:block;color:#fff;font-size:clamp(16px,3.3vw,25px);letter-spacing:.03em;margin-bottom:5px}.log{display:flex;justify-content:space-between;gap:12px}.ok{color:#bff8ff}.activeLine{color:#71ecff;text-shadow:0 0 13px #55eaff55}
+.progress{margin-top:13px}.bar{height:19px;border:1px solid #67eaff75;border-radius:5px;overflow:hidden;padding:3px;background:#02080d}.bar i{display:block;width:0;height:100%;border-radius:2px;background:repeating-linear-gradient(120deg,#2aafff 0 30px,#68edff 31px 58px);box-shadow:0 0 20px #66ecff;transition:width .26s}.pct{float:right;margin-top:5px;color:#c7faff;font-size:12px}.statusSmall{margin-top:8px;color:#4dc7e2;font-size:9px;letter-spacing:.21em}
+.diag{border-left:1px solid #59defc37;padding-left:16px;font:800 9px/1.9 ui-monospace,monospace;color:#55c9e7}.globe{height:92px;border:1px solid #3bdfff30;border-radius:8px;margin-bottom:8px;background:radial-gradient(circle,#2adfff18 0 32%,transparent 33%),linear-gradient(#33dcff20 1px,transparent 1px),linear-gradient(90deg,#33dcff20 1px,transparent 1px);background-size:auto,14px 14px,14px 14px;position:relative}.globe:before{content:"";position:absolute;left:50%;top:50%;width:55px;height:55px;transform:translate(-50%,-50%);border:1px solid #65eaff;border-radius:50%;box-shadow:0 0 18px #42dfff44}.diagRow{display:flex;justify-content:space-between}.light{color:#7affff;text-shadow:0 0 8px #62edff}
+.readyTitle{font:950 clamp(23px,5vw,42px)/1 ui-monospace,monospace;color:#fff}.readyTitle b{color:var(--c)}.readyMeta{margin-top:12px;color:#76eaff;font:800 11px ui-monospace,monospace;letter-spacing:.12em}
+.deck{position:relative;margin:20px auto 0;width:min(880px,96%);min-height:175px;border:1px solid #62e8ff58;border-radius:24px;background:linear-gradient(180deg,#15232e,#071019 56%,#03070b);box-shadow:0 17px 48px #000c,0 0 33px #54e9ff1c,inset 0 1px #ffffff12}
+.deck:before{content:"";position:absolute;left:3%;right:3%;top:8px;height:3px;background:linear-gradient(90deg,#48dcff,#ff55c900,#ff55c9,#ff55c900,#48dcff);opacity:.85}
+.slot{position:absolute;left:50%;top:30px;transform:translateX(-50%);width:min(270px,42vw);height:40px;border:1px solid #69e9ff88;border-radius:10px;background:#010409;box-shadow:inset 0 0 20px #000,0 0 18px #4ee5ff35;overflow:hidden}.slot:after{content:"";position:absolute;inset:5px;border-radius:5px;background:linear-gradient(90deg,#08131c,#193245,#08131c)}.slot.hot{animation:pulse .34s infinite alternate;box-shadow:0 0 46px #5ceaffaa,inset 0 0 20px #54eaff66}@keyframes pulse{to{filter:brightness(1.45)}}
+.loadedCart{position:absolute;z-index:5;left:50%;top:-2px;transform:translateX(-50%) translateY(-100px);width:min(230px,37vw);height:105px;border:1px solid #8bedff;border-radius:12px 12px 8px 8px;background:linear-gradient(#293a48,#101922);box-shadow:0 0 34px #65ebff72;opacity:0;transition:.55s cubic-bezier(.2,.72,.2,1);overflow:hidden}.loadedCart.on{transform:translateX(-50%) translateY(0);opacity:1}.loadedCart .label{position:absolute;inset:9px;border:1px solid #ffffff25;border-radius:7px;display:grid;place-items:center;background:#07131c;font:950 14px ui-monospace,monospace;text-align:center}.loadedCart .label.rift{background:linear-gradient(120deg,#173b2c,#a66a3e 48%,#16362a)}.loadedCart .label.trace{background:linear-gradient(#06121b,#07131d),linear-gradient(90deg,#5deaff20 1px,transparent 1px);color:#85eaff}
+.robot{position:absolute;left:7%;top:34px;width:72px;height:61px;border-radius:22px;background:#eaf7fa;border:3px solid #a4c4cd;box-shadow:0 0 22px #65eaff55}.robot:before{content:"";position:absolute;left:11px;right:11px;top:10px;height:28px;border-radius:11px;background:#05131c}.robot:after{content:"⌣  ⌣";position:absolute;left:0;right:0;top:11px;text-align:center;color:#70efff;font-size:19px;font-weight:950;letter-spacing:5px}.robot.wake{animation:bob .16s 6 alternate;filter:drop-shadow(0 0 20px #85f5ff) brightness(1.15)}@keyframes bob{to{transform:translateY(-5px)}}
+.eject{position:absolute;right:7%;top:36px;width:72px;height:72px;border-radius:50%;border:2px solid #638297;background:#071019;color:#5c7484;font:950 10px ui-monospace,monospace;cursor:not-allowed;box-shadow:inset 0 0 22px #000}.eject.ready{cursor:pointer;color:#e9fbff;border-color:#7ceeff;box-shadow:0 0 22px #5ceaff45,inset 0 0 22px #16465a}.eject span{display:block;font-size:20px;color:inherit}.decklogo{position:absolute;left:50%;bottom:20px;transform:translateX(-50%);font-size:clamp(18px,3vw,25px);font-weight:950;white-space:nowrap}.decklogo b{color:var(--c)}.leds{position:absolute;left:50%;bottom:7px;transform:translateX(-50%);display:flex;gap:8px}.leds i{width:7px;height:7px;border-radius:50%;background:#174250}.leds i.on{background:#6df1ff;box-shadow:0 0 12px #64edff}
+.actions{width:min(880px,96%);margin:12px auto 0;display:grid;grid-template-columns:1fr;gap:10px}.play{appearance:none;border:1px solid #38515f;border-radius:15px;padding:15px;background:#061019;color:#506876;font-weight:950;font-size:20px;letter-spacing:.18em;cursor:not-allowed}.play.ready{cursor:pointer;color:#fff;border-color:#72efff;background:linear-gradient(90deg,#0c6c89,#0d2d42);box-shadow:0 0 30px #4ee6ff41,inset 0 0 35px #23c6ff1c}.play .game{font:800 10px ui-monospace,monospace;letter-spacing:.1em;color:#85eaff;margin-left:18px}
+.rack{display:grid;grid-template-columns:1fr 1fr;gap:14px;padding:18px;background:linear-gradient(180deg,#02080d,#03101a);border-top:1px solid #54dfff26}
+.cart{appearance:none;color:#fff;text-align:left;position:relative;min-height:190px;border:1px solid #40586b;border-radius:18px;background:linear-gradient(#172633,#071019);padding:13px;cursor:pointer;overflow:hidden;transition:.25s;box-shadow:inset 0 0 34px #0006}.cart:hover,.cart:focus-visible{outline:none;transform:translateY(-4px);border-color:#82efff;box-shadow:0 0 28px #58e8ff25}.cart.selected{transform:translateY(-5px);border-color:#94f5ff;box-shadow:0 0 42px #5feaff5e}.cart.loaded{border-color:#90f4ff;box-shadow:0 0 40px #54e9ff68}.cart.locked:not(.loaded){opacity:.48}.carttop{font:900 10px ui-monospace,monospace;letter-spacing:.14em;color:#7cecff}.badge{position:absolute;right:10px;top:9px;padding:5px 9px;border-radius:99px;background:#62efff;color:#03202b;font:950 9px ui-monospace,monospace;letter-spacing:.08em;display:none}.cart.loaded .badge{display:block}.cover{height:104px;margin:10px 0 10px;border:1px solid #ffffff22;border-radius:10px;position:relative;overflow:hidden;box-shadow:inset 0 0 22px #0005}.cover.rift{background:linear-gradient(145deg,#183b2a,#8b6739)}.cover.rift:before{content:"";position:absolute;inset:0;background:radial-gradient(circle at 70% 30%,#ffd05e 0 6px,transparent 7px),linear-gradient(115deg,transparent 0 42%,#d28b52 43% 60%,transparent 61%),repeating-linear-gradient(90deg,#2c6840 0 12px,#1f4e35 12px 24px)}.cover.rift:after{content:"";position:absolute;left:14%;bottom:11%;width:24px;height:34px;background:#0a1d27;clip-path:polygon(42% 0,70% 18%,69% 42%,100% 56%,88% 67%,62% 54%,56% 100%,29% 100%,29% 59%,0 69%,0 53%,30% 41%,27% 17%)}.cover.trace{background:#02070c;background-image:linear-gradient(#0c405b55 1px,transparent 1px),linear-gradient(90deg,#0c405b55 1px,transparent 1px),radial-gradient(circle at 70% 36%,#ff4dca36,transparent 32%);background-size:18px 18px,18px 18px,auto}.cover.trace:before{content:"";position:absolute;left:12%;right:18%;bottom:22%;height:3px;background:#68efff;box-shadow:72px -24px 0 #68efff,72px -56px 0 #68efff,0 0 14px #62ecff}.cover.trace:after{content:"◆";position:absolute;right:18%;top:21%;color:#ff526f;font-size:32px;text-shadow:0 0 17px #ff4e6b}.cart h3{margin:0;font-size:clamp(18px,3vw,26px);letter-spacing:-.02em}.no{position:absolute;right:13px;bottom:9px;color:#76eaff42;font:950 31px ui-monospace,monospace}
+.foot{display:flex;justify-content:center;align-items:center;gap:10px;text-align:center;color:#7895a6;font-size:12px;padding:17px}.foot b{color:#dffaff}.gamepad{font-size:23px;color:#65eaff}
+.ghost{position:fixed;z-index:90;width:180px;height:116px;padding:8px;border:1px solid #7deeff;border-radius:12px;background:#172432;box-shadow:0 0 42px #64eaff8c;pointer-events:none;transition:transform .76s cubic-bezier(.2,.72,.2,1),opacity .18s}.ghost>div{height:100%;border-radius:7px;background:#07131c;display:grid;place-items:center;text-align:center;font-weight:950;font-size:17px;border:1px solid #ffffff18}.flash{position:fixed;z-index:99;inset:0;background:#a8f7ff;opacity:0;pointer-events:none}.flash.go{animation:flash .35s ease-out}@keyframes flash{0%{opacity:.72}100%{opacity:0}}
+.toast{position:fixed;z-index:100;left:50%;bottom:calc(24px + env(safe-area-inset-bottom));transform:translate(-50%,20px);opacity:0;padding:10px 14px;border:1px solid #6feaff66;border-radius:999px;background:#03101bea;color:#dffaff;font:900 10px ui-monospace,monospace;letter-spacing:.08em;transition:.25s;pointer-events:none}.toast.on{opacity:1;transform:translate(-50%,0)}
 @media(max-width:640px){
- .wrap{width:100%;padding:0}.top{padding:12px 13px}.bay{border-radius:0;border-inline:0}.subbrand{font-size:8px}.back{font-size:9px;padding:8px 9px}.sign{padding:13px 16px 11px}.sign:after{display:none}.sign h1{font-size:34px}.console{height:560px}.screen{left:4%;right:4%;top:3.4%;height:47%}.deck{left:5%;right:5%;bottom:7.5%;height:34%}.slotShell{width:190px;height:70px}.robot{left:5%;width:60px;height:52px}.eject{right:4.5%;width:58px;height:58px}.decklogo{font-size:19px;bottom:24%}.play{left:13%;right:13%;height:56px;bottom:-27px}.rackWrap{padding-top:24px}.rack{padding:0 9px 12px;gap:9px}.cart{min-height:168px;padding:9px}.cover{height:82px}.cart h3{font-size:18px}.carttop{font-size:9px}.no{font-size:22px}.rackTitle{padding:0 11px 8px}.term{font-size:10.5px;line-height:1.75;padding:14px}.term strong{font-size:13px}.readyStats{gap:5px}.readyStats span{padding:6px;font-size:7px}.readyStats b{font-size:9px}
+ .wrap{width:100%;padding:0}.top{padding:10px 12px}.bay{border-radius:0;border-inline:0}.sign{padding:12px 14px}.sign .tag{font-size:8px}.console{min-height:550px;padding:14px 7px}.screen{width:96%;height:310px}.panel{padding:19px 18px}.term{grid-template-columns:1fr 110px;gap:11px}.termMain{font-size:11px;line-height:1.9}.diag{font-size:7px;padding-left:8px}.globe{height:72px}.deck{width:94%;min-height:160px;margin-top:15px}.slot{width:43vw}.loadedCart{width:39vw;height:88px}.robot{left:5%;width:61px;height:54px}.eject{right:5%;width:62px;height:62px}.decklogo{font-size:17px}.actions{width:94%}.play{font-size:17px;padding:13px}.rack{padding:11px 9px;gap:9px}.cart{min-height:164px;padding:9px}.cover{height:82px}.cart h3{font-size:17px}.carttop{font-size:8px}.no{font-size:23px}.brand{font-size:22px}.subbrand{font-size:7px}.back{font-size:8px;padding:8px 9px}
 }
-@media(max-width:380px){.brand{font-size:19px}.back{letter-spacing:.07em}.robot{left:3.5%;transform:scale(.9)}.eject{right:3.5%;transform:scale(.9)}.slotShell{width:170px}.decklogo{font-size:17px}.cart h3{font-size:16px}.carttop{letter-spacing:.08em}}
-@media(prefers-reduced-motion:reduce){*{animation-duration:.01ms!important;animation-iteration-count:1!important;scroll-behavior:auto!important}.ghost{transition:none}.cartInSlot{transition:none}}
-</style>
-</head>
+@media(max-width:390px){.term{grid-template-columns:1fr}.diag{display:none}.screen{height:292px}.sign .tag{display:none}.cart h3{font-size:15px}.cover{height:72px}}
+@media(prefers-reduced-motion:reduce){*{animation-duration:.01ms!important;transition-duration:.01ms!important}}
+</style></head>
 <body>
-<div class="scan"></div><div class="flash" id="flash"></div><div class="toast" id="toast"></div>
+<div class="flash" id="flash"></div><div class="toast" id="toast"></div>
 <main class="wrap">
-  <div class="top">
-    <div class="identity"><div class="brand">Jake<b>AI</b> UNIVERSE</div><div class="subbrand">CONSOLE CORNER</div></div>
-    <a class="back" href="/arcade/">← ARCADE</a>
+ <div class="top">
+  <div><div class="brand">Jake<b>AI</b> UNIVERSE</div><span class="subbrand">CONSOLE CORNER</span></div>
+  <a class="back" href="/arcade/">← ARCADE</a>
+ </div>
+ <section class="bay">
+  <header class="sign">
+   <div class="left"><div class="eyebrow">JAKEAI CONSOLE SYSTEM</div><h1>CONSOLE CORNER</h1></div>
+   <div class="tag">TWO CARTRIDGES.<br>INFINITE WORLDS.</div>
+  </header>
+  <div class="console">
+   <div class="screen">
+    <i class="screenCorner sc1"></i><i class="screenCorner sc2"></i><i class="screenCorner sc3"></i><i class="screenCorner sc4"></i>
+    <div class="panel idle on" id="idle">
+     <div><div class="botface"></div><h2>SELECT A <b>CARTRIDGE</b></h2><p>The cartridge is the button. Tap a world below and the console will pull it into the slot.</p></div>
+    </div>
+    <div class="panel" id="boot">
+     <div class="term">
+      <div class="termMain">
+       <strong id="bootTitle">CARTRIDGE SELECTED</strong>
+       <div class="log"><span>&gt; detecting cartridge…</span><span class="ok" id="s1">[ ... ]</span></div>
+       <div class="log"><span>&gt; authenticating…</span><span class="ok" id="s2">[ ... ]</span></div>
+       <div class="log"><span>&gt; loading world…</span><span class="ok" id="s3">[ ... ]</span></div>
+       <div class="log activeLine"><span>&gt; booting mission systems…</span><span class="ok" id="s4">[ ... ]</span></div>
+       <div class="progress"><div class="bar"><i id="bar"></i></div><span class="pct" id="pct">0%</span></div>
+       <div class="statusSmall" id="bootStatus">INITIALIZING CARTRIDGE LINK…</div>
+      </div>
+      <div class="diag">
+       <div class="globe"></div>
+       <div class="diagRow"><span>JAKEAI OS v2.1</span><span class="light">●</span></div>
+       <div class="diagRow"><span>CARTRIDGE LINK</span><span class="light">●</span></div>
+       <div class="diagRow"><span>WORLD INTEGRITY</span><span class="light">●</span></div>
+       <div class="diagRow"><span>MISSION SYSTEMS</span><span class="light">●</span></div>
+      </div>
+     </div>
+    </div>
+    <div class="panel" id="ready">
+     <div class="term">
+      <div class="termMain">
+       <div class="readyTitle">WORLD <b>READY</b></div>
+       <strong id="readyName">RIFT COMMANDO</strong>
+       <div class="log"><span>&gt; cartridge authenticated</span><span class="ok">[ OK ]</span></div>
+       <div class="log"><span>&gt; mission systems online</span><span class="ok">[ OK ]</span></div>
+       <div class="log"><span>&gt; controller link</span><span class="ok">[ READY ]</span></div>
+       <div class="progress"><div class="bar"><i style="width:100%"></i></div><span class="pct">100%</span></div>
+       <div class="readyMeta" id="readyMeta">CARTRIDGE 01 · RUN + GUN</div>
+      </div>
+      <div class="diag"><div class="globe"></div><div class="diagRow"><span>CARTRIDGE LINK</span><span class="light">●</span></div><div class="diagRow"><span>WORLD INTEGRITY</span><span class="light">●</span></div><div class="diagRow"><span>PLAY STATE</span><span class="light">●</span></div></div>
+     </div>
+    </div>
+   </div>
+   <div class="deck">
+    <div class="robot" id="robot"></div><div class="slot" id="slot"></div>
+    <div class="loadedCart" id="loadedCart"><div class="label" id="loadedLabel">CARTRIDGE</div></div>
+    <button class="eject" id="eject" type="button" aria-label="Eject cartridge" disabled><span>⏏</span>EJECT</button>
+    <div class="decklogo">Jake<b>AI</b> UNIVERSE</div>
+    <div class="leds"><i id="l1"></i><i id="l2"></i><i id="l3"></i></div>
+   </div>
+   <div class="actions"><button class="play" id="play" type="button" disabled>▶ PLAY <span class="game" id="playGame">SELECT A CARTRIDGE</span></button></div>
   </div>
-  <section class="bay">
-    <header class="sign"><div class="eyebrow">JAKEAI UNIVERSE // CONSOLE-ONLY SYSTEM</div><h1>CONSOLE CORNER</h1><p>The cabinets stay. The cartridges open different worlds.</p></header>
-    <div class="console">
-      <div class="screen">
-        <div class="cornerbits"></div>
-        <div class="attract" id="attract"><div><div class="botface"></div><h2>SELECT A <b>CARTRIDGE</b></h2><p>Tap a cartridge. The console will pull it into the slot, authenticate it, and bring that world online.</p><div class="prompt">▣ CARTRIDGE INPUT READY</div></div></div>
-        <div class="boot" id="boot"><div class="term">
-          <div class="termHead"><strong id="bootTitle">CARTRIDGE SELECTED</strong><span class="os">JAKEAI OS // C-CORNER</span></div>
-          <div class="line" id="l1"><em>&gt; detecting cartridge…</em><span class="ok">[ … ]</span></div>
-          <div class="line" id="l2"><em>&gt; authenticating…</em><span class="ok">[ … ]</span></div>
-          <div class="line" id="l3"><em>&gt; loading world…</em><span class="ok">[ … ]</span></div>
-          <div class="line" id="l4"><em>&gt; booting mission systems…</em><span class="ok">[ … ]</span></div>
-          <div class="bar"><i id="bar"></i></div><div class="progressMeta"><span id="progressText">INITIALIZING…</span><b id="progressPct">0%</b></div>
-        </div></div>
-        <div class="ready" id="ready"><div class="readyCard"><div class="readyTop"><div class="readyBadge">SYSTEM READY</div><span class="os">CARTRIDGE LINKED</span></div><h2 id="readyTitle">RIFT COMMANDO</h2><p id="readyCopy">World authenticated. Press PLAY to enter, or EJECT to switch cartridges.</p><div class="readyStats"><span>CARTRIDGE<b id="statCart">01</b></span><span>WORLD LINK<b>STABLE</b></span><span>MISSION BUS<b>ONLINE</b></span></div></div></div>
-      </div>
-      <div class="deck" id="deck">
-        <div class="robot" id="robot"></div>
-        <div class="slotShell"><div class="slot" id="slot"></div><div class="cartInSlot" id="cartInSlot"><span id="slotTitle">RIFT COMMANDO</span><b id="slotNo">01</b></div></div>
-        <button class="eject" id="eject" type="button" disabled aria-label="Eject cartridge"><span>EJECT</span></button>
-        <div class="decklogo">Jake<b>AI</b> UNIVERSE</div><div class="leds"><i></i><i></i><i></i></div>
-        <button class="play" id="play" type="button">▶ PLAY <small id="playTitle">WORLD</small></button>
-      </div>
-    </div>
-    <div class="rackWrap"><div class="rackTitle"><span>CARTRIDGE SHELF</span><span id="shelfState">SELECT ONE TO INSERT</span></div>
-      <div class="rack">
-        <button class="cart" data-id="01" data-title="RIFT COMMANDO" data-url="/arcade/console-corner/rift-commando.html?boot=1" aria-label="Insert Rift Commando cartridge">
-          <div class="carttop">CARTRIDGE 01 · RUN + GUN</div><div class="cover rift"></div><h3>RIFT COMMANDO</h3><span class="genre">CONSOLE EXCLUSIVE</span><div class="no">01</div>
-        </button>
-        <button class="cart" data-id="02" data-title="TRACEBOUND" data-url="/arcade/console-corner/tracebound.html?boot=1" aria-label="Insert Tracebound cartridge">
-          <div class="carttop">CARTRIDGE 02 · CLAIM THE GRID</div><div class="cover trace"></div><h3>TRACEBOUND</h3><span class="genre">CONSOLE EXCLUSIVE</span><div class="no">02</div>
-        </button>
-      </div>
-    </div>
-    <div class="foot"><b>The cartridge is the button.</b><span>Tap a cartridge to insert. Eject to switch worlds.</span></div>
-  </section>
+  <div class="rack">
+   <button class="cart" data-id="01" data-title="RIFT COMMANDO" data-genre="RUN + GUN" data-class="rift" data-url="/arcade/console-corner/rift-commando.html?boot=1">
+    <span class="badge">● LOADED</span><div class="carttop">01 · CARTRIDGE 01 · RUN + GUN</div><div class="cover rift"></div><h3>RIFT COMMANDO</h3><div class="no">01</div>
+   </button>
+   <button class="cart" data-id="02" data-title="TRACEBOUND" data-genre="CLAIM THE GRID" data-class="trace" data-url="/arcade/console-corner/tracebound.html?boot=1">
+    <span class="badge">● LOADED</span><div class="carttop">02 · CARTRIDGE 02 · CLAIM THE GRID</div><div class="cover trace"></div><h3>TRACEBOUND</h3><div class="no">02</div>
+   </button>
+  </div>
+  <div class="foot"><span class="gamepad">🎮</span><span><b>The cartridge is the button.</b><br>Tap a cartridge to insert. Eject to switch worlds.</span></div>
+ </section>
 </main>
 <script>
-(()=>{
- const cs=[...document.querySelectorAll('.cart')],slot=document.getElementById('slot'),at=document.getElementById('attract'),boot=document.getElementById('boot'),ready=document.getElementById('ready'),bar=document.getElementById('bar'),robot=document.getElementById('robot'),flash=document.getElementById('flash'),deck=document.getElementById('deck'),eject=document.getElementById('eject'),play=document.getElementById('play'),cartInSlot=document.getElementById('cartInSlot'),toast=document.getElementById('toast'),shelfState=document.getElementById('shelfState');
- let busy=false,loaded=null,toastTimer=null;
- const lines=[1,2,3,4].map(n=>document.getElementById('l'+n));
- function tone(f,d=.06,type='square'){try{window.ac=window.ac||new(AudioContext||webkitAudioContext)();const a=window.ac,o=a.createOscillator(),g=a.createGain();o.type=type;o.frequency.value=f;g.gain.value=.022;g.gain.exponentialRampToValueAtTime(.0001,a.currentTime+d);o.connect(g);g.connect(a.destination);o.start();o.stop(a.currentTime+d)}catch(e){}}
- function say(msg){clearTimeout(toastTimer);toast.textContent=msg;toast.classList.add('on');toastTimer=setTimeout(()=>toast.classList.remove('on'),1700)}
- function resetLines(){lines.forEach(l=>{l.classList.remove('active');l.querySelector('.ok').textContent='[ … ]'});bar.style.width='0';document.getElementById('progressPct').textContent='0%';document.getElementById('progressText').textContent='INITIALIZING…'}
- function lineDone(i){if(i>0){lines[i-1].classList.remove('active');lines[i-1].querySelector('.ok').textContent='[ OK ]'}if(i<4)lines[i].classList.add('active')}
- function markLoaded(c){
-   loaded=c;busy=false;slot.classList.remove('hot');robot.classList.remove('wake');boot.classList.remove('on');ready.classList.add('on');deck.classList.add('loaded');
-   document.getElementById('readyTitle').textContent=c.dataset.title;document.getElementById('statCart').textContent=c.dataset.id;document.getElementById('slotTitle').textContent=c.dataset.title;document.getElementById('slotNo').textContent=c.dataset.id;document.getElementById('playTitle').textContent=c.dataset.title;
-   cartInSlot.classList.toggle('trace',c.dataset.id==='02');cartInSlot.classList.add('visible');eject.disabled=false;play.classList.add('visible');shelfState.textContent='CARTRIDGE '+c.dataset.id+' LOADED';
-   cs.forEach(x=>{x.classList.toggle('loaded',x===c);x.classList.toggle('selected',x===c);x.classList.toggle('dim',x!==c);x.classList.add('locked')});
-   tone(990,.08);navigator.vibrate?.([16,24,24]);say(c.dataset.title+' READY');
- }
- function launch(c){
-   if(busy)return;
-   if(loaded){if(loaded===c){say('CARTRIDGE '+c.dataset.id+' IS ALREADY LOADED');return}eject.classList.remove('nudge');void eject.offsetWidth;eject.classList.add('nudge');say('EJECT CURRENT CARTRIDGE TO SWITCH');return}
-   busy=true;resetLines();cs.forEach(x=>x.classList.toggle('dim',x!==c));c.classList.add('selected');shelfState.textContent='INSERTING CARTRIDGE '+c.dataset.id;play.classList.remove('visible');eject.disabled=true;ready.classList.remove('on');at.style.display='grid';boot.classList.remove('on');
-   tone(440);navigator.vibrate?.(18);
-   const r=c.getBoundingClientRect(),s=slot.getBoundingClientRect(),g=document.createElement('div');g.className='ghost';g.style.left=(r.left+r.width/2-90)+'px';g.style.top=(r.top+24)+'px';g.innerHTML='<div>'+c.dataset.title+'<br><small>CARTRIDGE '+c.dataset.id+'</small></div>';document.body.appendChild(g);slot.classList.add('hot');
-   requestAnimationFrame(()=>requestAnimationFrame(()=>{g.style.transform=`translate(${s.left+s.width/2-(r.left+r.width/2)}px,${s.top-34-(r.top+24)}px) scale(.58) rotateX(18deg)`}));
-   setTimeout(()=>tone(230,.12),160);
-   setTimeout(()=>{
-      g.style.opacity=0;flash.classList.remove('go');void flash.offsetWidth;flash.classList.add('go');tone(110,.17,'sawtooth');navigator.vibrate?.([18,28,22]);at.style.display='none';boot.classList.add('on');robot.classList.add('wake');document.getElementById('bootTitle').textContent='CARTRIDGE '+c.dataset.id+' · '+c.dataset.title;lineDone(0);bar.style.width='17%';document.getElementById('progressPct').textContent='17%';document.getElementById('progressText').textContent='DETECTING CARTRIDGE';
-   },830);
-   setTimeout(()=>{lineDone(1);bar.style.width='39%';document.getElementById('progressPct').textContent='39%';document.getElementById('progressText').textContent='AUTHENTICATING';tone(600)},1120);
-   setTimeout(()=>{lineDone(2);bar.style.width='65%';document.getElementById('progressPct').textContent='65%';document.getElementById('progressText').textContent='LOADING WORLD';tone(730)},1400);
-   setTimeout(()=>{lineDone(3);bar.style.width='87%';document.getElementById('progressPct').textContent='87%';document.getElementById('progressText').textContent='BOOTING MISSION SYSTEMS';tone(840)},1680);
-   setTimeout(()=>{lineDone(4);bar.style.width='100%';document.getElementById('progressPct').textContent='100%';document.getElementById('progressText').textContent='SYSTEM READY';tone(960,.09);},1940);
-   setTimeout(()=>{g.remove();markLoaded(c)},2240);
- }
- function doEject(){
-   if(busy||!loaded)return;busy=true;const old=loaded;shelfState.textContent='EJECTING CARTRIDGE '+old.dataset.id;play.classList.remove('visible');eject.disabled=true;ready.classList.remove('on');slot.classList.add('hot');tone(320,.08);navigator.vibrate?.(18);
-   cartInSlot.style.transform='translateX(-50%) translateY(-48px)';
-   setTimeout(()=>{cartInSlot.style.opacity='0';tone(180,.11);},230);
-   setTimeout(()=>{
-      cartInSlot.classList.remove('visible','trace');cartInSlot.removeAttribute('style');slot.classList.remove('hot');deck.classList.remove('loaded');loaded=null;busy=false;cs.forEach(x=>x.classList.remove('loaded','selected','dim','locked'));at.style.display='grid';shelfState.textContent='SELECT ONE TO INSERT';say('CARTRIDGE EJECTED');
-   },610);
- }
- cs.forEach(c=>c.addEventListener('click',()=>launch(c)));
- eject.addEventListener('click',doEject);
- play.addEventListener('click',()=>{if(!loaded||busy)return;tone(760,.07);navigator.vibrate?.(14);play.textContent='▶ ENTERING WORLD…';const url=loaded.dataset.url;setTimeout(()=>location.href=url,240)});
- document.addEventListener('keydown',e=>{if(e.key==='Escape'&&loaded)doEject()});
+(()=>{const qs=s=>document.querySelector(s),cs=[...document.querySelectorAll('.cart')],idle=qs('#idle'),boot=qs('#boot'),ready=qs('#ready'),bar=qs('#bar'),pct=qs('#pct'),slot=qs('#slot'),robot=qs('#robot'),flash=qs('#flash'),eject=qs('#eject'),play=qs('#play'),playGame=qs('#playGame'),loadedCart=qs('#loadedCart'),loadedLabel=qs('#loadedLabel'),toast=qs('#toast'),leds=[qs('#l1'),qs('#l2'),qs('#l3')];let current=null,busy=false,timers=[];
+function tone(f,d=.06,type='square'){try{window.ac=window.ac||new(AudioContext||webkitAudioContext)();const a=window.ac,o=a.createOscillator(),g=a.createGain();o.type=type;o.frequency.value=f;g.gain.value=.022;g.gain.exponentialRampToValueAtTime(.0001,a.currentTime+d);o.connect(g);g.connect(a.destination);o.start();o.stop(a.currentTime+d)}catch(e){}}
+function later(fn,ms){const id=setTimeout(fn,ms);timers.push(id);return id}
+function msg(t){toast.textContent=t;toast.classList.add('on');setTimeout(()=>toast.classList.remove('on'),1500)}
+function clearTimers(){timers.forEach(clearTimeout);timers=[]}
+function panel(which){[idle,boot,ready].forEach(x=>x.classList.remove('on'));which.classList.add('on')}
+function resetLogs(){['s1','s2','s3','s4'].forEach(id=>qs('#'+id).textContent='[ ... ]');bar.style.width='0';pct.textContent='0%';qs('#bootStatus').textContent='INITIALIZING CARTRIDGE LINK…'}
+function makeGhost(c,fromSlot=false){const g=document.createElement('div');g.className='ghost';g.innerHTML='<div>'+c.dataset.title+'<br><small>CARTRIDGE '+c.dataset.id+'</small></div>';document.body.appendChild(g);const r=(fromSlot?slot:c).getBoundingClientRect();g.style.left=(r.left+r.width/2-90)+'px';g.style.top=(r.top+(fromSlot?0:18))+'px';return g}
+function setCardState(c){cs.forEach(x=>{x.classList.toggle('loaded',x===c);x.classList.toggle('locked',!!c&&x!==c);x.classList.remove('selected')})}
+function insert(c){if(busy)return;if(current){msg('EJECT CURRENT CARTRIDGE FIRST');eject.animate([{transform:'scale(1)'},{transform:'scale(1.08)'},{transform:'scale(1)'}],{duration:320});return}
+ busy=true;clearTimers();resetLogs();c.classList.add('selected');tone(440);navigator.vibrate?.(18);slot.classList.add('hot');robot.classList.add('wake');const g=makeGhost(c,false),r=c.getBoundingClientRect(),s=slot.getBoundingClientRect();
+ requestAnimationFrame(()=>requestAnimationFrame(()=>{g.style.transform='translate('+(s.left+s.width/2-(r.left+r.width/2))+'px,'+(s.top-15-(r.top+18))+'px) scale(.54) rotateX(18deg)'}));
+ later(()=>tone(230,.1),190);
+ later(()=>{g.style.opacity=0;flash.classList.remove('go');void flash.offsetWidth;flash.classList.add('go');panel(boot);qs('#bootTitle').textContent='CARTRIDGE '+c.dataset.id+' · '+c.dataset.title;bar.style.width='18%';pct.textContent='18%';leds[0].classList.add('on')},760);
+ later(()=>{qs('#s1').textContent='[ OK ]';bar.style.width='38%';pct.textContent='38%';tone(560)},1020);
+ later(()=>{qs('#s2').textContent='[ OK ]';bar.style.width='61%';pct.textContent='61%';leds[1].classList.add('on');tone(680)},1280);
+ later(()=>{qs('#s3').textContent='[ OK ]';bar.style.width='82%';pct.textContent='82%';tone(800)},1540);
+ later(()=>{qs('#s4').textContent='[ OK ]';bar.style.width='100%';pct.textContent='100%';qs('#bootStatus').textContent='WORLD AUTHENTICATED · SYSTEM READY';leds[2].classList.add('on');tone(960,.08);navigator.vibrate?.([12,20,16])},1800);
+ later(()=>{g.remove();slot.classList.remove('hot');robot.classList.remove('wake');current=c;setCardState(c);loadedLabel.className='label '+c.dataset.class;loadedLabel.textContent=c.dataset.title+' · '+c.dataset.id;loadedCart.classList.add('on');qs('#readyName').textContent=c.dataset.title;qs('#readyMeta').textContent='CARTRIDGE '+c.dataset.id+' · '+c.dataset.genre;panel(ready);eject.disabled=false;eject.classList.add('ready');play.disabled=false;play.classList.add('ready');playGame.textContent=c.dataset.title;busy=false},2080)
+}
+function doEject(){if(!current||busy)return;busy=true;clearTimers();tone(300,.08);navigator.vibrate?.(18);play.disabled=true;play.classList.remove('ready');eject.disabled=true;eject.classList.remove('ready');slot.classList.add('hot');const c=current,g=makeGhost(c,true),s=slot.getBoundingClientRect(),r=c.getBoundingClientRect();loadedCart.classList.remove('on');
+ later(()=>{g.style.transform='translate('+(r.left+r.width/2-(s.left+s.width/2))+'px,'+(r.top+18-s.top)+'px) scale(1)';tone(520,.08)},120);
+ later(()=>{g.style.opacity=0;g.remove();current=null;setCardState(null);panel(idle);slot.classList.remove('hot');leds.forEach(x=>x.classList.remove('on'));playGame.textContent='SELECT A CARTRIDGE';busy=false;msg('CARTRIDGE EJECTED · SELECT ANOTHER WORLD')},760)
+}
+cs.forEach(c=>c.addEventListener('click',()=>insert(c)));eject.addEventListener('click',doEject);play.addEventListener('click',()=>{if(current&&!busy){tone(880,.07);navigator.vibrate?.(12);location.href=current.dataset.url}});
+if(new URLSearchParams(location.search).has('ejected'))msg('CARTRIDGE EJECTED · SELECT ANOTHER WORLD');
 })();
-</script>
-</body></html>
+</script></body></html>
