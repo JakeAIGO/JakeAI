@@ -1,0 +1,202 @@
+{
+  "generatedAt": "2026-09-24T16:30:00-04:00",
+  "scope": {
+    "geography": "United States nationwide",
+    "deadlineWindowDays": 90,
+    "technologies": [
+      "Electrical Engineering",
+      "PV / Solar",
+      "Microgrid",
+      "BESS / Storage",
+      "Generators",
+      "SCADA",
+      "Substations / Transformers",
+      "Controls",
+      "EV Charging"
+    ],
+    "sectors": [
+      "Military / Federal",
+      "Municipal / State",
+      "Industrial / Manufacturing",
+      "Education / University",
+      "Utilities",
+      "Commercial"
+    ]
+  },
+  "verificationPolicy": "Only opportunities supported by an issuer, official procurement portal, SAM.gov, or other authoritative public source are included.",
+  "count": 9,
+  "opportunities": [
+    {
+      "id": "RFQ-26-ENGSRV-65",
+      "title": "Electrical Engineering Professional Services",
+      "issuer": "Terrebonne Parish Consolidated Government",
+      "state": "LA",
+      "due": "2026-10-20T14:00:00-05:00",
+      "fit": [
+        "Electrical Engineering",
+        "Grid Resilience",
+        "Distribution",
+        "Substations/Transformers",
+        "Controls",
+        "Microgrid Integration"
+      ],
+      "sector": "Municipal / State",
+      "type": "RFQ",
+      "status": "Verified Active",
+      "source": "https://tpcg.org/Purchasing/Bidopportunities",
+      "notes": "Official parish bid page lists RFQ 26-ENGSRV-65 and Addendum 1."
+    },
+    {
+      "id": "PE-64458-NONST-2027-000000037",
+      "title": "Design / Engineering for Microgrid System and DC Fast Charger",
+      "issuer": "City of Decatur",
+      "state": "GA",
+      "due": "2026-10-13T14:00:00-04:00",
+      "fit": [
+        "Electrical Engineering",
+        "Solar PV",
+        "BESS",
+        "Microgrid",
+        "EV Charging",
+        "Construction Administration"
+      ],
+      "sector": "Municipal / State",
+      "type": "RFP",
+      "status": "Verified Active",
+      "source": "https://ssl.doas.state.ga.us/gpr/eventDetails?eSourceNumber=PE-64458-NONST-2027-000000037&sourceSystemType=gpr20",
+      "notes": "City of Decatur microgrid design, bid assistance, and construction administration."
+    },
+    {
+      "id": "P26015",
+      "title": "Downtown Lighting System Improvements",
+      "issuer": "City of Ridgefield",
+      "state": "WA",
+      "due": "2026-10-06T16:00:00-07:00",
+      "fit": [
+        "Electrical Engineering",
+        "Lighting",
+        "Infrastructure",
+        "Energy Efficiency"
+      ],
+      "sector": "Municipal / State",
+      "type": "RFP",
+      "status": "Verified Active",
+      "source": "https://omwbe.wa.gov/bid-opportunities/p26015-downtown-lighting-system-improvements",
+      "notes": "Seeking lighting design, electrical engineering and infrastructure firms."
+    },
+    {
+      "id": "014-27",
+      "title": "Queen City Substation SCADA Upgrade",
+      "issuer": "Burlington Electric Department",
+      "state": "VT",
+      "due": "2026-09-25T17:00:00-04:00",
+      "fit": [
+        "Electrical Engineering",
+        "Substation",
+        "SCADA",
+        "Protection & Relays",
+        "Controls"
+      ],
+      "sector": "Utilities",
+      "type": "RFP",
+      "status": "Verified Active",
+      "source": "https://www.burlingtonelectric.com/rfpdetail?rfp=014-27",
+      "notes": "Engineering design for SCADA RTU, relay, communications and control upgrades."
+    },
+    {
+      "id": "011-27",
+      "title": "McNeil Station SCADA Upgrade",
+      "issuer": "Burlington Electric Department",
+      "state": "VT",
+      "due": "2026-10-14T17:00:00-04:00",
+      "fit": [
+        "Electrical Engineering",
+        "SCADA",
+        "Controls",
+        "Power Plant",
+        "Commissioning"
+      ],
+      "sector": "Utilities",
+      "type": "RFP",
+      "status": "Verified Active",
+      "source": "https://www.burlingtonelectric.com/rfpdetail?rfp=011-27",
+      "notes": "Use the earlier Oct 14 written-proposal milestone as the safe deadline despite page header showing Oct 15."
+    },
+    {
+      "id": "50013-BTB3010",
+      "title": "Solar Panel and Batteries Install",
+      "issuer": "University of New Orleans / Louisiana Procurement",
+      "state": "LA",
+      "due": "2026-10-15T14:00:00-05:00",
+      "fit": [
+        "Solar PV",
+        "BESS",
+        "Electrical Installation",
+        "Commissioning"
+      ],
+      "sector": "Education / University",
+      "type": "Bid",
+      "status": "Verified Active",
+      "source": "https://wwwprd.doa.louisiana.gov/osp/lapac/dspBid.cfm?search=segment&term=26000000",
+      "notes": "LaPAC lists bid 50013-btb3010 with Oct 15 opening."
+    },
+    {
+      "id": "8803-1-M7",
+      "title": "Generator Replacement - Union Station / WRA",
+      "issuer": "City of Worcester",
+      "state": "MA",
+      "due": "2026-10-28T10:00:00-04:00",
+      "fit": [
+        "Generators",
+        "Electrical",
+        "Emergency Power",
+        "Construction"
+      ],
+      "sector": "Municipal / State",
+      "type": "Bid",
+      "status": "Verified Active",
+      "source": "https://www.worcesterma.gov/finance/purchasing-bids/bids/8803-1-m7",
+      "notes": "Replacement of rooftop emergency generator; estimated cost $728,000."
+    },
+    {
+      "id": "W912DS26BA032",
+      "title": "Power Generation with Microgrid at Joint Base McGuire-Dix-Lakehurst",
+      "issuer": "U.S. Army Corps of Engineers",
+      "state": "NJ",
+      "due": "2026-09-28T14:00:00-04:00",
+      "fit": [
+        "Microgrid",
+        "Power Generation",
+        "Electrical Infrastructure",
+        "Federal / Military"
+      ],
+      "sector": "Military / Federal",
+      "type": "Solicitation",
+      "status": "Verified Active",
+      "source": "https://sam.gov/opp/077ca2c330c245c58ff151d794235bf8/view",
+      "notes": "Active USACE solicitation with specifications and drawings."
+    },
+    {
+      "id": "PESCADERO-MICROGRID-ENG",
+      "title": "Pescadero Community Microgrid Engineering Services",
+      "issuer": "WestLight Energy",
+      "state": "CA",
+      "due": "2026-09-25T17:00:00-07:00",
+      "fit": [
+        "Electrical Engineering",
+        "Solar PV",
+        "BESS",
+        "Microgrid",
+        "Medium Voltage",
+        "Protection",
+        "SCADA",
+        "Commissioning"
+      ],
+      "sector": "Utilities / Energy",
+      "type": "RFP",
+      "status": "Verified Active",
+      "source": "https://www.westlightenergy.org/solicitations/pescadero-community-microgrid-engineering-services/",
+      "notes": "Engineer of Record role for front-of-meter solar-plus-storage community microgrid."
+    }
+  ]
+}
