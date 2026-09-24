@@ -8,7 +8,7 @@
     "machine_catalog_url": "https://jakeaiofficial.com/catalog.json",
     "workflow_registry_url": "https://jakeaiofficial.com/workflow-registry.json"
   },
-  "generated_at": "2026-09-22",
+  "generated_at": "2026-09-23",
   "audience": [
     "human",
     "ai_agent"
@@ -23,6 +23,59 @@
     "agent_guidance": "Do not infer that a gated capability is purchasable or invokable. Use each record's commerce and invocation fields."
   },
   "capabilities": [
+    {
+      "id": "JAI-BOOK-001",
+      "slug": "infinite-foundry",
+      "name": "JakeAI Universe: The Infinite Foundry",
+      "type": "interactive_branching_gamebook",
+      "category": [
+        "Interactive Fiction",
+        "Games & Arcade",
+        "Digital Collectibles"
+      ],
+      "version": "1.0",
+      "lifecycle_status": "production",
+      "publication_status": "listed_live",
+      "summary": "Premium illustrated branching gamebook with 100 numbered sections, 10 endings, hidden key-gated routes, page-turn interaction, saved progress, and a numbered Founding Reader edition.",
+      "problem_signals": [
+        "branching adventure book",
+        "interactive gamebook",
+        "JakeAI Universe",
+        "collectible digital book",
+        "choose a path story"
+      ],
+      "inputs": [
+        "reader choices",
+        "optional collected keys",
+        "bookmarks and saved progress"
+      ],
+      "outputs": [
+        "branching story path",
+        "10 possible endings",
+        "numbered Founding Reader artifact"
+      ],
+      "human_url": "https://jakeaiofficial.com/infinite-foundry.html",
+      "machine_url": "https://jakeaiofficial.com/catalog.json#JAI-BOOK-001",
+      "commerce": {
+        "mode": "stripe_payment_link",
+        "purchasable": true,
+        "currency": "USD",
+        "price": 1.99,
+        "purchase_url": "https://buy.stripe.com/7sY7sMf8T7Xy8k57JeaAw0a",
+        "founding_reader_number": "0001",
+        "founding_link_limit": 1
+      },
+      "invocation": {
+        "mode": "human_page",
+        "endpoint": null,
+        "note": "Interactive reader is a browser experience; the numbered Founding Reader purchase is handled by live Stripe checkout."
+      },
+      "trust": {
+        "human_release_gate": true,
+        "purchase_record_authority": "stripe",
+        "provenance": "repository_public_record"
+      }
+    },
     {
       "id": "JAI-TATTOO-001",
       "slug": "tattoo-designer",
@@ -799,4 +852,4 @@
       }
     }
   ]
-}
+}\n
