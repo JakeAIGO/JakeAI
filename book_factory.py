@@ -1,6 +1,7 @@
 import json
 from pathlib import Path
 from fastapi import APIRouter
+from book_source_lock import list_locks, public_lock_record, start_autolock
 
 router = APIRouter()
 QUEUE_PATH = Path(__file__).resolve().parent / "book-factory" / "queue.json"
@@ -10,6 +11,19 @@ PUBLIC_STAGES = {"candidate","rights_verified","source_verified","formatting","n
 
 def _load():
     return json.loads(QUEUE_PATH.read_text(encoding="utf-8"))
+
+def _overlay_runtime_locks(jobs):
+    locks=list_locks()
+    out=[]
+    for original in jobs:
+        job=dict(original)
+        row=locks.get(job.get("id"))
+        if row:
+            job["text_lock"]=public_lock_record(row)
+            if job.get("stage")=="rights_verified":
+                job["stage"]="source_verified"
+        out.append(job)
+    return out
 
 def validate_job(job):
     errors=[]
@@ -51,7 +65,7 @@ def validate_job(job):
 
 def snapshot():
     data=_load()
-    jobs=data.get("jobs",[])
+    jobs=_overlay_runtime_locks(data.get("jobs",[]))
     validations=[{"id":j.get("id"),"errors":validate_job(j)} for j in jobs]
     invalid=[x for x in validations if x["errors"]]
     counts={
@@ -59,6 +73,7 @@ def snapshot():
         "rights_green":sum(1 for j in jobs if j.get("rights")=="green"),
         "rights_pending":sum(1 for j in jobs if j.get("rights")=="pending"),
         "public_preview":sum(1 for j in jobs if j.get("release")=="public_preview"),
+        "source_locked":sum(1 for j in jobs if (j.get("text_lock") or {}).get("status")=="locked"),
         "published_paid":sum(1 for j in jobs if j.get("paid_release") is True),
         "invalid":len(invalid)
     }
@@ -78,3 +93,4 @@ def book_factory_jobs():
 
 def register_book_factory_routes(app):
     app.include_router(router)
+    start_autolock(QUEUE_PATH)
