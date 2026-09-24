@@ -20,7 +20,7 @@ jobs:
           payload = {
             "username": "JakeAI",
             "allowed_mentions": {"parse": []},
-            "content": "📖 **NEW TONIGHT: JakeAI Universe — The Infinite Foundry**",
+            "content": "📖 **NOW LIVE: JakeAI Universe — The Infinite Foundry**",
             "embeds": [
               {
                 "title": "The Infinite Foundry — Founding Reader Edition",
