@@ -44,7 +44,7 @@ const priceText=x=>{
  if(plans.length){const vals=plans.map(p=>Number(p.price)).filter(Number.isFinite);if(vals.length)return 'Plans from '+money(Math.min(...vals));}
  return 'View product';
 };
-const visual=x=>{
+const visual=x=>{\n if(x.id==='JAI-BOOK-001')return '<div class="visual book" aria-label="Leather-bound JakeAI Universe book"></div>';
  if(x.id==='JAI-TATTOO-001')return '<div class="visual"><img src="/assets/tattoo-designer-approved-20260922.webp?v=approved-20260922" alt="JakeAI Tattoo Designer"></div>';
  if(x.id==='JAI-GUITAR-001')return '<div class="visual"><img src="/assets/guitar-launch-v1.jpg?v=guitar-card-20260922" alt="JakeAI Guitar Coach"></div>';
  if(x.id==='JAI-SCOPE-001')return '<div class="visual"><img src="/assets/scope-creep-guard.svg" alt="JakeAI Scope Creep Guard"></div>';
