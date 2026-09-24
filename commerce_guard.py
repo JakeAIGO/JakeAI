@@ -205,6 +205,12 @@ register_pool_coach_routes(app)
 # Public Guitar Coach checkout, entitlement, and billing self-service routes.
 register_guitar_coach_routes(app)
 
+# Public JakeAI Credits / My Library ledger. Paid top-ups remain fail-closed unless
+# the dedicated credits compliance and Stripe configuration gates are enabled.
+from jakeai_credits import register_credit_routes
+register_credit_routes(app)
+
+
 # Signed Shopify paid-order intake. Fail-closed until SHOPIFY_WEBHOOK_SECRET is configured.
 from shopify_order_bridge import register_shopify_order_bridge_routes
 register_shopify_order_bridge_routes(app)
