@@ -1,6 +1,6 @@
 {
   "schema_version": "1.3",
-  "generated_at": "2026-09-22",
+  "generated_at": "2026-09-23",
   "scope_note": "Bootstrap registry containing repository-verified and currently public JakeAI workflow/product records. The lifetime metric is intentionally a verified minimum until historical chat-origin workflows are reconciled. Retired records remain historical and do not reduce the lifetime count.",
   "integrity_rules": {
     "lifetime_counter_monotonic": true,
@@ -10,11 +10,11 @@
     "unknown_origin_dates_must_remain_null_until_verified": true
   },
   "metrics": {
-    "lifetime_distinct_workflows_developed_minimum": 24,
-    "active_working_workflows": 16,
-    "available_now": 7,
-    "public_product_listings": 20,
-    "active_available_now": 7
+    "lifetime_distinct_workflows_developed_minimum": 25,
+    "active_working_workflows": 17,
+    "available_now": 8,
+    "public_product_listings": 21,
+    "active_available_now": 8
   },
   "entries": [
     {
@@ -453,6 +453,26 @@
         "verification_basis": "repository_public_record",
         "historical_reconciliation": "not_required",
         "notes": "Evidence-led micro-product: server-verified one-time checkout; browser-local invoice inputs; generates follow-up drafts and calendar reminders without auto-sending."
+      }
+    },
+    {
+      "id": "JAI-CONTEXT-001",
+      "distinct_key": "context-reacquisition-auditor",
+      "canonical_name": "JakeAI Context Reacquisition Auditor",
+      "date_originated": "2026-09-23",
+      "category": "AI Agent Operations / Agent Economics",
+      "status": "production",
+      "version": "1.0",
+      "website_publication_status": "public_page",
+      "relationships": {
+        "parent_id": null,
+        "child_ids": []
+      },
+      "provenance": {
+        "verification_basis": "autonomous_discovery_build_test_record",
+        "historical_reconciliation": "not_required",
+        "origin": "JAKEAI-FOUND",
+        "notes": "Independently discovered by the JakeAI autonomous product loop. Six deterministic synthetic audit cases passed before live beta release."
       }
     }
   ]

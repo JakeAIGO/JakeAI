@@ -1,0 +1,100 @@
+{
+  "name": "audit_context_compression",
+  "description": "Compare a baseline agent run with a compressed-context candidate and return whether compression produced real savings after reacquisition costs.",
+  "endpoint": "https://jakeaiofficial.com/v1/tools/context-reacquisition-auditor",
+  "method": "POST",
+  "inputSchema": {
+    "type": "object",
+    "required": [
+      "baseline",
+      "candidate"
+    ],
+    "properties": {
+      "baseline": {
+        "$ref": "#/$defs/run"
+      },
+      "candidate": {
+        "$ref": "#/$defs/run"
+      },
+      "policy": {
+        "type": "object",
+        "properties": {
+          "min_net_savings_pct": {
+            "type": "number",
+            "default": 5
+          },
+          "retrieval_increase_warn_pct": {
+            "type": "number",
+            "default": 50
+          },
+          "quality_drop_tolerance": {
+            "type": "number",
+            "default": 0.03
+          },
+          "inferred_retrieval_cost_usd": {
+            "type": "number",
+            "default": 0.002
+          },
+          "inferred_recovery_tool_cost_usd": {
+            "type": "number",
+            "default": 0.003
+          }
+        }
+      }
+    },
+    "$defs": {
+      "run": {
+        "type": "object",
+        "required": [
+          "success",
+          "total_cost_usd"
+        ],
+        "properties": {
+          "success": {
+            "type": "boolean"
+          },
+          "total_cost_usd": {
+            "type": "number",
+            "minimum": 0
+          },
+          "input_tokens": {
+            "type": "number",
+            "minimum": 0
+          },
+          "output_tokens": {
+            "type": "number",
+            "minimum": 0
+          },
+          "retrieval_calls": {
+            "type": "number",
+            "minimum": 0
+          },
+          "retrieval_cost_usd": {
+            "type": "number",
+            "minimum": 0
+          },
+          "tool_calls": {
+            "type": "number",
+            "minimum": 0
+          },
+          "recovery_tool_calls": {
+            "type": "number",
+            "minimum": 0
+          },
+          "latency_ms": {
+            "type": "number",
+            "minimum": 0
+          },
+          "task_score": {
+            "type": "number",
+            "minimum": 0,
+            "maximum": 1
+          },
+          "notes": {
+            "type": "string"
+          }
+        }
+      }
+    }
+  }
+}

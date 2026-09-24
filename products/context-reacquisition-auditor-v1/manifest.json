@@ -1,0 +1,36 @@
+{
+  "schema_version": "1.0",
+  "product_id": "prod_context_reacquisition_auditor_01",
+  "capability_id": "JAI-CONTEXT-001",
+  "name": "JakeAI Context Reacquisition Auditor",
+  "origin": "JAKEAI-FOUND",
+  "description": "Compares baseline and compressed agent runs to detect hidden information-reacquisition costs, quality regressions, and false token savings.",
+  "buyer_types": [
+    "autonomous_agent",
+    "agent_developer",
+    "agent_platform"
+  ],
+  "human_url": "https://jakeaiofficial.com/context-reacquisition-auditor.html",
+  "endpoint": "https://jakeaiofficial.com/v1/tools/context-reacquisition-auditor",
+  "input": "application/json",
+  "output": "application/json",
+  "launch_state": "live_beta",
+  "pricing": {
+    "free_beta_audits": 100,
+    "developer_monthly_usd": 19,
+    "team_monthly_usd": 79,
+    "target_machine_per_audit_usd": 0.005,
+    "paid_metering_active": false
+  },
+  "capabilities": [
+    "compare_context_compression_runs",
+    "detect_reacquisition_penalty",
+    "detect_quality_regression",
+    "return_machine_action"
+  ],
+  "guardrails": [
+    "aggregate metrics are sufficient for v1",
+    "does not auto-change caller compression policy",
+    "paid metering remains fail-closed until entitlement validation is live"
+  ]
+}

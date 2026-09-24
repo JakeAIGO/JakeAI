@@ -6,6 +6,18 @@
   directory = "netlify/functions"
 
 [[redirects]]
+  from = "/v1/tools/context-reacquisition-auditor"
+  to = "/.netlify/functions/context-reacquisition-auditor"
+  status = 200
+  force = true
+
+[[redirects]]
+  from = "/api/v1/tools/context-reacquisition-auditor"
+  to = "/.netlify/functions/context-reacquisition-auditor"
+  status = 200
+  force = true
+
+[[redirects]]
   from = "/v1/*"
   to = "https://agent-commerce-network-production.up.railway.app/v1/:splat"
   status = 200

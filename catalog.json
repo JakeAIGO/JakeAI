@@ -8,7 +8,7 @@
     "machine_catalog_url": "https://jakeaiofficial.com/catalog.json",
     "workflow_registry_url": "https://jakeaiofficial.com/workflow-registry.json"
   },
-  "generated_at": "2026-09-22",
+  "generated_at": "2026-09-23",
   "audience": [
     "human",
     "ai_agent"
@@ -23,6 +23,85 @@
     "agent_guidance": "Do not infer that a gated capability is purchasable or invokable. Use each record's commerce and invocation fields."
   },
   "capabilities": [
+    {
+      "id": "JAI-CONTEXT-001",
+      "slug": "context-reacquisition-auditor",
+      "name": "JakeAI Context Reacquisition Auditor",
+      "type": "agent_economics_audit",
+      "category": [
+        "AI Agent Operations",
+        "Agent Economics",
+        "Context Optimization"
+      ],
+      "version": "1.0",
+      "lifecycle_status": "production_beta",
+      "publication_status": "public_page",
+      "summary": "Compare baseline and compressed AI-agent runs to detect hidden information-reacquisition costs, quality regressions, and false token savings.",
+      "problem_signals": [
+        "context compression cost",
+        "agent memory regression",
+        "retrieval blow-up",
+        "token savings false economy",
+        "agent cost optimization"
+      ],
+      "inputs": [
+        "baseline run metrics",
+        "compressed candidate run metrics",
+        "optional decision thresholds"
+      ],
+      "outputs": [
+        "deterministic verdict",
+        "recommended action",
+        "raw savings",
+        "reacquisition penalty",
+        "adjusted savings",
+        "behavior deltas"
+      ],
+      "human_url": "https://jakeaiofficial.com/context-reacquisition-auditor.html",
+      "machine_url": "https://jakeaiofficial.com/catalog.json#JAI-CONTEXT-001",
+      "commerce": {
+        "mode": "free_beta",
+        "purchasable": false,
+        "currency": "USD",
+        "free_beta_audits": 100,
+        "proposed_plans": [
+          {
+            "id": "prod_context_reacquisition_developer",
+            "name": "Developer",
+            "price": 19,
+            "billing": "monthly"
+          },
+          {
+            "id": "prod_context_reacquisition_team",
+            "name": "Team",
+            "price": 79,
+            "billing": "monthly"
+          },
+          {
+            "id": "prod_context_reacquisition_machine",
+            "name": "Machine Metered",
+            "price": 0.005,
+            "billing": "per_audit"
+          }
+        ],
+        "reason": "Live beta is free while usage metering and paid entitlement are validated."
+      },
+      "invocation": {
+        "mode": "public_api_beta",
+        "endpoint": "https://jakeaiofficial.com/v1/tools/context-reacquisition-auditor",
+        "method": "POST",
+        "content_type": "application/json",
+        "tool_schema_url": "https://jakeaiofficial.com/products/context-reacquisition-auditor-v1/tool-schema.json"
+      },
+      "trust": {
+        "human_release_gate": true,
+        "deterministic": true,
+        "transcript_required": false,
+        "external_actions_executed": false,
+        "origin": "JAKEAI-FOUND",
+        "provenance": "autonomous_discovery_2026-09-23"
+      }
+    },
     {
       "id": "JAI-TATTOO-001",
       "slug": "tattoo-designer",
