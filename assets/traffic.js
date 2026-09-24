@@ -57,6 +57,7 @@ const send=(event_type,extra={})=>{
 window.JakeAITraffic={track:(type,extra)=>send(type,extra||{})};
 send("page_view");
 const productPaths=new Set([
+  "/editions/time-machine.html",
   "/guitar-coach.html",
   "/tattoo.html",
   "/game-qa-autopilot.html",
