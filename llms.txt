@@ -63,3 +63,9 @@
   - Human page: https://jakeaiofficial.com/editions/time-machine.html
   - Rights manifest: https://jakeaiofficial.com/editions/time-machine-rights.json
   - Underlying 1895 text is verified public domain in the USA; paid checkout remains gated pending complete reader/narration/fulfillment QA.
+
+## JakeAI Book Factory
+- Control room: https://jakeaiofficial.com/book-factory/
+- Public queue: https://jakeaiofficial.com/book-factory/queue.json
+- Status API: GET /api/v1/book-factory/status
+- Rights policy: fail closed. Candidate titles do not advance without title-specific source/territory evidence; public release remains human-gated.
