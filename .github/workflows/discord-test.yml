@@ -1,4 +1,4 @@
-name: JakeAI Discord Book Sale Push
+name: JakeAI Connect Social Push
 
 on:
   workflow_dispatch:
@@ -11,7 +11,7 @@ jobs:
   send-discord:
     runs-on: ubuntu-latest
     steps:
-      - name: Send Infinite Foundry $1.99 promotion
+      - name: Send JakeAI Connect announcement
         env:
           DISCORD_WEBHOOK_URL: ${{ secrets.DISCORD_WEBHOOK_URL }}
         run: |
@@ -20,19 +20,18 @@ jobs:
           payload = {
             "username": "JakeAI",
             "allowed_mentions": {"parse": []},
-            "content": "📖 **THE INFINITE FOUNDRY — $1.99 LIMITED-TIME SALE**",
+            "content": "🌌 **ONE QR. WHOLE JAKEAI UNIVERSE.**",
             "embeds": [
               {
-                "title": "JakeAI Universe: The Infinite Foundry",
-                "url": "https://jakeaiofficial.com/infinite-foundry.html",
-                "description": "Apparently the sensible thing to do with a mysterious AI factory was turn it into a choose-your-own-adventure book.\n\nSo naturally, we did that.\n\n**100 story sections · 10 endings · hidden routes · collectible keys · saved progress · questionable decisions.**\n\nYou choose where the story goes. And yes, the factory was absolutely supposed to be asleep.",
-                "color": 13998677,
+                "title": "Because apparently we needed a wormhole with buttons.",
+                "url": "https://jakeaiofficial.com/connect/",
+                "description": "Scan or tap once to jump to Discord, YouTube, TikTok, X, the JakeAI Universe, and whatever ridiculous thing we build next.\n\n**The Infinite Foundry is still $1.99 one-time while we chase Buyer #0001.**",
+                "color": 6618879,
                 "fields": [
-                  {"name": "Founding Reader Edition", "value": "**$1.99 for a limited time.**", "inline": False},
-                  {"name": "Open the book", "value": "https://jakeaiofficial.com/infinite-foundry.html", "inline": False}
+                  {"name": "Enter the Universe", "value": "https://jakeaiofficial.com/connect/", "inline": False}
                 ],
-                "image": {"url": "https://static.metricool.com/planner/202609/6904856-file-7713433968488738367.png"},
-                "footer": {"text": "JakeAI Universe • The Infinite Foundry • Founding Reader Edition"}
+                "image": {"url": "https://static.metricool.com/planner/202609/6904856-file-6941619221250402742.png"},
+                "footer": {"text": "JakeAI Universe • One doorway. More worlds keep appearing."}
               }
             ]
           }
