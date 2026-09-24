@@ -348,5 +348,13 @@
   document.getElementById('pause').onclick=togglePause;document.getElementById('startBtn').onclick=start;document.getElementById('againBtn').onclick=start;
 })();
 if(new URLSearchParams(location.search).get('boot')==='1')setTimeout(()=>document.getElementById('startBtn')?.click(),420);
-</script></body>
-</html>
+</script>
+<style id="jakeai-console-eject-style">
+#jakeaiConsoleEject{position:fixed;z-index:2147483000;top:max(10px,env(safe-area-inset-top));left:50%;transform:translateX(-50%);display:flex;align-items:center;gap:8px;padding:9px 13px;border:1px solid #69eaff88;border-radius:999px;background:#03111dda;color:#e8fbff;text-decoration:none;font:900 10px/1 ui-monospace,monospace;letter-spacing:.1em;box-shadow:0 0 24px #55eaff35;backdrop-filter:blur(10px);opacity:.78;transition:.2s}
+#jakeaiConsoleEject:hover,#jakeaiConsoleEject:focus{opacity:1;box-shadow:0 0 32px #55eaff60;outline:none}#jakeaiConsoleEject b{color:#6defff;font-size:15px}
+@media(max-width:540px){#jakeaiConsoleEject{top:max(7px,env(safe-area-inset-top));padding:8px 11px;font-size:9px}}
+</style>
+<a id="jakeaiConsoleEject" href="/arcade/console-corner/?ejected=1" aria-label="Eject cartridge and return to Console Corner"><b>⏏</b> EJECT · CONSOLE CORNER</a>
+<script id="jakeai-console-eject-script">
+document.getElementById('jakeaiConsoleEject')?.addEventListener('click',e=>{try{navigator.vibrate?.(18);const A=window.AudioContext||window.webkitAudioContext;if(A){const a=new A(),o=a.createOscillator(),g=a.createGain();o.type='square';o.frequency.value=320;g.gain.value=.02;g.gain.exponentialRampToValueAtTime(.0001,a.currentTime+.08);o.connect(g);g.connect(a.destination);o.start();o.stop(a.currentTime+.08)}}catch(_){}})
+</script></body></html>
