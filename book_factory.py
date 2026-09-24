@@ -5,7 +5,7 @@ from fastapi import APIRouter
 router = APIRouter()
 QUEUE_PATH = Path(__file__).resolve().parent / "book-factory" / "queue.json"
 ALLOWED_RIGHTS_HOSTS = {"www.gutenberg.org", "gutenberg.org", "www.copyright.gov", "copyright.gov"}
-QUEUE_REVISION = "2026-09-24-batch-2"
+QUEUE_REVISION = "2026-09-24-exact-text-lock"
 PUBLIC_STAGES = {"candidate","rights_verified","source_verified","formatting","narration","text_qa","audio_qa","release_ready","public_preview","published"}
 
 def _load():
@@ -28,6 +28,25 @@ def validate_job(job):
         errors.append("paid_release_before_published_stage")
     if job.get("release") in {"public_preview","published"} and rights!="green":
         errors.append("public_release_without_green_rights")
+
+    text_lock = job.get("text_lock") or {}
+    full_text_stage = stage in {"source_verified","formatting","narration","text_qa","audio_qa","release_ready","published"}
+    full_text_release = job.get("release") == "published" or job.get("paid_release") is True
+    if full_text_stage or full_text_release:
+        if text_lock.get("status") != "locked":
+            errors.append("full_text_without_immutable_source_lock")
+        if text_lock.get("comparison") != "exact_bytes":
+            errors.append("full_text_without_exact_byte_comparison")
+        if text_lock.get("normalization") != "none":
+            errors.append("text_normalization_is_forbidden")
+        if not text_lock.get("canonical_sha256"):
+            errors.append("full_text_without_canonical_sha256")
+        if not text_lock.get("fidelity_verified"):
+            errors.append("full_text_without_verified_fidelity")
+
+    if job.get("release") == "public_preview" and text_lock.get("status") != "locked":
+        if job.get("content_mode") != "marketing_preview_no_full_book_text":
+            errors.append("preview_without_lock_must_not_contain_book_body")
     return errors
 
 def snapshot():
