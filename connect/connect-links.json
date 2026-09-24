@@ -1,0 +1,50 @@
+{
+  "destinations": [
+    {
+      "id": "discord",
+      "label": "Discord",
+      "sub": "Join the community",
+      "icon": "◉",
+      "url": "https://discord.gg/t2MBPgV86"
+    },
+    {
+      "id": "youtube",
+      "label": "YouTube",
+      "sub": "Watch videos and Shorts",
+      "icon": "▶",
+      "url": "https://www.youtube.com/channel/UCOhKMqwBUDwMYyAEczsfDPw"
+    },
+    {
+      "id": "tiktok",
+      "label": "TikTok",
+      "sub": "Shorts and updates",
+      "icon": "♪",
+      "url": "https://www.tiktok.com/@jakeaiofficial"
+    },
+    {
+      "id": "x",
+      "label": "X",
+      "sub": "Follow the build",
+      "icon": "X",
+      "url": "https://x.com/jakeai89"
+    },
+    {
+      "id": "universe",
+      "label": "JakeAI Universe",
+      "sub": "Explore the main hub",
+      "icon": "J",
+      "url": "/"
+    }
+  ],
+  "pending": [
+    "Facebook",
+    "LinkedIn",
+    "Reddit"
+  ],
+  "featured": {
+    "title": "The Infinite Foundry",
+    "sub": "Founding Reader Edition — $1.99",
+    "url": "/infinite-foundry.html",
+    "image": "/assets/infinite-foundry-leather-cover.jpg"
+  }
+}
