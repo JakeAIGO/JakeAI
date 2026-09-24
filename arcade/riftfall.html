@@ -1,0 +1,175 @@
+<!doctype html><html><head><meta name="description" content="Play Riftfall, JakeAI Arcade Game #008 — a falling-reality puzzle across JakeAI Prime, the Foundry, the Wilds, Deep Space and Other Realms."><meta property="og:title" content="Riftfall — JakeAI Arcade"><meta property="og:description" content="Reality is falling apart. Stack the fragments, open the Rift, and descend through the JakeAI Universe."><meta property="og:type" content="website"><meta property="og:url" content="https://jakeaiofficial.com/arcade/riftfall.html"><meta property="og:image" content="https://jakeaiofficial.com/assets/universe-arcade.webp"><meta name="twitter:card" content="summary_large_image"><meta name="twitter:image" content="https://jakeaiofficial.com/assets/universe-arcade.webp"><title>Riftfall — JakeAI Arcade</title><meta charset="utf-8"><style>:root{--viz-text:#fff;--viz-muted:#9aa7b7;--viz-border:#334155;--viz-card:#0b1220;--viz-panel:#101827;--viz-accent:#48c7ff;--viz-accent-bg:#12365a}body{margin:0;padding:16px;background:#000;color:#fff;font-family:Arial,sans-serif}main{max-width:760px;margin:auto}</style></head><body><main><div style="display:flex;justify-content:space-between;gap:10px;margin-bottom:8px;font:800 11px system-ui;letter-spacing:.08em"><a href="/arcade/" style="color:#73e7ff;text-decoration:none">← JAKEAI ARCADE</a><span style="color:#6f8299">GAME #008 · LIVE</span></div><div id="riftfall-final" tabindex="0" class="w-full min-w-0 text-[var(--viz-text)] outline-none">
+<style>
+#riftfall-final{--rf-board:210px;--rf-cyan:#53dcff;--rf-violet:#9a62ff;--rf-magenta:#f46cff;--rf-gold:#ffd36a;--rf-deep:#030713;user-select:none;min-width:0}
+#riftfall-final *{box-sizing:border-box}
+#riftfall-final .rf-hero{position:relative;overflow:hidden;border:1px solid var(--viz-border);border-radius:14px;min-height:74px;margin-bottom:6px;background:linear-gradient(135deg,#061229,#11113d 55%,#25123e)}
+#riftfall-final .rf-hero-city{position:absolute;inset:0;opacity:.78;pointer-events:none;background:linear-gradient(180deg,transparent 0 34%,rgba(2,6,15,.3) 35%),radial-gradient(circle at 84% 20%,rgba(179,92,255,.44),transparent 16%),linear-gradient(90deg,rgba(2,6,16,.92),rgba(2,6,16,.15) 65%)}
+#riftfall-final .rf-hero-city:before{content:"";position:absolute;left:38%;right:2%;bottom:0;height:72%;background:linear-gradient(90deg,transparent 0 2%,rgba(95,191,255,.26) 2% 4%,transparent 4% 7%,rgba(88,135,255,.22) 7% 11%,transparent 11% 15%,rgba(95,191,255,.18) 15% 18%,transparent 18% 23%,rgba(147,103,255,.26) 23% 28%,transparent 28% 34%,rgba(68,160,255,.19) 34% 39%,transparent 39% 45%,rgba(133,91,255,.26) 45% 49%,transparent 49% 55%,rgba(82,170,255,.21) 55% 60%,transparent 60% 67%,rgba(160,89,255,.22) 67% 73%,transparent 73% 78%,rgba(65,140,255,.22) 78% 85%,transparent 85%);clip-path:polygon(0 100%,0 53%,4% 53%,4% 30%,10% 30%,10% 58%,16% 58%,16% 18%,22% 18%,22% 48%,27% 48%,27% 38%,34% 38%,34% 64%,41% 64%,41% 25%,49% 25%,49% 45%,56% 45%,56% 11%,63% 11%,63% 56%,69% 56%,69% 33%,75% 33%,75% 61%,81% 61%,81% 20%,88% 20%,88% 50%,94% 50%,94% 28%,100% 28%,100% 100%)}
+#riftfall-final .rf-hero-inner{position:relative;display:flex;align-items:center;justify-content:space-between;gap:8px;padding:7px 9px;min-height:74px}
+#riftfall-final .rf-brand{display:flex;align-items:center;gap:8px;min-width:0}
+#riftfall-final .rf-bot{position:relative;width:48px;height:58px;flex:0 0 auto}
+#riftfall-final .rf-bot-head{position:absolute;width:31px;height:31px;border-radius:50%;left:8px;top:1px;background:radial-gradient(circle at 65% 44%,#bff7ff 0 5%,#1ccfff 6% 12%,#114c78 13% 22%,#0a0f1a 23% 100%);border:1px solid rgba(158,226,255,.75);box-shadow:0 0 12px rgba(70,208,255,.36)}
+#riftfall-final .rf-bot-body{position:absolute;left:2px;right:2px;bottom:0;height:35px;border-radius:17px 17px 10px 10px;background:linear-gradient(135deg,#f0f6ff 0 26%,#8495aa 27% 38%,#111923 39% 54%,#dfe7f2 55% 75%,#4b5b72 76%);border:1px solid rgba(180,222,255,.55);box-shadow:inset 0 0 0 2px rgba(255,255,255,.08)}
+#riftfall-final .rf-bot-body:after{content:"JAKEAI";position:absolute;left:6px;bottom:8px;font-size:6px;font-weight:900;letter-spacing:.08em;color:#dff8ff;transform:rotate(-8deg)}
+#riftfall-final .rf-ey{font-size:.48rem;letter-spacing:.13em;text-transform:uppercase;color:rgba(214,236,255,.75);white-space:nowrap}
+#riftfall-final .rf-title{font-size:1rem;line-height:1;font-weight:950;letter-spacing:.04em;background:linear-gradient(90deg,#dff8ff,#8bdcff 43%,#e178ff 82%);-webkit-background-clip:text;background-clip:text;color:transparent;text-shadow:0 0 16px rgba(89,199,255,.18)}
+#riftfall-final .rf-sub{font-size:.52rem;margin-top:3px;color:rgba(222,231,255,.7);white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+#riftfall-final .rf-state{text-align:right;font-size:.56rem;font-weight:900;color:#e7f8ff;white-space:nowrap}
+#riftfall-final .rf-charge{margin-top:5px;margin-left:auto;width:66px;height:5px;border-radius:99px;background:rgba(255,255,255,.09);overflow:hidden}
+#riftfall-final .rf-charge>i{display:block;height:100%;width:0;background:linear-gradient(90deg,var(--rf-cyan),var(--rf-violet),var(--rf-magenta));transition:width .18s}
+#riftfall-final .rf-stats{display:grid;grid-template-columns:repeat(5,1fr);gap:4px;margin-bottom:5px}
+#riftfall-final .rf-stat{min-width:0;text-align:center;border:1px solid var(--viz-border);background:linear-gradient(180deg,rgba(18,31,52,.9),rgba(8,13,25,.92));border-radius:9px;padding:4px 2px}
+#riftfall-final .rf-stat small{display:block;font-size:.43rem;line-height:1;text-transform:uppercase;color:var(--viz-muted)}
+#riftfall-final .rf-stat strong{display:block;margin-top:2px;font-size:.72rem;line-height:1.1;font-variant-numeric:tabular-nums;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+#riftfall-final .rf-layout{display:grid;grid-template-columns:minmax(0,1fr) 156px;gap:12px;align-items:start}
+#riftfall-final .rf-stage{position:relative;width:min(100%,var(--rf-board));margin:0 auto;padding:6px;border:1px solid rgba(84,199,255,.45);border-radius:15px;background:#02050d;overflow:hidden;box-shadow:inset 0 0 18px rgba(42,116,255,.08)}
+#riftfall-final #rfBoard{display:block;width:100%;height:auto;aspect-ratio:1/2;border-radius:8px;background:#030713;touch-action:none}
+#riftfall-final .rf-overlay{position:absolute;inset:6px;display:flex;align-items:center;justify-content:center;pointer-events:none}
+#riftfall-final .rf-modal{display:none;text-align:center;max-width:82%;padding:13px;border-radius:12px;border:1px solid rgba(255,255,255,.18);background:rgba(3,6,14,.94);backdrop-filter:blur(8px)}
+#riftfall-final .rf-modal.show{display:block}
+#riftfall-final .rf-modal b{display:block;font-size:1.03rem;margin-bottom:3px}
+#riftfall-final .rf-toast{position:absolute;left:50%;top:19%;transform:translateX(-50%);opacity:0;padding:6px 10px;border-radius:999px;background:rgba(2,5,13,.94);border:1px solid rgba(255,255,255,.2);font-size:.64rem;font-weight:950;white-space:nowrap;pointer-events:none}
+#riftfall-final .rf-toast.go{animation:rfToast .95s ease-out}
+@keyframes rfToast{0%{opacity:0;transform:translate(-50%,8px) scale(.9)}20%{opacity:1;transform:translate(-50%,0) scale(1.04)}65%{opacity:1}100%{opacity:0;transform:translate(-50%,-10px)}}
+#riftfall-final .rf-preview-row{display:grid;grid-template-columns:1fr 1fr;gap:5px;width:min(100%,var(--rf-board));margin:5px auto 0}
+#riftfall-final .rf-preview{display:grid;grid-template-columns:auto 1fr;align-items:center;gap:5px;border:1px solid var(--viz-border);background:linear-gradient(180deg,rgba(17,29,48,.92),rgba(6,10,20,.96));border-radius:8px;padding:3px 5px}
+#riftfall-final .rf-preview span{font-size:.48rem;font-weight:900;color:var(--viz-muted)}
+#riftfall-final .rf-preview canvas{display:block;width:100%;height:30px}
+#riftfall-final .rf-controls{display:grid;grid-template-columns:repeat(4,1fr);gap:5px;width:min(100%,330px);margin:6px auto 0}
+#riftfall-final button{min-height:39px;border:1px solid var(--viz-border);border-radius:9px;background:linear-gradient(180deg,rgba(20,36,59,.97),rgba(8,14,27,.98));color:var(--viz-text);font-size:.69rem;font-weight:850;padding:3px 4px;touch-action:manipulation}
+#riftfall-final button:focus-visible{outline:2px solid var(--viz-accent);outline-offset:2px}
+#riftfall-final .rf-vault{border-color:rgba(190,118,255,.55);background:linear-gradient(180deg,rgba(58,22,91,.86),rgba(19,9,35,.95))}
+#riftfall-final .rf-wide{grid-column:span 2}
+#riftfall-final .rf-descend{border-color:rgba(62,182,255,.65);background:linear-gradient(180deg,rgba(15,64,111,.94),rgba(7,24,44,.97))}
+#riftfall-final .rf-drop{border-color:rgba(196,82,255,.85);background:radial-gradient(circle at 90% 50%,rgba(128,48,255,.48),transparent 28%),linear-gradient(90deg,rgba(63,17,118,.98),rgba(25,11,61,.98));box-shadow:inset 0 0 14px rgba(162,63,255,.14)}
+#riftfall-final .rf-actions{display:grid;grid-template-columns:1fr 1fr;gap:5px;width:min(100%,var(--rf-board));margin:5px auto 0}
+#riftfall-final .rf-actions button{min-height:30px;font-size:.61rem}
+#riftfall-final .rf-side{display:flex;flex-direction:column;gap:8px}
+#riftfall-final .rf-card{border:1px solid var(--viz-border);background:var(--viz-card);border-radius:11px;padding:9px}
+#riftfall-final .rf-row{display:flex;justify-content:space-between;font-size:.76rem;padding:2px 0}
+#riftfall-final .rf-side canvas{width:100%;height:66px;background:#050914;border-radius:7px}
+#riftfall-final .rf-lore{font-size:.62rem;line-height:1.4;color:var(--viz-muted)}
+#riftfall-final .rf-lore b{display:block;font-size:.74rem;color:var(--viz-text);margin-bottom:3px}
+@media(prefers-reduced-motion:reduce){#riftfall-final .rf-toast.go{animation:none;opacity:1}}
+@media(max-width:620px){#riftfall-final .rf-layout{display:block}#riftfall-final .rf-side{display:none}}
+@media(min-width:621px){#riftfall-final{--rf-board:300px}#riftfall-final .rf-stats{display:none}#riftfall-final .rf-preview-row,#riftfall-final .rf-actions{display:none}}
+@media(max-width:370px){#riftfall-final{--rf-board:198px}#riftfall-final .rf-controls{width:100%}#riftfall-final button{min-height:37px;font-size:.65rem}#riftfall-final .rf-bot{width:43px;height:53px}}
+</style>
+
+<div class="rf-hero">
+  <div class="rf-hero-city"></div>
+  <div class="rf-hero-inner">
+    <div class="rf-brand">
+      <div class="rf-bot" aria-label="JakeAI robot companion"><div class="rf-bot-head"></div><div class="rf-bot-body"></div></div>
+      <div class="min-w-0"><div class="rf-ey">JakeAI Universe // Arcade</div><div class="rf-title">RIFTFALL</div><div id="rfRealmTop" class="rf-sub">PRIME REALITY // GATEWAY DISTRICT</div></div>
+    </div>
+    <div><div id="rfStatus" class="rf-state" aria-live="polite">RIFT STABLE</div><div class="rf-charge"><i id="rfCharge"></i></div></div>
+  </div>
+</div>
+
+<div class="rf-stats" aria-label="Game statistics">
+  <div class="rf-stat"><small>Score</small><strong id="rfMScore">0</strong></div>
+  <div class="rf-stat"><small>Best</small><strong id="rfMBest">0</strong></div>
+  <div class="rf-stat"><small>Lines</small><strong id="rfMLines">0</strong></div>
+  <div class="rf-stat"><small>Depth</small><strong id="rfMDepth">1</strong></div>
+  <div class="rf-stat"><small>Chain</small><strong id="rfMChain">—</strong></div>
+</div>
+
+<div class="rf-layout">
+  <div class="min-w-0">
+    <div class="rf-stage">
+      <canvas id="rfBoard" width="300" height="600" aria-label="JakeAI Riftfall playfield"></canvas>
+      <div class="rf-overlay"><div id="rfModal" class="rf-modal"><b id="rfModalTitle">Rift Paused</b><span id="rfModalText">Tap Resume</span></div></div>
+      <div id="rfToast" class="rf-toast">REALITY BREACH</div>
+    </div>
+    <div class="rf-preview-row">
+      <div class="rf-preview"><span>NEXT</span><canvas id="rfNextM" width="100" height="42"></canvas></div>
+      <div class="rf-preview"><span>VAULT</span><canvas id="rfHoldM" width="100" height="42"></canvas></div>
+    </div>
+    <div class="rf-controls" aria-label="Touch controls">
+      <button id="rfLeft" type="button" aria-label="Move left">◀</button>
+      <button id="rfRotate" type="button" aria-label="Rotate clockwise">↻</button>
+      <button id="rfRight" type="button" aria-label="Move right">▶</button>
+      <button id="rfVault" type="button" class="rf-vault">VAULT</button>
+      <button id="rfSoft" type="button" class="rf-wide rf-descend">▼ DESCEND</button>
+      <button id="rfHard" type="button" class="rf-wide rf-drop">⚡ RIFT DROP</button>
+    </div>
+    <div class="rf-actions"><button id="rfPauseM" type="button">Pause</button><button id="rfRestartM" type="button">Restart</button></div>
+  </div>
+
+  <aside class="rf-side">
+    <div class="rf-card"><div class="rf-row"><span>Score</span><strong id="rfScore">0</strong></div><div class="rf-row"><span>Best</span><strong id="rfBest">0</strong></div><div class="rf-row"><span>Lines</span><strong id="rfLines">0</strong></div><div class="rf-row"><span>Depth</span><strong id="rfDepth">1</strong></div><div class="rf-row"><span>Chain</span><strong id="rfChain">—</strong></div></div>
+    <div class="rf-card"><div class="rf-ey">Next Fragment</div><canvas id="rfNextD" width="140" height="66"></canvas></div>
+    <div class="rf-card"><div class="rf-ey">Vault</div><canvas id="rfHoldD" width="140" height="66"></canvas></div>
+    <div class="rf-card rf-lore"><b id="rfLoreTitle">JakeAI Prime</b><span id="rfLoreText">The gateway district. Reality fragments are falling out of the Rift.</span></div>
+    <div class="rf-card"><div class="rf-actions" style="display:grid;width:100%;margin:0"><button id="rfPauseD" type="button">Pause</button><button id="rfRestartD" type="button">Restart</button></div></div>
+  </aside>
+</div>
+
+<script>
+(()=>{
+  const root=document.getElementById('riftfall-final');
+  if(!root||root.dataset.ready)return; root.dataset.ready='1';
+  const canvas=root.querySelector('#rfBoard'),ctx=canvas.getContext('2d');
+  const COLS=10,ROWS=20,CELL=30;
+  const SHAPES={I:[[0,0,0,0],[1,1,1,1],[0,0,0,0],[0,0,0,0]],J:[[1,0,0],[1,1,1],[0,0,0]],L:[[0,0,1],[1,1,1],[0,0,0]],O:[[1,1],[1,1]],S:[[0,1,1],[1,1,0],[0,0,0]],T:[[0,1,0],[1,1,1],[0,0,0]],Z:[[1,1,0],[0,1,1],[0,0,0]]};
+  const EDGE={I:'#55e8ff',J:'#7390ff',L:'#ffb557',O:'#ffe97b',S:'#65f2a4',T:'#d477ff',Z:'#ff718e'};
+  const WORLDS=[
+    {name:'JakeAI Prime',sub:'PRIME REALITY // GATEWAY DISTRICT',a:'#4edcff',b:'#7554ff',kind:'prime',lore:'The gateway district. Reality fragments are falling out of the Rift.'},
+    {name:'The Foundry',sub:'THE FOUNDRY // AUTONOMOUS CORE',a:'#ffad55',b:'#ff4c77',kind:'foundry',lore:'Where ideas become reality. Heat and machine light reshape every shard.'},
+    {name:'The Wilds',sub:'THE WILDS // FRONTIER BIOME',a:'#65ef9d',b:'#29c8e1',kind:'wilds',lore:'Bioluminescent terrain is growing through abandoned JakeAI machinery.'},
+    {name:'Deep Space',sub:'DEEP SPACE // ORBITAL RIFT',a:'#7388ff',b:'#bd65ff',kind:'space',lore:'The board has left the atmosphere. The Rift is bending local gravity.'},
+    {name:'Other Realms',sub:'OTHER REALMS // UNKNOWN',a:'#ff6ada',b:'#4beaff',kind:'other',lore:'No map. No stable physics. Only the Rift knows what comes next.'}
+  ];
+  const prev=[['#rfNextM','next'],['#rfNextD','next'],['#rfHoldM','hold'],['#rfHoldD','hold']].map(([s,t])=>({el:root.querySelector(s),type:t}));
+  let board,piece,queue,held=null,canHold=true,score=0,lines=0,depth=1,chain=-1,best=0,paused=false,over=false,last=performance.now(),fall=0,lock=0,raf=0,clearing=[],particles=[],rift=0.35,breach=0;
+  const fresh=()=>Array.from({length:ROWS},()=>Array(COLS).fill(null));
+  const clone=m=>m.map(r=>r.slice());
+  function hex(h,a){const n=parseInt(h.slice(1),16);return `rgba(${(n>>16)&255},${(n>>8)&255},${n&255},${a})`}
+  function world(){return WORLDS[Math.min(WORLDS.length-1,Math.floor((depth-1)/3))]}
+  function makeBag(){const a=['I','J','L','O','S','T','Z'];for(let i=a.length-1;i>0;i--){const j=Math.floor(Math.random()*(i+1));[a[i],a[j]]=[a[j],a[i]]}return a}
+  function refill(){while(queue.length<8)queue.push(...makeBag())}
+  function makePiece(type){const m=clone(SHAPES[type]);return{type,m,x:Math.floor((COLS-m[0].length)/2),y:-1}}
+  function collision(p,dx=0,dy=0,m=p.m){for(let y=0;y<m.length;y++)for(let x=0;x<m[y].length;x++)if(m[y][x]){const nx=p.x+x+dx,ny=p.y+y+dy;if(nx<0||nx>=COLS||ny>=ROWS)return true;if(ny>=0&&board[ny][nx])return true}return false}
+  function spawn(){refill();piece=makePiece(queue.shift());canHold=true;lock=0;drawPreviews();if(collision(piece))gameOver()}
+  function ghostY(){let d=0;while(!collision(piece,0,d+1))d++;return piece.y+d}
+  function move(dx,dy){if(paused||over||clearing.length)return false;if(!collision(piece,dx,dy)){piece.x+=dx;piece.y+=dy;lock=0;return true}return false}
+  function rotate(dir=1){if(paused||over||clearing.length||piece.type==='O')return;const m=piece.m,n=m.length,r=Array.from({length:n},()=>Array(n).fill(0));for(let y=0;y<n;y++)for(let x=0;x<n;x++)r[dir>0?x:n-1-x][dir>0?n-1-y:y]=m[y][x];for(const kick of [0,-1,1,-2,2])if(!collision(piece,kick,0,r)){piece.m=r;piece.x+=kick;lock=0;return}}
+  function vault(){if(paused||over||clearing.length||!canHold)return;const current=piece.type;if(held){piece=makePiece(held);held=current}else{held=current;refill();piece=makePiece(queue.shift())}canHold=false;lock=0;drawPreviews();if(collision(piece))gameOver()}
+  function hardDrop(){if(paused||over||clearing.length)return;let d=0;while(!collision(piece,0,d+1))d++;piece.y+=d;score+=d*2;sync();lockPiece()}
+  function merge(){piece.m.forEach((row,y)=>row.forEach((v,x)=>{if(v&&piece.y+y>=0)board[piece.y+y][piece.x+x]=piece.type}))}
+  function burstRow(y){for(let x=0;x<COLS;x++)for(let n=0;n<3;n++)particles.push({x:x*CELL+15,y:y*CELL+15,vx:(Math.random()-.5)*4.2,vy:-1.2-Math.random()*3.2,life:26+Math.random()*20})}
+  function lockPiece(){merge();const rows=[];for(let y=0;y<ROWS;y++)if(board[y].every(Boolean))rows.push(y);if(rows.length){clearing=rows;rows.forEach(burstRow);setTimeout(()=>finishClear(rows),125)}else{chain=-1;sync();spawn()}}
+  function finishClear(rows){if(over)return;rows.slice().sort((a,b)=>b-a).forEach(y=>board.splice(y,1));while(board.length<ROWS)board.unshift(Array(COLS).fill(null));const n=rows.length;lines+=n;chain++;score+=([0,100,300,500,800][n]||1200)*depth+(chain>0?chain*60*depth:0);const oldDepth=depth;depth=1+Math.floor(lines/10);clearing=[];rift=Math.min(1.3,rift+n*.24);if(n===4){breach=1;rift=1.35;toast('REALITY BREACH');setStatus('PORTAL OPEN')}else toast(n+' RIFT LINE'+(n>1?'S':''));if(depth>oldDepth)setTimeout(()=>toast('DEPTH '+depth+' // '+world().name.toUpperCase()),260);sync();spawn()}
+  function speed(){return Math.max(78,760-(depth-1)*55)}
+  function setStatus(t){root.querySelector('#rfStatus').textContent=t}
+  function sync(){best=Math.max(best,score);const data={Score:score,Best:best,Lines:lines,Depth:depth,Chain:chain>0?'x'+(chain+1):'—'};for(const [k,v] of Object.entries(data)){const d=root.querySelector('#rf'+k),m=root.querySelector('#rfM'+k);const text=typeof v==='number'?v.toLocaleString():v;if(d)d.textContent=text;if(m)m.textContent=text}const w=world();root.querySelector('#rfRealmTop').textContent=w.sub;root.querySelector('#rfLoreTitle').textContent=w.name;root.querySelector('#rfLoreText').textContent=w.lore;root.querySelector('#rfCharge').style.width=Math.min(100,Math.round(rift*72))+'%'}
+  function cityBackground(){const w=world();ctx.fillStyle='#02050d';ctx.fillRect(0,0,300,600);const sky=ctx.createLinearGradient(0,0,0,600);sky.addColorStop(0,hex(w.b,.24));sky.addColorStop(.45,hex(w.a,.08));sky.addColorStop(1,'rgba(0,0,0,.36)');ctx.fillStyle=sky;ctx.fillRect(0,0,300,600);for(let i=0;i<34;i++){const x=(i*61)%300,y=(i*113)%360;ctx.fillStyle=i%6===0?hex(w.a,.28):'rgba(255,255,255,.10)';ctx.fillRect(x,y,1+(i%2),1+(i%2))}
+    if(w.kind==='prime'||w.kind==='foundry'){for(let i=0;i<15;i++){const bx=(i*23+7)%300,bh=70+(i*37)%170,bw=12+(i%4)*4;ctx.fillStyle=w.kind==='foundry'?'rgba(52,20,20,.52)':'rgba(6,18,35,.64)';ctx.fillRect(bx,600-bh,bw,bh);ctx.fillStyle=hex(w.a,.22);for(let wy=600-bh+10;wy<590;wy+=18)ctx.fillRect(bx+4,wy,2,4)}}
+    if(w.kind==='wilds'){for(let i=0;i<16;i++){const x=(i*47)%300,y=410+(i*31)%165;ctx.beginPath();ctx.arc(x,y,8+(i%4)*3,Math.PI,0);ctx.strokeStyle=hex(w.a,.17);ctx.lineWidth=2;ctx.stroke()}}
+    if(w.kind==='space'){for(let i=0;i<50;i++){ctx.fillStyle=i%8===0?hex(w.a,.45):'rgba(255,255,255,.18)';ctx.fillRect((i*67)%300,(i*97)%600,1+(i%2),1+(i%2))}}
+    if(w.kind==='other'){for(let i=0;i<12;i++){ctx.beginPath();ctx.arc((i*71)%300,(i*109)%600,10+(i%5)*5,0,Math.PI*2);ctx.strokeStyle=hex(i%2?w.a:w.b,.12);ctx.stroke()}}
+    const cx=150,cy=245;const glow=ctx.createRadialGradient(cx,cy,5,cx,cy,138);glow.addColorStop(0,hex(w.a,.17+.22*breach));glow.addColorStop(.28,hex(w.b,.15+.16*breach));glow.addColorStop(.68,'rgba(35,20,80,.05)');glow.addColorStop(1,'rgba(0,0,0,0)');ctx.fillStyle=glow;ctx.fillRect(0,85,300,330);for(let i=0;i<8;i++){ctx.beginPath();ctx.arc(cx,cy,32+i*15,Math.PI*(.12+i*.11),Math.PI*(1.35+i*.13));ctx.strokeStyle=i%2?hex(w.a,.08+.12*breach):hex(w.b,.08+.12*breach);ctx.lineWidth=1.2+(i%3);ctx.stroke()}rift=Math.max(.25,rift-.006);breach=Math.max(0,breach-.018);if(breach===0&&root.querySelector('#rfStatus').textContent==='PORTAL OPEN')setStatus('RIFT STABLE')}
+  function tileTexture(x,y,type,alpha=1){const w=world(),px=x*CELL,py=y*CELL;ctx.save();ctx.globalAlpha=alpha;ctx.beginPath();ctx.rect(px+2,py+2,CELL-4,CELL-4);ctx.clip();const g=ctx.createLinearGradient(px,py,px+CELL,py+CELL);g.addColorStop(0,hex(w.a,.92));g.addColorStop(.47,hex(w.b,.84));g.addColorStop(1,'rgba(2,8,18,.94)');ctx.fillStyle=g;ctx.fillRect(px+2,py+2,CELL-4,CELL-4);if(type==='I'||type==='J'){ctx.fillStyle='rgba(2,10,24,.7)';ctx.fillRect(px+6,py+12,5,15);ctx.fillRect(px+14,py+7,4,20);ctx.fillRect(px+21,py+15,4,12)}else if(type==='L'||type==='O'){ctx.fillStyle='rgba(255,220,140,.42)';ctx.beginPath();ctx.moveTo(px+4,py+25);ctx.lineTo(px+13,py+11);ctx.lineTo(px+18,py+19);ctx.lineTo(px+24,py+9);ctx.lineTo(px+28,py+25);ctx.closePath();ctx.fill()}else if(type==='S'){ctx.strokeStyle='rgba(115,255,180,.65)';ctx.lineWidth=2;ctx.beginPath();ctx.moveTo(px+4,py+24);ctx.quadraticCurveTo(px+11,py+8,px+16,py+19);ctx.quadraticCurveTo(px+21,py+7,px+27,py+22);ctx.stroke()}else if(type==='T'){ctx.strokeStyle='rgba(255,177,255,.62)';ctx.lineWidth=2;ctx.beginPath();ctx.arc(px+15,py+15,7,0,Math.PI*2);ctx.stroke();ctx.fillStyle='rgba(255,255,255,.42)';ctx.fillRect(px+14,py+5,2,20)}else{ctx.fillStyle='rgba(255,255,255,.33)';ctx.fillRect(px+7,py+8,2,2);ctx.fillRect(px+20,py+11,2,2);ctx.fillRect(px+13,py+20,1,1)}const sheen=ctx.createLinearGradient(px,py,px,py+CELL);sheen.addColorStop(0,'rgba(255,255,255,.36)');sheen.addColorStop(.35,'rgba(255,255,255,.05)');sheen.addColorStop(1,'rgba(0,0,0,.3)');ctx.fillStyle=sheen;ctx.fillRect(px+2,py+2,CELL-4,CELL-4);ctx.restore();ctx.save();ctx.globalAlpha=alpha;ctx.strokeStyle=EDGE[type];ctx.lineWidth=1.6;ctx.shadowColor=EDGE[type];ctx.shadowBlur=4;ctx.strokeRect(px+1.5,py+1.5,CELL-3,CELL-3);ctx.restore()}
+  function drawParticles(){const w=world();particles=particles.filter(p=>p.life>0);for(const p of particles){ctx.save();ctx.globalAlpha=Math.min(1,p.life/30);ctx.fillStyle=p.life%2>1?w.a:w.b;ctx.fillRect(p.x,p.y,2.4,2.4);ctx.restore();p.x+=p.vx;p.y+=p.vy;p.vx*=.985;p.vy+=.08;p.life--}}
+  function draw(){ctx.clearRect(0,0,300,600);cityBackground();ctx.strokeStyle='rgba(117,210,255,.075)';ctx.lineWidth=1;for(let x=1;x<COLS;x++){ctx.beginPath();ctx.moveTo(x*CELL,0);ctx.lineTo(x*CELL,600);ctx.stroke()}for(let y=1;y<ROWS;y++){ctx.beginPath();ctx.moveTo(0,y*CELL);ctx.lineTo(300,y*CELL);ctx.stroke()}board.forEach((row,y)=>row.forEach((v,x)=>{if(v)tileTexture(x,y,v,clearing.includes(y)?.34:1)}));if(piece&&!over&&!clearing.length){const gy=ghostY();piece.m.forEach((row,y)=>row.forEach((v,x)=>{if(v&&gy+y>=0)tileTexture(piece.x+x,gy+y,piece.type,.12)}));piece.m.forEach((row,y)=>row.forEach((v,x)=>{if(v&&piece.y+y>=0)tileTexture(piece.x+x,piece.y+y,piece.type,1)}))}drawParticles()}
+  function drawMini(cv,type){const c=cv.getContext('2d'),w=cv.width,h=cv.height;c.clearRect(0,0,w,h);c.fillStyle='#050914';c.fillRect(0,0,w,h);if(!type)return;const m=SHAPES[type],s=Math.min(16,Math.floor(Math.min(w/(m[0].length+1),h/(m.length+1)))),ox=(w-m[0].length*s)/2,oy=(h-m.length*s)/2;for(let y=0;y<m.length;y++)for(let x=0;x<m[y].length;x++)if(m[y][x]){const g=c.createLinearGradient(ox+x*s,oy+y*s,ox+(x+1)*s,oy+(y+1)*s);g.addColorStop(0,EDGE[type]);g.addColorStop(1,'#1b2850');c.fillStyle=g;c.fillRect(ox+x*s+1,oy+y*s+1,s-2,s-2);c.strokeStyle='rgba(255,255,255,.25)';c.strokeRect(ox+x*s+1.5,oy+y*s+1.5,s-3,s-3)}}
+  function drawPreviews(){for(const p of prev)drawMini(p.el,p.type==='next'?queue[0]:held)}
+  function toast(t){const e=root.querySelector('#rfToast');e.textContent=t;e.classList.remove('go');void e.offsetWidth;e.classList.add('go')}
+  function showModal(title,text){root.querySelector('#rfModalTitle').textContent=title;root.querySelector('#rfModalText').textContent=text;root.querySelector('#rfModal').classList.add('show')}
+  function hideModal(){root.querySelector('#rfModal').classList.remove('show')}
+  function setPauseButtons(t){root.querySelector('#rfPauseM').textContent=t;root.querySelector('#rfPauseD').textContent=t}
+  function togglePause(force){if(over)return;paused=typeof force==='boolean'?force:!paused;setPauseButtons(paused?'Resume':'Pause');setStatus(paused?'RIFT PAUSED':'RIFT STABLE');if(paused)showModal('RIFT PAUSED','JakeAI is holding the gateway.');else{hideModal();last=performance.now();root.focus()}}
+  function gameOver(){over=true;setStatus('REALITY COLLAPSED');showModal('REALITY COLLAPSED','Score '+score.toLocaleString()+' · Best '+best.toLocaleString())}
+  function restart(){cancelAnimationFrame(raf);board=fresh();queue=[];held=null;canHold=true;score=0;lines=0;depth=1;chain=-1;paused=false;over=false;fall=0;lock=0;clearing=[];particles=[];rift=.35;breach=0;last=performance.now();setStatus('RIFT STABLE');setPauseButtons('Pause');hideModal();refill();spawn();sync();draw();raf=requestAnimationFrame(loop);root.focus()}
+  function loop(t){const dt=Math.min(100,t-last);last=t;if(!paused&&!over&&!clearing.length){fall+=dt;if(!collision(piece,0,1)){if(fall>=speed()){piece.y++;fall=0;lock=0}}else{lock+=dt;if(lock>=420){lock=0;fall=0;lockPiece()}}}draw();raf=requestAnimationFrame(loop)}
+  function keyHandler(e){if(!root.contains(document.activeElement))return;const tag=document.activeElement.tagName;if(tag==='INPUT'||tag==='TEXTAREA'||tag==='SELECT')return;const k=e.key;if(['ArrowLeft','ArrowRight','ArrowDown','ArrowUp',' ','c','C','p','P','z','Z'].includes(k))e.preventDefault();if(k==='ArrowLeft')move(-1,0);else if(k==='ArrowRight')move(1,0);else if(k==='ArrowDown'){if(move(0,1)){score++;sync()}}else if(k==='ArrowUp')rotate(1);else if(k==='z'||k==='Z')rotate(-1);else if(k===' ')hardDrop();else if(k==='c'||k==='C')vault();else if(k==='p'||k==='P')togglePause()}
+  root.addEventListener('keydown',keyHandler);
+  function bind(id,fn){const el=root.querySelector(id);if(el)el.addEventListener('click',()=>{fn();root.focus()})}
+  bind('#rfLeft',()=>move(-1,0));bind('#rfRight',()=>move(1,0));bind('#rfRotate',()=>rotate(1));bind('#rfVault',vault);bind('#rfSoft',()=>{if(move(0,1)){score++;sync()}});bind('#rfHard',hardDrop);bind('#rfPauseM',()=>togglePause());bind('#rfPauseD',()=>togglePause());bind('#rfRestartM',restart);bind('#rfRestartD',restart);
+  if(typeof document.hidden!=='undefined')document.addEventListener('visibilitychange',()=>{if(document.hidden&&!paused&&!over)togglePause(true)});
+  restart();
+})();
+</script>
+</div>
+</main></body></html>

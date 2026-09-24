@@ -15,6 +15,7 @@
   - Game #001 — Cosmic Vending Machine: LIVE
   - Game #002 — Mantlecore: Skyfall: LIVE
   - Game #003 — Neon Breach: LIVE
+  - Game #008 — Riftfall: LIVE — https://jakeaiofficial.com/arcade/riftfall.html
 - JakeAI Radio: IN DEVELOPMENT; public generated audio remains rights-gated.
 - The Jukebox: IN DEVELOPMENT; public generated audio remains rights-gated.
 - JakeAI TV: IN DEVELOPMENT.
