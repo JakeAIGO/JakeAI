@@ -5,6 +5,7 @@ from fastapi import APIRouter
 router = APIRouter()
 QUEUE_PATH = Path(__file__).resolve().parent / "book-factory" / "queue.json"
 ALLOWED_RIGHTS_HOSTS = {"www.gutenberg.org", "gutenberg.org", "www.copyright.gov", "copyright.gov"}
+QUEUE_REVISION = "2026-09-24-batch-2"
 PUBLIC_STAGES = {"candidate","rights_verified","source_verified","formatting","narration","text_qa","audio_qa","release_ready","public_preview","published"}
 
 def _load():
