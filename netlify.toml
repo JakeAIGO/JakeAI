@@ -71,6 +71,19 @@
   status = 200
   force = true
 
+# Product pages must resolve before the SPA fallback.
+[[redirects]]
+  from = "/universe-final/agent-mandate-verifier"
+  to = "/universe-final/agent-mandate-verifier.html"
+  status = 200
+  force = true
+
+[[redirects]]
+  from = "/universe-final/agent-mandate-verifier.html"
+  to = "/universe-final/agent-mandate-verifier.html"
+  status = 200
+  force = true
+
 [[redirects]]
   from = "/*"
   to = "/index.html"
