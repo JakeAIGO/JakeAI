@@ -8,7 +8,34 @@
     "human_release_gate": true,
     "rule": "No title advances past the rights gate without title-specific evidence for the exact underlying work/source edition.",
     "current_public_domain_reference": "U.S. Copyright Office states works published in the United States before January 1, 1931 are in the public domain.",
-    "public_domain_reference_url": "https://www.copyright.gov/what-is-copyright/"
+    "public_domain_reference_url": "https://www.copyright.gov/what-is-copyright/",
+    "text_fidelity": {
+      "invariant": "The canonical book body is immutable after source lock.",
+      "comparison": "Exact UTF-8 bytes; no normalization.",
+      "forbidden": [
+        "word substitution",
+        "word insertion",
+        "word deletion",
+        "word reordering",
+        "spelling modernization",
+        "typo correction",
+        "punctuation normalization",
+        "quotation-mark normalization",
+        "whitespace normalization",
+        "silent editorial correction",
+        "AI rewriting",
+        "summarization inside the book body"
+      ],
+      "allowed": [
+        "exclude non-book source wrapper before the canonical lock when boundaries are explicitly recorded",
+        "CSS/layout outside the canonical text bytes",
+        "reversible HTML escaping",
+        "chapter/paragraph segmentation by immutable source offsets",
+        "narration segmentation by immutable source offsets"
+      ],
+      "release_requirement": "No full-text or paid edition may release unless the canonical source is locked and all production text reconstructs exactly to the canonical bytes.",
+      "narration_requirement": "Narration input must be drawn directly from the immutable canonical text; no rewritten narration script."
+    }
   },
   "jobs": [
     {
@@ -22,7 +49,13 @@
       "source_url": "https://www.gutenberg.org/ebooks/35",
       "source_rights_statement": "Public domain in the USA",
       "release": "public_preview",
-      "paid_release": false
+      "paid_release": false,
+      "text_lock": {
+        "status": "pending",
+        "comparison": "exact_bytes",
+        "normalization": "none"
+      },
+      "content_mode": "marketing_preview_no_full_book_text"
     },
     {
       "id": "JAE-SH-001",
@@ -35,7 +68,12 @@
       "source_url": "https://www.gutenberg.org/ebooks/1661",
       "source_rights_statement": "Public domain in the USA",
       "release": "not_published",
-      "paid_release": false
+      "paid_release": false,
+      "text_lock": {
+        "status": "pending",
+        "comparison": "exact_bytes",
+        "normalization": "none"
+      }
     },
     {
       "id": "JAE-DRAC-001",
@@ -48,7 +86,12 @@
       "source_url": "https://www.gutenberg.org/ebooks/345",
       "source_rights_statement": "Public domain in the USA",
       "release": "not_published",
-      "paid_release": false
+      "paid_release": false,
+      "text_lock": {
+        "status": "pending",
+        "comparison": "exact_bytes",
+        "normalization": "none"
+      }
     },
     {
       "id": "JAE-TI-001",
@@ -61,7 +104,12 @@
       "source_url": "https://www.gutenberg.org/ebooks/120",
       "source_rights_statement": "Public domain in the USA",
       "release": "not_published",
-      "paid_release": false
+      "paid_release": false,
+      "text_lock": {
+        "status": "pending",
+        "comparison": "exact_bytes",
+        "normalization": "none"
+      }
     },
     {
       "id": "JAE-FRANK-001",
@@ -74,7 +122,12 @@
       "source_url": "https://www.gutenberg.org/ebooks/84",
       "source_rights_statement": "Public domain in the USA",
       "release": "not_published",
-      "paid_release": false
+      "paid_release": false,
+      "text_lock": {
+        "status": "pending",
+        "comparison": "exact_bytes",
+        "normalization": "none"
+      }
     },
     {
       "id": "JAE-ALICE-001",
@@ -88,7 +141,12 @@
       "source_rights_statement": "Public domain in the USA",
       "release": "not_published",
       "paid_release": false,
-      "source_asset_policy": "Text-only source; do not import third-party illustrations, introductions, annotations, translations, recordings, or other supplemental material without separate clearance."
+      "source_asset_policy": "Text-only source; do not import third-party illustrations, introductions, annotations, translations, recordings, or other supplemental material without separate clearance.",
+      "text_lock": {
+        "status": "pending",
+        "comparison": "exact_bytes",
+        "normalization": "none"
+      }
     },
     {
       "id": "JAE-MOBY-001",
@@ -102,7 +160,12 @@
       "source_rights_statement": "Public domain in the USA",
       "release": "not_published",
       "paid_release": false,
-      "source_asset_policy": "Text-only source; do not import third-party illustrations, introductions, annotations, translations, recordings, or other supplemental material without separate clearance."
+      "source_asset_policy": "Text-only source; do not import third-party illustrations, introductions, annotations, translations, recordings, or other supplemental material without separate clearance.",
+      "text_lock": {
+        "status": "pending",
+        "comparison": "exact_bytes",
+        "normalization": "none"
+      }
     },
     {
       "id": "JAE-PRIDE-001",
@@ -116,7 +179,12 @@
       "source_rights_statement": "Public domain in the USA",
       "release": "not_published",
       "paid_release": false,
-      "source_asset_policy": "Text-only source; do not import third-party illustrations, introductions, annotations, translations, recordings, or other supplemental material without separate clearance."
+      "source_asset_policy": "Text-only source; do not import third-party illustrations, introductions, annotations, translations, recordings, or other supplemental material without separate clearance.",
+      "text_lock": {
+        "status": "pending",
+        "comparison": "exact_bytes",
+        "normalization": "none"
+      }
     },
     {
       "id": "JAE-JANE-001",
@@ -130,7 +198,12 @@
       "source_rights_statement": "Public domain in the USA",
       "release": "not_published",
       "paid_release": false,
-      "source_asset_policy": "Text-only source; do not import third-party illustrations, introductions, annotations, translations, recordings, or other supplemental material without separate clearance."
+      "source_asset_policy": "Text-only source; do not import third-party illustrations, introductions, annotations, translations, recordings, or other supplemental material without separate clearance.",
+      "text_lock": {
+        "status": "pending",
+        "comparison": "exact_bytes",
+        "normalization": "none"
+      }
     },
     {
       "id": "JAE-DORIAN-001",
@@ -144,7 +217,12 @@
       "source_rights_statement": "Public domain in the USA",
       "release": "not_published",
       "paid_release": false,
-      "source_asset_policy": "Text-only source; do not import third-party illustrations, introductions, annotations, translations, recordings, or other supplemental material without separate clearance."
+      "source_asset_policy": "Text-only source; do not import third-party illustrations, introductions, annotations, translations, recordings, or other supplemental material without separate clearance.",
+      "text_lock": {
+        "status": "pending",
+        "comparison": "exact_bytes",
+        "normalization": "none"
+      }
     },
     {
       "id": "JAE-WARW-001",
@@ -157,7 +235,12 @@
       "source_url": null,
       "source_rights_statement": null,
       "release": "not_published",
-      "paid_release": false
+      "paid_release": false,
+      "text_lock": {
+        "status": "pending",
+        "comparison": "exact_bytes",
+        "normalization": "none"
+      }
     },
     {
       "id": "JAE-INVIS-001",
@@ -170,7 +253,12 @@
       "source_url": null,
       "source_rights_statement": null,
       "release": "not_published",
-      "paid_release": false
+      "paid_release": false,
+      "text_lock": {
+        "status": "pending",
+        "comparison": "exact_bytes",
+        "normalization": "none"
+      }
     },
     {
       "id": "JAE-OZ-001",
@@ -183,7 +271,12 @@
       "source_url": null,
       "source_rights_statement": null,
       "release": "not_published",
-      "paid_release": false
+      "paid_release": false,
+      "text_lock": {
+        "status": "pending",
+        "comparison": "exact_bytes",
+        "normalization": "none"
+      }
     },
     {
       "id": "JAE-WIND-001",
@@ -196,7 +289,12 @@
       "source_url": null,
       "source_rights_statement": null,
       "release": "not_published",
-      "paid_release": false
+      "paid_release": false,
+      "text_lock": {
+        "status": "pending",
+        "comparison": "exact_bytes",
+        "normalization": "none"
+      }
     },
     {
       "id": "JAE-SECRET-001",
@@ -209,7 +307,12 @@
       "source_url": null,
       "source_rights_statement": null,
       "release": "not_published",
-      "paid_release": false
+      "paid_release": false,
+      "text_lock": {
+        "status": "pending",
+        "comparison": "exact_bytes",
+        "normalization": "none"
+      }
     },
     {
       "id": "JAE-PETER-001",
@@ -222,7 +325,12 @@
       "source_url": null,
       "source_rights_statement": null,
       "release": "not_published",
-      "paid_release": false
+      "paid_release": false,
+      "text_lock": {
+        "status": "pending",
+        "comparison": "exact_bytes",
+        "normalization": "none"
+      }
     },
     {
       "id": "JAE-CALL-001",
@@ -235,7 +343,12 @@
       "source_url": null,
       "source_rights_statement": null,
       "release": "not_published",
-      "paid_release": false
+      "paid_release": false,
+      "text_lock": {
+        "status": "pending",
+        "comparison": "exact_bytes",
+        "normalization": "none"
+      }
     },
     {
       "id": "JAE-JUNGLE-001",
@@ -248,7 +361,12 @@
       "source_url": null,
       "source_rights_statement": null,
       "release": "not_published",
-      "paid_release": false
+      "paid_release": false,
+      "text_lock": {
+        "status": "pending",
+        "comparison": "exact_bytes",
+        "normalization": "none"
+      }
     },
     {
       "id": "JAE-HOUND-001",
@@ -261,7 +379,12 @@
       "source_url": null,
       "source_rights_statement": null,
       "release": "not_published",
-      "paid_release": false
+      "paid_release": false,
+      "text_lock": {
+        "status": "pending",
+        "comparison": "exact_bytes",
+        "normalization": "none"
+      }
     },
     {
       "id": "JAE-EIGHTY-001",
@@ -274,7 +397,12 @@
       "source_url": null,
       "source_rights_statement": null,
       "release": "not_published",
-      "paid_release": false
+      "paid_release": false,
+      "text_lock": {
+        "status": "pending",
+        "comparison": "exact_bytes",
+        "normalization": "none"
+      }
     },
     {
       "id": "JAE-LEAGUES-001",
@@ -287,7 +415,12 @@
       "source_url": null,
       "source_rights_statement": null,
       "release": "not_published",
-      "paid_release": false
+      "paid_release": false,
+      "text_lock": {
+        "status": "pending",
+        "comparison": "exact_bytes",
+        "normalization": "none"
+      }
     },
     {
       "id": "JAE-CAROL-001",
@@ -300,7 +433,12 @@
       "source_url": null,
       "source_rights_statement": null,
       "release": "not_published",
-      "paid_release": false
+      "paid_release": false,
+      "text_lock": {
+        "status": "pending",
+        "comparison": "exact_bytes",
+        "normalization": "none"
+      }
     },
     {
       "id": "JAE-SLEEPY-001",
@@ -313,7 +451,12 @@
       "source_url": null,
       "source_rights_statement": null,
       "release": "not_published",
-      "paid_release": false
+      "paid_release": false,
+      "text_lock": {
+        "status": "pending",
+        "comparison": "exact_bytes",
+        "normalization": "none"
+      }
     },
     {
       "id": "JAE-LITTLE-001",
@@ -326,7 +469,12 @@
       "source_url": null,
       "source_rights_statement": null,
       "release": "not_published",
-      "paid_release": false
+      "paid_release": false,
+      "text_lock": {
+        "status": "pending",
+        "comparison": "exact_bytes",
+        "normalization": "none"
+      }
     },
     {
       "id": "JAE-ANNE-001",
@@ -339,7 +487,12 @@
       "source_url": null,
       "source_rights_statement": null,
       "release": "not_published",
-      "paid_release": false
+      "paid_release": false,
+      "text_lock": {
+        "status": "pending",
+        "comparison": "exact_bytes",
+        "normalization": "none"
+      }
     }
   ]
 }
