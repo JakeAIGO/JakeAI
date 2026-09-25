@@ -215,7 +215,8 @@ def _candidate(job_id, lock, structure, shell_row, review):
     qa=_qa(job_id,lock,structure,shell_row)
     provenance={
         "edition_mark":"JAKEAI AUTONOMOUS EDITION",
-        "line":"Original Human Work · AI-Produced Edition · Rights-Verified · Human-Approved",
+        "line":"Original Human Work · AI-Produced Edition · Rights-Verified · Human Release Pending",
+        "final_release_label":"Original Human Work · AI-Produced Edition · Rights-Verified · Human-Approved",
         "human_approved":False,
         "original_author_credit_required":True,
         "source_sha256":lock["canonical_sha256"] if lock else None,
@@ -285,6 +286,74 @@ def private_release_batch(request: Request, authorization: Optional[str]=Header(
         "qa_passed":sum(1 for x in rows if x["qa"]["passed"]),
         "approved_internal":sum(1 for x in rows if x["review"]["decision"]=="approve_design"),
         "items":rows,
+    }
+
+@router.get("/api/v1/book-factory/private/release-batch/{job_id}/passport")
+@router.get("/v1/book-factory/private/release-batch/{job_id}/passport")
+def private_passport(job_id:str, request:Request, authorization:Optional[str]=Header(None)):
+    _require_control(authorization,request)
+    locks=list_locks()
+    structures=list_structures()
+    shells=list_shells()
+    reviews=_review_map()
+    lock=locks.get(job_id)
+    structure=structures.get(job_id)
+    shell_row=shells.get(job_id)
+    if not lock or not structure or not shell_row or job_id not in BOOK_META:
+        raise HTTPException(404,"Edition passport not ready")
+    mapping=json.loads(structure["mapping_json"])
+    candidate=_candidate(job_id,lock,structure,shell_row,reviews.get(job_id))
+    return {
+        "passport_version":"1.0",
+        "edition_id":job_id,
+        "edition_mark":"JAKEAI AUTONOMOUS EDITION",
+        "status":"PRE_RELEASE",
+        "title":BOOK_META[job_id]["title"],
+        "author":BOOK_META[job_id]["author"],
+        "credit_statement":"The original literary work is credited to its human author. JakeAI claims production of this edition, not authorship of the underlying work.",
+        "rights":{
+            "territory":"United States",
+            "source_landing_url":lock["source_landing_url"],
+            "source_artifact_url":lock["source_artifact_url"],
+            "source_id":lock["source_id"],
+            "source_rights_statement":"Public domain in the USA",
+            "scope":"Underlying source text only; supplemental modern art, introductions, annotations, translations, recordings, or other copyrighted material are not imported without separate clearance.",
+        },
+        "source_lock":{
+            "canonical_sha256":lock["canonical_sha256"],
+            "canonical_bytes":lock["canonical_bytes"],
+            "encoding":lock["encoding"],
+            "comparison":lock["comparison"],
+            "normalization":lock["normalization"],
+            "fidelity_verified":bool(lock["fidelity_verified"]),
+            "locked_at":lock["locked_at"],
+            "last_modified":lock["last_modified"],
+        },
+        "structure":{
+            "algorithm":mapping.get("algorithm"),
+            "navigation_count":mapping.get("navigation_count"),
+            "expected_navigation_count":mapping.get("expected_navigation_count"),
+            "semantic_count_verified":bool(mapping.get("semantic_count_verified")),
+            "exact_reassembly_verified":bool(mapping.get("exact_reassembly_verified")),
+            "text_modified":False,
+        },
+        "production":{
+            "visual":candidate["visual"],
+            "narration":candidate["narration"],
+            "reader":candidate["reader"],
+            "qa":candidate["qa"],
+        },
+        "approval":{
+            "design_review":candidate["review"],
+            "final_human_release_approved":False,
+            "final_release_label_reserved":"Original Human Work · AI-Produced Edition · Rights-Verified · Human-Approved",
+        },
+        "release":{
+            "public":False,
+            "paid":False,
+            "commerce_enabled":False,
+            "can_publish_from_passport":False,
+        },
     }
 
 @router.get("/api/v1/book-factory/private/release-batch/{job_id}/toc")
