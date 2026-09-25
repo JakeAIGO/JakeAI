@@ -3,12 +3,13 @@ from pathlib import Path
 from fastapi import APIRouter
 from book_source_lock import list_locks, public_lock_record, start_autolock
 from book_structure_map import list_structures, public_structure, start_structure_mapper
+from book_edition_shell import list_shells, public_shell, start_shell_builder
 
 router = APIRouter()
 QUEUE_PATH = Path(__file__).resolve().parent / "book-factory" / "queue.json"
 ALLOWED_RIGHTS_HOSTS = {"www.gutenberg.org", "gutenberg.org", "www.copyright.gov", "copyright.gov"}
 QUEUE_REVISION = "2026-09-24-exact-text-lock"
-PUBLIC_STAGES = {"candidate","rights_verified","source_verified","structure_verified","formatting","narration","text_qa","audio_qa","release_ready","public_preview","published"}
+PUBLIC_STAGES = {"candidate","rights_verified","source_verified","structure_verified","edition_shell_ready","formatting","narration","text_qa","audio_qa","release_ready","public_preview","published"}
 
 def _load():
     return json.loads(QUEUE_PATH.read_text(encoding="utf-8"))
@@ -16,11 +17,13 @@ def _load():
 def _overlay_runtime_locks(jobs):
     locks=list_locks()
     structures=list_structures()
+    shells=list_shells()
     out=[]
     for original in jobs:
         job=dict(original)
         row=locks.get(job.get("id"))
         structure_row=structures.get(job.get("id"))
+        shell_row=shells.get(job.get("id"))
         if row:
             job["text_lock"]=public_lock_record(row)
             if job.get("stage")=="rights_verified":
@@ -29,6 +32,10 @@ def _overlay_runtime_locks(jobs):
             job["structure_map"]=public_structure(structure_row)
             if structure_row["status"]=="verified" and job.get("stage")=="source_verified":
                 job["stage"]="structure_verified"
+        if shell_row:
+            job["edition_shell"]=public_shell(shell_row)
+            if shell_row["status"]=="ready" and job.get("stage")=="structure_verified":
+                job["stage"]="edition_shell_ready"
         out.append(job)
     return out
 
@@ -51,7 +58,7 @@ def validate_job(job):
         errors.append("public_release_without_green_rights")
 
     text_lock = job.get("text_lock") or {}
-    full_text_stage = stage in {"source_verified","structure_verified","formatting","narration","text_qa","audio_qa","release_ready","published"}
+    full_text_stage = stage in {"source_verified","structure_verified","edition_shell_ready","formatting","narration","text_qa","audio_qa","release_ready","published"}
     full_text_release = job.get("release") == "published" or job.get("paid_release") is True
     if full_text_stage or full_text_release:
         if text_lock.get("status") != "locked":
@@ -70,7 +77,7 @@ def validate_job(job):
             errors.append("preview_without_lock_must_not_contain_book_body")
 
     structure = job.get("structure_map") or {}
-    if stage in {"structure_verified","formatting","narration","text_qa","audio_qa","release_ready","published"}:
+    if stage in {"structure_verified","edition_shell_ready","formatting","narration","text_qa","audio_qa","release_ready","published"}:
         if structure.get("status") != "verified":
             errors.append("advanced_without_verified_structure")
         if not structure.get("exact_reassembly_verified"):
@@ -81,6 +88,17 @@ def validate_job(job):
             errors.append("structure_modified_text")
         if structure.get("normalization") != "none":
             errors.append("structure_normalization_is_forbidden")
+
+    shell = job.get("edition_shell") or {}
+    if stage in {"edition_shell_ready","formatting","narration","text_qa","audio_qa","release_ready","published"}:
+        if shell.get("status") != "ready":
+            errors.append("advanced_without_edition_shell")
+        if shell.get("canonical_sha256") != text_lock.get("canonical_sha256"):
+            errors.append("shell_source_hash_mismatch")
+        if not shell.get("human_release_required"):
+            errors.append("shell_without_human_release_gate")
+        if shell.get("public") is not False and stage != "published":
+            errors.append("pre_release_shell_must_remain_private")
     return errors
 
 def snapshot():
@@ -95,6 +113,7 @@ def snapshot():
         "public_preview":sum(1 for j in jobs if j.get("release")=="public_preview"),
         "source_locked":sum(1 for j in jobs if (j.get("text_lock") or {}).get("status")=="locked"),
         "structure_mapped":sum(1 for j in jobs if (j.get("structure_map") or {}).get("status")=="verified"),
+        "edition_shells_ready":sum(1 for j in jobs if (j.get("edition_shell") or {}).get("status")=="ready"),
         "published_paid":sum(1 for j in jobs if j.get("paid_release") is True),
         "invalid":len(invalid)
     }
@@ -116,3 +135,4 @@ def register_book_factory_routes(app):
     app.include_router(router)
     start_autolock(QUEUE_PATH)
     start_structure_mapper()
+    start_shell_builder()
