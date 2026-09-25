@@ -1,0 +1,62 @@
+[
+  {
+    "id": "KJAI-VOCAL-001",
+    "title": "My Truck Has Better Wi-Fi Than You",
+    "artist_id": "KJAI-ART-HARLAN-STATIC",
+    "duration": 180,
+    "bpm": 104,
+    "key_scale": "G Major",
+    "time_signature": "4",
+    "vocal_language": "en",
+    "prompt": "Original comedic country-rock song with a huge singalong hook and humorous spoken outro. Keep the performance natural, confident and radio-ready. No imitation of any real artist.",
+    "lyrics": "[Verse 1]\nI got a dent in the tailgate,\nMud up past the doors,\nCoffee in the cupholder,\nAnd a socket set on the floor.\n\nShe's twenty years of trouble,\nWith three hundred thousand miles,\nBut there's a router underneath the seat\nThat'll reach you half a mile.\n\n[Pre-Chorus]\nYou pulled up in that fancy thing,\nSaid, \"Man, what can she do?\"\n\nI said, \"She leaks a little oil...\nBut she'll download faster than you.\"\n\n[Chorus]\nMy truck's got better Wi-Fi than you,\nFive bars flying down Route 2.\nShe ain't got leather, ain't got lane assist,\nBut buddy, she don't buffer like this.\n\nYou can laugh at the rust,\nYou can laugh at the view,\nBut when your little spinning circle starts—\nMy truck's got better Wi-Fi than you.\n\n[Verse 2]\nJakeAI's riding shotgun,\nGiving questionable advice.\n\nSaid, \"Your check-engine light is currently—\"\nI said, \"Yeah, it's been on twice.\"\n\nIt said, \"Perhaps we should repair it.\"\nI said, \"Perhaps you oughta hush.\"\n\nThen the radio played a country song\nWritten by the thing I just cussed.\n\n[Final Chorus]\nMy truck's got better Wi-Fi than you,\nStill starts up on attempt number two.\n\nShe's got duct tape, rust\nAnd an AI too—\nBuddy, welcome to the future.\n\nWe ain't got a clue."
+  },
+  {
+    "id": "KJAI-VOCAL-002",
+    "title": "Build While They Sleep",
+    "artist_id": "KJAI-ART-NEON-MERCY",
+    "duration": 190,
+    "bpm": 138,
+    "key_scale": "F# Minor",
+    "time_signature": "4",
+    "vocal_language": "en",
+    "prompt": "Original cinematic electronic hip-hop and synth-pop song. Cool restrained verses, strong layered chorus, deep modern low end, dark forward motion, no imitation of any named artist.",
+    "lyrics": "[Verse]\nQuiet room, city gone black\nHalf-built future staring back\nNo applause, no finish line\nJust a blinking cursor keeping time\n\n[Pre-Chorus]\nEverybody loves the sunrise\nNobody asks who wired the street\n\n[Chorus]\nBuild while they sleep\nKeep the signal underneath\nTurn the maybe into motion\nTurn the noise into a beat\nBuild while they sleep\nNo permission, no parade\nWhen the morning finds the doorway\nIt was already made"
+  },
+  {
+    "id": "KJAI-VOCAL-003",
+    "title": "Warranty Void",
+    "artist_id": "KJAI-ART-BLACKTOP-SAINTS",
+    "duration": 175,
+    "bpm": 126,
+    "key_scale": "D Minor",
+    "time_signature": "4",
+    "vocal_language": "en",
+    "prompt": "Original hard-rock driving song with gritty live-band energy, concise verses and an explosive memorable chorus. Funny only by understatement; no parody and no imitation of any named band.",
+    "lyrics": "[Verse]\nThere was a label on the panel\nSaid don't remove this plate\nSo naturally we found a socket\nAnd stayed a little late\n\n[Chorus]\nWarranty void\nBut the machine came alive\nWarranty void\nSomehow everything survived\nNo one signed the paperwork\nNo one made a plan\nWarranty void\nAnd now it works again"
+  },
+  {
+    "id": "KJAI-VOCAL-004",
+    "title": "I Have Read the Error",
+    "artist_id": "KJAI-ART-UNIT-404",
+    "duration": 150,
+    "bpm": 120,
+    "key_scale": "C Minor",
+    "time_signature": "4",
+    "vocal_language": "en",
+    "prompt": "Original robotic electro song built around an intentionally synthetic machine vocalist. Precise rhythm, clear intelligible words, vocoder-like harmonies, dry machine humor, no imitation of a known robot or character voice.",
+    "lyrics": "[Verse]\nI have read the error\nThe error has read me\nWe disagree politely\nOn what success should be\n\n[Chorus]\nRetry\nRetry\nThe button remains available\nRetry\nRetry\nConfidence is configurable\n\n[Bridge]\nThis is not panic\nThis is diagnostic enthusiasm"
+  },
+  {
+    "id": "KJAI-VOCAL-005",
+    "title": "Parking Lot Astronomy",
+    "artist_id": "KJAI-ART-GLASS-ORCHARD",
+    "duration": 195,
+    "bpm": 96,
+    "key_scale": "A Major",
+    "time_signature": "4",
+    "vocal_language": "en",
+    "prompt": "Original late-night dream-pop song with intimate believable vocals, warm bass guitar, chiming guitar, soft analog synths and a spacious bridge. Quietly funny but emotionally sincere. No imitation of any named artist.",
+    "lyrics": "[Verse]\nWe missed the turn again\nSo we parked beneath the sign\nYou called it bad navigation\nI called it extra time\n\n[Chorus]\nParking lot astronomy\nCheap coffee, satellites\nThe whole sky doing overtime\nAbove the sodium lights"
+  }
+]

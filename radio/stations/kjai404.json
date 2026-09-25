@@ -10,12 +10,32 @@
   },
   "humor": {
     "principle": "Treat chaos like a mildly inconvenient administrative problem.",
-    "preferred": ["deadpan", "understatement", "observational absurdity", "self-aware radio logic", "occasional unnecessary practical advice"],
-    "avoid": ["forced punchlines", "repeated catchphrases", "sales talk", "mean humor", "celebrity impressions"]
+    "preferred": [
+      "deadpan",
+      "understatement",
+      "observational absurdity",
+      "self-aware radio logic",
+      "occasional unnecessary practical advice"
+    ],
+    "avoid": [
+      "forced punchlines",
+      "repeated catchphrases",
+      "sales talk",
+      "mean humor",
+      "celebrity impressions"
+    ]
   },
-  "hard_voice_bans": ["advertising", "political material", "sexual material", "impersonation"],
+  "hard_voice_bans": [
+    "advertising",
+    "political material",
+    "sexual material",
+    "impersonation"
+  ],
   "breaks": {
-    "target_seconds": [5, 20],
+    "target_seconds": [
+      5,
+      20
+    ],
     "max_words": 72,
     "dynamic": true,
     "contextual": true,
@@ -27,7 +47,17 @@
     "local_generator_candidate": "ACE-Step",
     "named_artist_style_prompts": false,
     "copyright_similarity_review_required": true,
-    "commercial_rights_evidence_required": true
+    "commercial_rights_evidence_required": true,
+    "artist_roster": "radio/artist_roster.json",
+    "recurring_fictional_performers": true,
+    "founder_voice_in_songs": false,
+    "allow_deliberately_robotic_performers": true,
+    "rotation_rules": {
+      "same_artist_back_to_back": false,
+      "max_same_artist_in_last_5": 2,
+      "robotic_act_spacing_tracks": 3,
+      "mix_vocal_and_instrumental": true
+    }
   },
   "release": {
     "public": false,
