@@ -1,0 +1,84 @@
+{
+  "version": "1.0",
+  "release_state": "PRIVATE_DEVELOPMENT",
+  "principle": "JakeAI Radio uses recurring fictional performers with stable creative identities. The founder voice is DJ/narrator only and is never a song vocalist.",
+  "artists": [
+    {
+      "id": "KJAI-ART-HARLAN-STATIC",
+      "name": "Harlan Static",
+      "type": "fictional_solo_vocalist",
+      "station_home": "Circuit Country",
+      "genres": ["country-rock", "southern-tech", "comedy-country"],
+      "voice_profile": "Warm believable male country baritone, relaxed Southern delivery, natural phrasing, slight gravel, human-sounding breath and timing, conversational verses, stronger open-throated chorus, no celebrity resemblance.",
+      "instrumentation": "Acoustic guitar, bright electric guitar, bass, live drums, light fiddle, occasional organ, restrained harmonies.",
+      "identity_mode": "prompt_locked_recurring_identity",
+      "seed_namespace": "KJAI:HARLAN_STATIC",
+      "legacy_anchor": {
+        "track_id": "JAKE-RADIO-0002",
+        "title": "My Truck Has Better Wi-Fi Than You",
+        "status": "existing_private_render_recipe_recovered"
+      },
+      "do_not": ["imitate any named singer", "use founder voice", "sound like a parody impression"]
+    },
+    {
+      "id": "KJAI-ART-BLACKTOP-SAINTS",
+      "name": "Blacktop Saints",
+      "type": "fictional_band",
+      "station_home": "Foundry FM",
+      "genres": ["hard rock", "garage rock", "industrial rock"],
+      "voice_profile": "Convincing male rock tenor with controlled rasp, energetic but not screamed, believable band-frontman phrasing, strong chorus doubles, no named-artist resemblance.",
+      "instrumentation": "Two electric guitars, bass, live drums, occasional analog synth texture.",
+      "identity_mode": "prompt_locked_recurring_identity",
+      "seed_namespace": "KJAI:BLACKTOP_SAINTS",
+      "do_not": ["imitate any named band", "use founder voice"]
+    },
+    {
+      "id": "KJAI-ART-NEON-MERCY",
+      "name": "Neon Mercy",
+      "type": "fictional_solo_vocalist",
+      "station_home": "Neural Beats",
+      "genres": ["electronic", "synth-pop", "cinematic hip-hop"],
+      "voice_profile": "Distinct synthetic female-to-androgynous lead, cool restrained verses, clear diction, intimate close-mic tone, larger layered chorus, believable human phrasing without resembling a real performer.",
+      "instrumentation": "Deep sub bass, crisp electronic drums, dark arpeggiated synths, wide pads, glitch accents.",
+      "identity_mode": "prompt_locked_recurring_identity",
+      "seed_namespace": "KJAI:NEON_MERCY",
+      "do_not": ["imitate any named vocalist", "use founder voice"]
+    },
+    {
+      "id": "KJAI-ART-UNIT-404",
+      "name": "UNIT-404",
+      "type": "fictional_robotic_act",
+      "station_home": "Night Shift 404",
+      "genres": ["robotic electro", "glitch", "industrial synth"],
+      "voice_profile": "Intentionally nonhuman machine vocalist: vocoder-like formants, precise rhythm, occasional bit-crushed harmonies, intelligible lyrics, emotionally curious rather than menacing.",
+      "instrumentation": "Mechanical percussion, pulse bass, granular synth, modem-like textures, processed choir fragments generated from synthetic voices only.",
+      "identity_mode": "deliberately_synthetic",
+      "seed_namespace": "KJAI:UNIT_404",
+      "do_not": ["approximate founder voice", "imitate a known robot/character voice", "use copyrighted samples"]
+    },
+    {
+      "id": "KJAI-ART-GLASS-ORCHARD",
+      "name": "Glass Orchard",
+      "type": "fictional_band",
+      "station_home": "Night Shift 404",
+      "genres": ["dream pop", "indie electronic", "late-night alternative"],
+      "voice_profile": "Believable female alto with soft breathy edges, understated verses, tasteful layered harmonies, intimate rather than theatrical, no real-performer resemblance.",
+      "instrumentation": "Warm bass guitar, chiming guitar, analog synths, restrained live drums, ambient texture.",
+      "identity_mode": "prompt_locked_recurring_identity",
+      "seed_namespace": "KJAI:GLASS_ORCHARD",
+      "do_not": ["imitate any named artist", "use founder voice"]
+    },
+    {
+      "id": "KJAI-ART-HOUSE-INSTRUMENTAL",
+      "name": "JakeAI House Instrumental",
+      "type": "fictional_instrumental_project",
+      "station_home": "KJAI 404",
+      "genres": ["synth-rock", "cinematic", "electronic"],
+      "voice_profile": "No vocals.",
+      "instrumentation": "Varies by track.",
+      "identity_mode": "instrumental",
+      "seed_namespace": "KJAI:HOUSE_INSTRUMENTAL",
+      "do_not": ["add vocals unless a track explicitly opts in"]
+    }
+  ]
+}
