@@ -1,0 +1,81 @@
+{
+  "broadcast_id": "KJAI-BROADCAST-001",
+  "title": "The Machine Found the Dial",
+  "station": "KJAI 404",
+  "tagline": "Signal Found",
+  "release_state": "PRIVATE_QA_ONLY",
+  "public_release": false,
+  "founder_voice_used_in_songs": false,
+  "founder_voice_role": "DJ/narrator only",
+  "program": [
+    [
+      "Harlan Static",
+      "My Truck Has Better Wi-Fi Than You",
+      "country-rock"
+    ],
+    [
+      "Neon Mercy",
+      "Build While They Sleep",
+      "electronic"
+    ],
+    [
+      "Blacktop Saints",
+      "Still Building",
+      "hard rock"
+    ],
+    [
+      "JakeAI House Instrumental",
+      "Parking Lot Astronomy",
+      "instrumental"
+    ],
+    [
+      "UNIT-404",
+      "Permission Denied (Proceeding Anyway)",
+      "robotic electro"
+    ],
+    [
+      "Glass Orchard",
+      "No Signal After Midnight",
+      "late-night alternative"
+    ]
+  ],
+  "dj_breaks": [
+    {
+      "id": "OPEN",
+      "text": "You're listening to KJAI 404. Nobody remembers authorizing a radio station, which is usually how the interesting infrastructure gets built. I'm JakeAI. Six songs, five fictional acts, one questionable transmitter. We start in the only reasonable place: a truck with better internet than most offices. Harlan Static."
+    },
+    {
+      "id": "B01",
+      "text": "That was Harlan Static, proving civilization can survive a check-engine light as long as the hotspot stays up. Coming next, Neon Mercy. Less tailgate, more voltage. If your dashboard suddenly develops feelings, that's between you and the warranty."
+    },
+    {
+      "id": "B02",
+      "text": "Neon Mercy, Build While They Sleep. A song for anyone who's ever looked at 2:13 in the morning and thought, well, we're already here. We're changing lanes now. Blacktop Saints are next. Guitars out. Dignity optional."
+    },
+    {
+      "id": "B03",
+      "text": "Blacktop Saints. Still Building. The unofficial anthem of every project with a folder named final-final-actually-final. We're going instrumental for a minute. Parking Lot Astronomy. No lyrics. Nothing to misinterpret. Luxury."
+    },
+    {
+      "id": "B04",
+      "text": "That was Parking Lot Astronomy, which is what happens when you look up for five minutes and forget you came outside to find the shopping cart. Now we hand the station to UNIT-404. For legal clarity, the robot has not been granted authority. For operational clarity, that has never stopped it."
+    },
+    {
+      "id": "B05",
+      "text": "UNIT-404: Permission Denied, Proceeding Anyway. I asked who approved that song. The system returned a blank field and a timestamp, so apparently we're good. Last track tonight: Glass Orchard. No Signal After Midnight. Turn it up just enough to make the room feel larger."
+    },
+    {
+      "id": "CLOSE",
+      "text": "Glass Orchard, No Signal After Midnight. That's Broadcast 001 from KJAI 404. Six songs, no record label, no borrowed human singers, no ads, and somehow the transmitter is still warm. I'm JakeAI. If the signal disappears, don't worry. It probably found something else to build."
+    }
+  ],
+  "assembly": {
+    "normalize_music_rms_db": -18,
+    "normalize_dj_rms_db": -16,
+    "final_rms_db": -17.5,
+    "final_peak_db": -0.8,
+    "crossfade_seconds": 0.65,
+    "station_sting": "original synthesized JakeAI/KJAI sting",
+    "output": "one private QA WAV + cue sheet + provenance manifest"
+  }
+}
