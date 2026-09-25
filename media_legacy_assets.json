@@ -1,0 +1,36 @@
+{
+  "status": "migration_required_not_runtime_generation_dependency",
+  "policy": "Do not break live pages. Copy legacy Creative Claw CDN assets to JakeAI-controlled storage/repository when practical, verify hashes/visual fidelity, then replace URLs one-by-one.",
+  "assets": [
+    {
+      "path": "arcade/neon-breach.html",
+      "provider": "creative_claw_cdn",
+      "kind": "runtime_art",
+      "priority": "high"
+    },
+    {
+      "path": "comics.html",
+      "provider": "creative_claw_cdn",
+      "kind": "comic_art",
+      "priority": "medium"
+    },
+    {
+      "path": "comics-origin-00.html",
+      "provider": "creative_claw_cdn",
+      "kind": "comic_art",
+      "priority": "medium"
+    },
+    {
+      "path": "comics-series-manifest.json",
+      "provider": "creative_claw_cdn",
+      "kind": "manifest_art_url",
+      "priority": "medium"
+    },
+    {
+      "path": "infinite-foundry-share.html",
+      "provider": "creative_claw_cdn",
+      "kind": "book_art",
+      "priority": "medium"
+    }
+  ]
+}
