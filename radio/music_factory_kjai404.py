@@ -1,0 +1,154 @@
+#!/usr/bin/env python3
+"""KJAI 404 local original-music factory.
+
+Talks only to a locally running ACE-Step 1.5 REST API.
+Generated tracks remain PRIVATE_ORIGINALITY_REVIEW_REQUIRED until a human
+reviews them for unwanted similarity and the rights manifest is complete.
+"""
+from __future__ import annotations
+
+import argparse
+import hashlib
+import json
+import time
+import urllib.parse
+import urllib.request
+from pathlib import Path
+
+
+def sha256(data: bytes) -> str:
+    return hashlib.sha256(data).hexdigest()
+
+
+def call_json(url: str, payload: dict | None = None):
+    data = None
+    headers = {}
+    if payload is not None:
+        data = json.dumps(payload).encode("utf-8")
+        headers["Content-Type"] = "application/json"
+    req = urllib.request.Request(url, data=data, headers=headers)
+    with urllib.request.urlopen(req, timeout=120) as r:
+        return json.loads(r.read().decode("utf-8"))
+
+
+def download(url: str) -> bytes:
+    with urllib.request.urlopen(url, timeout=600) as r:
+        return r.read()
+
+
+def deterministic_seed(track_id: str) -> int:
+    return int(hashlib.sha256(track_id.encode()).hexdigest()[:8], 16) & 0x7FFFFFFF
+
+
+def main():
+    ap = argparse.ArgumentParser()
+    ap.add_argument("--prompts", default="radio/music_prompts_kjai404.json")
+    ap.add_argument("--out", required=True)
+    ap.add_argument("--api", default="http://127.0.0.1:8001")
+    ap.add_argument("--model", default="acestep-v15-turbo")
+    ap.add_argument("--poll-seconds", type=float, default=2.0)
+    args = ap.parse_args()
+
+    prompts = json.loads(Path(args.prompts).read_text(encoding="utf-8"))
+    out = Path(args.out).expanduser().resolve()
+    out.mkdir(parents=True, exist_ok=True)
+
+    health = call_json(args.api.rstrip("/") + "/health")
+    if health.get("code") != 200:
+        raise RuntimeError(f"ACE-Step API is not healthy: {health}")
+
+    catalog = []
+    for i, spec in enumerate(prompts, 1):
+        tid = spec["id"]
+        seed = deterministic_seed(tid)
+        print(f"[{i}/{len(prompts)}] generating {tid} — {spec['title']}")
+
+        payload = {
+            "prompt": spec["prompt"],
+            "lyrics": "",
+            "thinking": False,
+            "vocal_language": "en",
+            "audio_format": "wav",
+            "model": args.model,
+            "audio_duration": spec["duration"],
+            "bpm": spec["bpm"],
+            "key_scale": spec["key_scale"],
+            "time_signature": spec["time_signature"],
+            "inference_steps": 8,
+            "use_random_seed": False,
+            "seed": seed,
+            "batch_size": 1,
+            "use_cot_caption": False,
+            "use_cot_language": False,
+        }
+        created = call_json(args.api.rstrip("/") + "/release_task", payload)
+        if created.get("code") != 200:
+            raise RuntimeError(f"ACE-Step task failed to submit: {created}")
+        task_id = created["data"]["task_id"]
+
+        while True:
+            time.sleep(args.poll_seconds)
+            q = call_json(
+                args.api.rstrip("/") + "/query_result",
+                {"task_id_list": [task_id]},
+            )
+            rows = q.get("data") or []
+            if not rows:
+                continue
+            row = rows[0]
+            if row.get("status") == 2:
+                raise RuntimeError(f"ACE-Step generation failed for {tid}: {row}")
+            if row.get("status") != 1:
+                continue
+
+            results = json.loads(row["result"])
+            item = results[0]
+            file_url = item["file"]
+            if file_url.startswith("/"):
+                file_url = args.api.rstrip("/") + file_url
+            audio = download(file_url)
+            dest = out / f"{tid}.wav"
+            dest.write_bytes(audio)
+            if dest.stat().st_size < 4096:
+                raise RuntimeError(f"Generated audio looks invalid: {dest}")
+
+            entry = {
+                "id": tid,
+                "title": spec["title"],
+                "artist": spec["artist"],
+                "genre": "original KJAI instrumental",
+                "energy": 0.5,
+                "mood": "station",
+                "instrumental": True,
+                "file": str(dest),
+                "audio_sha256": sha256(audio),
+                "bytes": len(audio),
+                "source": "ACE-Step 1.5 local generation",
+                "model": args.model,
+                "seed": seed,
+                "prompt": spec["prompt"],
+                "lyrics": "",
+                "rights_evidence": {
+                    "engine_repo": "ace-step/ACE-Step-1.5",
+                    "engine_repo_license": "MIT",
+                    "model_repo": "ACE-Step/Ace-Step1.5",
+                    "model_license": "MIT",
+                },
+                "commercial_ok": False,
+                "review_status": "PRIVATE_ORIGINALITY_REVIEW_REQUIRED",
+                "named_artist_prompt": False,
+            }
+            catalog.append(entry)
+            (out / "kjai404-generated-catalog.json").write_text(
+                json.dumps(catalog, indent=2), encoding="utf-8"
+            )
+            print(f"saved {dest.name}")
+            break
+
+    print("\nGeneration complete.")
+    print("All tracks remain PRIVATE_ORIGINALITY_REVIEW_REQUIRED.")
+    print("No track is marked commercial-ready automatically.")
+
+
+if __name__ == "__main__":
+    main()
