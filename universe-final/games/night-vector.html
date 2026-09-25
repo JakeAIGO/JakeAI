@@ -1,0 +1,217 @@
+<!doctype html><html><head><meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1,maximum-scale=1,user-scalable=no">
+<title>NIGHT VECTOR — JakeAI Arcade</title>
+<style>
+*{box-sizing:border-box}html,body{margin:0;height:100%;overflow:hidden;background:#040207;color:white;font-family:system-ui}
+#app{height:100dvh;max-width:760px;margin:auto;display:grid;grid-template-rows:58px 1fr;background:radial-gradient(circle at 50% 0,#25113e,#040207 58%)}
+header{padding:7px 12px;border-bottom:1px solid #36214f;background:#090510;display:flex;justify-content:space-between;align-items:center}
+h1{margin:0;font-size:20px;letter-spacing:.16em;text-shadow:0 0 15px #8b5cf6}small{display:block;font-size:8px;color:#aaa0ba;letter-spacing:.25em;margin-top:3px}
+.tag{font:800 9px monospace;border:1px solid #26f7ff;color:#26f7ff;border-radius:20px;padding:5px 8px}
+#stage{position:relative;min-height:0;overflow:hidden;border:2px solid #34204b;border-radius:13px 13px 0 0}
+canvas{width:100%;height:100%;display:block;touch-action:none;background:#05070c}
+#hud{position:absolute;z-index:4;left:7px;right:7px;top:7px;display:flex;justify-content:space-between;font:800 9px monospace}
+#hud span{background:#030209c8;border:1px solid #ffffff20;border-radius:20px;padding:5px 7px}
+#weap{position:absolute;z-index:4;left:8px;top:39px;background:#030209c8;border:1px solid #ffffff20;border-radius:8px;padding:5px 7px;font:800 9px monospace}
+#armorWrap{position:absolute;z-index:4;left:8px;right:8px;bottom:142px;display:flex;gap:6px;align-items:center;font:800 9px monospace}
+#armorBar{height:7px;flex:1;background:#150a20;border:1px solid #50336b;border-radius:9px;overflow:hidden}
+#armor{display:block;height:100%;width:100%;background:linear-gradient(90deg,#ff477e,#ffcc4d,#72ff9e)}
+#controls{position:absolute;z-index:6;left:7px;right:7px;bottom:7px;height:130px;display:grid;grid-template-columns:1fr 1fr;gap:10px;pointer-events:none}
+#joystick{position:relative;width:126px;height:126px;align-self:end;justify-self:start;border:1px solid #6a4a8f;background:radial-gradient(circle,#241333cc 0 29%,#100817d9 30% 64%,#08050dcc 65%);border-radius:50%;box-shadow:inset 0 0 22px #000,0 0 18px #8b5cf633;touch-action:none;pointer-events:auto}
+#joystick:before,#joystick:after{content:"";position:absolute;background:#8b5cf62b;pointer-events:none}
+#joystick:before{width:1px;height:86%;left:50%;top:7%}#joystick:after{height:1px;width:86%;top:50%;left:7%}
+#knob{position:absolute;width:54px;height:54px;left:50%;top:50%;margin:-27px 0 0 -27px;border-radius:50%;background:radial-gradient(circle at 36% 32%,#6cfaff,#8b5cf6 48%,#261337 78%);border:2px solid #d9fbff;box-shadow:0 4px 12px #000,0 0 15px #26f7ff66;pointer-events:none}
+#joyLabel{position:absolute;left:0;right:0;bottom:-1px;text-align:center;font:900 8px monospace;letter-spacing:.12em;color:#d5c9e6;pointer-events:none}
+.weapons{height:126px;display:grid;grid-template-columns:1fr 1fr;grid-template-rows:1fr 1fr;gap:7px;align-self:end;pointer-events:auto}
+button{border:1px solid #4b3466;border-radius:14px;background:#130b1ded;color:#fff;font-weight:950;font-size:10px;touch-action:none}
+[data-k=gun]{grid-row:1/3;border-color:#ff477e;font-size:13px}[data-k=missile]{border-color:#ffcc4d}[data-k=rear]{border-color:#65dbff}
+#ov{position:absolute;z-index:10;inset:0;display:grid;place-items:center;text-align:center;padding:24px;background:radial-gradient(circle,#281540ec,#020104fc)}
+#ov.hide{display:none}.title{font-size:clamp(42px,11vw,78px);font-weight:1000;line-height:.84;letter-spacing:.05em;text-shadow:0 0 18px #8b5cf6,0 0 52px #8b5cf6}
+.sub{margin:11px 0;color:#26f7ff;font:900 10px system-ui;letter-spacing:.22em}.copy{max-width:500px;color:#d9d1e4;font-size:12px;line-height:1.48}
+.go{display:inline-block;margin-top:16px;border:1px solid #26f7ff;color:#26f7ff;padding:9px 13px;border-radius:8px;font-weight:900}
+#banner{position:absolute;z-index:8;top:64px;left:50%;transform:translateX(-50%);opacity:0;background:#05020deb;border:1px solid #715092;border-radius:8px;padding:8px 11px;font:900 10px monospace;transition:.2s;white-space:nowrap}
+#banner.show{opacity:1}
+.exit{position:fixed;z-index:20;right:10px;top:64px;padding:7px 10px;border:1px solid #26f7ff66;border-radius:999px;background:#040207cc;color:#bdf7ff;text-decoration:none;font:800 9px monospace;letter-spacing:.12em;backdrop-filter:blur(6px)}</style></head><body><a class="exit" href="../rooms/arcade.html">← ARCADE</a><div id="app">
+<header><h1>NIGHT VECTOR<small>JAKEAI STAND-UP ARCADE</small></h1><div class="tag">PROTOTYPE 05</div></header>
+<div id="stage"><canvas id="c" width="700" height="1000"></canvas>
+<div id="hud"><span>SCORE <b id="score">000000</b></span><span id="mode">ROAD</span><span>SPD <b id="spd">50</b></span></div>
+<div id="weap">M <b id="ms">3</b> · OIL <b id="oil">3</b> · MINE <b id="mine">2</b> · GUN <b id="gunlvl">I</b></div>
+<div id="banner"></div>
+<div id="armorWrap">ARMOR<div id="armorBar"><i id="armor"></i></div></div>
+<div id="controls">
+ <div id="joystick"><div id="knob"></div><div id="joyLabel">STEER · ACCEL · BRAKE</div></div>
+ <div class="weapons"><button data-k="gun">GUN</button><button data-k="missile">MISSILE</button><button data-k="rear">REAR<br><small>AUTO</small></button></div>
+</div>
+<div id="ov"><div><div class="title">NIGHT<br>VECTOR</div><div class="sub">CHASE • REFIT • TRANSFORM • ESCAPE</div>
+<div class="copy">Catch the VECTOR ARMORY semi, line up with its open rear ramp, and drive into the trailer to receive a weapon package. The analog stick handles steering, acceleration and braking; gun, missile and rear defense stay on the right.</div>
+<div class="go">TAP / ENTER TO START</div></div></div></div></div>
+<script>
+(()=>{
+const C=document.querySelector('#c'),x=C.getContext('2d'),W=C.width,H=C.height,ov=document.querySelector('#ov');
+const U={score:q('#score'),mode:q('#mode'),spd:q('#spd'),ms:q('#ms'),oil:q('#oil'),mine:q('#mine'),gun:q('#gunlvl'),armor:q('#armor'),banner:q('#banner')};
+function q(s){return document.querySelector(s)}
+let K={},joyX=0,joyY=0,run=false,last=0,t=0,score=0,scroll=0,spawn=0,rearSpawn=2.5,phase=0,clock=0,supportMade=false;
+let foes=[],shots=[],rockets=[],slicks=[],mines=[],fx=[],supports=[],waves=[],buoys=[];
+const P={x:350,y:770,w:44,h:86,vx:0,speed:.5,armor:100,missiles:3,oil:3,mines:2,gun:1,cd:0,rcd:0,ocd:0,bcd:0,inv:0,mode:'ROAD'};
+let center=350;
+const rnd=(a,b)=>a+Math.random()*(b-a),clamp=(v,a,b)=>Math.max(a,Math.min(b,v));
+function reset(){foes=[];shots=[];rockets=[];slicks=[];mines=[];fx=[];supports=[];waves=[];buoys=[];score=scroll=t=spawn=0;rearSpawn=2.5;phase=0;clock=0;supportMade=false;Object.assign(P,{x:350,y:770,vx:0,speed:.5,armor:100,missiles:3,oil:3,mines:2,gun:1,cd:0,rcd:0,ocd:0,bcd:0,inv:0,mode:'ROAD'})}
+function start(){reset();run=true;ov.classList.add('hide');last=performance.now();requestAnimationFrame(loop)}
+ov.onpointerdown=start;addEventListener('keydown',e=>{K[e.code]=1;if(e.code==='Enter'&&!run)start();if(['Space','ArrowLeft','ArrowRight','ArrowUp','ArrowDown'].includes(e.code))e.preventDefault()});addEventListener('keyup',e=>K[e.code]=0);
+for(const b of document.querySelectorAll('button')){let m={gun:'Space',missile:'KeyX',rear:'KeyZ'}[b.dataset.k];b.addEventListener('pointerdown',e=>{K[m]=1;e.preventDefault()});['pointerup','pointercancel','pointerleave'].forEach(v=>b.addEventListener(v,e=>{K[m]=0;e.preventDefault()}))}
+const joy=q('#joystick'),knob=q('#knob');let joyPointer=null;
+function setJoy(e){
+ const r=joy.getBoundingClientRect(),cx=r.left+r.width/2,cy=r.top+r.height/2,max=r.width*.31;
+ let dx=e.clientX-cx,dy=e.clientY-cy,d=Math.hypot(dx,dy);
+ if(d>max){dx=dx/d*max;dy=dy/d*max}
+ joyX=dx/max;joyY=dy/max;knob.style.transform=`translate(${dx}px,${dy}px)`;
+}
+joy.addEventListener('pointerdown',e=>{joyPointer=e.pointerId;joy.setPointerCapture(e.pointerId);setJoy(e);e.preventDefault()});
+joy.addEventListener('pointermove',e=>{if(e.pointerId===joyPointer)setJoy(e)});
+function releaseJoy(e){if(e.pointerId!==joyPointer)return;joyPointer=null;joyX=joyY=0;knob.style.transform='translate(0px,0px)'}
+joy.addEventListener('pointerup',releaseJoy);joy.addEventListener('pointercancel',releaseJoy);
+function say(s){U.banner.textContent=s;U.banner.classList.add('show');setTimeout(()=>U.banner.classList.remove('show'),1500)}
+function rr(a,b,c,d,r=8){x.beginPath();x.roundRect(a,b,c,d,r);x.fill()}
+function boom(px,py,n=16){for(let i=0;i<n;i++)fx.push({x:px,y:py,vx:rnd(-4,4),vy:rnd(-5,3),life:rnd(.25,.75),s:rnd(2,5)})}
+function car(o,enemy=true){x.save();x.translate(o.x,o.y);x.fillStyle=enemy?(o.heavy?'#a77935':o.rear?'#d84dff':'#ea416f'):'#e4e6f0';rr(-o.w/2,-o.h/2,o.w,o.h,9);x.fillStyle=enemy?'#31101d':'#171225';rr(-o.w*.34,-o.h*.23,o.w*.68,o.h*.33,5);x.fillStyle=enemy?'#fff':'#26f7ff';x.fillRect(-o.w*.35,-o.h*.47,7,5);x.fillRect(o.w*.28,-o.h*.47,7,5);if(!enemy){x.fillStyle='#8b5cf6';x.fillRect(-3,-o.h*.12,6,o.h*.42)}if(o.heavy){x.strokeStyle='#ffcc4d';x.lineWidth=3;x.strokeRect(-o.w*.42,-o.h*.36,o.w*.84,o.h*.72)}x.restore()}
+function boat(o,enemy=false){x.save();x.translate(o.x,o.y);x.fillStyle=enemy?'#ef416b':'#dfeaf3';x.beginPath();x.moveTo(0,-52);x.lineTo(28,-14);x.lineTo(20,45);x.lineTo(-20,45);x.lineTo(-28,-14);x.closePath();x.fill();x.fillStyle='#171426';rr(-13,-17,26,35,7);if(!enemy){x.fillStyle='#26f7ff';x.fillRect(-3,-46,6,25)}x.restore()}
+function support(h){
+ x.save();x.translate(h.x,h.y);
+ // tractor cab at the front (top of screen)
+ x.fillStyle='#d8b14d';rr(-34,-132,68,58,10);
+ x.fillStyle='#2a1720';rr(-24,-123,48,28,6);
+ x.fillStyle='#26f7ff';x.fillRect(-25,-128,11,5);x.fillRect(14,-128,11,5);
+ x.fillStyle='#171019';x.fillRect(-40,-118,8,24);x.fillRect(32,-118,8,24);
+ // fifth-wheel neck
+ x.fillStyle='#6d526f';rr(-22,-79,44,20,5);
+ // long trailer
+ x.fillStyle='#51405d';rr(-60,-62,120,196,10);
+ x.fillStyle='#171020';rr(-49,-50,98,155,7);
+ // illuminated armory bay
+ x.strokeStyle='#26f7ff';x.lineWidth=4;x.strokeRect(-48,-49,96,155);
+ x.strokeStyle='#8b5cf6';x.lineWidth=2;x.strokeRect(-40,-41,80,139);
+ // weapon rack icons
+ x.fillStyle='#ff477e';x.fillRect(-31,-25,18,8);
+ x.fillStyle='#ffcc4d';x.fillRect(-7,-25,18,8);
+ x.fillStyle='#65dbff';x.fillRect(17,-25,18,8);
+ // open rear + ramp
+ x.fillStyle='#0b0710';x.fillRect(-48,105,96,28);
+ x.fillStyle='#d8b14d';x.fillRect(-55,132,110,11);
+ x.strokeStyle='#ffcc4d';x.lineWidth=3;
+ x.beginPath();x.moveTo(-55,143);x.lineTo(-72,169);x.moveTo(55,143);x.lineTo(72,169);x.stroke();
+ // trailer wheels
+ x.fillStyle='#09070c';
+ for(const yy of [2,63]){x.fillRect(-68,yy,9,30);x.fillRect(59,yy,9,30)}
+ // labels
+ x.fillStyle='#fff';x.font='900 12px monospace';x.textAlign='center';x.fillText('VECTOR ARMORY',0,82);
+ x.fillStyle='#26f7ff';x.font='900 10px monospace';x.fillText('ENTER REAR',0,99);
+ x.restore()
+}
+function spawnFront(){let heavy=Math.random()<.18;foes.push({x:rnd(center-190,center+190),y:-110,w:heavy?62:43,h:heavy?104:80,heavy,rear:false,hp:heavy?999:2,water:P.mode==='WATER'})}
+function spawnRear(){foes.push({x:rnd(center-175,center+175),y:H+100,w:43,h:80,heavy:false,rear:true,hp:2,water:P.mode==='WATER'})}
+function fire(){if(P.cd>0)return;for(let i=0;i<P.gun;i++)shots.push({x:P.x+(i-(P.gun-1)/2)*12,y:P.y-50});P.cd=.14}
+function missile(){if(P.rcd>0||P.missiles<1)return;let target=foes.find(e=>e.heavy&&!e.dead)||foes.find(e=>!e.dead&&e.y<P.y);rockets.push({x:P.x,y:P.y-48,vx:0,vy:-7,target});P.missiles--;P.rcd=.55}
+function oil(){if(P.ocd>0||P.oil<1)return;slicks.push({x:P.x,y:P.y+58,life:5,water:P.mode==='WATER'});P.oil--;P.ocd=.8}
+function mine(){if(P.bcd>0||P.mines<1)return;mines.push({x:P.x,y:P.y+60,life:5,pulse:0});P.mines--;P.bcd=.8}
+function rearWeapon(){
+ if(P.ocd>0||P.bcd>0)return;
+ const chaser=foes.filter(e=>!e.dead&&e.y>P.y).sort((a,b)=>a.y-b.y)[0];
+ if(P.mode==='WATER'){
+   if(P.mines>0)mine(); else oil();
+ }else if(chaser&&chaser.y-P.y<280&&P.oil>0){
+   oil();
+ }else if(P.mines>0){
+   mine();
+ }else{
+   oil();
+ }
+}
+function hurt(n){if(P.inv>0)return;P.armor-=n;P.inv=.6;boom(P.x,P.y,20);if(P.armor<=0)gameover()}
+function gameover(){run=false;ov.classList.remove('hide');ov.querySelector('.copy').innerHTML=`RUN ENDED — SCORE <b>${Math.floor(score)}</b><br><br>Tap to redeploy the VECTOR-9.`;ov.querySelector('.go').textContent='RESTART'}
+function victory(){run=false;score+=2500;ov.classList.remove('hide');ov.querySelector('.copy').innerHTML=`MISSION COMPLETE — VECTOR-9 EXTRACTED<br><br>SCORE <b>${Math.floor(score)}</b><br><br>The highway, armory intercept, bridge breach and marine escape are clear.`;ov.querySelector('.go').textContent='RUN AGAIN'}
+function hit(a,b){return Math.abs(a.x-b.x)<(a.w+b.w)*.44&&Math.abs(a.y-b.y)<(a.h+b.h)*.44}
+function setPhase(n){phase=n;clock=0;if(n===0){P.mode='ROAD';say('HIGHWAY SECTOR')}if(n===1){say('VECTOR ARMORY SEMI AHEAD — CATCH & BOARD');supportMade=false}if(n===2)say('BROKEN BRIDGE — MARINE GATE AHEAD');if(n===3){P.mode='WATER';say('MARINE VECTOR DEPLOYED')}}
+function update(dt){
+t+=dt;clock+=dt;P.cd-=dt;P.rcd-=dt;P.ocd-=dt;P.bcd-=dt;P.inv-=dt;if(clock>12){if(phase===3){victory();return}else setPhase(phase+1);}
+let steer=clamp(((K.ArrowRight||K.KeyD?1:0)-(K.ArrowLeft||K.KeyA?1:0))+joyX,-1,1);
+let accel=clamp(((K.ArrowUp||K.KeyW?1:0)-(K.ArrowDown||K.KeyS?1:0))-joyY,-1,1);P.speed=clamp(P.speed+accel*dt*.55,.12,1);
+let targetY=870-P.speed*430;P.y+=(targetY-P.y)*dt*3.4;
+P.vx+=(steer*690-P.vx)*dt*7;P.x+=P.vx*dt;center=350+Math.sin(t*.13)*38+Math.sin(t*.047)*20;P.x=clamp(P.x,center-215,center+215);
+if(K.Space)fire();if(K.KeyX)missile();if(K.KeyZ)rearWeapon();if(K.KeyC)mine();
+let world=.35+P.speed*.95;scroll+=dt*420*world;score+=dt*80*world;
+if(Math.abs(P.x-center)>204)hurt(10*dt);
+spawn-=dt;if(spawn<=0){spawnFront();spawn=rnd(.65,1.15)}
+rearSpawn-=dt;if(rearSpawn<=0&&P.speed<.8){spawnRear();rearSpawn=rnd(2.5,4.2)}
+if(phase===1&&!supportMade&&clock>1.4){supports.push({x:center,y:300,w:136,h:300,vy:.33,docked:false,dock:0});supportMade=true}
+for(const h of supports){
+ h.y+=(P.speed-.60)*dt*270;
+ const aligned=Math.abs(P.x-h.x)<43;
+ const inside=P.y>h.y+45 && P.y<h.y+145;
+ if(!h.docked && aligned && inside){
+   h.dock=(h.dock||0)+dt;
+   if(h.dock>.45){
+     h.docked=true;
+     P.gun=Math.min(3,P.gun+1);
+     P.missiles=Math.min(8,P.missiles+2);
+     P.oil=Math.min(8,P.oil+2);
+     P.mines=Math.min(8,P.mines+2);
+     P.armor=Math.min(100,P.armor+30);
+     score+=1200;
+     const pkg=P.gun>=3?'MAX CANNONS':'TWIN CANNONS';
+     say('ARMORY REFIT: '+pkg+' + FULL RESUPPLY');
+     boom(P.x,P.y,34);
+   } else if(h.dock>.08){
+     U.banner.textContent='HOLD LINE — REFIT '+Math.floor(h.dock/.45*100)+'%';
+     U.banner.classList.add('show');
+   }
+ } else if(!h.docked){
+   h.dock=Math.max(0,(h.dock||0)-dt*2);
+ }
+ if(!h.docked && P.y>h.y+150 && P.y<h.y+230 && Math.abs(P.x-h.x)<105){
+   U.banner.textContent='DRIVE INTO OPEN TRAILER';
+   U.banner.classList.add('show');
+ }
+ if(h.y<-220||h.y>H+220)h.dead=1
+}
+for(const e of foes){
+ let rel=(e.rear? -1:1); let v=(e.rear?230:250)+(e.heavy?25:0);
+ e.y+=dt*(v*rel + (P.speed-.52)*220);
+ if(e.rear&&e.y<P.y-20)e.rear=false;
+ if(e.y>H+160||e.y<-170)e.dead=1;
+ if(hit(P,e)){hurt(e.heavy?34:20);e.dead=1;boom(e.x,e.y,22)}
+}
+for(const b of shots){b.y-=dt*650;for(const e of foes)if(!e.dead&&!e.heavy&&Math.abs(b.x-e.x)<e.w/2&&Math.abs(b.y-e.y)<e.h/2){e.hp--;b.dead=1;if(e.hp<=0){e.dead=1;score+=280;boom(e.x,e.y,18)}}}
+for(const r of rockets){if(r.target&&!r.target.dead){let dx=r.target.x-r.x,dy=r.target.y-r.y,d=Math.max(1,Math.hypot(dx,dy));r.vx+=(dx/d*10-r.vx)*dt*4;r.vy+=(dy/d*10-r.vy)*dt*4}r.x+=r.vx*60*dt;r.y+=r.vy*60*dt;for(const e of foes)if(!e.dead&&Math.hypot(r.x-e.x,r.y-e.y)<40){e.dead=r.dead=1;score+=e.heavy?800:340;boom(e.x,e.y,30)}}
+for(const s of slicks){s.life-=dt;s.y+=dt*170*(P.speed-.25);for(const e of foes)if(!e.dead&&e.y>P.y-15&&Math.hypot(s.x-e.x,s.y-e.y)<55){e.dead=1;score+=360;boom(e.x,e.y,22)}}
+for(const m of mines){m.life-=dt;m.pulse+=dt;m.y+=dt*160*(P.speed-.2);for(const e of foes)if(!e.dead&&Math.hypot(m.x-e.x,m.y-e.y)<48){e.dead=m.dead=1;score+=e.heavy?850:390;boom(e.x,e.y,36)}}
+for(const f of fx){f.x+=f.vx*60*dt;f.y+=f.vy*60*dt;f.vy+=dt*5;f.life-=dt}
+for(const a of [foes,shots,rockets,slicks,mines,fx,supports])for(let i=a.length-1;i>=0;i--)if(a[i].dead||a[i].life<=0)a.splice(i,1);
+U.score.textContent=String(Math.floor(score)).padStart(6,'0');U.mode.textContent=P.mode;U.spd.textContent=String(Math.floor(P.speed*99)).padStart(2,'0');U.ms.textContent=P.missiles;U.oil.textContent=P.oil;U.mine.textContent=P.mines;U.gun.textContent=['','I','II','III'][P.gun];U.armor.style.width=clamp(P.armor,0,100)+'%'
+}
+function drawWater(c){
+ let g=x.createLinearGradient(c-230,0,c+230,0);g.addColorStop(0,'#063743');g.addColorStop(.5,'#0b6474');g.addColorStop(1,'#063743');x.fillStyle=g;x.fillRect(c-230,0,460,H);
+ x.fillStyle='#173122';x.fillRect(c-265,0,35,H);x.fillRect(c+230,0,35,H);
+ x.strokeStyle='#8cecff66';x.lineWidth=2;
+ for(let y=-80+(scroll%95);y<H;y+=95){x.beginPath();x.moveTo(c-215,y);x.bezierCurveTo(c-95,y+22,c+95,y-22,c+215,y);x.stroke()}
+ x.strokeStyle='#ffffff44';for(let y=-20+(scroll%150);y<H;y+=150){x.beginPath();x.moveTo(c-160,y);x.quadraticCurveTo(c-120,y+10,c-80,y);x.stroke();x.beginPath();x.moveTo(c+60,y+45);x.quadraticCurveTo(c+100,y+55,c+145,y+45);x.stroke()}
+ for(let y=-40+(scroll%210);y<H;y+=210){x.fillStyle='#ffcc4d';x.beginPath();x.arc(c-190,y,6,0,Math.PI*2);x.fill();x.fillStyle='#ff775e';x.fillRect(c-194,y,8,10)}
+}
+function drawRoad(c){
+ x.fillStyle='#101418';x.fillRect(c-255,0,510,H);x.fillStyle='#1c1e25';x.fillRect(c-230,0,460,H);x.fillStyle='#8b5cf6';x.fillRect(c-233,0,3,H);x.fillRect(c+230,0,3,H);
+ x.fillStyle='#ffffff88';for(let lane=-1;lane<=1;lane+=2)for(let y=-60+(scroll%120);y<H;y+=120)x.fillRect(c+lane*76,y,5,44)
+}
+function draw(){
+x.clearRect(0,0,W,H);let water=P.mode==='WATER';let bg=x.createLinearGradient(0,0,0,H);bg.addColorStop(0,water?'#04141e':'#070918');bg.addColorStop(1,water?'#05252c':'#1b0b25');x.fillStyle=bg;x.fillRect(0,0,W,H);
+water?drawWater(center):drawRoad(center);
+if(phase===2&&!water){let py=(clock*170)%1200-170;x.fillStyle='#7f6244';x.fillRect(center-230,py,460,145);x.fillStyle='#ffcc4d';x.fillRect(center-230,py+125,460,10);x.fillStyle='#101418';x.fillRect(center-75,py+125,150,40)}
+for(const s of supports)support(s);
+for(const s of slicks){x.fillStyle=s.water?'#ff7c2f99':'#09080bcc';x.beginPath();x.ellipse(s.x,s.y,34,16,0,0,Math.PI*2);x.fill();if(s.water){x.fillStyle='#ffd04d88';x.beginPath();x.ellipse(s.x,s.y,18,7,0,0,Math.PI*2);x.fill()}}
+for(const m of mines){x.strokeStyle='#ff7a4d';x.lineWidth=3;x.beginPath();x.arc(m.x,m.y,11+Math.sin(m.pulse*8)*2,0,Math.PI*2);x.stroke()}
+for(const e of foes)e.water?boat(e,true):car(e,true);
+x.fillStyle='#fff';for(const b of shots)x.fillRect(b.x-2,b.y-11,4,17);for(const r of rockets){x.fillStyle='#ffcc4d';x.fillRect(r.x-4,r.y-12,8,22)}
+if(P.inv<=0||Math.floor(P.inv*15)%2===0)(water?boat(P,false):car(P,false));
+if(water){x.strokeStyle='#e8ffff77';x.lineWidth=3;x.beginPath();x.moveTo(P.x-18,P.y+46);x.lineTo(P.x-34,P.y+85);x.moveTo(P.x+18,P.y+46);x.lineTo(P.x+34,P.y+85);x.stroke()}
+for(const f of fx){x.globalAlpha=Math.max(0,f.life*1.7);x.fillStyle=Math.random()<.5?'#ffcc4d':'#ff477e';x.fillRect(f.x,f.y,f.s,f.s)}x.globalAlpha=1
+}
+function loop(n){if(!run)return;let dt=Math.min(.033,(n-last)/1000||.016);last=n;update(dt);draw();requestAnimationFrame(loop)}draw()
+})();
+</script></body></html>
