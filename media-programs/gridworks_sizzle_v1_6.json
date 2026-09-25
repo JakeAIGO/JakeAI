@@ -1,0 +1,195 @@
+{
+  "program_id": "GRIDWORKS-SIZZLE-V1_6-MEDIA-ENGINE",
+  "title": "GRIDWORKS — 90-Second Development Reel Media Engine Pass",
+  "consumer": "documentary",
+  "duration_seconds": 90.13,
+  "private": true,
+  "founder_voice_allowed": false,
+  "founder_voice_role": null,
+  "release_state": "PRIVATE_QA",
+  "source_master": "Gridworks_90sec_Reel_v1_5_VERIFIED_UNREAL_MASTER.mp4",
+  "editorial_rule": "Documentary credibility first. Real industrial imagery and natural sound dominate; visualization must be clearly identified.",
+  "cues": [
+    {
+      "id": "gw-bed-scale",
+      "kind": "music",
+      "start_seconds": 0,
+      "end_seconds": 12,
+      "generator": "local_procedural_or_ace_step_instrumental",
+      "prompt": "restrained industrial documentary pulse, low grid hum, no vocals, premium factual tone",
+      "intensity": 0.28,
+      "gain_db": -18,
+      "duck_under_voice_db": -7,
+      "tags": [
+        "scale",
+        "industrial",
+        "documentary"
+      ],
+      "public_release_allowed": false,
+      "notes": "Preserve VO intelligibility."
+    },
+    {
+      "id": "gw-hit-open",
+      "kind": "sfx",
+      "start_seconds": 0.15,
+      "end_seconds": 0.9,
+      "generator": "local_sfx",
+      "prompt": "short muted steel impact plus relay click, no cinematic boom",
+      "intensity": 0.32,
+      "gain_db": -16,
+      "tags": [
+        "opening",
+        "metal"
+      ],
+      "public_release_allowed": false
+    },
+    {
+      "id": "gw-bed-pressure",
+      "kind": "music",
+      "start_seconds": 12,
+      "end_seconds": 28,
+      "generator": "local_procedural_or_ace_step_instrumental",
+      "prompt": "measured pressure build, mechanical pulse, restrained percussion, premium documentary",
+      "intensity": 0.45,
+      "gain_db": -17,
+      "duck_under_voice_db": -8,
+      "tags": [
+        "pressure"
+      ],
+      "public_release_allowed": false
+    },
+    {
+      "id": "gw-transition-12",
+      "kind": "transition",
+      "start_seconds": 11.75,
+      "end_seconds": 12.35,
+      "generator": "local_sfx",
+      "prompt": "brief industrial air displacement and contactor snap",
+      "intensity": 0.3,
+      "gain_db": -18,
+      "tags": [
+        "transition"
+      ],
+      "public_release_allowed": false
+    },
+    {
+      "id": "gw-bed-impossible-camera",
+      "kind": "music",
+      "start_seconds": 28,
+      "end_seconds": 45,
+      "generator": "local_procedural_or_ace_step_instrumental",
+      "prompt": "technical visualization underscore, rising electrical texture, no sci-fi cliché",
+      "intensity": 0.52,
+      "gain_db": -18,
+      "duck_under_voice_db": -8,
+      "tags": [
+        "visualization",
+        "unreal"
+      ],
+      "public_release_allowed": false
+    },
+    {
+      "id": "gw-marker-visualization",
+      "kind": "marker",
+      "start_seconds": 28,
+      "end_seconds": 45,
+      "tags": [
+        "VISUALIZATION"
+      ],
+      "provenance_required": false,
+      "public_release_allowed": true,
+      "notes": "Visualization labeling window."
+    },
+    {
+      "id": "gw-transition-28",
+      "kind": "transition",
+      "start_seconds": 27.7,
+      "end_seconds": 28.5,
+      "generator": "local_sfx",
+      "prompt": "tight transformer-energy transition, subtle current sweep, factual not sci-fi",
+      "intensity": 0.38,
+      "gain_db": -17,
+      "tags": [
+        "transition",
+        "visualization"
+      ],
+      "public_release_allowed": false
+    },
+    {
+      "id": "gw-bed-people",
+      "kind": "music",
+      "start_seconds": 45,
+      "end_seconds": 67,
+      "generator": "local_procedural_or_ace_step_instrumental",
+      "prompt": "warmer human documentary bed, restrained piano-like harmonic texture over industrial pulse",
+      "intensity": 0.3,
+      "gain_db": -20,
+      "duck_under_voice_db": -8,
+      "tags": [
+        "people",
+        "human"
+      ],
+      "public_release_allowed": false
+    },
+    {
+      "id": "gw-bed-franchise",
+      "kind": "music",
+      "start_seconds": 67,
+      "end_seconds": 82,
+      "generator": "local_procedural_or_ace_step_instrumental",
+      "prompt": "confident forward motion, measured percussion, widening harmonic bed, premium factual television",
+      "intensity": 0.44,
+      "gain_db": -18,
+      "duck_under_voice_db": -8,
+      "tags": [
+        "franchise",
+        "range"
+      ],
+      "public_release_allowed": false
+    },
+    {
+      "id": "gw-transition-67",
+      "kind": "transition",
+      "start_seconds": 66.7,
+      "end_seconds": 67.35,
+      "generator": "local_sfx",
+      "prompt": "short mechanical resolve into forward pulse",
+      "intensity": 0.28,
+      "gain_db": -18,
+      "tags": [
+        "transition"
+      ],
+      "public_release_allowed": false
+    },
+    {
+      "id": "gw-bed-promise",
+      "kind": "music",
+      "start_seconds": 82,
+      "end_seconds": 90.13,
+      "generator": "local_procedural_or_ace_step_instrumental",
+      "prompt": "restrained final lift, industrial documentary promise, resolve without trailer bombast",
+      "intensity": 0.48,
+      "gain_db": -17.5,
+      "duck_under_voice_db": -8,
+      "tags": [
+        "ending",
+        "promise"
+      ],
+      "public_release_allowed": false
+    },
+    {
+      "id": "gw-final-resolve",
+      "kind": "sfx",
+      "start_seconds": 89.15,
+      "end_seconds": 90.05,
+      "generator": "local_sfx",
+      "prompt": "single low clean mechanical resolve, no boom, no riser cliché",
+      "intensity": 0.25,
+      "gain_db": -19,
+      "tags": [
+        "ending"
+      ],
+      "public_release_allowed": false
+    }
+  ]
+}
