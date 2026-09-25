@@ -44,7 +44,7 @@ def deterministic_seed(track_id: str) -> int:
 
 def main():
     ap = argparse.ArgumentParser()
-    ap.add_argument("--prompts", default="radio/music_prompts_kjai404.json")
+    ap.add_argument("--prompts", default="radio/artist_song_specs_v1.json")
     ap.add_argument("--artists", default="radio/artist_roster.json")
     ap.add_argument("--out", required=True)
     ap.add_argument("--api", default="http://127.0.0.1:8001")
@@ -52,7 +52,8 @@ def main():
     ap.add_argument("--poll-seconds", type=float, default=2.0)
     args = ap.parse_args()
 
-    prompts = json.loads(Path(args.prompts).read_text(encoding="utf-8"))
+    prompt_data = json.loads(Path(args.prompts).read_text(encoding="utf-8"))
+    prompts = prompt_data.get("tracks", []) if isinstance(prompt_data, dict) else prompt_data
     artists = load_artist_roster(args.artists)
     out = Path(args.out).expanduser().resolve()
     out.mkdir(parents=True, exist_ok=True)
