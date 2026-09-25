@@ -71,6 +71,19 @@
   status = 200
   force = true
 
+# KJAI radio must resolve to the static Broadcast 002 player before the SPA fallback.
+[[redirects]]
+  from = "/radio"
+  to = "/radio/index.html"
+  status = 200
+  force = true
+
+[[redirects]]
+  from = "/radio/"
+  to = "/radio/index.html"
+  status = 200
+  force = true
+
 # Product pages must resolve before the SPA fallback.
 [[redirects]]
   from = "/universe-final/agent-mandate-verifier"
