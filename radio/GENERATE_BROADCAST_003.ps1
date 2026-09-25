@@ -19,7 +19,7 @@ function Banner($t) {
 }
 
 try {
-  Banner "KJAI BROADCAST 003 — PRIVATE MUSIC GENERATION"
+  Banner "KJAI BROADCAST 003 - PRIVATE MUSIC GENERATION"
   Write-Host "Public release: NO"
   Write-Host "Founder voice used in songs: NO"
   Write-Host "Six new original tracks will be rendered locally with ACE-Step."
