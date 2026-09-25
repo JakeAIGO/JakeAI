@@ -65,7 +65,7 @@ Production music should be either:
 1. original JakeAI-generated work with commercial rights evidence; or
 2. separately licensed music with documented rights.
 
-ACE-Step is the current local-generation candidate. The official ACE-Step project is Apache 2.0 licensed, but generated tracks still require originality review before commercial release. Do not prompt the model to imitate a named artist.
+ACE-Step 1.5 is the current local-generation candidate. The current official ACE-Step 1.5 repository and ACE-Step/Ace-Step1.5 model metadata identify the license as MIT, but generated tracks still require originality review before commercial release. Do not prompt the model to imitate a named artist.
 
 The sample song catalog in this folder contains placeholders only. They are not release-cleared tracks.
 
