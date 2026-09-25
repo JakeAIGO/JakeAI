@@ -18,6 +18,19 @@ from book_edition_shell import list_shells
 
 router = APIRouter()
 
+BOOK_META = {
+    "JAE-TTM-001":{"title":"The Time Machine","author":"H. G. Wells"},
+    "JAE-SH-001":{"title":"The Adventures of Sherlock Holmes","author":"Arthur Conan Doyle"},
+    "JAE-DRAC-001":{"title":"Dracula","author":"Bram Stoker"},
+    "JAE-TI-001":{"title":"Treasure Island","author":"Robert Louis Stevenson"},
+    "JAE-FRANK-001":{"title":"Frankenstein; or, the Modern Prometheus","author":"Mary Wollstonecraft Shelley"},
+    "JAE-ALICE-001":{"title":"Alice’s Adventures in Wonderland","author":"Lewis Carroll"},
+    "JAE-MOBY-001":{"title":"Moby-Dick; or, The Whale","author":"Herman Melville"},
+    "JAE-PRIDE-001":{"title":"Pride and Prejudice","author":"Jane Austen"},
+    "JAE-JANE-001":{"title":"Jane Eyre","author":"Charlotte Brontë"},
+    "JAE-DORIAN-001":{"title":"The Picture of Dorian Gray","author":"Oscar Wilde"},
+}
+
 VISUALS = {
     "JAE-TTM-001": {
         "family": "retro_future",
@@ -210,6 +223,8 @@ def _candidate(job_id, lock, structure, shell_row, review):
     }
     return {
         "job_id":job_id,
+        "title":BOOK_META.get(job_id,{}).get("title",job_id),
+        "author":BOOK_META.get(job_id,{}).get("author",""),
         "visual":visual,
         "narration":{
             **(narration or {}),
@@ -270,6 +285,41 @@ def private_release_batch(request: Request, authorization: Optional[str]=Header(
         "qa_passed":sum(1 for x in rows if x["qa"]["passed"]),
         "approved_internal":sum(1 for x in rows if x["review"]["decision"]=="approve_design"),
         "items":rows,
+    }
+
+@router.get("/api/v1/book-factory/private/release-batch/{job_id}/toc")
+@router.get("/v1/book-factory/private/release-batch/{job_id}/toc")
+def private_toc(job_id:str, request:Request, authorization:Optional[str]=Header(None)):
+    _require_control(authorization,request)
+    locks=list_locks()
+    structures=list_structures()
+    lock=locks.get(job_id)
+    structure=structures.get(job_id)
+    if not lock or not structure or job_id not in BOOK_META:
+        raise HTTPException(404,"Release candidate not ready")
+    mapping=json.loads(structure["mapping_json"])
+    nav=mapping.get("navigation") or []
+    return {
+        "job_id":job_id,
+        "title":BOOK_META[job_id]["title"],
+        "author":BOOK_META[job_id]["author"],
+        "canonical_sha256":lock["canonical_sha256"],
+        "canonical_bytes":lock["canonical_bytes"],
+        "section_count":len(nav),
+        "sections":[
+            {
+                "index":i,
+                "title":item.get("line") or f"Section {i+1}",
+                "subtitle":item.get("subtitle"),
+                "offset":item.get("offset"),
+                "kind":item.get("kind"),
+            }
+            for i,item in enumerate(nav)
+        ],
+        "text_modified":False,
+        "normalization":"none",
+        "public":False,
+        "paid":False,
     }
 
 @router.get("/api/v1/book-factory/private/release-batch/{job_id}/section/{section_index}")
