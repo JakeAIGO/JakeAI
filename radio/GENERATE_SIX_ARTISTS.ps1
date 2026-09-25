@@ -23,18 +23,37 @@ try {
   Write-Host "Public release: NO"
   Write-Host ""
 
-  if (-not (Test-Path $Ace)) {
-    throw "ACE-Step is not installed at $Ace. Run the earlier JakeAI Radio local sampler setup first."
+  New-Item -ItemType Directory -Force -Path (Split-Path -Parent $Ace) | Out-Null
+
+  if (-not (Get-Command git -ErrorAction SilentlyContinue)) {
+    Banner "INSTALLING GIT"
+    if (-not (Get-Command winget -ErrorAction SilentlyContinue)) {
+      throw "Git is missing and Windows Package Manager (winget) is unavailable."
+    }
+    & winget install --exact --id Git.Git --accept-package-agreements --accept-source-agreements
+    if ($LASTEXITCODE -ne 0) { throw "Git installation failed." }
+    $env:Path = "$env:ProgramFiles\Git\cmd;$env:Path"
   }
 
-  $uv = Get-Command uv -ErrorAction SilentlyContinue
-  if (-not $uv) {
-    $candidate = Join-Path $env:USERPROFILE ".local\bin\uv.exe"
-    if (Test-Path $candidate) { $env:Path = (Split-Path $candidate) + ";" + $env:Path }
+  if (-not (Get-Command uv -ErrorAction SilentlyContinue)) {
+    Banner "INSTALLING UV"
+    Invoke-Expression (Invoke-WebRequest -UseBasicParsing https://astral.sh/uv/install.ps1).Content
+    $env:Path = "$env:USERPROFILE\.local\bin;$env:USERPROFILE\.cargo\bin;$env:Path"
   }
   if (-not (Get-Command uv -ErrorAction SilentlyContinue)) {
-    throw "uv is not available. Run the JakeAI Radio sampler setup once first."
+    throw "uv installed but is not visible yet. Close this window and run the batch again."
   }
+
+  if (-not (Test-Path (Join-Path $Ace "pyproject.toml"))) {
+    Banner "DOWNLOADING OFFICIAL ACE-STEP 1.5"
+    & git clone https://github.com/ACE-Step/ACE-Step-1.5.git $Ace
+    if ($LASTEXITCODE -ne 0) { throw "ACE-Step clone failed." }
+  }
+
+  Banner "INSTALLING / VERIFYING ACE-STEP"
+  Set-Location $Ace
+  & uv sync
+  if ($LASTEXITCODE -ne 0) { throw "ACE-Step dependency installation failed." }
 
   New-Item -ItemType Directory -Force -Path $Out | Out-Null
 
