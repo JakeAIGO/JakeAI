@@ -95,6 +95,19 @@ class BreakResult:
     publishable: bool = False
     public_release_approved: bool = False
 
+class BreakGeneratorAdapter:
+    """Optional smarter composition adapter.
+
+    Implementations receive structured context plus recent memory and must return
+    plain DJ copy only. The engine still applies voice restrictions, length
+    limits, repetition checks and release gates after generation.
+    """
+    name = "base"
+
+    def generate(self, context: RadioContext, recent: list[dict[str, Any]]) -> str:
+        raise NotImplementedError
+
+
 class RadioMemory:
     def __init__(self, db_path: str = DEFAULT_DB):
         self.db_path = db_path
@@ -184,7 +197,27 @@ def _choose(rng: random.Random, options: Iterable[str], recent_text: str) -> str
 def _song_line(song: Song) -> str:
     return f"{song.title} by {song.artist}"
 
-def generate_break(ctx: RadioContext, memory: RadioMemory | None = None, seed: int | None = None) -> BreakResult:
+def validate_host_copy(text: str, ctx: RadioContext, recent: list[dict[str, Any]]) -> str:
+    text = _norm(text)
+    lowered = text.lower()
+    forbidden = {
+        "sponsored by", "brought to you by", "buy now", "discount code",
+        "vote for", "election", "campaign for", "president", "senator", "governor",
+        "sexually", "pornographic", "nude",
+        "doing my impression of", "here's my impression of",
+    }
+    if any(term in lowered for term in forbidden):
+        raise ValueError("founder_voice_policy_violation")
+    words = text.split()
+    if len(words) > 72:
+        text = " ".join(words[:72]).rstrip(" ,;:") + "."
+    fp = _fingerprint(text)
+    if any(_fingerprint(r.get("text","")) == fp for r in recent[:80]):
+        raise ValueError("recent_radio_break_repeat")
+    return text
+
+
+def generate_break(ctx: RadioContext, memory: RadioMemory | None = None, seed: int | None = None, adapter: BreakGeneratorAdapter | None = None) -> BreakResult:
     """Generate a fresh, non-repeating JakeAI-style DJ break.
 
     This uses a controlled local phrase-composition layer so it works without an
@@ -275,11 +308,12 @@ def generate_break(ctx: RadioContext, memory: RadioMemory | None = None, seed: i
     pieces.append(_choose(rng, next_intros, recent_joined))
 
     text = " ".join(pieces)
-    # Hard length cap so the host does not become a podcast between every song.
-    words = text.split()
-    if len(words) > 72:
-        text = " ".join(words[:72]).rstrip(" ,;:") + "."
+    if adapter is not None:
+        candidate = adapter.generate(ctx, recent)
+        if candidate and _norm(candidate):
+            text = candidate
 
+    text = validate_host_copy(text, ctx, recent)
     memory_key = _fingerprint(text)
     break_id = hashlib.sha256(
         f"{ctx.station_id}|{ctx.session_id}|{ctx.next_song.id}|{time.time_ns()}|{text}".encode()
