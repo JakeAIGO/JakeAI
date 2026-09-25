@@ -242,7 +242,8 @@ def build_epub(job_id:str,title:str,author:str)->dict:
 def build_all(book_meta:dict):
     for job_id,meta in book_meta.items():
         try:
-            build_epub(job_id,meta["title"],meta["author"])
+            row=build_epub(job_id,meta["title"],meta["author"])
+            print(f"[book-factory] EPUB ready for {job_id}: {row['epub_bytes']} bytes, exact_roundtrip={bool(row['exact_roundtrip_verified'])}",flush=True)
         except Exception as exc:
             print(f"[book-factory] EPUB blocked for {job_id}: {exc}",flush=True)
         time.sleep(0.1)
