@@ -220,10 +220,10 @@ register_book_factory_routes(app)
 from shopify_order_bridge import register_shopify_order_bridge_routes
 register_shopify_order_bridge_routes(app)
 
-app.mount("/", legacy_app)
-
 
 # Private JakeAI Editions owner approval room.
 # Internal review decisions here cannot publish or enable commerce.
 from book_release_batch import register_book_release_batch_routes
 register_book_release_batch_routes(app)
+
+app.mount("/", legacy_app)
