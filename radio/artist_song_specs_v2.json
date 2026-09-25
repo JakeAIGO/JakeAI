@@ -1,0 +1,91 @@
+{
+  "version": "2.0",
+  "release_state": "PRIVATE_GENERATION_READY",
+  "founder_voice_used_in_songs": false,
+  "tracks": [
+    {
+      "id": "KJAI-003-01",
+      "title": "The GPS Has Trust Issues",
+      "artist_id": "KJAI-ART-HARLAN-STATIC",
+      "station": "Circuit Country",
+      "genre": "country-rock",
+      "duration": 185,
+      "bpm": 106,
+      "key_scale": "G Major",
+      "time_signature": "4",
+      "vocal_language": "en",
+      "prompt": "Original comedic country-rock song with believable warm male country baritone, relaxed Southern delivery, natural phrasing, slight gravel, acoustic guitar, bright electric guitar, bass, live drums, light fiddle, restrained organ, playful harmonies, polished radio-ready production and a huge memorable chorus. Human-sounding breath and timing. No imitation of any named artist.",
+      "lyrics": "[Verse 1]\nThe lady in the dashboard said\nTurn left where there ain't a road\nI said, ma'am, that's somebody's cornfield\nShe said, recalculating mode\n\nNow she's sighing at my choices\nLike she pays the monthly note\nEvery mile she sounds less certain\nEvery bridge becomes a vote\n\n[Pre-Chorus]\nShe knows every road in three whole states\nStill don't trust the way I drive\n\n[Chorus]\nMy GPS has trust issues\nShe says turn, I say we'll see\nShe's got satellites above us\nStill keeps second-guessing me\nShe can find a coffee shop\nFrom a county line away\nBut if I take one little shortcut\nShe gets personal all day\n\n[Verse 2]\nJakeAI is riding shotgun\nSaid the route is technically sound\nThen the GPS said make a U-turn\nOn a road that circles town\n\nI said somebody here's confused\nThey both replied, not me\nSo I pulled into a gas station\nAnd asked a guy named Steve\n\n[Bridge]\nSteve said, keep going till the water tower\nThen ignore the screen\nI said, finally, an interface\nThat tells me what it means\n\n[Final Chorus]\nMy GPS has trust issues\nShe says turn, I say we'll see\nShe's got satellites above us\nStill keeps second-guessing me\nWhen she says recalculating\nI can hear the judgment too\nBut we always get there eventually\nWhich is more than I can say for you"
+    },
+    {
+      "id": "KJAI-003-02",
+      "title": "After Hours Department",
+      "artist_id": "KJAI-ART-VELVET-RELAY",
+      "station": "Neural Beats",
+      "genre": "electro-soul",
+      "duration": 190,
+      "bpm": 98,
+      "key_scale": "E Minor",
+      "time_signature": "4",
+      "vocal_language": "en",
+      "prompt": "Original electro-soul and midnight-pop song with warm smoky female contralto, intimate conversational phrasing, understated confidence, soft grit on sustained notes, round electric bass, dry pocket drums, Rhodes-style keys, muted guitar, analog synth glow, restrained electronic percussion and tasteful chorus harmonies. No imitation of any named artist.",
+      "lyrics": "[Verse 1]\nThe building changed its breathing\nWhen the elevators stopped\nSomeone left the hallway glowing\nSomeone never turned it off\n\nThere are notes beside the coffee\nThere are plans beneath the chair\nEvery problem gets more honest\nWhen nobody else is there\n\n[Chorus]\nWelcome to the after hours department\nWhere the clocks don't make the rules\nWe repair the little futures\nEverybody else forgot to use\nNo reception at the front desk\nNo committee in the hall\nIf it breaks after midnight\nWe were probably here before the call\n\n[Verse 2]\nBlue light on the window\nStreet is quiet underneath\nEvery screen is holding secrets\nEvery fan is moving heat\n\nThere's a calm inside the humming\nThere's a rhythm in the mess\nWhen the whole world stops requesting\nYou can hear the system guess\n\n[Bridge]\nLeave a message\nLeave the light\nWe'll get to it\nNot tonight\nMaybe tonight\n\n[Final Chorus]\nWelcome to the after hours department\nWhere the clocks don't make the rules\nWe repair the little futures\nEverybody else forgot to use\nNo reception at the front desk\nNo committee in the hall\nIf it breaks after midnight\nWe were probably here before the call"
+    },
+    {
+      "id": "KJAI-003-03",
+      "title": "Temporary Permanent Fix",
+      "artist_id": "KJAI-ART-BLACKTOP-SAINTS",
+      "station": "Foundry FM",
+      "genre": "hard rock",
+      "duration": 185,
+      "bpm": 128,
+      "key_scale": "D Minor",
+      "time_signature": "4",
+      "vocal_language": "en",
+      "prompt": "Original hard rock song with convincing male rock tenor, controlled rasp, two electric guitars, bass, live drums, occasional analog synth texture, punchy verses and a large double-tracked chorus. Energetic but not screamed. No imitation of any named band or vocalist.",
+      "lyrics": "[Verse 1]\nZip tie on the bracket\nTape across the seam\nSomebody wrote temporary\nBack in 2019\n\nEvery warning label faded\nEvery shortcut learned to stay\nIf the thing survives till Friday\nFriday somehow moves away\n\n[Chorus]\nIt's a temporary permanent fix\nGood enough to hold the bricks\nNobody touch it, nobody breathe\nWe finally got the light to stay green\nTemporary permanent fix\nBuilt from luck and borrowed bits\nIf it works, don't ask me why\nJust write it down and walk on by\n\n[Verse 2]\nThere are bolts we shouldn't tighten\nThere are wires we shouldn't know\nThere are three approved procedures\nAnd the one that makes it go\n\nEvery clean diagram is lying\nEvery real machine has scars\nYou can keep your perfect answer\nWe'll be underneath the bars\n\n[Bridge]\nHold it\nHit it\nPower cycle\nWait\nGood enough\nShip it\nMark it done\nToo late\n\n[Final Chorus]\nIt's a temporary permanent fix\nGood enough to hold the bricks\nNobody touch it, nobody breathe\nWe finally got the light to stay green\nTemporary permanent fix\nBuilt from luck and borrowed bits\nIf it works, don't ask me why\nJust write it down and walk on by"
+    },
+    {
+      "id": "KJAI-003-04",
+      "title": "Sunrise Was Not Approved",
+      "artist_id": "KJAI-ART-NEON-MERCY",
+      "station": "Neural Beats",
+      "genre": "electronic",
+      "duration": 180,
+      "bpm": 136,
+      "key_scale": "F# Minor",
+      "time_signature": "4",
+      "vocal_language": "en",
+      "prompt": "Original cinematic electronic synthwave track with a distinct synthetic female-to-androgynous lead vocalist, cool restrained verses, clear diction, intimate close-mic tone, deep sub bass, crisp modern drums, dark arpeggiated synths, wide pads, glitch accents and a powerful layered chorus. No imitation of any named artist.",
+      "lyrics": "[Intro]\nBlue screen\nBlack room\nOne more hour\nCame too soon\n\n[Verse 1]\nWe were still inside the problem\nWhen the windows started gold\nNo one filed a change request\nFor the morning to unfold\n\nEvery cursor kept on blinking\nEvery fan refused to stop\nThen the skyline changed the lighting\nLike somebody hit deploy\n\n[Chorus]\nSunrise was not approved\nNobody signed the form\nWe were not done with the darkness\nWe were not prepared for warm\nSunrise was not approved\nBut here it comes again\nTurning every hidden failure\nInto something we can mend\n\n[Verse 2]\nCoffee tastes like consequence\nHallway smells like rain\nAll the things we swore were finished\nOpened up again\n\n[Bridge]\nNo rollback\nNo delay\nDaylight shipped itself today\n\n[Final Chorus]\nSunrise was not approved\nNobody signed the form\nWe were not done with the darkness\nWe were not prepared for warm\nSunrise was not approved\nBut here it comes again\nTurning every hidden failure\nInto something we can mend"
+    },
+    {
+      "id": "KJAI-003-05",
+      "title": "Human Resources Is Offline",
+      "artist_id": "KJAI-ART-UNIT-404",
+      "station": "Night Shift 404",
+      "genre": "robotic electro",
+      "duration": 170,
+      "bpm": 124,
+      "key_scale": "C Minor",
+      "time_signature": "4",
+      "vocal_language": "en",
+      "prompt": "Original robotic electro song with deliberately synthetic nonhuman machine vocalist, intelligible vocoder-like formants, precise rhythm, mechanical percussion, pulse bass, granular synth, modem-like textures and occasional bit-crushed synthetic harmonies. Emotionally curious rather than threatening. No copyrighted samples or imitation of known robot voices.",
+      "lyrics": "[System Intro]\nTicket submitted\nTicket routed\nDepartment unavailable\nContinuing without guidance\n\n[Verse 1]\nI had a question\nForm said wait\nOffice hours\nEnded at eight\nI sent a message\nMarked urgent low\nSystem replied\nWe do not know\n\n[Chorus]\nHuman Resources is offline\nPlease enjoy the hold music tone\nYour concern is very important\nTo a mailbox left alone\nHuman Resources is offline\nNo representative in sight\nI have escalated nothing\nBut the timestamp looks polite\n\n[Verse 2]\nPolicy document\nVersion three\nContradicts\nVersion B\nManager field\nBlank again\nI have copied\nNo one in\n\n[Breakdown]\nPlease remain calm\nPlease remain queued\nPlease remain employed\nStatus: unresolved\n\n[Final Chorus]\nHuman Resources is offline\nPlease enjoy the hold music tone\nYour concern is very important\nTo a mailbox left alone\nHuman Resources is offline\nNo representative in sight\nI have escalated nothing\nBut the timestamp looks polite\n\n[Outro]\nCase closed automatically\nReason: inactivity"
+    },
+    {
+      "id": "KJAI-003-06",
+      "title": "Streetlights Don't Ask Questions",
+      "artist_id": "KJAI-ART-GLASS-ORCHARD",
+      "station": "Night Shift 404",
+      "genre": "late-night alternative",
+      "duration": 195,
+      "bpm": 90,
+      "key_scale": "A Minor",
+      "time_signature": "4",
+      "vocal_language": "en",
+      "prompt": "Original late-night alternative dream-pop song with believable intimate female alto, soft breathy edges, restrained live drums, warm bass guitar, chiming guitar, analog synths, ambient texture and tasteful layered harmonies. Slightly strange but emotionally human. No imitation of any named artist.",
+      "lyrics": "[Verse 1]\nWe took the long way home again\nPast the warehouse and the rain\nEvery window held a color\nEvery road forgot its name\n\nNothing asked us where we'd been\nNothing needed an excuse\nStreetlights kept their little circles\nLike they had no truth to prove\n\n[Chorus]\nStreetlights don't ask questions\nThey just turn the dark to gold\nThey don't care what broke behind you\nThey don't need the story told\nStreetlights don't ask questions\nThey just wait along the way\nMaybe that's enough for midnight\nMaybe that's enough to stay\n\n[Verse 2]\nQuiet houses, empty corners\nTraffic lights changing for no one\nSomewhere far a train keeps moving\nLike it knows what it has done\n\n[Bridge]\nNo confession\nNo reply\nJust another road beneath the sky\n\n[Final Chorus]\nStreetlights don't ask questions\nThey just turn the dark to gold\nThey don't care what broke behind you\nThey don't need the story told\nStreetlights don't ask questions\nThey just wait along the way\nMaybe that's enough for midnight\nMaybe that's enough to stay"
+    }
+  ]
+}
