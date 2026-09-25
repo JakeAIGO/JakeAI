@@ -3,8 +3,8 @@
   "title": "The Night Shift Has Opinions",
   "station": "KJAI 404",
   "tagline": "Signal Found",
-  "release_state": "PRIVATE_GENERATION_READY",
-  "public_release": false,
+  "release_state": "APPROVED_FOR_PUBLIC_RELEASE",
+  "public_release": true,
   "founder_voice_used_in_songs": false,
   "founder_voice_role": "DJ/narrator only",
   "program": [
@@ -78,5 +78,7 @@
     "song_dj_overlap_seconds": 0.95,
     "station_sting": "original synthesized JakeAI/KJAI sting",
     "output": "private QA WAV + MP3 + cue sheet + provenance manifest"
-  }
+  },
+  "release_approved_at": "2026-09-25",
+  "release_note": "Human release gate approved after private audition of all six generated tracks."
 }
