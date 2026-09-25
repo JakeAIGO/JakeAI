@@ -116,7 +116,7 @@ def _candidate_headings(data:bytes, source_id:str):
 
         if sid=="35":
             if re.fullmatch(r"[IVXLCDM]{1,8}\.",text): kind="chapter"
-            elif re.fullmatch(r"(?i)epilogue\.?",text): kind="epilogue"
+            elif re.fullmatch(r"(?i:epilogue)\.?",text): kind="epilogue"
         elif sid=="1661":
             if re.fullmatch(r"[IVXLCDM]{1,8}\.\s+.+",text) and text==text.upper():
                 kind="story"
@@ -131,12 +131,12 @@ def _candidate_headings(data:bytes, source_id:str):
         elif sid=="11":
             if re.fullmatch(r"CHAPTER\s+[IVXLCDM]+\.",text): kind="chapter"
         elif sid=="15":
-            if re.fullmatch(r"CHAPTER\s+[IVXLCDM]+\.",text): kind="chapter"
+            if re.fullmatch(r"CHAPTER\s+[IVXLCDM]+\.(?:\s+.*)?",text): kind="chapter"
             elif text=="EPILOGUE.": kind="epilogue"
         elif sid=="1342":
             if re.fullmatch(r"(?:CHAPTER|Chapter)\s+[IVXLCDM]+(?:\.\]?)?",text): kind="chapter"
         elif sid=="1260":
-            if re.fullmatch(r"CHAPTER\s+[IVXLCDM]+",text): kind="chapter"
+            if re.fullmatch(r"CHAPTER\s+[IVXLCDM]+(?:[—-].*)?",text): kind="chapter"
         elif sid=="174":
             if re.fullmatch(r"CHAPTER\s+[IVXLCDM]+\.",text): kind="chapter"
         else:
@@ -153,6 +153,12 @@ def _profiled_navigation(candidates:list[dict], total_bytes:int, source_id:str):
         return []
 
     # Known duplicate-TOC profiles: select the real body reset.
+    if sid=="35":
+        starts=[i for i,x in enumerate(candidates) if x["line"]=="I."]
+        return candidates[starts[-1]:] if starts else candidates
+    if sid=="84":
+        starts=[i for i,x in enumerate(candidates) if x["line"]=="Letter 1"]
+        return candidates[starts[-1]:] if starts else candidates
     if sid=="174":
         starts=[i for i,x in enumerate(candidates) if x["line"]=="CHAPTER I."]
         return candidates[starts[-1]:] if starts else candidates
