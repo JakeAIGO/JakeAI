@@ -30,18 +30,27 @@ try {
     if (-not (Get-Command winget -ErrorAction SilentlyContinue)) {
       throw "Git is missing and Windows Package Manager (winget) is unavailable."
     }
-    & winget install --exact --id Git.Git --accept-package-agreements --accept-source-agreements
-    if ($LASTEXITCODE -ne 0) { throw "Git installation failed." }
+    $gitInstallOutput = & winget install --exact --id Git.Git --accept-package-agreements --accept-source-agreements 2>&1
+    $gitExit = $LASTEXITCODE
+    $gitInstallOutput | ForEach-Object { Write-Host $_ }
+    if ($gitExit -ne 0) { throw "Git installation failed." }
     $env:Path = "$env:ProgramFiles\Git\cmd;$env:Path"
   }
 
-  if (-not (Get-Command uv -ErrorAction SilentlyContinue)) {
-    Banner "INSTALLING UV"
-    Invoke-Expression (Invoke-WebRequest -UseBasicParsing https://astral.sh/uv/install.ps1).Content
-    $env:Path = "$env:USERPROFILE\.local\bin;$env:USERPROFILE\.cargo\bin;$env:Path"
+  $uvExe = (Get-Command uv -ErrorAction SilentlyContinue).Source
+  if (-not $uvExe) {
+    Banner "INSTALLING UV WITH WINDOWS PACKAGE MANAGER"
+    $uvInstallOutput = & winget install --id=astral-sh.uv -e --accept-package-agreements --accept-source-agreements 2>&1
+    $uvExit = $LASTEXITCODE
+    $uvInstallOutput | ForEach-Object { Write-Host $_ }
+    if ($uvExit -ne 0) { throw "uv installation failed." }
+    $uvExe = (Get-Command uv -ErrorAction SilentlyContinue).Source
+    if (-not $uvExe) {
+      $uvExe = Join-Path $env:LOCALAPPDATA "Microsoft\WinGet\Links\uv.exe"
+    }
   }
-  if (-not (Get-Command uv -ErrorAction SilentlyContinue)) {
-    throw "uv installed but is not visible yet. Close this window and run the batch again."
+  if (-not (Test-Path $uvExe)) {
+    throw "uv installed but could not be resolved. Close this window and run the batch again."
   }
 
   if (-not (Test-Path (Join-Path $Ace "pyproject.toml"))) {
@@ -52,7 +61,7 @@ try {
 
   Banner "INSTALLING / VERIFYING ACE-STEP"
   Set-Location $Ace
-  & uv sync
+  & $uvExe sync
   if ($LASTEXITCODE -ne 0) { throw "ACE-Step dependency installation failed." }
 
   New-Item -ItemType Directory -Force -Path $Out | Out-Null
@@ -65,7 +74,7 @@ try {
   } catch {}
 
   if (-not $health) {
-    Start-Process -FilePath "cmd.exe" -ArgumentList "/k", "cd /d `"$Ace`" && set ACESTEP_INIT_LLM=false && uv run acestep-api --host 127.0.0.1 --port 8001"
+    Start-Process -FilePath "cmd.exe" -ArgumentList "/k", "cd /d `"$Ace`" && set ACESTEP_INIT_LLM=false && `"$uvExe`" run acestep-api --host 127.0.0.1 --port 8001"
     Write-Host "Waiting for the local music engine..."
     for ($i=0; $i -lt 180; $i++) {
       Start-Sleep -Seconds 5
