@@ -145,6 +145,16 @@ def _now():
 def _sha(data: bytes) -> str:
     return hashlib.sha256(data).hexdigest()
 
+def _valid_image_bytes(data: bytes, filename: str) -> bool:
+    if len(data) < 64:
+        return False
+    name = filename.lower()
+    if name.endswith(".png"):
+        return data.startswith(b"\x89PNG\r\n\x1a\n")
+    if name.endswith(".webp"):
+        return len(data) >= 12 and data[:4] == b"RIFF" and data[8:12] == b"WEBP"
+    return True
+
 def _manifest():
     if LEGACY_MANIFEST.exists():
         try:
@@ -164,7 +174,7 @@ def _download_one(asset_id: str, spec: dict):
     dest = LEGACY_DIR / spec["filename"]
     m = _manifest()
     existing = m["assets"].get(asset_id) or {}
-    if dest.exists() and dest.stat().st_size > 1024:
+    if dest.exists() and dest.stat().st_size >= 64:
         data = dest.read_bytes()
         digest = _sha(data)
         if existing.get("sha256") in {None, digest}:
@@ -191,8 +201,8 @@ def _download_one(asset_id: str, spec: dict):
     with urllib.request.urlopen(req, timeout=45) as r:
         data = r.read()
         content_type = r.headers.get("Content-Type") or mimetypes.guess_type(spec["filename"])[0]
-    if len(data) < 1024:
-        raise RuntimeError(f"legacy asset too small: {asset_id}")
+    if not _valid_image_bytes(data, spec["filename"]):
+        raise RuntimeError(f"legacy asset failed image validation: {asset_id}")
     tmp = dest.with_suffix(dest.suffix + ".tmp")
     tmp.write_bytes(data)
     tmp.replace(dest)
@@ -266,7 +276,7 @@ def media_asset(asset_id: str):
         raise HTTPException(404, "Unknown JakeAI media asset")
     spec = LEGACY_ASSETS[asset_id]
     dest = LEGACY_DIR / spec["filename"]
-    if not dest.exists() or dest.stat().st_size < 1024:
+    if not dest.exists() or dest.stat().st_size < 64:
         raise HTTPException(503, "JakeAI media asset is still migrating")
     media_type = mimetypes.guess_type(spec["filename"])[0] or "application/octet-stream"
     return FileResponse(
