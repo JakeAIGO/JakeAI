@@ -231,4 +231,9 @@ register_book_release_batch_routes(app)
 from radio_engine import register_radio_routes
 register_radio_routes(app)
 
+# JakeAI-owned local-first media router. Hosted media services are optional
+# adapters only; legacy hosted assets are copied into persistent JakeAI storage.
+from jakeai_media_gateway import register_media_gateway
+register_media_gateway(app)
+
 app.mount("/", legacy_app)
