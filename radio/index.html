@@ -24,6 +24,26 @@ h2{font-size:58px;line-height:.92;letter-spacing:-.04em;margin:27px 0 10px}.sub{
 .statusbox{margin-top:17px;border:1px solid #2a4558;border-radius:13px;padding:13px;background:#09131b;font:12px/1.55 ui-monospace,monospace;color:#a9bfcd}.good{color:var(--green)}
 footer{margin-top:18px;color:#708797;font-size:11px;display:flex;justify-content:space-between;gap:12px;flex-wrap:wrap}a{color:#b9efff}
 @media(max-width:800px){.hero{grid-template-columns:1fr}h2{font-size:48px}.main{min-height:auto;padding:23px}.side{padding:19px}header{align-items:flex-start}}
+
+/* KJAI MOBILE TOUCH FIX */
+.controls{
+  position:relative !important;
+  z-index:100 !important;
+  pointer-events:auto !important;
+}
+.controls button,
+#play,
+#live,
+#restart{
+  position:relative !important;
+  z-index:101 !important;
+  pointer-events:auto !important;
+  touch-action:manipulation !important;
+  -webkit-tap-highlight-color:transparent !important;
+  user-select:none;
+  -webkit-user-select:none;
+  min-height:48px;
+}
 </style></head>
 <body><div class="wrap">
 <header><div class="brand"><div class="mark">J</div><div><h1>KJAI · JakeAI Radio</h1><small>BUILT AFTER HOURS</small></div></div><div class="livebadge">PUBLIC BETA · 2 BROADCASTS</div></header>
@@ -74,8 +94,85 @@ a.addEventListener('error',()=>state('AUDIO OFFLINE · MEDIA SOURCE NEEDS RESTOR
 a.addEventListener('timeupdate',()=>{c.textContent=f(a.currentTime);b.style.width=((a.currentTime/(a.duration||1))*100)+'%';now()});
 a.addEventListener('play',()=>p.textContent='Ⅱ PAUSE');a.addEventListener('pause',()=>p.textContent='▶ JOIN LIVE');
 a.addEventListener('ended',()=>{if(lm){sync();a.play().catch(()=>{})}else{a.currentTime=0;a.play().catch(()=>{})}});
-p.onclick=async()=>{if(a.paused){if(lm)sync();state('STARTING KJAI…');try{await a.play()}catch(e){state('PLAYBACK COULD NOT START · RETRY AFTER AUDIO RESTORE',true)}}else a.pause()};
-l.onclick=()=>{lm=!lm;l.classList.toggle('on',lm);l.textContent=lm?'● LIVE SYNC':'○ LIVE SYNC OFF';if(lm)sync()};
-r.onclick=()=>{lm=false;l.classList.remove('on');l.textContent='○ LIVE SYNC OFF';a.currentTime=0;a.play().catch(()=>{})};
+let kjaiLastPointer=0;
+
+async function kjaiPlay(e){
+  if(e){
+    e.preventDefault();
+    e.stopPropagation();
+  }
+
+  if(!a.paused){
+    a.pause();
+    return;
+  }
+
+  state('STARTING KJAI…');
+
+  try{
+    if(lm && a.readyState >= 1) sync();
+    await a.play();
+    state('ON AIR · PLAYING');
+  }catch(err){
+    console.error('KJAI PLAYBACK ERROR',err);
+    state('PLAYBACK BLOCKED · TAP JOIN LIVE AGAIN',true);
+  }
+}
+
+function kjaiLive(e){
+  if(e){
+    e.preventDefault();
+    e.stopPropagation();
+  }
+
+  lm=!lm;
+  l.classList.toggle('on',lm);
+  l.textContent=lm?'● LIVE SYNC':'○ LIVE SYNC OFF';
+
+  if(lm && a.readyState >= 1) sync();
+}
+
+async function kjaiRestart(e){
+  if(e){
+    e.preventDefault();
+    e.stopPropagation();
+  }
+
+  lm=false;
+  l.classList.remove('on');
+  l.textContent='○ LIVE SYNC OFF';
+
+  try{
+    a.currentTime=0;
+    await a.play();
+    state('ON AIR · PLAYING');
+  }catch(err){
+    console.error('KJAI RESTART ERROR',err);
+    state('PLAYBACK BLOCKED · TAP JOIN LIVE AGAIN',true);
+  }
+}
+
+function kjaiBind(el,handler){
+  if(window.PointerEvent){
+    el.addEventListener('pointerup',function(e){
+      kjaiLastPointer=Date.now();
+      handler(e);
+    },{passive:false});
+  }else{
+    el.addEventListener('touchend',function(e){
+      kjaiLastPointer=Date.now();
+      handler(e);
+    },{passive:false});
+  }
+
+  el.addEventListener('click',function(e){
+    if(Date.now()-kjaiLastPointer < 500) return;
+    handler(e);
+  });
+}
+
+kjaiBind(p,kjaiPlay);
+kjaiBind(l,kjaiLive);
+kjaiBind(r,kjaiRestart);
 setInterval(()=>{if(lm&&!a.paused)sync()},15000);
 </script></body></html>
