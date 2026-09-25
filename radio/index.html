@@ -2,16 +2,74 @@
 <html lang="en">
 <head>
 <meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
-<title>KJAI — JakeAI Radio</title><meta name="description" content="KJAI JakeAI Radio — original music, DJ continuity, and experimental broadcasts built by JakeAI."><meta name="theme-color" content="#070b11">
+<title>KJAI — JakeAI Radio</title>
+<meta name="description" content="KJAI JakeAI Radio — original music, DJ continuity, and experimental broadcasts built by JakeAI.">
+<meta name="theme-color" content="#070b11">
 <style>
-:root{--bg:#070b11;--panel:#0c141d;--line:#213344;--text:#ecf5fa;--muted:#8ea5b5;--cyan:#54ddff;--gold:#ffc857;--red:#ff546d;--green:#5cf2a5}*{box-sizing:border-box}html,body{margin:0;min-height:100%;background:radial-gradient(circle at 50% 0,#152434 0,#070b11 46%,#030609 100%);color:var(--text);font-family:Inter,ui-sans-serif,system-ui,-apple-system,Segoe UI,Arial,sans-serif}body:before{content:"";position:fixed;inset:0;pointer-events:none;opacity:.12;background:repeating-linear-gradient(0deg,transparent 0 3px,#fff 4px)}.wrap{max-width:1040px;margin:auto;padding:22px 18px 60px}header{display:flex;justify-content:space-between;align-items:center;gap:14px;margin-bottom:22px}.brand{display:flex;align-items:center;gap:12px}.mark{width:48px;height:48px;border-radius:50%;border:2px solid var(--cyan);display:grid;place-items:center;box-shadow:0 0 28px #54ddff55;font-weight:900;font-size:25px}.brand h1{margin:0;font-size:23px;letter-spacing:.02em}.brand small{color:var(--muted);letter-spacing:.18em}.livebadge{font-size:11px;padding:8px 10px;border:1px solid #344e42;color:#b8ffd8;border-radius:999px;background:#0a2016}.hero{display:grid;grid-template-columns:1.2fr .8fr;gap:18px}.card{background:linear-gradient(180deg,#101b26dd,#09121add);border:1px solid var(--line);border-radius:20px;box-shadow:0 24px 90px #0007}.main{padding:28px;min-height:420px;position:relative;overflow:hidden}.main:after{content:"KJAI";position:absolute;right:-20px;bottom:-48px;font-size:180px;font-weight:950;letter-spacing:-.08em;color:#ffffff05}.onair{display:flex;align-items:center;gap:9px;color:#ffd7dd;font-size:12px;font-weight:800;letter-spacing:.16em}.dot{width:10px;height:10px;background:var(--red);border-radius:50%;box-shadow:0 0 0 0 #ff546d80;animation:pulse 1.4s infinite}@keyframes pulse{70%{box-shadow:0 0 0 12px transparent}}h2{font-size:58px;line-height:.92;letter-spacing:-.04em;margin:27px 0 10px}.sub{color:#b5cad6;max-width:570px;line-height:1.6}.now{margin-top:30px;padding:16px;border:1px solid #274054;border-radius:14px;background:#071019}.label{font-size:10px;color:var(--cyan);letter-spacing:.18em;font-weight:850}.track{font-size:21px;font-weight:800;margin-top:5px}.artist{color:#93aabb;margin-top:3px}.controls{display:flex;gap:10px;align-items:center;margin-top:20px;flex-wrap:wrap}.play{border:0;border-radius:999px;background:var(--gold);color:#111;font-weight:900;padding:13px 19px;cursor:pointer}.ghost{border:1px solid #385267;border-radius:999px;background:#0a141d;color:#dcebf3;padding:12px 15px;cursor:pointer}.ghost.on{border-color:var(--cyan);color:#baf3ff}.progress{margin-top:15px;height:7px;border-radius:8px;background:#172633;overflow:hidden}.progress i{display:block;height:100%;width:0;background:linear-gradient(90deg,var(--cyan),var(--gold))}.times{display:flex;justify-content:space-between;color:#70899b;font:11px ui-monospace,monospace;margin-top:7px}.side{padding:22px}.side h3{margin:0 0 14px}.item{padding:13px 0;border-top:1px solid #1e3140}.item:first-of-type{border-top:0}.item b{display:block}.item span{font-size:12px;color:#829bac}.statusbox{margin-top:17px;border:1px solid #2a4558;border-radius:13px;padding:13px;background:#09131b;font:12px/1.55 ui-monospace,monospace;color:#a9bfcd}.good{color:var(--green)}footer{margin-top:18px;color:#708797;font-size:11px;display:flex;justify-content:space-between;gap:12px;flex-wrap:wrap}a{color:#b9efff}@media(max-width:800px){.hero{grid-template-columns:1fr}h2{font-size:48px}.main{min-height:auto;padding:23px}.side{padding:19px}header{align-items:flex-start}}
+:root{--bg:#070b11;--panel:#0c141d;--line:#213344;--text:#ecf5fa;--muted:#8ea5b5;--cyan:#54ddff;--gold:#ffc857;--red:#ff546d;--green:#5cf2a5}
+*{box-sizing:border-box}html,body{margin:0;min-height:100%;background:radial-gradient(circle at 50% 0,#152434 0,#070b11 46%,#030609 100%);color:var(--text);font-family:Inter,ui-sans-serif,system-ui,-apple-system,Segoe UI,Arial,sans-serif}
+body:before{content:"";position:fixed;inset:0;pointer-events:none;opacity:.12;background:repeating-linear-gradient(0deg,transparent 0 3px,#fff 4px)}
+.wrap{max-width:1100px;margin:auto;padding:22px 18px 60px}
+header{display:flex;justify-content:space-between;align-items:center;gap:14px;margin-bottom:22px}
+.brand{display:flex;align-items:center;gap:12px}.mark{width:48px;height:48px;border-radius:50%;border:2px solid var(--cyan);display:grid;place-items:center;box-shadow:0 0 28px #54ddff55;font-weight:900;font-size:25px}
+.brand h1{margin:0;font-size:23px}.brand small{color:var(--muted);letter-spacing:.18em}.livebadge{font-size:11px;padding:8px 10px;border:1px solid #344e42;color:#b8ffd8;border-radius:999px;background:#0a2016}
+.hero{display:grid;grid-template-columns:1.15fr .85fr;gap:18px}.card{background:linear-gradient(180deg,#101b26dd,#09121add);border:1px solid var(--line);border-radius:20px;box-shadow:0 24px 90px #0007}
+.main{padding:28px;min-height:430px;position:relative;overflow:hidden}.main:after{content:"KJAI";position:absolute;right:-20px;bottom:-48px;font-size:180px;font-weight:950;letter-spacing:-.08em;color:#ffffff05}
+.onair{display:flex;align-items:center;gap:9px;color:#ffd7dd;font-size:12px;font-weight:800;letter-spacing:.16em}.dot{width:10px;height:10px;background:var(--red);border-radius:50%;box-shadow:0 0 0 0 #ff546d80;animation:pulse 1.4s infinite}@keyframes pulse{70%{box-shadow:0 0 0 12px transparent}}
+h2{font-size:58px;line-height:.92;letter-spacing:-.04em;margin:27px 0 10px}.sub{color:#b5cad6;max-width:620px;line-height:1.6}
+.now{margin-top:28px;padding:16px;border:1px solid #274054;border-radius:14px;background:#071019}.label{font-size:10px;color:var(--cyan);letter-spacing:.18em;font-weight:850}.track{font-size:21px;font-weight:800;margin-top:5px}.artist{color:#93aabb;margin-top:3px}
+.controls{display:flex;gap:10px;align-items:center;margin-top:20px;flex-wrap:wrap}.play{border:0;border-radius:999px;background:var(--gold);color:#111;font-weight:900;padding:13px 19px;cursor:pointer}.ghost{border:1px solid #385267;border-radius:999px;background:#0a141d;color:#dcebf3;padding:12px 15px;cursor:pointer}.ghost.on{border-color:var(--cyan);color:#baf3ff}
+.progress{margin-top:15px;height:7px;border-radius:8px;background:#172633;overflow:hidden}.progress i{display:block;height:100%;width:0;background:linear-gradient(90deg,var(--cyan),var(--gold))}.times{display:flex;justify-content:space-between;color:#70899b;font:11px ui-monospace,monospace;margin-top:7px}
+.side{padding:22px;max-height:660px;overflow:auto}.side h3{margin:0 0 14px}.section{font-size:10px;color:var(--gold);letter-spacing:.16em;font-weight:900;margin-top:12px;padding-top:10px;border-top:1px solid #1e3140}.item{padding:10px 0;border-top:1px solid #172a38}.item:first-of-type{border-top:0}.item b{display:block}.item span{font-size:12px;color:#829bac}
+.statusbox{margin-top:17px;border:1px solid #2a4558;border-radius:13px;padding:13px;background:#09131b;font:12px/1.55 ui-monospace,monospace;color:#a9bfcd}.good{color:var(--green)}
+footer{margin-top:18px;color:#708797;font-size:11px;display:flex;justify-content:space-between;gap:12px;flex-wrap:wrap}a{color:#b9efff}
+@media(max-width:800px){.hero{grid-template-columns:1fr}h2{font-size:48px}.main{min-height:auto;padding:23px}.side{padding:19px}header{align-items:flex-start}}
 </style></head>
-<body><div class="wrap"><header><div class="brand"><div class="mark">J</div><div><h1>KJAI · JakeAI Radio</h1><small>BUILT AFTER HOURS</small></div></div><div class="livebadge">PUBLIC BETA · LIVE LOOP</div></header>
-<div class="hero"><section class="card main"><div class="onair"><span class="dot"></span> ON AIR</div><h2>One signal.<br>Several bad ideas.</h2><div class="sub">Original fictional performers, station production and DJ continuity from the JakeAI Media Engine. Broadcast 002 is the first public KJAI loop.</div>
-<div class="now"><div class="label">NOW PLAYING</div><div class="track">KJAI Broadcast 002</div><div class="artist">Producer Mix v2 · 18:54</div><div class="progress"><i id="bar"></i></div><div class="times"><span id="cur">00:00</span><span id="dur">18:54</span></div></div>
-<div class="controls"><button class="play" id="play">▶ JOIN LIVE</button><button class="ghost on" id="live">● LIVE SYNC</button><button class="ghost" id="restart">↺ FROM START</button></div><audio id="audio" preload="metadata" loop src="./KJAI_Broadcast_002_QA.mp3"></audio></section>
-<aside class="card side"><h3>Broadcast 002</h3><div class="item"><b>Harlan Static</b><span>My Truck Has Better Wi-Fi Than You</span></div><div class="item"><b>Neon Mercy</b><span>Build While They Sleep</span></div><div class="item"><b>Blacktop Saints</b><span>Still Building</span></div><div class="item"><b>JakeAI House Instrumental</b><span>Parking Lot Astronomy</span></div><div class="item"><b>UNIT-404</b><span>Permission Denied (Proceeding Anyway)</span></div><div class="item"><b>Glass Orchard</b><span>No Signal After Midnight</span></div><div class="statusbox"><span class="good">PLAYER: ONLINE</span><br>MODE: wall-clock synchronized loop<br>AUDIO: continuous public broadcast<br>MASTER: archived at full quality<br>STATION: KJAI / JakeAI</div></aside></div>
-<footer><span>© JakeAI · KJAI Radio</span><span><a href="/">Back to JakeAI Universe</a></span></footer></div>
+<body><div class="wrap">
+<header><div class="brand"><div class="mark">J</div><div><h1>KJAI · JakeAI Radio</h1><small>BUILT AFTER HOURS</small></div></div><div class="livebadge">PUBLIC BETA · 2 BROADCASTS</div></header>
+<div class="hero">
+<section class="card main">
+<div class="onair"><span class="dot"></span> ON AIR</div>
+<h2>One signal.<br>More bad ideas.</h2>
+<div class="sub">KJAI now rotates Broadcast 002 and the newly approved Broadcast 003 — twelve original songs, recurring fictional performers, station IDs and JakeAI DJ continuity.</div>
+<div class="now"><div class="label">NOW ON KJAI</div><div class="track" id="track">KJAI Radio Rotation</div><div class="artist" id="artist">Broadcasts 002 + 003</div><div class="progress"><i id="bar"></i></div><div class="times"><span id="cur">00:00</span><span id="dur">--:--</span></div></div>
+<div class="controls"><button class="play" id="play">▶ JOIN LIVE</button><button class="ghost on" id="live">● LIVE SYNC</button><button class="ghost" id="restart">↺ FROM START</button></div>
+<audio id="audio" preload="metadata" loop src="./KJAI_Radio_Rotation_002_003.mp3"></audio>
+</section>
+<aside class="card side">
+<h3>KJAI Rotation</h3>
+<div class="section">Broadcast 002</div>
+<div class="item"><b>Harlan Static</b><span>My Truck Has Better Wi-Fi Than You</span></div>
+<div class="item"><b>Neon Mercy</b><span>Build While They Sleep</span></div>
+<div class="item"><b>Blacktop Saints</b><span>Still Building</span></div>
+<div class="item"><b>JakeAI House Instrumental</b><span>Parking Lot Astronomy</span></div>
+<div class="item"><b>UNIT-404</b><span>Permission Denied (Proceeding Anyway)</span></div>
+<div class="item"><b>Glass Orchard</b><span>No Signal After Midnight</span></div>
+<div class="section">Broadcast 003 · The Night Shift Has Opinions</div>
+<div class="item"><b>Harlan Static</b><span>The GPS Has Trust Issues</span></div>
+<div class="item"><b>Velvet Relay</b><span>After Hours Department</span></div>
+<div class="item"><b>Blacktop Saints</b><span>Temporary Permanent Fix</span></div>
+<div class="item"><b>Neon Mercy</b><span>Sunrise Was Not Approved</span></div>
+<div class="item"><b>UNIT-404</b><span>Human Resources Is Offline</span></div>
+<div class="item"><b>Glass Orchard</b><span>Streetlights Don't Ask Questions</span></div>
+<div class="statusbox"><span class="good">PLAYER: ONLINE</span><br>MODE: wall-clock synchronized rotation<br>AUDIO: continuous public broadcast<br>PROGRAMS: 002 + 003<br>STATION: KJAI / JakeAI</div>
+</aside>
+</div>
+<footer><span>© JakeAI · KJAI Radio</span><span><a href="/">Back to JakeAI Universe</a></span></footer>
+</div>
 <script>
-const a=document.getElementById('audio'),p=document.getElementById('play'),l=document.getElementById('live'),r=document.getElementById('restart'),b=document.getElementById('bar'),c=document.getElementById('cur'),d=document.getElementById('dur');let lm=true;const f=s=>{if(!isFinite(s))return'--:--';s=Math.max(0,Math.floor(s));return String(Math.floor(s/60)).padStart(2,'0')+':'+String(s%60).padStart(2,'0')};function sync(){if(!a.duration)return;const t=(Date.now()/1000)%a.duration;if(Math.abs(a.currentTime-t)>2)a.currentTime=t}a.addEventListener('loadedmetadata',()=>{d.textContent=f(a.duration);if(lm)sync()});a.addEventListener('timeupdate',()=>{c.textContent=f(a.currentTime);b.style.width=((a.currentTime/(a.duration||1))*100)+'%'});a.addEventListener('play',()=>p.textContent='Ⅱ PAUSE');a.addEventListener('pause',()=>p.textContent='▶ JOIN LIVE');a.addEventListener('ended',()=>{if(lm){sync();a.play().catch(()=>{})}else{a.currentTime=0;a.play().catch(()=>{})}});p.onclick=async()=>{if(a.paused){if(lm)sync();try{await a.play()}catch(e){}}else a.pause()};l.onclick=()=>{lm=!lm;l.classList.toggle('on',lm);l.textContent=lm?'● LIVE SYNC':'○ LIVE SYNC OFF';if(lm)sync()};r.onclick=()=>{lm=false;l.classList.remove('on');l.textContent='○ LIVE SYNC OFF';a.currentTime=0;a.play().catch(()=>{})};setInterval(()=>{if(lm&&!a.paused)sync()},15000);
+const a=document.getElementById('audio'),p=document.getElementById('play'),l=document.getElementById('live'),r=document.getElementById('restart'),b=document.getElementById('bar'),c=document.getElementById('cur'),d=document.getElementById('dur'),t=document.getElementById('track'),ar=document.getElementById('artist');
+let lm=true,cues=[];
+const f=s=>{if(!isFinite(s))return'--:--';s=Math.max(0,Math.floor(s));return String(Math.floor(s/60)).padStart(2,'0')+':'+String(s%60).padStart(2,'0')};
+function sync(){if(!a.duration)return;const x=(Date.now()/1000)%a.duration;if(Math.abs(a.currentTime-x)>2)a.currentTime=x}
+function now(){if(!cues.length)return;const x=a.currentTime||0;let q=cues[0];for(const row of cues){if(x>=row.start_seconds)q=row;else break}t.textContent=q.title||q.label||'KJAI Radio';ar.textContent=q.artist||q.program||'KJAI'}
+fetch('./rotation.json',{cache:'no-store'}).then(x=>x.ok?x.json():null).then(x=>{if(x&&Array.isArray(x.cues))cues=x.cues}).catch(()=>{});
+a.addEventListener('loadedmetadata',()=>{d.textContent=f(a.duration);if(lm)sync();now()});
+a.addEventListener('timeupdate',()=>{c.textContent=f(a.currentTime);b.style.width=((a.currentTime/(a.duration||1))*100)+'%';now()});
+a.addEventListener('play',()=>p.textContent='Ⅱ PAUSE');a.addEventListener('pause',()=>p.textContent='▶ JOIN LIVE');
+a.addEventListener('ended',()=>{if(lm){sync();a.play().catch(()=>{})}else{a.currentTime=0;a.play().catch(()=>{})}});
+p.onclick=async()=>{if(a.paused){if(lm)sync();try{await a.play()}catch(e){}}else a.pause()};
+l.onclick=()=>{lm=!lm;l.classList.toggle('on',lm);l.textContent=lm?'● LIVE SYNC':'○ LIVE SYNC OFF';if(lm)sync()};
+r.onclick=()=>{lm=false;l.classList.remove('on');l.textContent='○ LIVE SYNC OFF';a.currentTime=0;a.play().catch(()=>{})};
+setInterval(()=>{if(lm&&!a.paused)sync()},15000);
 </script></body></html>
