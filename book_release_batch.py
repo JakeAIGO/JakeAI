@@ -9,12 +9,14 @@ from pathlib import Path
 from typing import Optional
 
 from fastapi import APIRouter, Header, HTTPException, Request
+from fastapi.responses import FileResponse
 from pydantic import BaseModel
 
 from mission_dispatcher import _require_control
 from book_source_lock import list_locks
 from book_structure_map import list_structures
 from book_edition_shell import list_shells
+from book_epub_packager import get_build, public_build, start_epub_builder
 
 router = APIRouter()
 
@@ -234,6 +236,7 @@ def _candidate(job_id, lock, structure, shell_row, review):
             "celebrity_imitation":False,
             "pronunciation_policy":"Pronunciation metadata may guide performance but never replace, omit, add, or rewrite source words.",
         },
+        "epub":public_build(get_build(job_id)),
         "reader":{
             "mode":"private release-candidate preview",
             "chapter_navigation":True,
@@ -288,6 +291,32 @@ def private_release_batch(request: Request, authorization: Optional[str]=Header(
         "items":rows,
     }
 
+@router.get("/api/v1/book-factory/private/release-batch/{job_id}/epub")
+@router.get("/v1/book-factory/private/release-batch/{job_id}/epub")
+def private_epub_status(job_id:str, request:Request, authorization:Optional[str]=Header(None)):
+    _require_control(authorization,request)
+    if job_id not in BOOK_META:
+        raise HTTPException(404,"Unknown release candidate")
+    return public_build(get_build(job_id))
+
+@router.get("/api/v1/book-factory/private/release-batch/{job_id}/epub/download")
+@router.get("/v1/book-factory/private/release-batch/{job_id}/epub/download")
+def private_epub_download(job_id:str, request:Request, authorization:Optional[str]=Header(None)):
+    _require_control(authorization,request)
+    if job_id not in BOOK_META:
+        raise HTTPException(404,"Unknown release candidate")
+    row=get_build(job_id)
+    if not row or row.get("status")!="ready" or not row.get("exact_roundtrip_verified"):
+        raise HTTPException(409,"EPUB release candidate is not ready")
+    path=Path(row["epub_path"])
+    if not path.exists():
+        raise HTTPException(409,"EPUB artifact is missing")
+    data=path.read_bytes()
+    if hashlib.sha256(data).hexdigest()!=row["epub_sha256"]:
+        raise HTTPException(409,"EPUB artifact hash mismatch")
+    filename=job_id.lower()+".epub"
+    return FileResponse(path=str(path),media_type="application/epub+zip",filename=filename)
+
 @router.get("/api/v1/book-factory/private/release-batch/{job_id}/passport")
 @router.get("/v1/book-factory/private/release-batch/{job_id}/passport")
 def private_passport(job_id:str, request:Request, authorization:Optional[str]=Header(None)):
@@ -339,6 +368,7 @@ def private_passport(job_id:str, request:Request, authorization:Optional[str]=He
         },
         "production":{
             "visual":candidate["visual"],
+            "epub":candidate["epub"],
             "narration":candidate["narration"],
             "reader":candidate["reader"],
             "qa":candidate["qa"],
@@ -459,4 +489,5 @@ def review_candidate(job_id:str, body:ReviewRequest, request:Request, authorizat
 
 def register_book_release_batch_routes(app):
     _conn().close()
+    start_epub_builder(BOOK_META)
     app.include_router(router)
