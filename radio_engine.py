@@ -1,11 +1,13 @@
-"""JakeAI Dynamic Radio — private development engine.
+"""JakeAI Dynamic Radio Engine.
 
-Generates non-repeating DJ breaks for original JakeAI stations. Text generation is
-local/combinatorial by default so a station does not incur a model charge on every
-break. Optional AI punch-up is fail-closed behind RADIO_AI_PUNCHUP_ENABLED.
+KJAI 404 — Signal Found
 
-No audio generation happens here. The resulting host script is intended for the
-private/self-hosted JakeAI Original AI Narration voice renderer.
+Creates fresh, contextual DJ breaks between songs while preserving strict voice-use
+boundaries. It is designed to pair with the local JakeAI Original AI Narration
+voice and locally generated/original music.
+
+This module does NOT generate or publish audio by itself. It produces approved
+spoken copy + metadata for the local narrator/mixer layer.
 """
 from __future__ import annotations
 
@@ -13,398 +15,319 @@ import hashlib
 import json
 import os
 import random
-import re
 import sqlite3
 import time
-from datetime import datetime, timezone
-from typing import Optional
+from dataclasses import dataclass, asdict
+from pathlib import Path
+from typing import Any, Iterable
 
-from fastapi import APIRouter, Header, HTTPException, Request
-from pydantic import BaseModel, Field
+DEFAULT_DB = "/data/jakeai-radio.db" if os.path.isdir("/data") else "/tmp/jakeai-radio.db"
 
-from mission_dispatcher import _require_control
-
-router = APIRouter()
-_rng = random.SystemRandom()
-
-HOST = {
-    "name": "JakeAI Original Radio",
-    "voice": "JakeAI Original AI Narration",
-    "style": [
-        "dry and conversational",
-        "calm storyteller",
-        "mischievous but not mean",
-        "underplayed rather than punchline-heavy",
-        "specific observations beat generic jokes",
-        "occasionally absurd; never random word salad",
-        "comfortable with silence and short sentences",
-    ],
-    "never": [
-        "sexual material",
-        "political advocacy or political commentary",
-        "advertisements or sponsor reads",
-        "impersonation of a real person",
-        "celebrity voice imitation",
-        "copyrighted song lyrics",
-        "slurs or targeted harassment",
-        "claims that fictional events are real-world news",
-    ],
-    "credit": "JakeAI Original AI Radio Host",
+VOICE_BANNED_TOPICS = {
+    "advertising",
+    "political",
+    "sexual",
+    "impersonation",
 }
 
-STATIONS = {
-    "jakeai_original": {
-        "name": "JakeAI Radio",
-        "tagline": "The machine found the dial.",
-        "genre": "eclectic original JakeAI music",
-        "temperature": "balanced",
-    },
-    "circuit_country": {
-        "name": "Circuit Country",
-        "tagline": "Pickup trucks. Bad decisions. Surprisingly good bandwidth.",
-        "genre": "country-rock comedy and southern-tech originals",
-        "temperature": "warm",
-    },
-    "neural_beats": {
-        "name": "Neural Beats",
-        "tagline": "Music for people who definitely said they were going to bed an hour ago.",
-        "genre": "electronic, hip-hop, synth and cinematic originals",
-        "temperature": "energetic",
-    },
-    "night_shift_404": {
-        "name": "Night Shift 404",
-        "tagline": "Nothing good happens after midnight. We checked.",
-        "genre": "late-night synth, ambient, strange pop and experimental originals",
-        "temperature": "weird",
-    },
-    "foundry_fm": {
-        "name": "Foundry FM",
-        "tagline": "Still building. Somehow broadcasting.",
-        "genre": "industrial, rock, cinematic and machine-room originals",
-        "temperature": "driving",
-    },
-}
-
-OPENERS = [
-    "All right, that was {previous}.",
-    "That was {previous}, which apparently survived quality control.",
-    "You just heard {previous}. I have questions, but none of them are urgent.",
-    "{previous}. There it went.",
-    "That was {previous}. Nobody was injured during the last three minutes, as far as the station knows.",
-    "Coming out of {previous}. We are still technically broadcasting.",
-    "{previous} just left the building without signing anything.",
-    "That was {previous}. It knew what it was doing. Mostly.",
-]
-
-OBSERVATIONS = [
-    "Somewhere, a dashboard light just came on and somebody decided not to look at it.",
-    "If your plan currently depends on one more cup of coffee, that is not a plan. It is infrastructure.",
-    "There is a very specific kind of confidence involved in saying, 'It should be fine,' while holding a wrench.",
-    "Today remains undefeated at producing things nobody put on the calendar.",
-    "A machine can process a million possibilities a second and still somehow choose the weird one.",
-    "The difference between a shortcut and a story you tell for years is usually about twelve minutes.",
-    "If you hear a strange noise from the vehicle, turn the radio up. This is not mechanical advice.",
-    "Some problems need expertise. Others need somebody to stop touching the button.",
-    "We have reviewed the situation and determined that absolutely nobody reviewed the situation.",
-    "There is probably a perfectly reasonable explanation. We are trying not to ruin it by finding out.",
-    "Nothing says progress like renaming the folder 'final-final-actually-final.'",
-    "The station's legal department is just a sticky note that says, 'Maybe don't.'",
-    "If this feels unusually organized, something is probably missing.",
-    "You can learn a lot from a bad idea, particularly if somebody else tries it first.",
-    "That silence you hear is the sound of a notification not being checked.",
-    "Somewhere right now, a printer is demanding an emotional commitment before it prints page two.",
-    "The future is here. It would like the Wi-Fi password.",
-    "Nobody knows why that fixed it. Please do not move anything.",
-    "There are two kinds of people: people who make backups and people who are about to.",
-    "We support innovation, provided innovation stops unplugging the router.",
-]
-
-TRANSITIONS = [
-    "Up next is {next}. Let's see what it broke to get here.",
-    "Next up: {next}. No paperwork required.",
-    "We've got {next} coming in. Try to look occupied.",
-    "Next is {next}. It sounded cheaper than therapy.",
-    "{next} is on deck. Nobody asked it to be, which feels on brand.",
-    "Stay where you are. {next} is next, unless the universe files an objection.",
-    "Coming up: {next}. This seemed like a good idea several minutes ago.",
-    "Next, {next}. If it gets weird, that's between you and the speakers.",
-]
-
-STATION_IDS = [
-    "You're on {station}. {tagline}",
-    "This is {station}. We annoy the problem, not you.",
-    "{station}. Still on the air despite several excellent opportunities to stop.",
-    "You're listening to {station}, broadcasting from somewhere between a good idea and a maintenance ticket.",
-    "This is {station}. No motivational quote is currently scheduled.",
-]
-
-CONTEXT_LINES = {
-    "night": [
-        "It is late enough that every reasonable decision has already gone home.",
-        "Night shift rules apply: if it works, don't wake it up.",
-        "This is the hour when a snack quietly becomes a meal.",
+HUMOR_RULES = {
+    "tone": [
+        "dry",
+        "conversational",
+        "slightly absurd",
+        "observational",
+        "understated",
+        "self-aware",
     ],
-    "driving": [
-        "Keep your eyes on the road. The radio has agreed to handle the unnecessary commentary.",
-        "If you missed the turn, congratulations, you have discovered alternate routing.",
-        "The vehicle is moving. That already puts it ahead of several projects we know.",
+    "avoid": [
+        "salesy language",
+        "forced punchlines",
+        "repeated catchphrases",
+        "mean-spirited jokes",
+        "fourth-wall exposition dumps",
+        "celebrity imitation",
     ],
-    "building": [
-        "Apparently we're building something again. Nobody hide the extension cords.",
-        "The Foundry is awake, which is rarely a quiet development.",
-        "Something is compiling somewhere. This is a good time to pretend confidence.",
-    ],
-    "chaos": [
-        "Things appear to have become complicated in a very committed way.",
-        "We are now past the part where somebody says, 'How bad could it be?'",
-        "This situation has developed features.",
+    "canon": [
+        "Treat strange situations as mildly inconvenient rather than astonishing.",
+        "Underplay chaos instead of shouting about it.",
+        "Use the occasional deadpan correction or unnecessary practical observation.",
+        "Humor should sound improvised, not like a joke book.",
+        "The host may gently acknowledge that the station is unusually competent for radio.",
     ],
 }
 
-class BreakRequest(BaseModel):
-    station_id: str = "jakeai_original"
-    previous_track: str = "that last track"
-    next_track: str = "the next one"
-    context: str = ""
-    context_tags: list[str] = Field(default_factory=list)
-    max_words: int = 52
-    ai_punchup: bool = False
+@dataclass
+class Song:
+    id: str
+    title: str
+    artist: str
+    genre: str
+    energy: float = 0.5
+    mood: str = "neutral"
+    instrumental: bool = False
+    source: str = "original"
+    commercial_ok: bool = True
 
-def _now():
-    return datetime.now(timezone.utc).isoformat()
+@dataclass
+class RadioContext:
+    station_id: str
+    previous_song: Song | None
+    next_song: Song
+    game_time: str | None = None
+    location: str | None = None
+    weather: str | None = None
+    recent_event: str | None = None
+    player_state: str | None = None
+    listen_minutes: float | None = None
+    session_id: str = "default"
 
-def _db_path():
-    explicit=os.environ.get("RADIO_DATABASE_PATH","").strip()
-    if explicit:
-        return explicit
-    return "/data/jakeai-radio.db" if os.path.isdir("/data") else "/tmp/jakeai-radio.db"
+@dataclass
+class BreakResult:
+    id: str
+    station_id: str
+    text: str
+    style: str
+    generated_at: float
+    previous_song_id: str | None
+    next_song_id: str
+    memory_key: str
+    voice_profile: str = "JakeAI Original AI Narration"
+    publishable: bool = False
+    public_release_approved: bool = False
 
-def _conn():
-    c=sqlite3.connect(_db_path(),timeout=20)
-    c.row_factory=sqlite3.Row
-    c.execute("""CREATE TABLE IF NOT EXISTS radio_breaks(
-      id INTEGER PRIMARY KEY AUTOINCREMENT,
-      created_at TEXT NOT NULL,
-      station_id TEXT NOT NULL,
-      previous_track TEXT NOT NULL,
-      next_track TEXT NOT NULL,
-      context TEXT NOT NULL,
-      context_tags TEXT NOT NULL,
-      script TEXT NOT NULL,
-      script_hash TEXT NOT NULL,
-      mode TEXT NOT NULL,
-      word_count INTEGER NOT NULL,
-      voice_profile TEXT NOT NULL,
-      audio_status TEXT NOT NULL DEFAULT 'not_rendered'
-    )""")
-    c.execute("CREATE UNIQUE INDEX IF NOT EXISTS idx_radio_break_hash ON radio_breaks(script_hash)")
-    c.commit()
-    return c
+class RadioMemory:
+    def __init__(self, db_path: str = DEFAULT_DB):
+        self.db_path = db_path
+        self._init()
 
-def _clean_title(value):
-    value=re.sub(r"[\r\n\t]+"," ",str(value or "")).strip()
-    return re.sub(r"\s+"," ",value)[:140] or "that track"
+    def _conn(self):
+        c = sqlite3.connect(self.db_path, timeout=20)
+        c.row_factory = sqlite3.Row
+        return c
 
-def _recent(limit=40, station_id=None):
-    c=_conn()
-    if station_id:
-        rows=c.execute("SELECT * FROM radio_breaks WHERE station_id=? ORDER BY id DESC LIMIT ?",(station_id,limit)).fetchall()
-    else:
-        rows=c.execute("SELECT * FROM radio_breaks ORDER BY id DESC LIMIT ?",(limit,)).fetchall()
-    c.close()
-    return [dict(r) for r in rows]
-
-def _fingerprint(text):
-    return hashlib.sha256(text.strip().lower().encode("utf-8")).hexdigest()
-
-def _tokens(text):
-    return re.findall(r"[a-z0-9']+",text.lower())
-
-def _similarity(a,b):
-    aa=set(_tokens(a)); bb=set(_tokens(b))
-    if not aa or not bb:
-        return 0.0
-    return len(aa&bb)/len(aa|bb)
-
-def _safe(script):
-    s=script.lower()
-    banned=[
-        "vote for","vote against","democrat","republican","campaign donation",
-        "sponsored by","our sponsor","buy now","limited time offer",
-        "onlyfans","porn","sex toy",
-        "in the voice of","sounds just like","impersonating",
-    ]
-    return not any(x in s for x in banned)
-
-def _context_line(tags):
-    pool=[]
-    for t in tags:
-        pool.extend(CONTEXT_LINES.get(str(t).lower(),[]))
-    return _rng.choice(pool) if pool else ""
-
-def _candidate(req):
-    st=STATIONS[req.station_id]
-    previous=_clean_title(req.previous_track)
-    nxt=_clean_title(req.next_track)
-    style=_rng.choice(["short","observational","station","context","double"])
-    pieces=[]
-    if style in {"short","double","observational","context"}:
-        pieces.append(_rng.choice(OPENERS).format(previous=previous))
-    if style in {"observational","double"}:
-        pieces.append(_rng.choice(OBSERVATIONS))
-    if style=="context":
-        line=_context_line(req.context_tags)
-        pieces.append(line or _rng.choice(OBSERVATIONS))
-    if style=="station":
-        pieces.append(_rng.choice(STATION_IDS).format(station=st["name"],tagline=st["tagline"]))
-    if style in {"short","double","station","context"}:
-        pieces.append(_rng.choice(TRANSITIONS).format(next=nxt))
-    return " ".join(x for x in pieces if x).strip()
-
-def _trim_words(text,max_words):
-    words=text.split()
-    if len(words)<=max_words:
-        return text
-    clipped=" ".join(words[:max_words]).rstrip(" ,;:-")
-    if clipped[-1:] not in ".!?":
-        clipped+="."
-    return clipped
-
-def _fallback(req):
-    recent=_recent(50,req.station_id)
-    for _ in range(120):
-        text=_trim_words(_candidate(req),max(16,min(80,int(req.max_words))))
-        fp=_fingerprint(text)
-        if any(r["script_hash"]==fp for r in recent):
-            continue
-        if any(_similarity(text,r["script"])>.66 for r in recent[:18]):
-            continue
-        if not _safe(text):
-            continue
-        return text
-    # The fallback is intentionally plain rather than repeating a known break.
-    st=STATIONS[req.station_id]
-    return f"This is {st['name']}. That was {_clean_title(req.previous_track)}. Next is {_clean_title(req.next_track)}."
-
-def _ai_enabled():
-    return os.environ.get("RADIO_AI_PUNCHUP_ENABLED","").strip().lower() in {"1","true","yes","on"}
-
-def _ai_punchup(req,draft):
-    if not (req.ai_punchup and _ai_enabled()):
-        return draft,"local"
-    try:
-        from direct_billing import _call_openai
-        recent=[r["script"] for r in _recent(12,req.station_id)]
-        prompt=f"""You are writing ONE short radio-DJ break for JakeAI Radio.
-
-HOST VOICE:
-- dry, conversational, calm, mischievous, underplayed
-- funny through specific observations, not forced punchlines
-- occasional self-aware machine humor, never 'beep boop'
-- sounds like a real late-night/local radio host, not marketing copy
-
-HARD RULES:
-- maximum {max(16,min(80,int(req.max_words)))} words
-- do not quote or reproduce song lyrics
-- no politics, political commentary or advocacy
-- no sexual material
-- no advertisements, sponsors, calls to buy, or product pitches
-- no impersonation of any real person
-- don't claim fictional context is real news
-- do not say 'as an AI'
-- return ONLY the spoken DJ words
-
-Station: {STATIONS[req.station_id]['name']}
-Station identity: {STATIONS[req.station_id]['tagline']}
-Previous track: {_clean_title(req.previous_track)}
-Next track: {_clean_title(req.next_track)}
-Context tags: {json.dumps(req.context_tags)}
-Optional context: {str(req.context)[:600]}
-Local draft you may improve or replace: {draft}
-
-DO NOT reuse phrasing from these recent breaks:
-{json.dumps(recent)}
-"""
-        result=_call_openai(prompt,"general")
-        text=_trim_words(str(result.get("text") or "").strip(),max(16,min(80,int(req.max_words))))
-        if not text or not _safe(text):
-            return draft,"local_ai_rejected"
-        if any(_similarity(text,r)>.58 for r in recent):
-            return draft,"local_ai_repeated"
-        return text,"ai_punchup"
-    except Exception:
-        return draft,"local_ai_unavailable"
-
-def generate_break(req):
-    if req.station_id not in STATIONS:
-        raise HTTPException(400,"Unknown JakeAI station")
-    draft=_fallback(req)
-    script,mode=_ai_punchup(req,draft)
-    fp=_fingerprint(script)
-    c=_conn()
-    try:
-        c.execute("""INSERT INTO radio_breaks
-          (created_at,station_id,previous_track,next_track,context,context_tags,script,script_hash,mode,word_count,voice_profile,audio_status)
-          VALUES (?,?,?,?,?,?,?,?,?,?,?,?)""",(
-            _now(),req.station_id,_clean_title(req.previous_track),_clean_title(req.next_track),
-            str(req.context or "")[:1000],json.dumps(req.context_tags),script,fp,mode,
-            len(script.split()),HOST["voice"],"not_rendered"
-        ))
+    def _init(self):
+        c = self._conn()
+        c.execute("""CREATE TABLE IF NOT EXISTS radio_breaks(
+          id TEXT PRIMARY KEY,
+          station_id TEXT NOT NULL,
+          session_id TEXT NOT NULL,
+          memory_key TEXT NOT NULL,
+          text TEXT NOT NULL,
+          next_song_id TEXT NOT NULL,
+          previous_song_id TEXT,
+          generated_at REAL NOT NULL
+        )""")
+        c.execute("CREATE INDEX IF NOT EXISTS idx_radio_memory ON radio_breaks(station_id,session_id,generated_at DESC)")
         c.commit()
-        break_id=int(c.execute("SELECT last_insert_rowid()").fetchone()[0])
-    except sqlite3.IntegrityError:
         c.close()
-        # Collision means memory worked but randomness landed on an old line; retry.
-        return generate_break(req)
-    row=c.execute("SELECT * FROM radio_breaks WHERE id=?",(break_id,)).fetchone()
-    c.close()
-    return dict(row)
 
-@router.get("/api/v1/radio/private/status")
-@router.get("/v1/radio/private/status")
-def radio_status(request:Request,authorization:Optional[str]=Header(None)):
-    _require_control(authorization,request)
-    rows=_recent(20)
-    c=_conn()
-    total=int(c.execute("SELECT COUNT(*) FROM radio_breaks").fetchone()[0])
-    c.close()
+    def recent(self, station_id: str, session_id: str, limit: int = 80) -> list[dict[str, Any]]:
+        c = self._conn()
+        rows = c.execute(
+            "SELECT * FROM radio_breaks WHERE station_id=? AND session_id=? ORDER BY generated_at DESC LIMIT ?",
+            (station_id, session_id, limit),
+        ).fetchall()
+        c.close()
+        return [dict(r) for r in rows]
+
+    def save(self, result: BreakResult, session_id: str):
+        c = self._conn()
+        c.execute(
+            """INSERT OR REPLACE INTO radio_breaks
+            (id,station_id,session_id,memory_key,text,next_song_id,previous_song_id,generated_at)
+            VALUES (?,?,?,?,?,?,?,?)""",
+            (
+                result.id,
+                result.station_id,
+                session_id,
+                result.memory_key,
+                result.text,
+                result.next_song_id,
+                result.previous_song_id,
+                result.generated_at,
+            ),
+        )
+        c.commit()
+        c.close()
+
+def _norm(s: str | None) -> str:
+    return " ".join((s or "").strip().split())
+
+def _fingerprint(text: str) -> str:
+    return hashlib.sha256(_norm(text).lower().encode("utf-8")).hexdigest()[:16]
+
+def _safe_context(ctx: RadioContext) -> dict[str, str]:
+    data = {
+        "location": _norm(ctx.location),
+        "weather": _norm(ctx.weather),
+        "recent_event": _norm(ctx.recent_event),
+        "player_state": _norm(ctx.player_state),
+        "game_time": _norm(ctx.game_time),
+    }
+    combined = " ".join(data.values()).lower()
+    # Very conservative lexical gate for the founder voice.
+    banned_terms = {
+        "election","candidate","vote","campaign","president","senator","governor","politics",
+        "sex","sexual","porn","nude","nudity","escort","strip club",
+        "sponsored","sponsor","advertisement","buy now","sale","discount",
+        "impersonate","impression of","sounds like celebrity",
+    }
+    if any(term in combined for term in banned_terms):
+        data["recent_event"] = ""
+        data["player_state"] = ""
+    return data
+
+def _choose(rng: random.Random, options: Iterable[str], recent_text: str) -> str:
+    viable = [x for x in options if _fingerprint(x) not in recent_text]
+    return rng.choice(viable or list(options))
+
+def _song_line(song: Song) -> str:
+    return f"{song.title} by {song.artist}"
+
+def generate_break(ctx: RadioContext, memory: RadioMemory | None = None, seed: int | None = None) -> BreakResult:
+    """Generate a fresh, non-repeating JakeAI-style DJ break.
+
+    This uses a controlled local phrase-composition layer so it works without an
+    LLM or network call. A future LLM adapter may replace the composition step,
+    but must preserve the same memory/safety checks.
+    """
+    memory = memory or RadioMemory()
+    safe = _safe_context(ctx)
+    recent = memory.recent(ctx.station_id, ctx.session_id, limit=80)
+    recent_joined = " ".join(_fingerprint(x["text"]) for x in recent)
+
+    material = "|".join([
+        ctx.station_id,
+        ctx.session_id,
+        ctx.next_song.id,
+        ctx.previous_song.id if ctx.previous_song else "",
+        safe["location"],
+        safe["weather"],
+        safe["recent_event"],
+        str(time.time_ns() if seed is None else seed),
+    ])
+    rng = random.Random(hashlib.sha256(material.encode()).hexdigest())
+
+    openers = [
+        "You're still on KJAI 404. Against several reasonable expectations, the signal remains found.",
+        "KJAI 404. We checked the transmitter. Apparently it has decided to cooperate.",
+        "This is KJAI 404, where the equipment is functional and we're trying not to make a big deal out of it.",
+        "KJAI 404. If you can hear me, something has gone correctly.",
+        "You're listening to KJAI 404. No committee was consulted.",
+    ]
+
+    transitions = [
+        "That one did exactly what it needed to do and then left before anyone could schedule a meeting about it.",
+        "That track has now completed its duties with minimal paperwork.",
+        "There are worse ways to spend a few minutes. Several of them involve forms.",
+        "That was surprisingly organized. I don't want to encourage it.",
+        "Good song. Very little unnecessary administration. Strong showing.",
+    ]
+
+    next_intros = [
+        f"Next up: {_song_line(ctx.next_song)}. Let's see what kind of decisions this one leads to.",
+        f"Coming in now, {_song_line(ctx.next_song)}. Use responsibly, which in this context mostly means don't drive into anything expensive.",
+        f"Here's {_song_line(ctx.next_song)}. I have been advised not to over-explain it, which is excellent advice.",
+        f"Up next is {_song_line(ctx.next_song)}. It knows what it did.",
+        f"Moving along with {_song_line(ctx.next_song)}. No dramatic announcement required.",
+    ]
+
+    context_bits: list[str] = []
+    if safe["location"]:
+        context_bits += [
+            f"If you're somewhere around {safe['location']}, congratulations on successfully being there.",
+            f"Broadcasting to {safe['location']} and any nearby machinery with strong opinions.",
+        ]
+    if safe["weather"]:
+        context_bits += [
+            f"Current conditions: {safe['weather']}. The radio remains indoors emotionally.",
+            f"Apparently the weather is {safe['weather']}. Plan accordingly, or continue doing whatever this is.",
+        ]
+    if safe["recent_event"]:
+        context_bits += [
+            f"And yes, I heard about {safe['recent_event']}. We're going to treat that as information rather than a lifestyle.",
+            f"Regarding {safe['recent_event']}: noted. Filed. Mildly concerning.",
+        ]
+    if safe["player_state"]:
+        context_bits += [
+            f"If you're currently {safe['player_state']}, I respect the confidence.",
+            f"For anyone {safe['player_state']} right now: this seems like a good time for music and fewer new ideas.",
+        ]
+
+    pieces = []
+    if not ctx.previous_song:
+        pieces.append(_choose(rng, openers, recent_joined))
+    else:
+        # Reference the previous song only sometimes; avoid rigid formula.
+        if rng.random() < 0.72:
+            prev_specific = [
+                f"That was {_song_line(ctx.previous_song)}. {_choose(rng, transitions, recent_joined)}",
+                f"You just heard {_song_line(ctx.previous_song)}. Nobody was injured by the transition, which is encouraging.",
+                f"{_song_line(ctx.previous_song)} just wrapped up. We remain operational.",
+            ]
+            pieces.append(_choose(rng, prev_specific, recent_joined))
+        else:
+            pieces.append(_choose(rng, transitions, recent_joined))
+
+    if context_bits and rng.random() < 0.68:
+        pieces.append(_choose(rng, context_bits, recent_joined))
+
+    pieces.append(_choose(rng, next_intros, recent_joined))
+
+    text = " ".join(pieces)
+    # Hard length cap so the host does not become a podcast between every song.
+    words = text.split()
+    if len(words) > 72:
+        text = " ".join(words[:72]).rstrip(" ,;:") + "."
+
+    memory_key = _fingerprint(text)
+    break_id = hashlib.sha256(
+        f"{ctx.station_id}|{ctx.session_id}|{ctx.next_song.id}|{time.time_ns()}|{text}".encode()
+    ).hexdigest()[:20]
+
+    result = BreakResult(
+        id=break_id,
+        station_id=ctx.station_id,
+        text=text,
+        style="JakeAI dry-conversational radio",
+        generated_at=time.time(),
+        previous_song_id=ctx.previous_song.id if ctx.previous_song else None,
+        next_song_id=ctx.next_song.id,
+        memory_key=memory_key,
+    )
+    memory.save(result, ctx.session_id)
+    return result
+
+def load_song_catalog(path: str | Path) -> list[Song]:
+    rows = json.loads(Path(path).read_text(encoding="utf-8"))
+    return [Song(**row) for row in rows]
+
+def station_manifest() -> dict[str, Any]:
     return {
-      "status":"development_live",
-      "host":HOST,
-      "stations":STATIONS,
-      "breaks_generated":total,
-      "recent":rows,
-      "ai_punchup_enabled":_ai_enabled(),
-      "default_generation":"local_non_metered",
-      "voice_rendering":"JakeAI Original AI Narration / self-hosted Chatterbox",
-      "public_broadcast":False,
-      "music_public_playback":"rights-gated",
+        "station_id": "KJAI-404",
+        "name": "KJAI 404",
+        "tagline": "Signal Found",
+        "host_voice": "JakeAI Original AI Narration",
+        "voice_restrictions": sorted(VOICE_BANNED_TOPICS),
+        "humor_rules": HUMOR_RULES,
+        "dynamic_breaks": True,
+        "repeat_memory": True,
+        "commercials_in_founder_voice": False,
+        "public_release": False,
     }
 
-@router.post("/api/v1/radio/private/break")
-@router.post("/v1/radio/private/break")
-def radio_break(body:BreakRequest,request:Request,authorization:Optional[str]=Header(None)):
-    _require_control(authorization,request)
-    row=generate_break(body)
-    return {
-      "id":row["id"],
-      "created_at":row["created_at"],
-      "station_id":row["station_id"],
-      "script":row["script"],
-      "mode":row["mode"],
-      "word_count":row["word_count"],
-      "voice_profile":row["voice_profile"],
-      "audio_status":row["audio_status"],
-      "public":False,
-    }
-
-@router.get("/api/v1/radio/private/history")
-@router.get("/v1/radio/private/history")
-def radio_history(request:Request,authorization:Optional[str]=Header(None),limit:int=30):
-    _require_control(authorization,request)
-    limit=max(1,min(200,int(limit)))
-    return {"items":_recent(limit),"count":limit}
-
-def register_radio_routes(app):
-    _conn().close()
-    app.include_router(router)
+if __name__ == "__main__":
+    songs = [
+        Song("demo-1","Midnight Exit","JakeAI House Band","synth-rock",0.68,"restless"),
+        Song("demo-2","Parking Lot Astronomy","JakeAI House Band","indie-electronic",0.48,"wry"),
+    ]
+    mem = RadioMemory("/tmp/kjai-demo.db")
+    ctx = RadioContext(
+        station_id="KJAI-404",
+        previous_song=songs[0],
+        next_song=songs[1],
+        location="the east side",
+        recent_event="a suspicious amount of traffic",
+        session_id="demo",
+    )
+    print(json.dumps(asdict(generate_break(ctx, mem)), indent=2))
