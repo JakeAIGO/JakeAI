@@ -20,7 +20,7 @@ from pathlib import Path
 
 import torch
 import torchaudio as ta
-from chatterbox.tts_turbo import ChatterboxTurboTTS
+from jakeai_local_voice import load_runtime, normalize_audio, synthesize
 
 MAX_CHARS = 900
 SILENCE_MS = 220
@@ -88,11 +88,6 @@ def chunk_exact(source: bytes, max_chars: int = MAX_CHARS):
         raise RuntimeError("Chunker changed canonical source")
     return chunks
 
-def choose_device(requested: str) -> str:
-    if requested != "auto":
-        return requested
-    return "cuda" if torch.cuda.is_available() else "cpu"
-
 def main():
     ap = argparse.ArgumentParser()
     ap.add_argument("--epub", required=True, help="JakeAI verified pre-release EPUB")
@@ -116,14 +111,14 @@ def main():
 
     source, fidelity = load_verified_source(epub)
     chunks = chunk_exact(source, args.max_chars)
-    device = choose_device(args.device)
-
     print(f"Canonical SHA-256: {fidelity['canonical_sha256']}")
     print(f"Canonical bytes: {len(source):,}")
     print(f"Exact chunks: {len(chunks):,}")
-    print(f"Device: {device}")
-    print("Loading Chatterbox Nano...")
-    model = ChatterboxTurboTTS.from_pretrained(device=device, nano=True)
+    print("Loading JakeAI Media Gateway local voice adapter...")
+    runtime = load_runtime(args.device, allow_private_unwatermarked=True)
+    print(f"Engine: {runtime.engine}")
+    print(f"Device: {runtime.device}")
+    print(f"Watermarked: {runtime.watermarked}")
 
     rendered = []
     manifest_chunks = []
@@ -136,14 +131,23 @@ def main():
             continue
 
         print(f"[{idx+1}/{len(chunks)}] {c['chars']} chars")
-        wav = model.generate(c["text"], audio_prompt_path=str(voice))
-        ta.save(str(path), wav, model.sr)
+        wav, sample_rate, seed = synthesize(
+            runtime,
+            c["text"],
+            voice,
+            namespace=f"JakeAI-Editions:{fidelity['canonical_sha256']}:{idx}",
+            verify_words=True,
+        )
+        wav, level_qa = normalize_audio(wav)
+        ta.save(str(path), wav.cpu(), sample_rate)
         audio_bytes = path.read_bytes()
         rendered.append((idx, path))
         manifest_chunks.append({
             **{k:v for k,v in c.items() if k!="text"},
             "audio": str(path.name),
             "audio_sha256": sha256(audio_bytes),
+            "seed": seed,
+            "level_qa": level_qa,
             "status":"generated",
         })
 
@@ -154,29 +158,31 @@ def main():
     tracks = []
     for _, p in rendered:
         wav, sr = ta.load(str(p))
-        if sr != model.sr:
+        if sr != sample_rate:
             raise RuntimeError(f"Unexpected sample rate in {p}: {sr}")
         tracks.append(wav)
-        silence = torch.zeros((wav.shape[0], int(model.sr * SILENCE_MS / 1000)), dtype=wav.dtype)
+        silence = torch.zeros((wav.shape[0], int(sample_rate * SILENCE_MS / 1000)), dtype=wav.dtype)
         tracks.append(silence)
     full = torch.cat(tracks[:-1], dim=1)
     full_path = out / "audiobook.wav"
-    ta.save(str(full_path), full, model.sr)
+    ta.save(str(full_path), full, sample_rate)
 
     manifest = {
-        "engine":"Chatterbox Nano",
-        "engine_family":"Resemble AI Chatterbox",
+        "engine":runtime.engine,
+        "engine_family":"JakeAI Media Gateway / local Chatterbox",
         "generation_mode":"self_hosted_zero_shot_voice_reference",
         "commercial_model_license":"MIT",
         "watermark_expected":"PerTh",
+        "watermarked":runtime.watermarked,
+        "private_unwatermarked":runtime.private_unwatermarked,
         "canonical_sha256":fidelity["canonical_sha256"],
         "canonical_bytes":len(source),
         "text_policy":"Every spoken TTS input is an exact UTF-8 slice of the immutable canonical source.",
         "text_rewrite_allowed":False,
         "reference_voice_path":str(voice),
         "reference_voice_public":False,
-        "device":device,
-        "sample_rate":model.sr,
+        "device":runtime.device,
+        "sample_rate":sample_rate,
         "silence_between_chunks_ms":SILENCE_MS,
         "chunk_count":len(chunks),
         "generated_chunk_count":len(rendered),
