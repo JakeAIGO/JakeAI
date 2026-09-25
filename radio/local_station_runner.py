@@ -17,6 +17,7 @@ import torchaudio as ta
 
 from jakeai_local_voice import load_runtime, normalize_audio, save_wav, synthesize
 from radio_engine import RadioContext, RadioMemory, Song, generate_break
+from radio.programmer import build_rotation
 
 
 def sha256(data: bytes) -> str:
@@ -85,7 +86,7 @@ def main():
     catalog = json.loads(Path(args.catalog).read_text(encoding="utf-8"))
     if not catalog:
         raise RuntimeError("Song catalog is empty")
-    tracks = catalog[:args.max_tracks]
+    tracks = build_rotation(catalog, args.max_tracks)
 
     if not args.allow_unreviewed_music:
         blocked = [x["id"] for x in tracks if not x.get("commercial_ok")]
