@@ -17,6 +17,7 @@ from book_source_lock import list_locks
 from book_structure_map import list_structures
 from book_edition_shell import list_shells
 from book_epub_packager import get_build, public_build, start_epub_builder
+from book_narration_manifest import get_manifest, public_manifest, start_manifest_builder
 
 router = APIRouter()
 
@@ -228,7 +229,8 @@ def _candidate(job_id, lock, structure, shell_row, review):
         "job_id":job_id,
         "title":BOOK_META.get(job_id,{}).get("title",job_id),
         "author":BOOK_META.get(job_id,{}).get("author",""),
-        "visual":visual,
+        "visual":{**visual,"cover_url":f"/assets/editions/covers/{job_id}.svg"},
+        "narration_manifest":public_manifest(get_manifest(job_id)),
         "narration":{
             **(narration or {}),
             "script_source":"immutable canonical byte-offset segments",
@@ -290,6 +292,14 @@ def private_release_batch(request: Request, authorization: Optional[str]=Header(
         "approved_internal":sum(1 for x in rows if x["review"]["decision"]=="approve_design"),
         "items":rows,
     }
+
+@router.get("/api/v1/book-factory/private/release-batch/{job_id}/narration-manifest")
+@router.get("/v1/book-factory/private/release-batch/{job_id}/narration-manifest")
+def private_narration_manifest(job_id:str, request:Request, authorization:Optional[str]=Header(None)):
+    _require_control(authorization,request)
+    if job_id not in BOOK_META:
+        raise HTTPException(404,"Unknown release candidate")
+    return public_manifest(get_manifest(job_id))
 
 @router.get("/api/v1/book-factory/private/release-batch/{job_id}/epub")
 @router.get("/v1/book-factory/private/release-batch/{job_id}/epub")
@@ -370,6 +380,7 @@ def private_passport(job_id:str, request:Request, authorization:Optional[str]=He
             "visual":candidate["visual"],
             "epub":candidate["epub"],
             "narration":candidate["narration"],
+            "narration_manifest":candidate["narration_manifest"],
             "reader":candidate["reader"],
             "qa":candidate["qa"],
         },
@@ -490,4 +501,5 @@ def review_candidate(job_id:str, body:ReviewRequest, request:Request, authorizat
 def register_book_release_batch_routes(app):
     _conn().close()
     start_epub_builder(BOOK_META)
+    start_manifest_builder(list(BOOK_META.keys()))
     app.include_router(router)
