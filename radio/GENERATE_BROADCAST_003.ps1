@@ -58,7 +58,8 @@ try {
 
   if (-not $health) {
     Banner "STARTING LOCAL MUSIC ENGINE"
-    Start-Process -FilePath "cmd.exe" -ArgumentList "/k", "cd /d `"$Ace`" && set ACESTEP_INIT_LLM=false && `"$uvExe`" run acestep-api --host 127.0.0.1 --port 8001"
+    $cmdLine = 'cd /d "' + $Ace + '" & set ACESTEP_INIT_LLM=false & "' + $uvExe + '" run acestep-api --host 127.0.0.1 --port 8001'
+    Start-Process -FilePath "cmd.exe" -ArgumentList @("/k", $cmdLine)
     Write-Host "Waiting for ACE-Step..."
     for ($i=0; $i -lt 180; $i++) {
       Start-Sleep -Seconds 5
