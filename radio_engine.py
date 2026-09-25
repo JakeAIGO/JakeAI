@@ -17,9 +17,14 @@ import os
 import random
 import sqlite3
 import time
+from datetime import datetime, timezone
 from dataclasses import dataclass, asdict
 from pathlib import Path
-from typing import Any, Iterable
+from typing import Any, Iterable, Optional
+
+from fastapi import APIRouter, Header, HTTPException, Request
+from pydantic import BaseModel, Field
+from mission_dispatcher import _require_control
 
 DEFAULT_DB = "/data/jakeai-radio.db" if os.path.isdir("/data") else "/tmp/jakeai-radio.db"
 
@@ -349,6 +354,154 @@ def station_manifest() -> dict[str, Any]:
         "commercials_in_founder_voice": False,
         "public_release": False,
     }
+
+
+# ---- Private Owner Console API wrapper ---------------------------------------
+
+_api = APIRouter()
+
+API_STATIONS = {
+    "kjai_404": {
+        "name": "KJAI 404",
+        "tagline": "Signal Found",
+        "genre": "original JakeAI radio",
+    }
+}
+
+API_HOST = {
+    "name": "JakeAI Original Radio",
+    "voice": "JakeAI Original AI Narration",
+    "style": [
+        "dry and conversational",
+        "calm storyteller",
+        "mischievous but not mean",
+        "underplayed rather than punchline-heavy",
+        "specific observations beat generic jokes",
+        "occasionally absurd without random nonsense",
+    ],
+    "never": [
+        "sexual material",
+        "political material",
+        "advertisements",
+        "impersonation",
+        "copyrighted lyrics",
+    ],
+}
+
+class RadioBreakRequest(BaseModel):
+    station_id: str = "kjai_404"
+    previous_track: str = "that last track"
+    next_track: str = "the next one"
+    context: str = ""
+    context_tags: list[str] = Field(default_factory=list)
+    max_words: int = 52
+    ai_punchup: bool = False
+
+def _api_recent(limit: int = 30):
+    mem = RadioMemory()
+    c = mem._conn()
+    rows = c.execute(
+        "SELECT * FROM radio_breaks ORDER BY generated_at DESC LIMIT ?",
+        (max(1, min(200, int(limit))),),
+    ).fetchall()
+    c.close()
+    out = []
+    for row in rows:
+        d = dict(row)
+        out.append({
+            "id": d["id"],
+            "station_id": d["station_id"],
+            "created_at": datetime.fromtimestamp(d["generated_at"], tz=timezone.utc).isoformat(),
+            "script": d["text"],
+            "mode": "local",
+        })
+    return out
+
+@_api.get("/api/v1/radio/private/status")
+@_api.get("/v1/radio/private/status")
+def api_radio_status(request: Request, authorization: Optional[str] = Header(None)):
+    _require_control(authorization, request)
+    recent = _api_recent(20)
+    return {
+        "status": "development_live",
+        "stations": API_STATIONS,
+        "host": API_HOST,
+        "breaks_generated": len(_api_recent(200)),
+        "recent": recent,
+        "ai_punchup_enabled": False,
+        "default_generation": "local_non_metered",
+        "voice_rendering": "JakeAI Media Gateway / local Chatterbox",
+        "public_broadcast": False,
+        "music_public_playback": "rights_gated",
+    }
+
+@_api.post("/api/v1/radio/private/break")
+@_api.post("/v1/radio/private/break")
+def api_radio_break(body: RadioBreakRequest, request: Request, authorization: Optional[str] = Header(None)):
+    _require_control(authorization, request)
+    if body.station_id not in API_STATIONS:
+        raise HTTPException(400, "Unknown JakeAI station")
+    tags = {str(x).strip().lower() for x in body.context_tags}
+    ctx_parts = [body.context.strip()] if body.context.strip() else []
+    if "night" in tags:
+        ctx_parts.append("late night")
+    if "driving" in tags:
+        ctx_parts.append("driving")
+    if "building" in tags:
+        ctx_parts.append("building something")
+    if "chaos" in tags:
+        ctx_parts.append("a mildly chaotic situation")
+
+    previous = Song(
+        id="previous-" + _fingerprint(body.previous_track),
+        title=_norm(body.previous_track) or "that last track",
+        artist="JakeAI Radio",
+        genre="original",
+        commercial_ok=False,
+    )
+    nxt = Song(
+        id="next-" + _fingerprint(body.next_track),
+        title=_norm(body.next_track) or "the next one",
+        artist="JakeAI Radio",
+        genre="original",
+        commercial_ok=False,
+    )
+    ctx = RadioContext(
+        station_id="KJAI-404",
+        previous_song=previous,
+        next_song=nxt,
+        recent_event="; ".join(ctx_parts)[:500] if ctx_parts else None,
+        session_id="owner-console",
+    )
+    br = generate_break(ctx)
+    words = br.text.split()
+    max_words = max(16, min(80, int(body.max_words)))
+    text = br.text
+    if len(words) > max_words:
+        text = " ".join(words[:max_words])
+        if text[-1:] not in ".!?":
+            text += "."
+    return {
+        "id": br.id,
+        "created_at": datetime.fromtimestamp(br.generated_at, tz=timezone.utc).isoformat(),
+        "station_id": body.station_id,
+        "script": text,
+        "mode": "local",
+        "word_count": len(text.split()),
+        "voice_profile": br.voice_profile,
+        "audio_status": "not_rendered",
+        "public": False,
+    }
+
+@_api.get("/api/v1/radio/private/history")
+@_api.get("/v1/radio/private/history")
+def api_radio_history(request: Request, authorization: Optional[str] = Header(None), limit: int = 30):
+    _require_control(authorization, request)
+    items = _api_recent(limit)
+    return {"items": items, "count": len(items)}
+
+def register_radio_routes(app):
+    app.include_router(_api)
 
 if __name__ == "__main__":
     songs = [
