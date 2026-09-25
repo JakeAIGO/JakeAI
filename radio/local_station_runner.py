@@ -172,10 +172,21 @@ def main():
         previous_song = song
 
     # Add one final sign-off after the last track using the same host engine.
+    signoff_song = Song(
+        id="KJAI-SIGNOFF",
+        title="KJAI 404 Sign-Off",
+        artist="JakeAI Radio",
+        genre="station",
+        energy=0.1,
+        mood="signoff",
+        instrumental=True,
+        source="station",
+        commercial_ok=False,
+    )
     close_ctx = RadioContext(
         station_id="KJAI-404",
         previous_song=previous_song,
-        next_song=None,
+        next_song=signoff_song,
         game_time=context.get("game_time"),
         location=context.get("location"),
         weather=context.get("weather"),
