@@ -15,6 +15,8 @@ import urllib.parse
 import urllib.request
 from pathlib import Path
 
+from radio.artist_roster import load_artist_roster, artist_generation_prompt, artist_seed, artist_catalog_metadata
+
 
 def sha256(data: bytes) -> str:
     return hashlib.sha256(data).hexdigest()
@@ -43,6 +45,7 @@ def deterministic_seed(track_id: str) -> int:
 def main():
     ap = argparse.ArgumentParser()
     ap.add_argument("--prompts", default="radio/music_prompts_kjai404.json")
+    ap.add_argument("--artists", default="radio/artist_roster.json")
     ap.add_argument("--out", required=True)
     ap.add_argument("--api", default="http://127.0.0.1:8001")
     ap.add_argument("--model", default="acestep-v15-turbo")
@@ -50,6 +53,7 @@ def main():
     args = ap.parse_args()
 
     prompts = json.loads(Path(args.prompts).read_text(encoding="utf-8"))
+    artists = load_artist_roster(args.artists)
     out = Path(args.out).expanduser().resolve()
     out.mkdir(parents=True, exist_ok=True)
 
@@ -60,14 +64,16 @@ def main():
     catalog = []
     for i, spec in enumerate(prompts, 1):
         tid = spec["id"]
-        seed = deterministic_seed(tid)
-        print(f"[{i}/{len(prompts)}] generating {tid} — {spec['title']}")
+        artist = artists.get(spec.get("artist_id")) if spec.get("artist_id") else None
+        seed = artist_seed(artist, tid) if artist else deterministic_seed(tid)
+        artist_name = artist["name"] if artist else spec.get("artist", "JakeAI House Instrumental")
+        print(f"[{i}/{len(prompts)}] generating {tid} — {spec['title']} — {artist_name}")
 
         payload = {
-            "prompt": spec["prompt"],
-            "lyrics": "",
+            "prompt": artist_generation_prompt(artist, spec["prompt"]) if artist else spec["prompt"],
+            "lyrics": spec.get("lyrics", ""),
             "thinking": False,
-            "vocal_language": "en",
+            "vocal_language": spec.get("vocal_language", "en"),
             "audio_format": "wav",
             "model": args.model,
             "audio_duration": spec["duration"],
@@ -115,19 +121,19 @@ def main():
             entry = {
                 "id": tid,
                 "title": spec["title"],
-                "artist": spec["artist"],
-                "genre": "original KJAI instrumental",
+                "artist": artist_name,
+                "genre": ", ".join(artist.get("genres", [])) if artist else "original KJAI instrumental",
                 "energy": 0.5,
                 "mood": "station",
-                "instrumental": True,
+                "instrumental": not bool(spec.get("lyrics")),
                 "file": str(dest),
                 "audio_sha256": sha256(audio),
                 "bytes": len(audio),
                 "source": "ACE-Step 1.5 local generation",
                 "model": args.model,
                 "seed": seed,
-                "prompt": spec["prompt"],
-                "lyrics": "",
+                "prompt": payload["prompt"],
+                "lyrics": spec.get("lyrics", ""),
                 "rights_evidence": {
                     "engine_repo": "ace-step/ACE-Step-1.5",
                     "engine_repo_license": "MIT",
@@ -137,6 +143,12 @@ def main():
                 "commercial_ok": False,
                 "review_status": "PRIVATE_ORIGINALITY_REVIEW_REQUIRED",
                 "named_artist_prompt": False,
+                "founder_voice_used": False,
+                **(artist_catalog_metadata(artist) if artist else {
+                    "artist_id": "KJAI-ART-HOUSE-INSTRUMENTAL",
+                    "artist_type": "fictional_instrumental_project",
+                    "identity_mode": "instrumental",
+                }),
             }
             catalog.append(entry)
             (out / "kjai404-generated-catalog.json").write_text(
