@@ -1,0 +1,63 @@
+{
+  "program_id": "JAKEAI-GAME-MEDIA-CUE-EXAMPLE",
+  "title": "JakeAI Game Dynamic Media Example",
+  "consumer": "game",
+  "private": true,
+  "founder_voice_allowed": true,
+  "founder_voice_role": "dj_or_narrator_only",
+  "release_state": "PRIVATE_DEVELOPMENT",
+  "cues": [
+    {
+      "id": "game-drive-ambient",
+      "kind": "ambient",
+      "start_seconds": 0,
+      "asset_id": "road-bed-dynamic",
+      "intensity": 0.35,
+      "gain_db": -16,
+      "tags": [
+        "driving"
+      ],
+      "public_release_allowed": false
+    },
+    {
+      "id": "game-radio-song",
+      "kind": "music",
+      "start_seconds": 0,
+      "asset_id": "station-selected-track",
+      "intensity": 0.6,
+      "gain_db": -8,
+      "duck_under_voice_db": -10,
+      "tags": [
+        "radio",
+        "dynamic"
+      ],
+      "public_release_allowed": false
+    },
+    {
+      "id": "game-dj-break",
+      "kind": "voice",
+      "start_seconds": 0,
+      "generator": "jakeai_original_ai_narration",
+      "prompt": "contextual non-repeating JakeAI DJ break generated from station state and game events",
+      "intensity": 0.5,
+      "gain_db": -5,
+      "tags": [
+        "dj",
+        "founder_voice"
+      ],
+      "public_release_allowed": false
+    },
+    {
+      "id": "game-event-chase",
+      "kind": "mix_state",
+      "start_seconds": 0,
+      "tags": [
+        "event:chase",
+        "increase_music_energy",
+        "suppress_long_dialogue"
+      ],
+      "provenance_required": false,
+      "public_release_allowed": true
+    }
+  ]
+}
