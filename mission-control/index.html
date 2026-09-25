@@ -118,22 +118,42 @@ function auth(){return key?{Authorization:"Bearer "+key}:{}}
 function showApp(){gate.style.display="none";app.style.display="block"}
 function showGate(msg=""){gate.style.display="grid";app.style.display="none";document.getElementById("gateError").textContent=msg}
 async function load(){
-  const [r,t,a]=await Promise.all([
-    fetch("/api/v1/mission-control",{headers:auth(),cache:"no-store"}),
-    fetch("/api/v1/traffic/summary?days=7",{headers:auth(),cache:"no-store"}),
-    fetch("/agent-observatory-summary.json",{cache:"no-store"})
-  ]);
-  if(r.status===401||t.status===401){key="";showGate("Owner session expired. Sign in once to continue.");throw 0}
+  // Authentication is decided ONLY by the protected Mission Control endpoint.
+  // Secondary telemetry/rendering failures must never masquerade as a login failure.
+  const r=await fetch("/api/v1/mission-control",{headers:auth(),cache:"no-store",credentials:"same-origin"});
+  if(r.status===401){
+    key="";
+    showGate("Owner session required.");
+    return false;
+  }
   if(!r.ok)throw new Error("Mission Control unavailable");
   data=await r.json();
-  if(t.ok)traffic=await t.json();
-  if(a.ok){
-    const edgeAgents=await a.json();
-    const existing=(traffic.agent_observatory||{});
-    traffic.agent_observatory={...existing,...edgeAgents,referrals:existing.referrals||{}};
+
+  // The owner session is valid at this point. Show the app immediately.
+  showApp();
+
+  try{
+    const t=await fetch("/api/v1/traffic/summary?days=7",{headers:auth(),cache:"no-store",credentials:"same-origin"});
+    if(t.ok)traffic=await t.json();
+  }catch(e){ console.warn("Traffic summary unavailable",e); }
+
+  try{
+    const a=await fetch("/agent-observatory-summary.json",{cache:"no-store"});
+    if(a.ok){
+      const edgeAgents=await a.json();
+      const existing=(traffic.agent_observatory||{});
+      traffic.agent_observatory={...existing,...edgeAgents,referrals:existing.referrals||{}};
+    }
+  }catch(e){ console.warn("Agent observatory summary unavailable",e); }
+
+  try{render()}catch(e){
+    console.error("Mission Control render error",e);
+    document.getElementById("stamp").textContent="Owner authenticated · dashboard render partially degraded";
   }
-  showApp();render();renderTraffic();
+  try{renderTraffic()}catch(e){ console.error("Traffic render error",e); }
+
   if(location.hash==="#traffic")setTimeout(()=>document.getElementById("traffic")?.scrollIntoView({behavior:"smooth",block:"start"}),80);
+  return true;
 }
 function renderTraffic(){
   const p24=(traffic.periods||{})["24h"]||{},p7=(traffic.periods||{})["7d"]||{};
@@ -297,7 +317,12 @@ document.getElementById("forget").onclick=async()=>{
   showGate("Signed out on this device.");
 };
 document.getElementById("filter").onchange=render;document.getElementById("search").oninput=render;
-load().then(()=>localStorage.setItem("jakeai_internal_operator","1")).catch(()=>showGate());
+load().then(ok=>{if(ok)localStorage.setItem("jakeai_internal_operator","1")}).catch(e=>{
+  console.error("Mission Control load failure",e);
+  // A non-auth application error should not throw an authenticated owner back
+  // to the access-key gate. Leave the dashboard visible when auth succeeded.
+  if(app.style.display==="none")showGate("Mission Control is temporarily unavailable.");
+});
 setInterval(()=>{if(app.style.display!=="none")load().catch(()=>{})},15000);
 </script>
 </body>
