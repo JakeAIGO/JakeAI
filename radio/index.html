@@ -14,11 +14,11 @@ header{display:flex;justify-content:space-between;align-items:center;gap:14px;ma
 .brand{display:flex;align-items:center;gap:12px}.mark{width:48px;height:48px;border-radius:50%;border:2px solid var(--cyan);display:grid;place-items:center;box-shadow:0 0 28px #54ddff55;font-weight:900;font-size:25px}
 .brand h1{margin:0;font-size:23px}.brand small{color:var(--muted);letter-spacing:.18em}.livebadge{font-size:11px;padding:8px 10px;border:1px solid #344e42;color:#b8ffd8;border-radius:999px;background:#0a2016}
 .hero{display:grid;grid-template-columns:1.15fr .85fr;gap:18px}.card{background:linear-gradient(180deg,#101b26dd,#09121add);border:1px solid var(--line);border-radius:20px;box-shadow:0 24px 90px #0007}
-.main{padding:28px;min-height:430px;position:relative;overflow:hidden}.main:after{content:"KJAI";position:absolute;right:-20px;bottom:-48px;font-size:180px;font-weight:950;letter-spacing:-.08em;color:#ffffff05}
+.main{padding:28px;min-height:430px;position:relative;overflow:hidden}.main:after{content:"KJAI";position:absolute;right:-20px;bottom:-48px;font-size:180px;font-weight:950;letter-spacing:-.08em;color:#ffffff05;pointer-events:none}
 .onair{display:flex;align-items:center;gap:9px;color:#ffd7dd;font-size:12px;font-weight:800;letter-spacing:.16em}.dot{width:10px;height:10px;background:var(--red);border-radius:50%;box-shadow:0 0 0 0 #ff546d80;animation:pulse 1.4s infinite}@keyframes pulse{70%{box-shadow:0 0 0 12px transparent}}
 h2{font-size:58px;line-height:.92;letter-spacing:-.04em;margin:27px 0 10px}.sub{color:#b5cad6;max-width:620px;line-height:1.6}
 .now{margin-top:28px;padding:16px;border:1px solid #274054;border-radius:14px;background:#071019}.label{font-size:10px;color:var(--cyan);letter-spacing:.18em;font-weight:850}.track{font-size:21px;font-weight:800;margin-top:5px}.artist{color:#93aabb;margin-top:3px}
-.controls{display:flex;gap:10px;align-items:center;margin-top:20px;flex-wrap:wrap}.play{border:0;border-radius:999px;background:var(--gold);color:#111;font-weight:900;padding:13px 19px;cursor:pointer}.ghost{border:1px solid #385267;border-radius:999px;background:#0a141d;color:#dcebf3;padding:12px 15px;cursor:pointer}.ghost.on{border-color:var(--cyan);color:#baf3ff}
+.controls{display:flex;gap:10px;align-items:center;margin-top:20px;flex-wrap:wrap;position:relative;z-index:5}.play{border:0;border-radius:999px;background:var(--gold);color:#111;font-weight:900;padding:13px 19px;cursor:pointer;min-height:48px;touch-action:manipulation;-webkit-tap-highlight-color:transparent}.ghost{border:1px solid #385267;border-radius:999px;background:#0a141d;color:#dcebf3;padding:12px 15px;cursor:pointer;min-height:48px;touch-action:manipulation;-webkit-tap-highlight-color:transparent}.ghost.on{border-color:var(--cyan);color:#baf3ff}.playerstate{position:relative;z-index:5;margin-top:10px;color:#8ea5b5;font:11px/1.4 ui-monospace,monospace}.playerstate.bad{color:#ff9ca9}
 .progress{margin-top:15px;height:7px;border-radius:8px;background:#172633;overflow:hidden}.progress i{display:block;height:100%;width:0;background:linear-gradient(90deg,var(--cyan),var(--gold))}.times{display:flex;justify-content:space-between;color:#70899b;font:11px ui-monospace,monospace;margin-top:7px}
 .side{padding:22px;max-height:660px;overflow:auto}.side h3{margin:0 0 14px}.section{font-size:10px;color:var(--gold);letter-spacing:.16em;font-weight:900;margin-top:12px;padding-top:10px;border-top:1px solid #1e3140}.item{padding:10px 0;border-top:1px solid #172a38}.item:first-of-type{border-top:0}.item b{display:block}.item span{font-size:12px;color:#829bac}
 .statusbox{margin-top:17px;border:1px solid #2a4558;border-radius:13px;padding:13px;background:#09131b;font:12px/1.55 ui-monospace,monospace;color:#a9bfcd}.good{color:var(--green)}
@@ -34,6 +34,7 @@ footer{margin-top:18px;color:#708797;font-size:11px;display:flex;justify-content
 <div class="sub">KJAI now rotates Broadcast 002 and the newly approved Broadcast 003 — twelve original songs, recurring fictional performers, station IDs and JakeAI DJ continuity.</div>
 <div class="now"><div class="label">NOW ON KJAI</div><div class="track" id="track">KJAI Radio Rotation</div><div class="artist" id="artist">Broadcasts 002 + 003</div><div class="progress"><i id="bar"></i></div><div class="times"><span id="cur">00:00</span><span id="dur">--:--</span></div></div>
 <div class="controls"><button class="play" id="play">▶ JOIN LIVE</button><button class="ghost on" id="live">● LIVE SYNC</button><button class="ghost" id="restart">↺ FROM START</button></div>
+<div class="playerstate" id="playerstate" role="status" aria-live="polite">Connecting to KJAI audio…</div>
 <audio id="audio" preload="metadata" loop src="./KJAI_Radio_Rotation_002_003.mp3"></audio>
 </section>
 <aside class="card side">
@@ -58,17 +59,22 @@ footer{margin-top:18px;color:#708797;font-size:11px;display:flex;justify-content
 <footer><span>© JakeAI · KJAI Radio</span><span><a href="/">Back to JakeAI Universe</a></span></footer>
 </div>
 <script>
-const a=document.getElementById('audio'),p=document.getElementById('play'),l=document.getElementById('live'),r=document.getElementById('restart'),b=document.getElementById('bar'),c=document.getElementById('cur'),d=document.getElementById('dur'),t=document.getElementById('track'),ar=document.getElementById('artist');
-let lm=true,cues=[];
+const a=document.getElementById('audio'),p=document.getElementById('play'),l=document.getElementById('live'),r=document.getElementById('restart'),b=document.getElementById('bar'),c=document.getElementById('cur'),d=document.getElementById('dur'),t=document.getElementById('track'),ar=document.getElementById('artist'),ps=document.getElementById('playerstate');
+let lm=true,cues=[];const state=(msg,bad=false)=>{ps.textContent=msg;ps.classList.toggle('bad',bad)};
 const f=s=>{if(!isFinite(s))return'--:--';s=Math.max(0,Math.floor(s));return String(Math.floor(s/60)).padStart(2,'0')+':'+String(s%60).padStart(2,'0')};
 function sync(){if(!a.duration)return;const x=(Date.now()/1000)%a.duration;if(Math.abs(a.currentTime-x)>2)a.currentTime=x}
 function now(){if(!cues.length)return;const x=a.currentTime||0;let q=cues[0];for(const row of cues){if(x>=row.start_seconds)q=row;else break}t.textContent=q.title||q.label||'KJAI Radio';ar.textContent=q.artist||q.program||'KJAI'}
 fetch('./rotation.json',{cache:'no-store'}).then(x=>x.ok?x.json():null).then(x=>{if(x&&Array.isArray(x.cues))cues=x.cues}).catch(()=>{});
-a.addEventListener('loadedmetadata',()=>{d.textContent=f(a.duration);if(lm)sync();now()});
+a.addEventListener('loadedmetadata',()=>{d.textContent=f(a.duration);if(lm)sync();now();state('READY · TAP JOIN LIVE')});
+a.addEventListener('canplay',()=>state(a.paused?'READY · TAP JOIN LIVE':'ON AIR · PLAYING'));
+a.addEventListener('playing',()=>state('ON AIR · PLAYING'));
+a.addEventListener('waiting',()=>state('BUFFERING KJAI…'));
+a.addEventListener('stalled',()=>state('BUFFERING KJAI…'));
+a.addEventListener('error',()=>state('AUDIO OFFLINE · MEDIA SOURCE NEEDS RESTORE',true));
 a.addEventListener('timeupdate',()=>{c.textContent=f(a.currentTime);b.style.width=((a.currentTime/(a.duration||1))*100)+'%';now()});
 a.addEventListener('play',()=>p.textContent='Ⅱ PAUSE');a.addEventListener('pause',()=>p.textContent='▶ JOIN LIVE');
 a.addEventListener('ended',()=>{if(lm){sync();a.play().catch(()=>{})}else{a.currentTime=0;a.play().catch(()=>{})}});
-p.onclick=async()=>{if(a.paused){if(lm)sync();try{await a.play()}catch(e){}}else a.pause()};
+p.onclick=async()=>{if(a.paused){if(lm)sync();state('STARTING KJAI…');try{await a.play()}catch(e){state('PLAYBACK COULD NOT START · RETRY AFTER AUDIO RESTORE',true)}}else a.pause()};
 l.onclick=()=>{lm=!lm;l.classList.toggle('on',lm);l.textContent=lm?'● LIVE SYNC':'○ LIVE SYNC OFF';if(lm)sync()};
 r.onclick=()=>{lm=false;l.classList.remove('on');l.textContent='○ LIVE SYNC OFF';a.currentTime=0;a.play().catch(()=>{})};
 setInterval(()=>{if(lm&&!a.paused)sync()},15000);
