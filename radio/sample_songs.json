@@ -1,0 +1,35 @@
+[
+  {
+    "id": "KJAI-DEMO-001",
+    "title": "Midnight Exit",
+    "artist": "JakeAI House Band",
+    "genre": "synth-rock",
+    "energy": 0.68,
+    "mood": "restless",
+    "instrumental": false,
+    "source": "original_placeholder",
+    "commercial_ok": false
+  },
+  {
+    "id": "KJAI-DEMO-002",
+    "title": "Parking Lot Astronomy",
+    "artist": "JakeAI House Band",
+    "genre": "indie-electronic",
+    "energy": 0.48,
+    "mood": "wry",
+    "instrumental": true,
+    "source": "original_placeholder",
+    "commercial_ok": false
+  },
+  {
+    "id": "KJAI-DEMO-003",
+    "title": "Everything Is Probably Fine",
+    "artist": "JakeAI House Band",
+    "genre": "garage-electronic",
+    "energy": 0.74,
+    "mood": "reckless",
+    "instrumental": false,
+    "source": "original_placeholder",
+    "commercial_ok": false
+  }
+]
