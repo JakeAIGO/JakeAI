@@ -1,0 +1,5 @@
+
+# JakeAI private local narration assets
+tools/local-narration/.venv/
+tools/local-narration/private/
+tools/local-narration/output/
