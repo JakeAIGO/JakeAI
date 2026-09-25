@@ -322,6 +322,25 @@ def _issue_owner_session() -> str:
     return f"{expires}.{signature}"
 
 
+def _owner_session_validation_secrets() -> list[str]:
+    """Return current + legacy session signing keys for safe key rotation.
+
+    New sessions are always issued with MISSION_CONTROL_SESSION_SECRET when
+    configured. Older sessions may have been signed with MISSION_CONTROL_TOKEN
+    before the dedicated session secret existed. Accept those legacy cookies
+    only until their embedded expiry; no legacy key is used to issue new ones.
+    """
+    values = [
+        os.environ.get("MISSION_CONTROL_SESSION_SECRET", "").strip(),
+        os.environ.get("MISSION_CONTROL_TOKEN", "").strip(),
+    ]
+    out = []
+    for value in values:
+        if value and value not in out:
+            out.append(value)
+    return out
+
+
 def _valid_owner_session(value: str) -> bool:
     try:
         expires_text, signature = (value or "").split(".", 1)
@@ -330,12 +349,16 @@ def _valid_owner_session(value: str) -> bool:
         return False
     if expires <= int(time.time()):
         return False
-    secret = _session_secret()
-    if not secret:
-        return False
     payload = f"owner:{expires}"
-    expected_signature = hmac.new(secret.encode("utf-8"), payload.encode("utf-8"), hashlib.sha256).hexdigest()
-    return hmac.compare_digest(signature, expected_signature)
+    for secret in _owner_session_validation_secrets():
+        expected_signature = hmac.new(
+            secret.encode("utf-8"),
+            payload.encode("utf-8"),
+            hashlib.sha256,
+        ).hexdigest()
+        if hmac.compare_digest(signature, expected_signature):
+            return True
+    return False
 
 
 def _require_control(authorization: Optional[str], request: Optional[Request] = None) -> None:
