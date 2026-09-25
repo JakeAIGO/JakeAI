@@ -27,7 +27,7 @@ def _overlay_runtime_locks(jobs):
                 job["stage"]="source_verified"
         if structure_row:
             job["structure_map"]=public_structure(structure_row)
-            if job.get("stage")=="source_verified":
+            if structure_row["status"]=="verified" and job.get("stage")=="source_verified":
                 job["stage"]="structure_verified"
         out.append(job)
     return out
