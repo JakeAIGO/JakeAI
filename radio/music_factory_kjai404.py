@@ -16,7 +16,11 @@ import urllib.error
 import urllib.request
 from pathlib import Path
 
-from radio.artist_roster import load_artist_roster, artist_generation_prompt, artist_seed, artist_catalog_metadata
+try:
+    from radio.artist_roster import load_artist_roster, artist_generation_prompt, artist_seed, artist_catalog_metadata
+except ModuleNotFoundError:
+    # Direct-script execution on Windows places the radio folder, not the repo root, on sys.path.
+    from artist_roster import load_artist_roster, artist_generation_prompt, artist_seed, artist_catalog_metadata
 
 
 def sha256(data: bytes) -> str:
