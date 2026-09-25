@@ -1,6 +1,6 @@
 [build]
   publish = "."
-  command = ""
+  command = "bash build-kjai-radio.sh"
 
 [functions]
   directory = "netlify/functions"
