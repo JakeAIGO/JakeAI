@@ -226,4 +226,9 @@ register_shopify_order_bridge_routes(app)
 from book_release_batch import register_book_release_batch_routes
 register_book_release_batch_routes(app)
 
+# Private dynamic JakeAI Radio studio. Text breaks are generated locally by
+# default; public broadcast and music playback remain separately rights-gated.
+from radio_engine import register_radio_routes
+register_radio_routes(app)
+
 app.mount("/", legacy_app)
