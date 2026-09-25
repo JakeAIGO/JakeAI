@@ -1,0 +1,82 @@
+[
+  {
+    "id": "KJAI-MUSIC-001",
+    "title": "Midnight Exit",
+    "artist": "JakeAI House Band",
+    "prompt": "Original instrumental synth-rock for late-night driving, analog bass, taut live-style drums, glassy electric guitar accents, restrained retro-futurist synths, tense but confident, memorable original hook, no vocals, no samples, no imitation of any named artist",
+    "duration": 180,
+    "bpm": 112,
+    "key_scale": "E Minor",
+    "time_signature": "4"
+  },
+  {
+    "id": "KJAI-MUSIC-002",
+    "title": "Parking Lot Astronomy",
+    "artist": "JakeAI House Band",
+    "prompt": "Original instrumental indie-electronic night track, warm bass guitar, soft analog synth arpeggios, dry drum machine and live percussion blend, slightly wistful and quietly funny mood, spacious bridge, no vocals, no samples, no named-artist imitation",
+    "duration": 195,
+    "bpm": 96,
+    "key_scale": "A Major",
+    "time_signature": "4"
+  },
+  {
+    "id": "KJAI-MUSIC-003",
+    "title": "Everything Is Probably Fine",
+    "artist": "JakeAI House Band",
+    "prompt": "Original instrumental garage-electronic driving track, crunchy rhythm guitar, aggressive bass, punchy drums, odd little synth interruptions, reckless energy with deadpan restraint, strong original chorus-like instrumental motif, no vocals, no samples, no named-artist imitation",
+    "duration": 170,
+    "bpm": 128,
+    "key_scale": "D Minor",
+    "time_signature": "4"
+  },
+  {
+    "id": "KJAI-MUSIC-004",
+    "title": "Low Battery, High Confidence",
+    "artist": "JakeAI House Band",
+    "prompt": "Original instrumental electro-funk road track, elastic bass, clipped guitar, vintage keys, syncopated drums, playful swagger without parody, clean production, distinctive original motif, no vocals, no samples, no imitation of a named performer",
+    "duration": 185,
+    "bpm": 108,
+    "key_scale": "F Minor",
+    "time_signature": "4"
+  },
+  {
+    "id": "KJAI-MUSIC-005",
+    "title": "Exit 404",
+    "artist": "JakeAI House Band",
+    "prompt": "Original instrumental cinematic synthwave chase track, driving toms, dark pulsing bass, bright arpeggiators, unexpected half-time middle section, nighttime highway atmosphere, modern mix, no vocals, no samples, no named-artist imitation",
+    "duration": 205,
+    "bpm": 118,
+    "key_scale": "C Minor",
+    "time_signature": "4"
+  },
+  {
+    "id": "KJAI-MUSIC-006",
+    "title": "No Committee Was Consulted",
+    "artist": "JakeAI House Band",
+    "prompt": "Original instrumental post-punk electronic track, angular guitar, melodic bass, brisk acoustic-style drums, small analog synth details, dry confidence and understated mischief, no vocals, no samples, no named-artist imitation",
+    "duration": 176,
+    "bpm": 122,
+    "key_scale": "G Minor",
+    "time_signature": "4"
+  },
+  {
+    "id": "KJAI-MUSIC-007",
+    "title": "Mildly Concerning",
+    "artist": "JakeAI House Band",
+    "prompt": "Original instrumental noir electronic groove, brushed drums layered with restrained breakbeat, upright-style bass tone, muted guitar, uneasy electric piano, subtle tension that never becomes horror, no vocals, no samples, no named-artist imitation",
+    "duration": 190,
+    "bpm": 88,
+    "key_scale": "B Minor",
+    "time_signature": "4"
+  },
+  {
+    "id": "KJAI-MUSIC-008",
+    "title": "Operational Enough",
+    "artist": "JakeAI House Band",
+    "prompt": "Original instrumental upbeat alternative electronic closer, live-style drums, warm distorted bass, chiming guitar, optimistic analog synth layer, controlled energy, satisfying original finale motif, no vocals, no samples, no imitation of any named artist",
+    "duration": 200,
+    "bpm": 116,
+    "key_scale": "D Major",
+    "time_signature": "4"
+  }
+]
