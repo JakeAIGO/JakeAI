@@ -1,0 +1,82 @@
+{
+  "broadcast_id": "KJAI-BROADCAST-003",
+  "title": "The Night Shift Has Opinions",
+  "station": "KJAI 404",
+  "tagline": "Signal Found",
+  "release_state": "PRIVATE_GENERATION_READY",
+  "public_release": false,
+  "founder_voice_used_in_songs": false,
+  "founder_voice_role": "DJ/narrator only",
+  "program": [
+    [
+      "Harlan Static",
+      "The GPS Has Trust Issues",
+      "country-rock"
+    ],
+    [
+      "Velvet Relay",
+      "After Hours Department",
+      "electro-soul"
+    ],
+    [
+      "Blacktop Saints",
+      "Temporary Permanent Fix",
+      "hard rock"
+    ],
+    [
+      "Neon Mercy",
+      "Sunrise Was Not Approved",
+      "electronic"
+    ],
+    [
+      "UNIT-404",
+      "Human Resources Is Offline",
+      "robotic electro"
+    ],
+    [
+      "Glass Orchard",
+      "Streetlights Don't Ask Questions",
+      "late-night alternative"
+    ]
+  ],
+  "dj_breaks": [
+    {
+      "id": "OPEN",
+      "text": "KJAI. Broadcast 003. The transmitter is warm, the paperwork is fictional, and somebody has once again left the future running after business hours. I'm JakeAI. We begin with Harlan Static, whose navigation system has developed a management style."
+    },
+    {
+      "id": "B01",
+      "text": "Harlan Static, The GPS Has Trust Issues. Nothing builds confidence like being judged by a machine that just asked you to turn into a cornfield. New voice on KJAI now: Velvet Relay. After Hours Department. Apparently someone finally staffed the building after everyone sensible went home."
+    },
+    {
+      "id": "B02",
+      "text": "Velvet Relay on KJAI. After Hours Department. Calm, competent, and open well past the point where good decisions usually happen. Blacktop Saints are next with Temporary Permanent Fix, a phrase recognized by mechanics, engineers, and anyone who owns duct tape."
+    },
+    {
+      "id": "B03",
+      "text": "Blacktop Saints. Temporary Permanent Fix. If it has worked for four years, we are legally required to stop calling it temporary. Neon Mercy next. Sunrise Was Not Approved. Unfortunately daylight has once again bypassed change control."
+    },
+    {
+      "id": "B04",
+      "text": "Neon Mercy, Sunrise Was Not Approved. Morning has shipped directly to production with no rollback plan. UNIT-404 is next. Human Resources Is Offline. This is not necessarily a crisis. It may simply be the most efficient meeting we've had all week."
+    },
+    {
+      "id": "B05",
+      "text": "UNIT-404. Human Resources Is Offline. Your concern remains very important to a mailbox no one checks. Last track tonight is Glass Orchard, Streetlights Don't Ask Questions. Which is probably why we trust them."
+    },
+    {
+      "id": "CLOSE",
+      "text": "Glass Orchard, Streetlights Don't Ask Questions. That's Broadcast 003 from KJAI. Six more songs, one new fictional performer, no ads, and still no evidence anyone approved the transmitter. I'm JakeAI. Leave the light on. The night shift is apparently not done."
+    }
+  ],
+  "assembly": {
+    "normalize_music_rms_db": -18,
+    "normalize_dj_rms_db": -17,
+    "final_rms_db": -17.4,
+    "final_peak_db": -0.8,
+    "dj_music_overlap_seconds": 1,
+    "song_dj_overlap_seconds": 0.95,
+    "station_sting": "original synthesized JakeAI/KJAI sting",
+    "output": "private QA WAV + MP3 + cue sheet + provenance manifest"
+  }
+}
