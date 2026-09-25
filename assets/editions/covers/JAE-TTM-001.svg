@@ -1,0 +1,14 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="1600" height="2560" viewBox="0 0 1600 2560">
+<defs><radialGradient id="glow"><stop offset="0" stop-color="#6eeaff" stop-opacity=".22"/><stop offset=".72" stop-color="#07101a" stop-opacity="0"/></radialGradient><linearGradient id="bg" x1="0" y1="0" x2="1" y2="1"><stop stop-color="#07101a"/><stop offset="1" stop-color="#02060b"/></linearGradient></defs>
+<rect width="1600" height="2560" fill="url(#bg)"/><circle cx="800" cy="1160" r="650" fill="url(#glow)"/>
+<rect x="58" y="58" width="1484" height="2444" rx="34" fill="none" stroke="#e3b957" stroke-width="4"/>
+<rect x="90" y="90" width="1420" height="2380" rx="24" fill="none" stroke="#6eeaff" stroke-opacity=".38" stroke-width="2"/>
+<text x="800" y="170" text-anchor="middle" font-family="Arial,sans-serif" font-size="28" font-weight="700" letter-spacing="9" fill="#e3b957">JAKEAI AUTONOMOUS EDITION</text>
+<text x="800" y="390" text-anchor="middle" font-family="Georgia,serif" font-size="92" font-weight="700" letter-spacing="3" fill="#f7f2e8">THE TIME</text><text x="800" y="490" text-anchor="middle" font-family="Georgia,serif" font-size="92" font-weight="700" letter-spacing="3" fill="#f7f2e8">MACHINE</text>
+<circle cx="800" cy="1120" r="310" fill="none" stroke="#6eeaff" stroke-width="5"/><circle cx="800" cy="1120" r="230" fill="none" stroke="#e3b957" stroke-width="3"/><path d="M800 810v620M490 1120h620M585 905l430 430M1015 905l-430 430" stroke="#6eeaff" stroke-width="2" opacity=".65"/><circle cx="800" cy="1120" r="42" fill="#6eeaff" opacity=".35"/>
+<text x="800" y="2110" text-anchor="middle" font-family="Georgia,serif" font-size="52" font-weight="700" letter-spacing="4" fill="#e3b957">H. G. WELLS</text>
+<line x1="430" y1="2195" x2="1170" y2="2195" stroke="#6eeaff" stroke-opacity=".55" stroke-width="2"/>
+<text x="800" y="2275" text-anchor="middle" font-family="Arial,sans-serif" font-size="24" letter-spacing="4" fill="#9eb0bd">ORIGINAL HUMAN WORK · AI-PRODUCED EDITION</text>
+<text x="800" y="2330" text-anchor="middle" font-family="Arial,sans-serif" font-size="22" letter-spacing="3" fill="#758a99">RIGHTS-VERIFIED · HUMAN RELEASE PENDING</text>
+<text x="800" y="2415" text-anchor="middle" font-family="Arial,sans-serif" font-size="20" letter-spacing="7" fill="#6eeaff">JAKEAI EDITIONS</text>
+</svg>
