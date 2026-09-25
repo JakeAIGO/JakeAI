@@ -12,6 +12,7 @@ import hashlib
 import json
 import time
 import urllib.parse
+import urllib.error
 import urllib.request
 from pathlib import Path
 
@@ -22,15 +23,19 @@ def sha256(data: bytes) -> str:
     return hashlib.sha256(data).hexdigest()
 
 
-def call_json(url: str, payload: dict | None = None):
+def call_json(url: str, payload: dict | None = None, timeout: int = 120):
     data = None
     headers = {}
     if payload is not None:
         data = json.dumps(payload).encode("utf-8")
         headers["Content-Type"] = "application/json"
     req = urllib.request.Request(url, data=data, headers=headers)
-    with urllib.request.urlopen(req, timeout=120) as r:
-        return json.loads(r.read().decode("utf-8"))
+    try:
+        with urllib.request.urlopen(req, timeout=timeout) as r:
+            return json.loads(r.read().decode("utf-8"))
+    except urllib.error.HTTPError as exc:
+        body = exc.read().decode("utf-8", errors="replace")
+        raise RuntimeError(f"HTTP {exc.code} from {url}: {body}") from exc
 
 
 def download(url: str) -> bytes:
@@ -50,6 +55,7 @@ def main():
     ap.add_argument("--api", default="http://127.0.0.1:8001")
     ap.add_argument("--model", default="acestep-v15-turbo")
     ap.add_argument("--poll-seconds", type=float, default=2.0)
+    ap.add_argument("--max-duration", type=float, default=None, help="Private preview cap for each generated track")
     args = ap.parse_args()
 
     prompt_data = json.loads(Path(args.prompts).read_text(encoding="utf-8"))
@@ -61,6 +67,22 @@ def main():
     health = call_json(args.api.rstrip("/") + "/health")
     if health.get("code") != 200:
         raise RuntimeError(f"ACE-Step API is not healthy: {health}")
+
+    health_data = health.get("data") or {}
+    if not health_data.get("models_initialized", False):
+        print("ACE-Step server is alive; initializing the music model...")
+        initialized = call_json(
+            args.api.rstrip("/") + "/v1/init",
+            {"model": args.model, "slot": 1, "init_llm": False},
+            timeout=3600,
+        )
+        if initialized.get("code") != 200:
+            raise RuntimeError(f"ACE-Step model initialization failed: {initialized}")
+        health = call_json(args.api.rstrip("/") + "/health", timeout=120)
+        health_data = health.get("data") or {}
+        if not health_data.get("models_initialized", False):
+            raise RuntimeError(f"ACE-Step model did not report initialized after /v1/init: {health}")
+    print(f"ACE-Step model ready: {health_data.get('loaded_model') or args.model}")
 
     catalog = []
     for i, spec in enumerate(prompts, 1):
@@ -77,7 +99,7 @@ def main():
             "vocal_language": spec.get("vocal_language", "en"),
             "audio_format": "wav",
             "model": args.model,
-            "audio_duration": spec["duration"],
+            "audio_duration": min(float(spec["duration"]), float(args.max_duration)) if args.max_duration else spec["duration"],
             "bpm": spec["bpm"],
             "key_scale": spec["key_scale"],
             "time_signature": spec["time_signature"],
