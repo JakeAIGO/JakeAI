@@ -22,6 +22,7 @@ from xml.sax.saxutils import escape as xml_escape
 from book_source_lock import list_locks
 from book_structure_map import list_structures
 
+EPUB_BUILD_VERSION = "2-cover-svg"
 COVER_DIR = Path(__file__).resolve().parent / "assets" / "editions" / "covers"
 
 def _now():
@@ -52,6 +53,9 @@ def _conn():
       status TEXT NOT NULL,
       built_at TEXT NOT NULL
     )""")
+    cols={row[1] for row in c.execute("PRAGMA table_info(book_epub_builds)").fetchall()}
+    if "build_version" not in cols:
+        c.execute("ALTER TABLE book_epub_builds ADD COLUMN build_version TEXT")
     c.commit()
     return c
 
@@ -169,7 +173,7 @@ def build_epub(job_id:str,title:str,author:str)->dict:
 
     c=_conn()
     existing=c.execute("SELECT * FROM book_epub_builds WHERE job_id=?",(job_id,)).fetchone()
-    if existing and existing["canonical_sha256"]==canonical_sha and existing["status"]=="ready" and Path(existing["epub_path"]).exists():
+    if existing and existing["canonical_sha256"]==canonical_sha and existing["status"]=="ready" and existing["build_version"]==EPUB_BUILD_VERSION and Path(existing["epub_path"]).exists():
         data=Path(existing["epub_path"]).read_bytes()
         if _sha(data)==existing["epub_sha256"]:
             out=dict(existing); c.close(); return out
@@ -253,9 +257,9 @@ def build_epub(job_id:str,title:str,author:str)->dict:
     tmp.replace(out_path)
     c=_conn()
     c.execute("""INSERT OR REPLACE INTO book_epub_builds
-      (job_id,canonical_sha256,epub_sha256,epub_bytes,epub_path,section_count,exact_roundtrip_verified,status,built_at)
-      VALUES (?,?,?,?,?,?,?,?,?)""",(
-        job_id,canonical_sha,epub_sha,len(epub_bytes),str(out_path),len(navigation),1,"ready",_now()
+      (job_id,canonical_sha256,epub_sha256,epub_bytes,epub_path,section_count,exact_roundtrip_verified,status,built_at,build_version)
+      VALUES (?,?,?,?,?,?,?,?,?,?)""",(
+        job_id,canonical_sha,epub_sha,len(epub_bytes),str(out_path),len(navigation),1,"ready",_now(),EPUB_BUILD_VERSION
     ))
     c.commit()
     row=c.execute("SELECT * FROM book_epub_builds WHERE job_id=?",(job_id,)).fetchone()
@@ -292,6 +296,8 @@ def public_build(row:dict|None):
       "section_count":row["section_count"],
       "exact_roundtrip_verified":bool(row["exact_roundtrip_verified"]),
       "built_at":row["built_at"],
+      "build_version":row["build_version"],
+      "cover_embedded":row["build_version"]==EPUB_BUILD_VERSION,
       "public":False,
       "paid":False,
     }
