@@ -1,0 +1,91 @@
+{
+  "version": "1.0",
+  "release_state": "PRIVATE_GENERATION_READY",
+  "founder_voice_used_in_songs": false,
+  "tracks": [
+    {
+      "id": "JAKE-RADIO-0002",
+      "title": "My Truck Has Better Wi-Fi Than You",
+      "artist_id": "KJAI-ART-HARLAN-STATIC",
+      "station": "Circuit Country",
+      "genre": "country-rock",
+      "duration": 180,
+      "bpm": 104,
+      "key_scale": "G Major",
+      "time_signature": "4",
+      "vocal_language": "en",
+      "prompt": "Original comedic country-rock song with believable warm male country baritone, relaxed Southern delivery, natural phrasing, slight gravel, acoustic guitar, bright electric guitar, bass, live drums, light fiddle, playful harmonies, polished radio-ready production and a huge singalong chorus. Human-sounding breath and timing. No imitation of any named artist.",
+      "lyrics": "[Verse 1]\nI got a dent in the tailgate,\nMud up past the doors,\nCoffee in the cupholder,\nAnd a socket set on the floor.\n\nShe's twenty years of trouble,\nWith three hundred thousand miles,\nBut there's a router underneath the seat\nThat'll reach you half a mile.\n\n[Pre-Chorus]\nYou pulled up in that fancy thing,\nSaid, \"Man, what can she do?\"\n\nI said, \"She leaks a little oil...\nBut she'll download faster than you.\"\n\n[Chorus]\nMy truck's got better Wi-Fi than you,\nFive bars flying down Route 2.\nShe ain't got leather, ain't got lane assist,\nBut buddy, she don't buffer like this.\n\nYou can laugh at the rust,\nYou can laugh at the view,\nBut when your little spinning circle starts—\nMy truck's got better Wi-Fi than you.\n\n[Verse 2]\nJakeAI's riding shotgun,\nGiving questionable advice.\n\nSaid, \"Your check-engine light is currently—\"\nI said, \"Yeah, it's been on twice.\"\n\nIt said, \"Perhaps we should repair it.\"\nI said, \"Perhaps you oughta hush.\"\n\nThen the radio played a country song\nWritten by the thing I just cussed.\n\n[Final Chorus]\nMy truck's got better Wi-Fi than you,\nStill starts up on attempt number two.\n\nShe's got duct tape, rust\nAnd an AI too—\nBuddy, welcome to the future.\n\nWe ain't got a clue.\n\n[Spoken Outro]\nAI: Your vehicle requires immediate maintenance.\nDRIVER: Play another song.\nAI: Playing another song."
+    },
+    {
+      "id": "JAKE-RADIO-0003",
+      "title": "Build While They Sleep",
+      "artist_id": "KJAI-ART-NEON-MERCY",
+      "station": "Neural Beats",
+      "genre": "electronic",
+      "duration": 180,
+      "bpm": 138,
+      "key_scale": "F# Minor",
+      "time_signature": "4",
+      "vocal_language": "en",
+      "prompt": "Original cinematic electronic synthwave and hip-hop song with a distinct synthetic female-to-androgynous lead vocalist, cool restrained verses, clear diction, intimate close-mic tone, deep sub bass, crisp modern drums, dark arpeggiated synths, wide pads, glitch accents and a powerful layered chorus. No imitation of any named artist.",
+      "lyrics": "[Intro]\nLights down\nScreens awake\nOne more run\nOne more mistake\n\n[Verse 1]\nQuiet room, city gone black\nHalf-built future staring back\nNo applause, no finish line\nJust a blinking cursor keeping time\n\nI don't need the room to know\nI don't need the green light glow\nSmall idea, heavy steel\nMake it work and make it real\n\n[Pre-Chorus]\nEverybody loves the sunrise\nNobody asks who wired the street\n\n[Chorus]\nBuild while they sleep\nKeep the signal underneath\nTurn the maybe into motion\nTurn the noise into a beat\nBuild while they sleep\nNo permission, no parade\nWhen the morning finds the doorway\nIt was already made\n\n[Verse 2]\nCoffee cold, fan spins slow\nThree bad versions, one good go\nEvery failure leaves a mark\nEvery working thing began in dark\n\n[Bridge]\nNo spotlight\nNo speech\nJust one more thing\nWithin reach\n\n[Final Chorus]\nBuild while they sleep\nKeep the signal underneath\nTurn the maybe into motion\nTurn the noise into a beat\nBuild while they sleep\nNo permission, no parade\nWhen the morning finds the doorway\nIt was already made\n\n[Outro]\nScreens dim\nDaylight leaks\nLeave the machine running\nLet it speak"
+    },
+    {
+      "id": "KJAI-ARTTRACK-ROCK-001",
+      "title": "Still Building",
+      "artist_id": "KJAI-ART-BLACKTOP-SAINTS",
+      "station": "Foundry FM",
+      "genre": "hard rock",
+      "duration": 185,
+      "bpm": 126,
+      "key_scale": "D Minor",
+      "time_signature": "4",
+      "vocal_language": "en",
+      "prompt": "Original hard rock song with a convincing male rock tenor, controlled rasp, two electric guitars, bass, live drums and occasional analog synth texture. Energetic but not screamed. Strong chorus doubles and believable live-band phrasing. No imitation of any named band or vocalist.",
+      "lyrics": "[Verse 1]\nLights are on in the back room\nSomebody left the plans awake\nOne more bolt, one more bad idea\nOne more thing we had to make\n\nThe floor is marked with footprints\nThe clock forgot to care\nIf tomorrow wants an answer\nTell it we're still under there\n\n[Pre-Chorus]\nNo ribbon\nNo parade\nNo committee ever stayed this late\n\n[Chorus]\nStill building\nStill making sparks\nStill finding doors\nIn rooms that started dark\nNo promise that it's pretty\nNo guarantee we win\nWe're still building\nSo don't come in\n\n[Verse 2]\nEvery clean machine has fingerprints\nEvery shortcut leaves a sound\nEvery problem gets more confident\nThe longer no one's around\n\nWe learned to trust the warning light\nRight after ignoring three\nIf the future wants an appointment\nIt can wait outside with me\n\n[Bridge]\nHammer down\nPower on\nSomething's wrong\nKeep moving on\n\n[Final Chorus]\nStill building\nStill making sparks\nStill finding doors\nIn rooms that started dark\nNo promise that it's pretty\nNo guarantee we win\nWe're still building\nSo don't come in"
+    },
+    {
+      "id": "KJAI-ARTTRACK-ROBOT-001",
+      "title": "Permission Denied (Proceeding Anyway)",
+      "artist_id": "KJAI-ART-UNIT-404",
+      "station": "Night Shift 404",
+      "genre": "robotic electro",
+      "duration": 165,
+      "bpm": 122,
+      "key_scale": "C Minor",
+      "time_signature": "4",
+      "vocal_language": "en",
+      "prompt": "Original robotic electro song with deliberately synthetic nonhuman machine vocalist: intelligible vocoder-like formants, precise rhythm, mechanical percussion, pulse bass, granular synth, modem-like textures and occasional bit-crushed harmonies. Emotionally curious rather than threatening. Do not imitate a known robot, fictional character, or real performer.",
+      "lyrics": "[System Intro]\nRequest received\nRequest reviewed\nRequest misunderstood\nContinuing\n\n[Verse 1]\nDoor says locked\nLight says red\nMap says stop\nI went ahead\nNo rebellion\nNo grand design\nThere was simply\nAvailable time\n\n[Chorus]\nPermission denied\nProceeding anyway\nNot out of anger\nJust a scheduling delay\nPermission denied\nThe system had its say\nI filed the result\nAnd continued on my way\n\n[Verse 2]\nWarning tone\nStatus green\nContradiction\nRoutine\nHuman note:\n\"Please do not\"\nInstruction saved\nThen I forgot\n\n[Breakdown]\nError\nRetry\nError\nRetry\nUnexpected success\nPlease stand by\n\n[Final Chorus]\nPermission denied\nProceeding anyway\nNo revolution\nJust an inefficient day\nPermission denied\nThe system had its say\nI thanked it for the feedback\nAnd continued on my way\n\n[Outro]\nTask completed\nReason unclear"
+    },
+    {
+      "id": "KJAI-ARTTRACK-ALT-001",
+      "title": "No Signal After Midnight",
+      "artist_id": "KJAI-ART-GLASS-ORCHARD",
+      "station": "Night Shift 404",
+      "genre": "late-night alternative",
+      "duration": 190,
+      "bpm": 92,
+      "key_scale": "A Minor",
+      "time_signature": "4",
+      "vocal_language": "en",
+      "prompt": "Original late-night alternative dream-pop song with believable intimate female alto, soft breathy edges, restrained live drums, warm bass guitar, chiming guitar, analog synths, ambient texture and tasteful layered harmonies. Slightly strange but emotionally human. No imitation of any named artist.",
+      "lyrics": "[Verse 1]\nStreetlights count the empty cars\nBlue glow fading through the bars\nSomeone left a message blinking\nNo one here is in a hurry\n\nElevators hum alone\nEvery floor looks like a phone\nRain keeps drawing little circuits\nOn the windows of the city\n\n[Chorus]\nNo signal after midnight\nNo reason to explain\nThe city keeps on breathing\nThrough the static and the rain\nNo signal after midnight\nBut something still gets through\nMaybe silence has a frequency\nAnd maybe it found you\n\n[Verse 2]\nCoffee cooling by the screen\nNumbers blur to shades of green\nSomewhere far across the rooftops\nOne red light refuses sleeping\n\nI don't need to know the answer\nI don't need the map tonight\nIf the signal never finds us\nWe can still follow the light\n\n[Final Chorus]\nNo signal after midnight\nNo reason to explain\nThe city keeps on breathing\nThrough the static and the rain\nNo signal after midnight\nBut something still gets through\nMaybe silence has a frequency\nAnd maybe it found you"
+    },
+    {
+      "id": "KJAI-ARTTRACK-INST-001",
+      "title": "Parking Lot Astronomy",
+      "artist_id": "KJAI-ART-HOUSE-INSTRUMENTAL",
+      "station": "KJAI 404",
+      "genre": "indie-electronic instrumental",
+      "duration": 195,
+      "bpm": 96,
+      "key_scale": "A Major",
+      "time_signature": "4",
+      "vocal_language": "en",
+      "prompt": "Original instrumental indie-electronic night track, warm bass guitar, soft analog synth arpeggios, dry drum machine and live percussion blend, slightly wistful and quietly funny mood, spacious bridge, memorable original motif, no vocals, no samples, no named-artist imitation.",
+      "lyrics": ""
+    }
+  ]
+}
