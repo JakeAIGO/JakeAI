@@ -25,6 +25,7 @@ from typing import Any, Iterable, Optional
 from fastapi import APIRouter, Header, HTTPException, Request
 from pydantic import BaseModel, Field
 from mission_dispatcher import _require_control
+from radio.programmer import build_rotation
 
 DEFAULT_DB = "/data/jakeai-radio.db" if os.path.isdir("/data") else "/tmp/jakeai-radio.db"
 
@@ -416,6 +417,66 @@ def _api_recent(limit: int = 30):
             "mode": "local",
         })
     return out
+
+def _load_private_program_data():
+    root = Path(__file__).resolve().parent
+    roster_path = root / "radio" / "artist_roster.json"
+    tracks_path = root / "radio" / "artist_tracks_v1.json"
+    roster_raw = json.loads(roster_path.read_text(encoding="utf-8"))
+    tracks_raw = json.loads(tracks_path.read_text(encoding="utf-8"))
+    artists = {row["id"]: row for row in roster_raw.get("artists", [])}
+    tracks = list(tracks_raw.get("tracks", []))
+    for row in tracks:
+        artist = artists.get(row.get("artist_id"), {})
+        row["artist"] = artist.get("name", row.get("artist_id", "JakeAI Artist"))
+        row["voice_profile"] = artist.get("voice_profile", "")
+        row["station_home"] = artist.get("station_home", row.get("station", "KJAI 404"))
+    return artists, tracks
+
+def _program_preview(limit: int = 12):
+    artists, tracks = _load_private_program_data()
+    ordered = build_rotation(tracks, max(1, min(24, int(limit))))
+    out = []
+    for i, row in enumerate(ordered):
+        out.append({
+            "position": i + 1,
+            "id": row["id"],
+            "title": row["title"],
+            "artist_id": row.get("artist_id"),
+            "artist": row.get("artist"),
+            "station": row.get("station"),
+            "genre": row.get("genre"),
+            "instrumental": bool(row.get("instrumental", False)),
+            "identity_mode": row.get("identity_mode"),
+            "voice_profile": row.get("voice_profile"),
+            "dj_break_before": True,
+            "dj_voice": "JakeAI Original AI Narration",
+            "public": False,
+        })
+    return {
+        "program": out,
+        "artists": [
+            {
+                "id": a["id"],
+                "name": a["name"],
+                "type": a["type"],
+                "station_home": a["station_home"],
+                "genres": a["genres"],
+                "voice_profile": a["voice_profile"],
+                "identity_mode": a["identity_mode"],
+            }
+            for a in artists.values()
+        ],
+        "founder_voice_used_in_songs": False,
+        "dj_voice": "JakeAI Original AI Narration",
+        "public": False,
+    }
+
+@_api.get("/api/v1/radio/private/program")
+@_api.get("/v1/radio/private/program")
+def api_radio_program(request: Request, authorization: Optional[str] = Header(None), limit: int = 12):
+    _require_control(authorization, request)
+    return _program_preview(limit)
 
 @_api.get("/api/v1/radio/private/status")
 @_api.get("/v1/radio/private/status")
