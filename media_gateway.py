@@ -29,6 +29,7 @@ router = APIRouter()
 
 MEDIA_POLICY = {
     "architecture": "local_first_provider_independent",
+    "shared_consumers": ["JakeAI Editions", "JakeAI Radio", "JakeAI Games", "GridWorks private production"],
     "principle": "JakeAI is the system; models and media providers are replaceable adapters.",
     "default_spend_policy": "zero_marginal_vendor_cost",
     "paid_fallback_default": False,
@@ -213,6 +214,12 @@ def media_status(request:Request,authorization:Optional[str]=Header(None)):
       "paid_video_enabled":_truthy("MEDIA_ENABLE_PAID_VIDEO"),
       "legacy_external_assets":len(inv.get("assets",[])),
       "legacy_asset_migration_status":inv.get("status"),
+      "shared_cue_engine":{
+        "module":"media_cue_engine.py",
+        "consumers":MEDIA_POLICY["shared_consumers"],
+        "gridworks_program":"media-programs/gridworks_sizzle_v1_6.json",
+        "game_example":"media-programs/game_dynamic_media_example.json",
+      },
     }
 
 @router.post("/api/v1/media-gateway/private/route")
