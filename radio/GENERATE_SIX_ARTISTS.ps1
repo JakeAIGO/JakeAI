@@ -88,7 +88,12 @@ try {
 
   Banner "RENDERING SIX FICTIONAL ARTISTS"
   Set-Location $Repo
-  py -3.11 radio\music_factory_kjai404.py --out "$Out"
+  $PreviewArg = @()
+  if (-not (Get-Command nvidia-smi -ErrorAction SilentlyContinue)) {
+    Write-Host "No NVIDIA GPU detected. Rendering 45-second private auditions first."
+    $PreviewArg = @("--max-duration", "45")
+  }
+  py -3.11 radio\music_factory_kjai404.py --out "$Out" @PreviewArg
   if ($LASTEXITCODE -ne 0) { throw "Six-artist generation failed." }
 
   Banner "PRIVATE BATCH COMPLETE"
