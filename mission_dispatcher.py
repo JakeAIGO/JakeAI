@@ -24,6 +24,7 @@ from pydantic import BaseModel, Field
 MISSION_DB_PATH = os.environ.get("MISSION_DATABASE_PATH", "/data/jakeai-missions.db")
 TRAFFIC_QUALITY_START = os.environ.get("TRAFFIC_QUALITY_START", "2026-09-21T02:07:00+00:00")
 MISSION_CONTROL_COOKIE = "jakeai_owner_session"
+MISSION_CONTROL_COOKIE_DOMAIN = os.environ.get("MISSION_CONTROL_COOKIE_DOMAIN", "jakeaiofficial.com").strip() or None
 MISSION_CONTROL_SESSION_DAYS = 30
 ALLOWED_STATUSES = {
     "received",
@@ -320,6 +321,47 @@ def _issue_owner_session() -> str:
     payload = f"owner:{expires}"
     signature = hmac.new(secret.encode("utf-8"), payload.encode("utf-8"), hashlib.sha256).hexdigest()
     return f"{expires}.{signature}"
+
+
+def _set_owner_session_cookie(response) -> None:
+    # Remove any older host-only cookie first, then issue one cookie shared by
+    # jakeaiofficial.com and www.jakeaiofficial.com.
+    response.delete_cookie(
+        key=MISSION_CONTROL_COOKIE,
+        httponly=True,
+        secure=True,
+        samesite="strict",
+        path="/",
+    )
+    response.set_cookie(
+        key=MISSION_CONTROL_COOKIE,
+        value=_issue_owner_session(),
+        max_age=MISSION_CONTROL_SESSION_DAYS * 86400,
+        httponly=True,
+        secure=True,
+        samesite="strict",
+        path="/",
+        domain=MISSION_CONTROL_COOKIE_DOMAIN,
+    )
+
+
+def _clear_owner_session_cookie(response) -> None:
+    # Clear both possible legacy host-only and current site-wide cookies.
+    response.delete_cookie(
+        key=MISSION_CONTROL_COOKIE,
+        httponly=True,
+        secure=True,
+        samesite="strict",
+        path="/",
+    )
+    response.delete_cookie(
+        key=MISSION_CONTROL_COOKIE,
+        httponly=True,
+        secure=True,
+        samesite="strict",
+        path="/",
+        domain=MISSION_CONTROL_COOKIE_DOMAIN,
+    )
 
 
 def _owner_session_validation_secrets() -> list[str]:
@@ -1238,15 +1280,7 @@ def register_mission_dispatcher_routes(app) -> None:
         finally:
             conn.close()
         response = JSONResponse({"ok": True, "authenticated": True, "remembered_days": MISSION_CONTROL_SESSION_DAYS})
-        response.set_cookie(
-            key=MISSION_CONTROL_COOKIE,
-            value=_issue_owner_session(),
-            max_age=MISSION_CONTROL_SESSION_DAYS * 86400,
-            httponly=True,
-            secure=True,
-            samesite="strict",
-            path="/",
-        )
+        _set_owner_session_cookie(response)
         return response
 
     @app.post("/v1/mission-control/login")
@@ -1259,28 +1293,14 @@ def register_mission_dispatcher_routes(app) -> None:
         if not candidate or not hmac.compare_digest(candidate, expected):
             raise HTTPException(status_code=401, detail="Owner access key rejected")
         response = JSONResponse({"ok": True, "authenticated": True, "remembered_days": MISSION_CONTROL_SESSION_DAYS})
-        response.set_cookie(
-            key=MISSION_CONTROL_COOKIE,
-            value=_issue_owner_session(),
-            max_age=MISSION_CONTROL_SESSION_DAYS * 86400,
-            httponly=True,
-            secure=True,
-            samesite="strict",
-            path="/",
-        )
+        _set_owner_session_cookie(response)
         return response
 
     @app.post("/v1/mission-control/logout")
     @app.post("/api/v1/mission-control/logout")
     def mission_control_logout():
         response = JSONResponse({"ok": True, "authenticated": False})
-        response.delete_cookie(
-            key=MISSION_CONTROL_COOKIE,
-            httponly=True,
-            secure=True,
-            samesite="strict",
-            path="/",
-        )
+        _clear_owner_session_cookie(response)
         return response
 
     @app.post("/v1/agent-observer/event")
