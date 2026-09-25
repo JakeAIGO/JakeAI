@@ -22,6 +22,9 @@ from xml.sax.saxutils import escape as xml_escape
 from book_source_lock import list_locks
 from book_structure_map import list_structures
 
+EPUB_BUILD_VERSION = "2-cover-svg"
+COVER_DIR = Path(__file__).resolve().parent / "assets" / "editions" / "covers"
+
 def _now():
     return datetime.now(timezone.utc).isoformat()
 
@@ -50,6 +53,9 @@ def _conn():
       status TEXT NOT NULL,
       built_at TEXT NOT NULL
     )""")
+    cols={row[1] for row in c.execute("PRAGMA table_info(book_epub_builds)").fetchall()}
+    if "build_version" not in cols:
+        c.execute("ALTER TABLE book_epub_builds ADD COLUMN build_version TEXT")
     c.commit()
     return c
 
@@ -72,6 +78,17 @@ def _xhtml(title:str, body_text:bytes)->bytes:
       '<body><pre class="book">'+escaped+'</pre></body></html>'
     )
     return doc.encode("utf-8")
+
+def _cover_xhtml(title:str)->bytes:
+    safe_title=xml_escape(title)
+    return (
+      '<?xml version="1.0" encoding="utf-8"?>'
+      '<!DOCTYPE html><html xmlns="http://www.w3.org/1999/xhtml" lang="en">'
+      '<head><meta charset="utf-8"/><title>'+safe_title+' — Cover</title></head>'
+      '<body style="margin:0;padding:0;text-align:center;background:#050a10">'
+      '<img src="cover.svg" alt="'+safe_title+'" style="width:100%;height:auto;display:block"/>'
+      '</body></html>'
+    ).encode("utf-8")
 
 def _container_xml()->bytes:
     return b'''<?xml version="1.0" encoding="UTF-8"?>
@@ -108,9 +125,11 @@ def _opf(job_id:str,title:str,author:str,section_count:int,canonical_sha256:str)
       '<item id="nav" href="nav.xhtml" media-type="application/xhtml+xml" properties="nav"/>',
       '<item id="css" href="style.css" media-type="text/css"/>',
       '<item id="source" href="source/canonical.txt" media-type="text/plain"/>',
+      '<item id="cover-image" href="cover.svg" media-type="image/svg+xml" properties="cover-image"/>',
+      '<item id="cover-page" href="cover.xhtml" media-type="application/xhtml+xml"/>',
       '<item id="front" href="front.xhtml" media-type="application/xhtml+xml"/>',
     ]
-    spine=['<itemref idref="front"/>']
+    spine=['<itemref idref="cover-page"/>','<itemref idref="front"/>']
     for i in range(section_count):
         ident=f"s{i+1:03d}"
         href=f"section-{i+1:03d}.xhtml"
@@ -144,13 +163,17 @@ def build_epub(job_id:str,title:str,author:str)->dict:
         raise ValueError("structure verification incomplete")
 
     source=Path(lock["source_file"]).read_bytes()
+    cover_path=COVER_DIR/(job_id+".svg")
+    if not cover_path.exists():
+        raise ValueError("original production cover missing")
+    cover_bytes=cover_path.read_bytes()
     canonical_sha=lock["canonical_sha256"]
     if _sha(source)!=canonical_sha:
         raise ValueError("canonical source hash mismatch")
 
     c=_conn()
     existing=c.execute("SELECT * FROM book_epub_builds WHERE job_id=?",(job_id,)).fetchone()
-    if existing and existing["canonical_sha256"]==canonical_sha and existing["status"]=="ready" and Path(existing["epub_path"]).exists():
+    if existing and existing["canonical_sha256"]==canonical_sha and existing["status"]=="ready" and existing["build_version"]==EPUB_BUILD_VERSION and Path(existing["epub_path"]).exists():
         data=Path(existing["epub_path"]).read_bytes()
         if _sha(data)==existing["epub_sha256"]:
             out=dict(existing); c.close(); return out
@@ -202,6 +225,8 @@ def build_epub(job_id:str,title:str,author:str)->dict:
         z.writestr("META-INF/container.xml",_container_xml(),compress_type=zipfile.ZIP_DEFLATED)
         z.writestr("META-INF/jakeai-fidelity.json",json.dumps(passport,separators=(",",":"),ensure_ascii=False).encode("utf-8"),compress_type=zipfile.ZIP_DEFLATED)
         z.writestr("OEBPS/style.css",_style(),compress_type=zipfile.ZIP_DEFLATED)
+        z.writestr("OEBPS/cover.svg",cover_bytes,compress_type=zipfile.ZIP_DEFLATED)
+        z.writestr("OEBPS/cover.xhtml",_cover_xhtml(title),compress_type=zipfile.ZIP_DEFLATED)
         z.writestr("OEBPS/nav.xhtml",_nav(title,navigation),compress_type=zipfile.ZIP_DEFLATED)
         z.writestr("OEBPS/content.opf",_opf(job_id,title,author,len(navigation),canonical_sha),compress_type=zipfile.ZIP_DEFLATED)
         z.writestr("OEBPS/source/canonical.txt",source,compress_type=zipfile.ZIP_DEFLATED)
@@ -213,6 +238,8 @@ def build_epub(job_id:str,title:str,author:str)->dict:
         if z.namelist()[0]!="mimetype" or z.read("mimetype")!=b"application/epub+zip":
             raise ValueError("invalid EPUB mimetype packaging")
         archived_source=z.read("OEBPS/source/canonical.txt")
+        if z.read("OEBPS/cover.svg")!=cover_bytes:
+            raise ValueError("EPUB cover asset changed")
         if archived_source!=source or _sha(archived_source)!=canonical_sha:
             raise ValueError("archived canonical source changed")
         for idx,seg in enumerate(segments):
@@ -230,9 +257,9 @@ def build_epub(job_id:str,title:str,author:str)->dict:
     tmp.replace(out_path)
     c=_conn()
     c.execute("""INSERT OR REPLACE INTO book_epub_builds
-      (job_id,canonical_sha256,epub_sha256,epub_bytes,epub_path,section_count,exact_roundtrip_verified,status,built_at)
-      VALUES (?,?,?,?,?,?,?,?,?)""",(
-        job_id,canonical_sha,epub_sha,len(epub_bytes),str(out_path),len(navigation),1,"ready",_now()
+      (job_id,canonical_sha256,epub_sha256,epub_bytes,epub_path,section_count,exact_roundtrip_verified,status,built_at,build_version)
+      VALUES (?,?,?,?,?,?,?,?,?,?)""",(
+        job_id,canonical_sha,epub_sha,len(epub_bytes),str(out_path),len(navigation),1,"ready",_now(),EPUB_BUILD_VERSION
     ))
     c.commit()
     row=c.execute("SELECT * FROM book_epub_builds WHERE job_id=?",(job_id,)).fetchone()
@@ -269,6 +296,8 @@ def public_build(row:dict|None):
       "section_count":row["section_count"],
       "exact_roundtrip_verified":bool(row["exact_roundtrip_verified"]),
       "built_at":row["built_at"],
+      "build_version":row["build_version"],
+      "cover_embedded":row["build_version"]==EPUB_BUILD_VERSION,
       "public":False,
       "paid":False,
     }

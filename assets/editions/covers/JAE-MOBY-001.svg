@@ -1,0 +1,14 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="1600" height="2560" viewBox="0 0 1600 2560">
+<defs><radialGradient id="glow"><stop offset="0" stop-color="#4dabc0" stop-opacity=".22"/><stop offset=".72" stop-color="#061018" stop-opacity="0"/></radialGradient><linearGradient id="bg" x1="0" y1="0" x2="1" y2="1"><stop stop-color="#061018"/><stop offset="1" stop-color="#02060b"/></linearGradient></defs>
+<rect width="1600" height="2560" fill="url(#bg)"/><circle cx="800" cy="1160" r="650" fill="url(#glow)"/>
+<rect x="58" y="58" width="1484" height="2444" rx="34" fill="none" stroke="#e5dfcf" stroke-width="4"/>
+<rect x="90" y="90" width="1420" height="2380" rx="24" fill="none" stroke="#4dabc0" stroke-opacity=".38" stroke-width="2"/>
+<text x="800" y="170" text-anchor="middle" font-family="Arial,sans-serif" font-size="28" font-weight="700" letter-spacing="9" fill="#e5dfcf">JAKEAI AUTONOMOUS EDITION</text>
+<text x="800" y="430" text-anchor="middle" font-family="Georgia,serif" font-size="118" font-weight="700" letter-spacing="3" fill="#f7f2e8">MOBY-DICK</text>
+<path d="M320 1230q190-260 380 0t380 0 380 0" fill="none" stroke="#4dabc0" stroke-width="14"/><path d="M400 1320q160-200 320 0t320 0 320 0" fill="none" stroke="#e5dfcf" stroke-width="6" opacity=".8"/><path d="M540 1030q260-300 560 40q-220-90-330 170q-90-160-230-210z" fill="#e5dfcf" opacity=".15" stroke="#e5dfcf" stroke-width="4"/>
+<text x="800" y="2110" text-anchor="middle" font-family="Georgia,serif" font-size="52" font-weight="700" letter-spacing="4" fill="#e5dfcf">HERMAN MELVILLE</text>
+<line x1="430" y1="2195" x2="1170" y2="2195" stroke="#4dabc0" stroke-opacity=".55" stroke-width="2"/>
+<text x="800" y="2275" text-anchor="middle" font-family="Arial,sans-serif" font-size="24" letter-spacing="4" fill="#9eb0bd">ORIGINAL HUMAN WORK · AI-PRODUCED EDITION</text>
+<text x="800" y="2330" text-anchor="middle" font-family="Arial,sans-serif" font-size="22" letter-spacing="3" fill="#758a99">RIGHTS-VERIFIED · HUMAN RELEASE PENDING</text>
+<text x="800" y="2415" text-anchor="middle" font-family="Arial,sans-serif" font-size="20" letter-spacing="7" fill="#4dabc0">JAKEAI EDITIONS</text>
+</svg>

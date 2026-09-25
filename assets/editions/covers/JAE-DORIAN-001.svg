@@ -1,0 +1,14 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="1600" height="2560" viewBox="0 0 1600 2560">
+<defs><radialGradient id="glow"><stop offset="0" stop-color="#8f6fae" stop-opacity=".22"/><stop offset=".72" stop-color="#0d0b11" stop-opacity="0"/></radialGradient><linearGradient id="bg" x1="0" y1="0" x2="1" y2="1"><stop stop-color="#0d0b11"/><stop offset="1" stop-color="#02060b"/></linearGradient></defs>
+<rect width="1600" height="2560" fill="url(#bg)"/><circle cx="800" cy="1160" r="650" fill="url(#glow)"/>
+<rect x="58" y="58" width="1484" height="2444" rx="34" fill="none" stroke="#d4b064" stroke-width="4"/>
+<rect x="90" y="90" width="1420" height="2380" rx="24" fill="none" stroke="#8f6fae" stroke-opacity=".38" stroke-width="2"/>
+<text x="800" y="170" text-anchor="middle" font-family="Arial,sans-serif" font-size="28" font-weight="700" letter-spacing="9" fill="#d4b064">JAKEAI AUTONOMOUS EDITION</text>
+<text x="800" y="390" text-anchor="middle" font-family="Georgia,serif" font-size="92" font-weight="700" letter-spacing="3" fill="#f7f2e8">THE PICTURE OF</text><text x="800" y="490" text-anchor="middle" font-family="Georgia,serif" font-size="92" font-weight="700" letter-spacing="3" fill="#f7f2e8">DORIAN GRAY</text>
+<rect x="500" y="760" width="600" height="720" rx="25" fill="none" stroke="#d4b064" stroke-width="10"/><rect x="555" y="815" width="490" height="610" rx="20" fill="none" stroke="#8f6fae" stroke-width="5" transform="rotate(-4 800 1120)"/><path d="M520 820l560 600M1080 820l-560 600" stroke="#d4b064" stroke-width="3" opacity=".5"/>
+<text x="800" y="2110" text-anchor="middle" font-family="Georgia,serif" font-size="52" font-weight="700" letter-spacing="4" fill="#d4b064">OSCAR WILDE</text>
+<line x1="430" y1="2195" x2="1170" y2="2195" stroke="#8f6fae" stroke-opacity=".55" stroke-width="2"/>
+<text x="800" y="2275" text-anchor="middle" font-family="Arial,sans-serif" font-size="24" letter-spacing="4" fill="#9eb0bd">ORIGINAL HUMAN WORK · AI-PRODUCED EDITION</text>
+<text x="800" y="2330" text-anchor="middle" font-family="Arial,sans-serif" font-size="22" letter-spacing="3" fill="#758a99">RIGHTS-VERIFIED · HUMAN RELEASE PENDING</text>
+<text x="800" y="2415" text-anchor="middle" font-family="Arial,sans-serif" font-size="20" letter-spacing="7" fill="#8f6fae">JAKEAI EDITIONS</text>
+</svg>
