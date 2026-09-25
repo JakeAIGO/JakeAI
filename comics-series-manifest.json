@@ -9,7 +9,7 @@
     "reader_url": "/comics-origin-00.html",
     "status": "launch-candidate",
     "price": 0,
-    "artwork_url": "https://cdn.creativeclaw.co/u/7a5f511f/images/6f56e664-0ca1-402e-977c-09d13c58fc0c.png",
+    "artwork_url": "/api/v1/media/assets/comic-origin-00",
     "intentional_text_exceptions": [
       {
         "text": "JKI",
