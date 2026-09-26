@@ -198,7 +198,9 @@ def map_exact_structure(lock:dict)->dict:
     candidates=_candidate_headings(data,source_id)
     nav=_profiled_navigation(candidates,len(data),source_id)
     expected=EXPECTED_NAV.get(source_id)
-    semantic_count_verified=(expected is None or len(nav)==expected)
+    # New production sources fail closed until an explicit expected navigation
+    # profile is recorded and the detected count matches it exactly.
+    semantic_count_verified=(expected is not None and len(nav)==expected)
 
     starts=[0]+sorted({int(x["offset"]) for x in nav if int(x["offset"])>0})
     if starts[-1]!=len(data):
