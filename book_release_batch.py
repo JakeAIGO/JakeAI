@@ -128,16 +128,16 @@ VISUALS = {
 }
 
 NARRATION = {
-    "JAE-TTM-001": {"profile":"Classic British","target_wpm":150,"tone":"measured, intelligent, slightly mysterious","dialogue":"subtle character distinction; never theatrical parody"},
-    "JAE-SH-001": {"profile":"Classic British Detective","target_wpm":158,"tone":"clear, observant, brisk","dialogue":"Watson/Holmes distinction through cadence and register only"},
-    "JAE-DRAC-001": {"profile":"Gothic British Ensemble","target_wpm":146,"tone":"intimate journals, restrained dread","dialogue":"source-document voices distinguished without changing any words"},
-    "JAE-TI-001": {"profile":"British Adventure","target_wpm":160,"tone":"energetic, seaworthy, lucid","dialogue":"light character differentiation; no caricature"},
-    "JAE-FRANK-001": {"profile":"Literary British","target_wpm":145,"tone":"reflective, grave, emotionally controlled","dialogue":"speaker shifts marked by performance only"},
-    "JAE-ALICE-001": {"profile":"Storybook British","target_wpm":160,"tone":"bright, precise, playful","dialogue":"character color through timing and pitch, never rewritten wording"},
-    "JAE-MOBY-001": {"profile":"Literary American","target_wpm":145,"tone":"expansive, contemplative, maritime","dialogue":"clear speaker identity while preserving exact source"},
-    "JAE-PRIDE-001": {"profile":"Regency British","target_wpm":158,"tone":"elegant, dry, socially observant","dialogue":"wit carried by timing, not editorial emphasis"},
-    "JAE-JANE-001": {"profile":"Literary British Intimate","target_wpm":150,"tone":"first-person intimacy, strength, restraint","dialogue":"subtle distinctions; preserve narrator primacy"},
-    "JAE-DORIAN-001": {"profile":"Literary British Aesthetic","target_wpm":150,"tone":"polished, controlled, faintly ominous","dialogue":"character distinction without celebrity imitation"},
+    "JAE-TTM-001": {"profile":"JakeAI Founder Narrator","target_wpm":150,"tone":"measured, intelligent, slightly mysterious","dialogue":"same founder voice throughout; subtle cadence only"},
+    "JAE-SH-001": {"profile":"JakeAI Founder Narrator","target_wpm":156,"tone":"clear, observant, brisk","dialogue":"same founder voice throughout; subtle cadence only"},
+    "JAE-DRAC-001": {"profile":"JakeAI Founder Narrator","target_wpm":146,"tone":"intimate journals, restrained dread","dialogue":"same founder voice throughout; subtle cadence only"},
+    "JAE-TI-001": {"profile":"JakeAI Founder Narrator","target_wpm":158,"tone":"energetic, seaworthy, lucid","dialogue":"same founder voice throughout; subtle cadence only"},
+    "JAE-FRANK-001": {"profile":"JakeAI Founder Narrator","target_wpm":145,"tone":"reflective, grave, emotionally controlled","dialogue":"same founder voice throughout; subtle cadence only"},
+    "JAE-ALICE-001": {"profile":"JakeAI Founder Narrator","target_wpm":155,"tone":"bright, precise, playful","dialogue":"same founder voice throughout; subtle cadence only"},
+    "JAE-MOBY-001": {"profile":"JakeAI Founder Narrator","target_wpm":145,"tone":"expansive, contemplative, maritime","dialogue":"same founder voice throughout; subtle cadence only"},
+    "JAE-PRIDE-001": {"profile":"JakeAI Founder Narrator","target_wpm":154,"tone":"elegant, dry, socially observant","dialogue":"same founder voice throughout; subtle cadence only"},
+    "JAE-JANE-001": {"profile":"JakeAI Founder Narrator","target_wpm":148,"tone":"first-person intimacy, strength, restraint","dialogue":"same founder voice throughout; subtle cadence only"},
+    "JAE-DORIAN-001": {"profile":"JakeAI Founder Narrator","target_wpm":150,"tone":"polished, controlled, faintly ominous","dialogue":"same founder voice throughout; subtle cadence only"},
 }
 
 class ReviewRequest(BaseModel):
@@ -236,6 +236,9 @@ def _candidate(job_id, lock, structure, shell_row, review):
             "script_source":"immutable canonical byte-offset segments",
             "rewrite_allowed":False,
             "celebrity_imitation":False,
+            "voice_identity":"founder_voice",
+            "character_voices_enabled":False,
+            "external_voice_platform":False,
             "pronunciation_policy":"Pronunciation metadata may guide performance but never replace, omit, add, or rewrite source words.",
         },
         "epub":public_build(get_build(job_id)),
