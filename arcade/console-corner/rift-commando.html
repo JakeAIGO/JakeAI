@@ -23,9 +23,12 @@
   .bar>i{display:block;height:100%;width:100%;background:#77e5ff}
   #armorFill{background:#ffd15c}
   #controls{display:flex;justify-content:space-between;align-items:flex-end;padding-bottom:max(4px,env(safe-area-inset-bottom));pointer-events:auto}
-  .pad{width:140px;height:140px;position:relative;touch-action:none}
-  .ring{position:absolute;inset:18px;border:2px solid #d7e2ef44;border-radius:50%;background:#09111b88;box-shadow:inset 0 0 30px #0008}
-  .nub{position:absolute;left:50%;top:50%;width:52px;height:52px;transform:translate(-50%,-50%);border-radius:50%;background:#e7f4ff22;border:2px solid #d9edff66;box-shadow:0 4px 18px #000a}
+  .pad{width:156px;height:156px;position:relative;touch-action:none;border-radius:50%;user-select:none;-webkit-user-select:none;overscroll-behavior:contain}
+  .ring{position:absolute;inset:14px;border:2px solid #d7e2ef55;border-radius:50%;background:radial-gradient(circle,#17303a99 0 34%,#09111bdd 35% 100%);box-shadow:inset 0 0 36px #0009,0 0 0 1px #67eaff12;pointer-events:none;transition:.12s}
+  .nub{position:absolute;left:50%;top:50%;width:58px;height:58px;transform:translate(-50%,-50%);border-radius:50%;background:radial-gradient(circle at 36% 32%,#8ff3ff,#69dff5 35%,#31506d 72%,#111a2c);border:2px solid #e8fbffb8;box-shadow:0 4px 18px #000a,0 0 18px #66eaff33;pointer-events:none;transition:box-shadow .1s}
+  .pad.live .ring{border-color:#83efff;box-shadow:inset 0 0 36px #0008,0 0 24px #63eaff45}
+  .pad.live .nub{box-shadow:0 4px 18px #000a,0 0 28px #66eaffaa}
+  .stickLabel{position:absolute;left:0;right:0;bottom:-4px;text-align:center;color:#b9c7d4;font:900 10px ui-monospace,monospace;letter-spacing:.14em;pointer-events:none;text-shadow:0 2px 4px #000}
   .actions{display:grid;grid-template-columns:68px 68px;gap:9px;align-items:end}
   button{font:inherit}
   .act{width:68px;height:68px;border-radius:50%;border:1px solid #aec9e366;background:#101925cc;color:white;font-weight:800;font-size:12px;box-shadow:0 6px 18px #000a;touch-action:none}
@@ -48,7 +51,8 @@
   #stats{display:flex;justify-content:center;gap:18px;margin:18px 0;color:#cbd7e5;font-size:13px}
   .stat b{display:block;color:#fff;font-size:20px}
   @media (pointer:fine){#controls{opacity:.25}.pad,.actions{pointer-events:none}}
-  @media (max-height:650px){.pad{width:112px;height:112px}.ring{inset:14px}.nub{width:46px;height:46px}.act{width:58px;height:58px}.actions{grid-template-columns:58px 58px}.badge{padding:5px 7px}.big{font-size:14px}}
+  @media (max-height:650px){.pad{width:124px;height:124px}.ring{inset:12px}.nub{width:48px;height:48px}.act{width:58px;height:58px}.actions{grid-template-columns:58px 58px}.badge{padding:5px 7px}.big{font-size:14px}}
+  @media (max-width:430px){#controls{padding-inline:4px}.pad{width:148px;height:148px}.actions{gap:7px}.act{width:66px;height:66px}}
 
   .consoleStart{padding:0!important;background:#05070a!important;align-items:stretch!important}
   .consoleHero{position:absolute;inset:0;overflow:hidden;background:#05070a}
@@ -87,7 +91,7 @@
     </div>
     <div id="bossbar"><div class="tiny">FOUNDRY WALKER</div><span class="bar"><i id="bossFill"></i></span></div>
     <div id="controls">
-      <div class="pad" id="stick"><div class="ring"></div><div class="nub" id="nub"></div></div>
+      <div class="pad" id="stick" aria-label="Movement joystick"><div class="ring"></div><div class="nub" id="nub"></div><div class="stickLabel" id="stickLabel">MOVE</div></div>
       <div class="actions">
         <button class="act" id="dash">DASH</button>
         <button class="act" id="grenade">GRENADE<br><span id="grenades">3</span></button>
@@ -135,7 +139,7 @@
 
   const rnd=(a,b)=>a+Math.random()*(b-a), clamp=(v,a,b)=>Math.max(a,Math.min(b,v)), dist=(a,b)=>Math.hypot(a.x-b.x,a.y-b.y);
   let state='menu',last=0,time=0,cameraY=0,shake=0,spawnTimer=0,progress=0,missionTime=0,kills=0,rescues=0,boss=null,toastTimer=0;
-  const keys={}, mouse={x:W/2,y:H/2,down:false,active:false}; let stick={x:0,y:0,id:null};
+  const keys={}, mouse={x:W/2,y:H/2,down:false,active:false}; let stick={x:0,y:0,id:null,active:false};
   let player, enemies=[], bullets=[], ebullets=[], particles=[], pickups=[], obstacles=[], scorch=[];
 
   function reset(){
@@ -202,8 +206,11 @@
     if(state!=='play')return; time+=dt;missionTime+=dt; if(toastTimer>0){toastTimer-=dt;if(toastTimer<=0)ui.toast.style.opacity=0}
     player.fireCd-=dt;player.dashCd-=dt;player.invuln-=dt;player.comboT-=dt;if(player.comboT<=0)player.combo=Math.max(1,player.combo-dt*.8);
     const kx=(keys.d||keys.ArrowRight?1:0)-(keys.a||keys.ArrowLeft?1:0), ky=(keys.s||keys.ArrowDown?1:0)-(keys.w||keys.ArrowUp?1:0);
-    let mx=stick.x+kx,my=stick.y+ky,ml=Math.hypot(mx,my)||1;mx/=ml;my/=ml; const moving=Math.hypot(stick.x+kx,stick.y+ky)>.08;
-    let sp=player.speed*(player.dashT>0?2.7:1); if(player.dashT>0)player.dashT-=dt;
+    let rawX=stick.x+kx,rawY=stick.y+ky,mag=Math.hypot(rawX,rawY),mx=0,my=0;
+    const moving=mag>.10;
+    if(moving){mx=rawX/mag;my=rawY/mag}
+    const analog=stick.active?clamp((Math.hypot(stick.x,stick.y)-.10)/.90,0,1):1;
+    let sp=player.speed*(player.dashT>0?2.7:1)*(stick.active?(.55+.45*analog):1); if(player.dashT>0)player.dashT-=dt;
     if(moving){player.x+=mx*sp*dt;player.y+=my*sp*dt}
     player.x=clamp(player.x,24,W-24);player.y=clamp(player.y,cameraY+150,cameraY+H-125);
     // world scroll follows player upward
@@ -340,10 +347,39 @@
   addEventListener('keyup',e=>{keys[e.key]=false;keys[e.key.toLowerCase()]=false});
   canvas.addEventListener('pointermove',e=>{if(e.pointerType==='mouse'){const r=canvas.getBoundingClientRect();mouse.x=(e.clientX-r.left)/r.width*W;mouse.y=(e.clientY-r.top)/r.height*H;mouse.active=true}});
   canvas.addEventListener('pointerdown',e=>{if(e.pointerType==='mouse'){mouse.down=true;mouse.active=true}});addEventListener('pointerup',e=>{if(e.pointerType==='mouse')mouse.down=false});
-  const stickEl=document.getElementById('stick'),nub=document.getElementById('nub');
-  function setStick(e){const r=stickEl.getBoundingClientRect(),cx=r.left+r.width/2,cy=r.top+r.height/2,dx=e.clientX-cx,dy=e.clientY-cy,max=r.width*.27,l=Math.hypot(dx,dy)||1,s=Math.min(1,max/l);dx*=s;dy*=s;stick.x=dx/max;stick.y=dy/max;nub.style.transform=`translate(calc(-50% + ${dx}px),calc(-50% + ${dy}px))`}
-  stickEl.addEventListener('pointerdown',e=>{stick.id=e.pointerId;stickEl.setPointerCapture(e.pointerId);setStick(e)});stickEl.addEventListener('pointermove',e=>{if(e.pointerId===stick.id)setStick(e)});stickEl.addEventListener('pointerup',e=>{if(e.pointerId===stick.id){stick.id=null;stick.x=stick.y=0;nub.style.transform='translate(-50%,-50%)'}});
+  const stickEl=document.getElementById('stick'),nub=document.getElementById('nub'),stickLabel=document.getElementById('stickLabel');
+  function setStickXY(clientX,clientY){
+    const r=stickEl.getBoundingClientRect(),cx=r.left+r.width/2,cy=r.top+r.height/2,max=r.width*.34;
+    let dx=clientX-cx,dy=clientY-cy,l=Math.hypot(dx,dy)||1;
+    if(l>max){dx=dx/l*max;dy=dy/l*max}
+    let nx=dx/max,ny=dy/max,mag=Math.hypot(nx,ny);
+    if(mag<.10){nx=ny=0}
+    stick.x=nx;stick.y=ny;stick.active=true;
+    nub.style.transform=`translate(calc(-50% + ${dx}px),calc(-50% + ${dy}px))`;
+    stickEl.classList.add('live');stickLabel.textContent='MOVING';
+  }
+  function setStick(e){setStickXY(e.clientX,e.clientY)}
+  function releaseStick(id=null){
+    if(id!==null&&stick.id!==null&&id!==stick.id)return;
+    stick.id=null;stick.x=0;stick.y=0;stick.active=false;
+    nub.style.transform='translate(-50%,-50%)';stickEl.classList.remove('live');stickLabel.textContent='MOVE';
+  }
+  stickEl.addEventListener('pointerdown',e=>{
+    e.preventDefault();stick.id=e.pointerId;
+    try{stickEl.setPointerCapture(e.pointerId)}catch(_){}
+    setStick(e);
+  },{passive:false});
+  stickEl.addEventListener('pointermove',e=>{if(e.pointerId===stick.id){e.preventDefault();setStick(e)}},{passive:false});
+  stickEl.addEventListener('pointerup',e=>{e.preventDefault();releaseStick(e.pointerId)},{passive:false});
+  stickEl.addEventListener('pointercancel',e=>releaseStick(e.pointerId));
+  stickEl.addEventListener('lostpointercapture',()=>releaseStick());
+  // Android/WebView fallback for browsers that drop pointer capture during multitouch.
+  stickEl.addEventListener('touchstart',e=>{if(stick.id!==null)return;const t=e.changedTouches&&e.changedTouches[0];if(!t)return;e.preventDefault();stick.id='touch-'+t.identifier;setStickXY(t.clientX,t.clientY)},{passive:false});
+  stickEl.addEventListener('touchmove',e=>{const t=[...(e.changedTouches||[])].find(t=>'touch-'+t.identifier===stick.id);if(!t)return;e.preventDefault();setStickXY(t.clientX,t.clientY)},{passive:false});
+  stickEl.addEventListener('touchend',e=>{const hit=[...(e.changedTouches||[])].some(t=>'touch-'+t.identifier===stick.id);if(hit){e.preventDefault();releaseStick()}},{passive:false});
+  stickEl.addEventListener('touchcancel',()=>releaseStick());
   document.getElementById('dash').addEventListener('pointerdown',e=>{e.preventDefault();dash()});document.getElementById('grenade').addEventListener('pointerdown',e=>{e.preventDefault();grenade()});
+  addEventListener('blur',()=>releaseStick());document.addEventListener('visibilitychange',()=>{if(document.hidden)releaseStick()});
   function togglePause(){if(state==='play'){state='pause';showToast('PAUSED')}else if(state==='pause'){state='play';last=performance.now();showToast('RESUME')}}
   document.getElementById('pause').onclick=togglePause;document.getElementById('startBtn').onclick=start;document.getElementById('againBtn').onclick=start;
 })();
