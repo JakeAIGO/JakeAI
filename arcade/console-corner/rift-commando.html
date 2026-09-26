@@ -84,12 +84,12 @@
   <div id="hud" hidden>
     <div>
       <div class="topbar">
-        <div class="badge" id="mission"><div class="tiny">MISSION 01</div><div class="big" id="objective">Break the Relay Line</div><div id="bars"><span class="bar"><i id="hpFill"></i></span><span class="bar"><i id="armorFill"></i></span></div></div>
+        <div class="badge" id="mission"><div class="tiny" id="missionLabel">MISSION 01</div><div class="big" id="objective">Break the Relay Line</div><div id="bars"><span class="bar"><i id="hpFill"></i></span><span class="bar"><i id="armorFill"></i></span></div></div>
         <div class="badge" style="text-align:right"><div class="tiny">SCORE</div><div class="big" id="score">000000</div><div class="tiny" id="combo">CHAIN x1.0</div></div>
       </div>
       <button id="pause">Ⅱ</button>
     </div>
-    <div id="bossbar"><div class="tiny">FOUNDRY WALKER</div><span class="bar"><i id="bossFill"></i></span></div>
+    <div id="bossbar"><div class="tiny" id="bossName">FOUNDRY WALKER</div><span class="bar"><i id="bossFill"></i></span></div>
     <div id="controls">
       <div class="pad" id="stick" aria-label="Movement joystick"><div class="ring"></div><div class="nub" id="nub"></div><div class="stickLabel" id="stickLabel">MOVE</div></div>
       <div class="actions">
@@ -107,7 +107,7 @@
         <div class="cornerTag">◉ JAKEAI CONSOLE CORNER</div>
         <h1 class="consoleTitle">RIFT<br>COMMANDO</h1>
         <div class="missionChip">CARTRIDGE 01 · CONSOLE EXCLUSIVE</div>
-        <div class="cartLabel"><span class="miniCart"></span><span>Insert the cartridge. Boot the relay zone.<br>Run, gun, rescue cores, break the machine.</span></div>
+        <div class="cartLabel"><span class="miniCart"></span><span>Three-mission cartridge campaign.<br>Run, gun, rescue cores, break the machines.</span></div>
         <div class="loadRow"><button class="primary load" id="startBtn">START MISSION</button></div>
         <div class="consoleNote">Mobile: left stick + auto-fire · Dash + Grenade &nbsp;•&nbsp; Desktop: WASD · mouse · Space · G</div>
       </div>
@@ -132,22 +132,33 @@
   function tone(freq=220,dur=.06,type='square',gain=.025,slide=0){try{audioCtx=audioCtx||new (window.AudioContext||window.webkitAudioContext)();const o=audioCtx.createOscillator(),g=audioCtx.createGain();o.type=type;o.frequency.setValueAtTime(freq,audioCtx.currentTime);if(slide)o.frequency.exponentialRampToValueAtTime(Math.max(35,freq+slide),audioCtx.currentTime+dur);g.gain.setValueAtTime(gain,audioCtx.currentTime);g.gain.exponentialRampToValueAtTime(.0001,audioCtx.currentTime+dur);o.connect(g);g.connect(audioCtx.destination);o.start();o.stop(audioCtx.currentTime+dur)}catch(e){}}
   const sfx={shot:()=>tone(180,.035,'square',.018,120),hit:()=>tone(85,.05,'square',.02,-35),boom:()=>tone(65,.18,'sawtooth',.05,-28),pickup:()=>{tone(420,.05,'square',.025,160);setTimeout(()=>tone(680,.06,'square',.02,180),45)},dash:()=>tone(260,.08,'sawtooth',.02,330),boss:()=>tone(52,.35,'sawtooth',.04,22)};
   let W=720,H=1100;
-  const ui={hud:document.getElementById('hud'),start:document.getElementById('startScreen'),end:document.getElementById('endScreen'),score:document.getElementById('score'),combo:document.getElementById('combo'),hp:document.getElementById('hpFill'),armor:document.getElementById('armorFill'),grenades:document.getElementById('grenades'),boss:document.getElementById('bossbar'),bossFill:document.getElementById('bossFill'),toast:document.getElementById('toast'),objective:document.getElementById('objective')};
+  const ui={hud:document.getElementById('hud'),start:document.getElementById('startScreen'),end:document.getElementById('endScreen'),score:document.getElementById('score'),combo:document.getElementById('combo'),hp:document.getElementById('hpFill'),armor:document.getElementById('armorFill'),grenades:document.getElementById('grenades'),boss:document.getElementById('bossbar'),bossFill:document.getElementById('bossFill'),bossName:document.getElementById('bossName'),missionLabel:document.getElementById('missionLabel'),toast:document.getElementById('toast'),objective:document.getElementById('objective')};
   const DPR=Math.max(1,Math.min(2,devicePixelRatio||1));
   function fit(){ const r=canvas.getBoundingClientRect(); W=720; H=Math.round(W*(r.height/r.width)); canvas.width=Math.round(W*DPR); canvas.height=Math.round(H*DPR); ctx.setTransform(DPR,0,0,DPR,0,0); }
   addEventListener('resize',fit); fit();
 
   const rnd=(a,b)=>a+Math.random()*(b-a), clamp=(v,a,b)=>Math.max(a,Math.min(b,v)), dist=(a,b)=>Math.hypot(a.x-b.x,a.y-b.y);
-  let state='menu',last=0,time=0,cameraY=0,shake=0,spawnTimer=0,progress=0,missionTime=0,kills=0,rescues=0,boss=null,toastTimer=0;
+  const MISSIONS=[
+    {name:'Break the Relay Line',boss:'FOUNDRY WALKER',bossAt:4100,hp:900},
+    {name:'Cross the Burnline',boss:'SIEGE WALKER',bossAt:3600,hp:1050},
+    {name:'Seal the Rift',boss:'RIFT WARDEN',bossAt:3300,hp:1250}
+  ];
+  let state='menu',last=0,time=0,cameraY=0,shake=0,spawnTimer=0,progress=0,missionTime=0,kills=0,rescues=0,boss=null,toastTimer=0,mission=1,transitioning=false;
   const keys={}, mouse={x:W/2,y:H/2,down:false,active:false}; let stick={x:0,y:0,id:null,active:false};
   let player, enemies=[], bullets=[], ebullets=[], particles=[], pickups=[], obstacles=[], scorch=[];
 
   function reset(){
-    time=0;cameraY=0;shake=0;spawnTimer=.4;progress=0;missionTime=0;kills=0;rescues=0;boss=null;
-    enemies=[];bullets=[];ebullets=[];particles=[];pickups=[];scorch=[];
-    obstacles=makeWorld();
+    time=0;shake=0;kills=0;rescues=0;mission=1;transitioning=false;
     player={x:W/2,y:H*.72,r:16,hp:100,armor:40,speed:250,fireCd:0,grenades:3,dashCd:0,dashT:0,score:0,combo:1,comboT:0,invuln:0,angle:-Math.PI/2};
-    ui.objective.textContent='Break the Relay Line'; ui.boss.style.display='none'; syncUI();
+    setupMission(1,true);
+  }
+  function setupMission(n,fresh=false){
+    mission=n;transitioning=false;cameraY=0;progress=0;missionTime=0;spawnTimer=.4;boss=null;
+    enemies=[];bullets=[];ebullets=[];particles=[];pickups=[];scorch=[];obstacles=makeWorld();
+    player.x=W/2;player.y=H*.72;player.invuln=fresh?0:1.2;player.combo=1;player.comboT=0;
+    if(!fresh){player.hp=Math.min(100,player.hp+35);player.armor=Math.min(100,player.armor+40);player.grenades=Math.min(5,player.grenades+1)}
+    const m=MISSIONS[mission-1];ui.missionLabel.textContent='MISSION 0'+mission;ui.objective.textContent=m.name;ui.boss.style.display='none';ui.bossName.textContent=m.boss;syncUI();
+    if(!fresh)showToast('MISSION 0'+mission+' · '+m.name.toUpperCase());
   }
   function makeWorld(){
     const arr=[], types=['rock','bush','palm','crate','barrel','sandbags','tent','wreck'];
@@ -179,8 +190,8 @@
   }
   function end(win){
     state='end';ui.hud.hidden=true;ui.end.hidden=false;
-    document.getElementById('endTitle').textContent=win?'MISSION COMPLETE':'SIGNAL LOST';
-    document.getElementById('endKicker').textContent=win?'PORTAL SECURED':'CARTRIDGE REPORT';
+    document.getElementById('endTitle').textContent=win?'CARTRIDGE COMPLETE':'SIGNAL LOST';
+    document.getElementById('endKicker').textContent=win?'THREE MISSIONS CLEARED':'CARTRIDGE REPORT';
     document.getElementById('stats').innerHTML=`<div class="stat"><b>${Math.floor(player.score)}</b>SCORE</div><div class="stat"><b>${kills}</b>HOSTILES</div><div class="stat"><b>${rescues}</b>CORES</div>`;
   }
 
@@ -221,12 +232,21 @@
     let t=null;if(mouse.active&&mouse.down){fireAt(mouse.x,mouse.y+cameraY)} else t=autoTarget();
     if(t&&player.fireCd<=0){fireAt(t.x,t.y);player.fireCd=.13}
 
-    spawnTimer-=dt;if(!boss&&progress<4050&&spawnTimer<=0){spawnTimer=rnd(.55,1.05); const p=Math.random();spawnEnemy(p<.16?'drone':p>.86?'heavy':'trooper');if(progress>1600&&Math.random()<.34)spawnEnemy('trooper',Math.random()<.5?30:W-30,cameraY+rnd(100,600));}
+    const md=MISSIONS[mission-1];
+    spawnTimer-=dt;if(!boss&&!transitioning&&progress<md.bossAt-60&&spawnTimer<=0){
+      const intensity=1+(mission-1)*.12;spawnTimer=rnd(.55,1.05)/intensity;const p=Math.random();
+      spawnEnemy(p<(mission===1?.16:mission===2?.22:.28)?'drone':p>(mission===1?.86:mission===2?.80:.74)?'heavy':'trooper');
+      if(progress>1300&&Math.random()<(.28+mission*.08))spawnEnemy('trooper',Math.random()<.5?30:W-30,cameraY+rnd(100,600));
+    }
 
     if(progress>1050&&progress<1120&&!pickups.some(p=>p.type==='core'&&p.story)){pickups.push({x:W*.28,y:cameraY+300,type:'core',r:12,spin:0,story:true})}
     if(progress>2250&&progress<2330&&!pickups.some(p=>p.type==='core'&&p.story)){pickups.push({x:W*.72,y:cameraY+350,type:'core',r:12,spin:0,story:true})}
     if(progress>3500&&progress<3570&&!pickups.some(p=>p.type==='core'&&p.story)){pickups.push({x:W*.52,y:cameraY+260,type:'core',r:12,spin:0,story:true})}
-    if(progress>4100&&!boss){boss={x:W/2,y:cameraY+220,r:48,hp:900,maxHp:900,shot:1.15,phase:0,speed:55};ui.objective.textContent='Destroy the Foundry Walker';ui.boss.style.display='block';showToast('BOSS SIGNAL DETECTED · CLOSE TO LOCK RANGE');sfx.boss()}
+    if(progress>md.bossAt&&!boss&&!transitioning){
+      boss={x:W/2,y:cameraY+220,r:48,hp:md.hp,maxHp:md.hp,shot:1.15,phase:0,speed:55,mission};
+      ui.objective.textContent='Destroy the '+md.boss.toLowerCase().replace(/w/g,ch=>ch.toUpperCase());ui.bossName.textContent=md.boss;ui.boss.style.display='block';
+      showToast(md.boss+' DETECTED · CLOSE TO LOCK RANGE');sfx.boss()
+    }
 
     for(const e of enemies){
       e.shot-=dt;e.touch-=dt;const a=Math.atan2(player.y-e.y,player.x-e.x),d=dist(e,player);e.x+=Math.cos(a)*e.speed*dt*(d<110?.25:1);e.y+=Math.sin(a)*e.speed*dt*(d<110?.25:1);
@@ -236,8 +256,9 @@
     if(boss){
       boss.shot-=dt;boss.phase+=dt;
       const hpRatio=clamp(boss.hp/boss.maxHp,0,1);
-      const sweepRate=hpRatio>.66?.34:hpRatio>.33?.43:.52;
-      const sweepAmp=hpRatio>.66?145:hpRatio>.33?170:195;
+      const missionPace=1+(mission-1)*.07;
+      const sweepRate=(hpRatio>.66?.34:hpRatio>.33?.43:.52)*missionPace;
+      const sweepAmp=(hpRatio>.66?145:hpRatio>.33?170:195)+(mission-1)*8;
       boss.x=W/2+Math.sin(boss.phase*sweepRate)*sweepAmp;
       boss.y=cameraY+220+Math.sin(boss.phase*.82)*16;
       if(boss.shot<=0){
@@ -249,7 +270,15 @@
         boss.shot=hpRatio>.66?1.22:hpRatio>.33?1.02:.88;
       }
       if(dist(boss,player)<boss.r+player.r)hurt(26);
-      if(boss.hp<=0){player.score+=2500;burst(boss.x,boss.y,'boss');boss=null;ui.boss.style.display='none';showToast('PORTAL SECURED');setTimeout(()=>{if(state==='play')end(true)},1100)}
+      if(boss.hp<=0){
+        const cleared=mission;player.score+=2500*cleared;burst(boss.x,boss.y,'boss');boss=null;ui.boss.style.display='none';
+        if(cleared<MISSIONS.length){
+          transitioning=true;enemies=[];ebullets=[];ui.objective.textContent='Mission 0'+cleared+' cleared';showToast('MISSION 0'+cleared+' CLEAR · NEXT SECTOR');
+          setTimeout(()=>{if(state==='play'&&mission===cleared)setupMission(cleared+1,false)},1350);
+        }else{
+          showToast('RIFT SEALED · CARTRIDGE COMPLETE');setTimeout(()=>{if(state==='play')end(true)},1200);
+        }
+      }
     }
     // bullets
     for(const b of bullets){b.trail=b.trail||[];b.trail.push({x:b.x,y:b.y});if(b.trail.length>5)b.trail.shift();b.x+=b.vx*dt;b.y+=b.vy*dt;b.life-=dt;for(const e of enemies){if(e.hp>0&&Math.hypot(b.x-e.x,b.y-e.y)<e.r+b.r){e.hp-=b.damage;b.life=0;addParticle(b.x,b.y,3,'#a5f4ff',90);if(e.hp<=0)killEnemy(e);break}}if(boss&&Math.hypot(b.x-boss.x,b.y-boss.y)<boss.r+b.r){boss.hp-=b.damage;b.life=0;addParticle(b.x,b.y,4,'#ffab5c',100)}}
@@ -272,13 +301,18 @@
   }
   function roadCenter(y){return W*.52+Math.sin(y*.00225)*112+Math.sin(y*.0064)*34}
   function drawGround(){
-    // base jungle
-    ctx.fillStyle='#315b35';ctx.fillRect(0,cameraY,W,H);
+    // mission palette
+    const palettes=[
+      {ground:'#315b35',road:'#a4663f',edge:'#c28a57',grass1:'#487347',grass2:'#244b2d',dirt1:'#754b35',dirt2:'#c0804d'},
+      {ground:'#503827',road:'#73432f',edge:'#d18c52',grass1:'#77563a',grass2:'#3e2b25',dirt1:'#5c3027',dirt2:'#b86942'},
+      {ground:'#202c49',road:'#49385f',edge:'#8b67b3',grass1:'#344b73',grass2:'#17243e',dirt1:'#36284d',dirt2:'#71558e'}
+    ],pal=palettes[mission-1]||palettes[0];
+    ctx.fillStyle=pal.ground;ctx.fillRect(0,cameraY,W,H);
     const y0=Math.floor(cameraY/8)*8, y1=cameraY+H+8;
     for(let y=y0;y<y1;y+=8){
       const c=roadCenter(y), half=112+Math.sin(y*.0031)*18;
-      ctx.fillStyle='#a4663f';ctx.fillRect(c-half,y,half*2,8);
-      ctx.fillStyle='#c28a57';ctx.fillRect(c-half,y,5,8);ctx.fillRect(c+half-5,y,5,8);
+      ctx.fillStyle=pal.road;ctx.fillRect(c-half,y,half*2,8);
+      ctx.fillStyle=pal.edge;ctx.fillRect(c-half,y,5,8);ctx.fillRect(c+half-5,y,5,8);
     }
     // stable grass / dirt flecks
     for(let gy=Math.floor(cameraY/46)*46;gy<cameraY+H+50;gy+=46){
@@ -286,10 +320,10 @@
         const h=hash(gx*7.1+gy*.13), x=gx+(h-.5)*25, y=gy+(hash(gx*.91+gy)*-.5)*22;
         const c=roadCenter(y), onRoad=Math.abs(x-c)<122;
         if(onRoad){
-          ctx.fillStyle=hash(gx+y)>.55?'#754b35':'#c0804d';
+          ctx.fillStyle=hash(gx+y)>.55?pal.dirt1:pal.dirt2;
           ctx.globalAlpha=.42;ctx.fillRect(x,y,hash(x+y)>.5?5:3,2);
         }else{
-          ctx.fillStyle=hash(gx-y)>.5?'#487347':'#244b2d';
+          ctx.fillStyle=hash(gx-y)>.5?pal.grass1:pal.grass2;
           ctx.globalAlpha=.35;ctx.fillRect(x,y,3,6);
         }
       }
