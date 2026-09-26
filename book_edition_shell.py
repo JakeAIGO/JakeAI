@@ -17,16 +17,16 @@ from book_source_lock import list_locks
 from book_structure_map import list_structures
 
 SHELL_PROFILES = {
- "JAE-TTM-001":{"family":"retro_future","narrator":"classic_british","accent":"brass_cosmic","collection":"H. G. Wells"},
- "JAE-SH-001":{"family":"gaslight_detective","narrator":"classic_british","accent":"gaslight_crimson","collection":"Sherlock Holmes"},
- "JAE-DRAC-001":{"family":"gothic_nocturne","narrator":"gothic_british","accent":"midnight_crimson","collection":"Gothic Classics"},
- "JAE-TI-001":{"family":"maritime_adventure","narrator":"adventure_british","accent":"navy_parchment","collection":"Adventure Classics"},
- "JAE-FRANK-001":{"family":"gothic_science","narrator":"gothic_british","accent":"storm_copper","collection":"Gothic Classics"},
- "JAE-ALICE-001":{"family":"whimsical_surreal","narrator":"storybook_british","accent":"ivory_cobalt","collection":"Wonder Classics"},
- "JAE-MOBY-001":{"family":"maritime_monumental","narrator":"literary_american","accent":"deep_sea_ivory","collection":"American Classics"},
- "JAE-PRIDE-001":{"family":"regency_elegance","narrator":"classic_british","accent":"ivory_sage","collection":"Regency Classics"},
- "JAE-JANE-001":{"family":"gothic_literary","narrator":"literary_british","accent":"moor_ember","collection":"Gothic Classics"},
- "JAE-DORIAN-001":{"family":"decadent_aesthetic","narrator":"literary_british","accent":"obsidian_gold","collection":"Fin-de-siècle Classics"},
+ "JAE-TTM-001":{"family":"retro_future","narrator":"founder_voice","accent":"brass_cosmic","collection":"H. G. Wells"},
+ "JAE-SH-001":{"family":"gaslight_detective","narrator":"founder_voice","accent":"gaslight_crimson","collection":"Sherlock Holmes"},
+ "JAE-DRAC-001":{"family":"gothic_nocturne","narrator":"founder_voice","accent":"midnight_crimson","collection":"Gothic Classics"},
+ "JAE-TI-001":{"family":"maritime_adventure","narrator":"founder_voice","accent":"navy_parchment","collection":"Adventure Classics"},
+ "JAE-FRANK-001":{"family":"gothic_science","narrator":"founder_voice","accent":"storm_copper","collection":"Gothic Classics"},
+ "JAE-ALICE-001":{"family":"whimsical_surreal","narrator":"founder_voice","accent":"ivory_cobalt","collection":"Wonder Classics"},
+ "JAE-MOBY-001":{"family":"maritime_monumental","narrator":"founder_voice","accent":"deep_sea_ivory","collection":"American Classics"},
+ "JAE-PRIDE-001":{"family":"regency_elegance","narrator":"founder_voice","accent":"ivory_sage","collection":"Regency Classics"},
+ "JAE-JANE-001":{"family":"gothic_literary","narrator":"founder_voice","accent":"moor_ember","collection":"Gothic Classics"},
+ "JAE-DORIAN-001":{"family":"decadent_aesthetic","narrator":"founder_voice","accent":"obsidian_gold","collection":"Fin-de-siècle Classics"},
 }
 
 def _now():
@@ -79,7 +79,7 @@ def build_one(job_id,lock,structure):
       "source_text_policy":"immutable_exact_source",
       "text_rendering":{"mode":"offset_slices","normalization":"none","rewrite_allowed":False},
       "reader":{"chapter_navigation":True,"bookmarks":True,"font_controls":True,"high_contrast":True,"read_listen_sync_target":True},
-      "narration":{"profile":profile["narrator"],"script_source":"immutable_canonical_offsets","rewriting_allowed":False,"celebrity_imitation":False},
+      "narration":{"profile":"JakeAI Founder Narrator","voice_identity":"founder_voice","script_source":"immutable_canonical_offsets","rewriting_allowed":False,"celebrity_imitation":False,"character_voices_enabled":False,"external_voice_platform":False},
       "visual":{"family":profile["family"],"accent":profile["accent"],"original_art_required":True,"third_party_cover_art_allowed":False},
       "collection":profile["collection"],
       "provenance":{"edition_label":"JakeAI Autonomous Edition","original_human_work":True,"ai_produced_edition":True,"rights_verified":True,"human_release_required":True},
