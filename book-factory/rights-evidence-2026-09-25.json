@@ -1,0 +1,155 @@
+{
+  "schema_version": "1.0",
+  "batch_id": "JAE-BATCH-025",
+  "verified_on": "2026-09-25",
+  "territory": "United States",
+  "status": "source_rights_screen_complete",
+  "legal_baseline": {
+    "authority": "U.S. Copyright Office Circular 15A",
+    "statement": "Works published in the United States before January 1, 1931 are in the public domain.",
+    "url": "https://www.copyright.gov/circs/circ15a.pdf"
+  },
+  "gutenberg_policy": {
+    "url": "https://www.gutenberg.org/policy/license.html",
+    "production_rule": "For unrestricted U.S. texts, remove the Project Gutenberg license and trademark references from the production text. JakeAI Editions must not market paid books as Project Gutenberg-branded editions."
+  },
+  "newly_qualified": [
+    {
+      "id": "JAE-WARW-001",
+      "source_id": "36",
+      "source_url": "https://www.gutenberg.org/ebooks/36",
+      "notes": "Project Gutenberg catalog explicitly marks this exact ebook Public domain in the USA.",
+      "territory": "United States",
+      "catalog_status": "Public domain in the USA"
+    },
+    {
+      "id": "JAE-INVIS-001",
+      "source_id": "5230",
+      "source_url": "https://www.gutenberg.org/ebooks/5230",
+      "notes": "Project Gutenberg catalog explicitly marks this exact ebook Public domain in the USA.",
+      "territory": "United States",
+      "catalog_status": "Public domain in the USA"
+    },
+    {
+      "id": "JAE-OZ-001",
+      "source_id": "55",
+      "source_url": "https://www.gutenberg.org/ebooks/55",
+      "notes": "Project Gutenberg ebook #55 explicitly marked Public domain in the USA. Use text-only source; do not import alternate improved-edition illustrations.",
+      "territory": "United States",
+      "catalog_status": "Public domain in the USA"
+    },
+    {
+      "id": "JAE-WIND-001",
+      "source_id": "27805",
+      "source_url": "https://www.gutenberg.org/ebooks/27805",
+      "notes": "Project Gutenberg catalog explicitly marks this exact ebook Public domain in the USA. Use text-only source; do not import illustrator assets.",
+      "territory": "United States",
+      "catalog_status": "Public domain in the USA"
+    },
+    {
+      "id": "JAE-SECRET-001",
+      "source_id": "113",
+      "source_url": "https://www.gutenberg.org/ebooks/113",
+      "notes": "Project Gutenberg catalog explicitly marks this exact ebook Public domain in the USA.",
+      "territory": "United States",
+      "catalog_status": "Public domain in the USA"
+    },
+    {
+      "id": "JAE-PETER-001",
+      "source_id": "16",
+      "source_url": "https://www.gutenberg.org/ebooks/16",
+      "notes": "Project Gutenberg catalog explicitly marks this exact ebook Public domain in the USA. Territory remains United States only; Peter Pan has a special perpetual UK statutory royalty right for publications/performances.",
+      "territory": "United States",
+      "catalog_status": "Public domain in the USA"
+    },
+    {
+      "id": "JAE-CALL-001",
+      "source_id": "215",
+      "source_url": "https://www.gutenberg.org/ebooks/215",
+      "notes": "Project Gutenberg catalog explicitly marks this exact ebook Public domain in the USA.",
+      "territory": "United States",
+      "catalog_status": "Public domain in the USA"
+    },
+    {
+      "id": "JAE-JUNGLE-001",
+      "source_id": "236",
+      "source_url": "https://www.gutenberg.org/ebooks/236",
+      "notes": "Project Gutenberg catalog explicitly marks this exact ebook Public domain in the USA.",
+      "territory": "United States",
+      "catalog_status": "Public domain in the USA"
+    },
+    {
+      "id": "JAE-HOUND-001",
+      "source_id": "2852",
+      "source_url": "https://www.gutenberg.org/ebooks/2852",
+      "notes": "Project Gutenberg catalog explicitly marks this exact ebook Public domain in the USA.",
+      "territory": "United States",
+      "catalog_status": "Public domain in the USA"
+    },
+    {
+      "id": "JAE-EIGHTY-001",
+      "source_id": "103",
+      "source_url": "https://www.gutenberg.org/ebooks/103",
+      "notes": "Project Gutenberg catalog explicitly marks this exact English ebook Public domain in the USA; translator listed as George M. Towle.",
+      "territory": "United States",
+      "catalog_status": "Public domain in the USA"
+    },
+    {
+      "id": "JAE-LEAGUES-001",
+      "source_id": "164",
+      "source_url": "https://www.gutenberg.org/ebooks/164",
+      "notes": "Project Gutenberg catalog explicitly marks this exact English ebook Public domain in the USA. Translator is not named in current catalog metadata; use only ebook #164 text and do not substitute copyrighted Frederick Paul Walter translation ebook #2488.",
+      "territory": "United States",
+      "catalog_status": "Public domain in the USA"
+    },
+    {
+      "id": "JAE-CAROL-001",
+      "source_id": "46",
+      "source_url": "https://www.gutenberg.org/ebooks/46",
+      "notes": "Project Gutenberg ebook #46 explicitly marked Public domain in the USA. Use text-only source; exclude illustration assets and other alternate editions.",
+      "territory": "United States",
+      "catalog_status": "Public domain in the USA"
+    },
+    {
+      "id": "JAE-SLEEPY-001",
+      "source_id": "41",
+      "source_url": "https://www.gutenberg.org/ebooks/41",
+      "notes": "Project Gutenberg catalog explicitly marks this exact ebook Public domain in the USA.",
+      "territory": "United States",
+      "catalog_status": "Public domain in the USA"
+    },
+    {
+      "id": "JAE-LITTLE-001",
+      "source_id": "514",
+      "source_url": "https://www.gutenberg.org/ebooks/514",
+      "notes": "Project Gutenberg ebook #514 explicitly marked Public domain in the USA. Use text-only source; do not import alternate illustrated edition #37106.",
+      "territory": "United States",
+      "catalog_status": "Public domain in the USA"
+    },
+    {
+      "id": "JAE-ANNE-001",
+      "source_id": "45",
+      "source_url": "https://www.gutenberg.org/ebooks/45",
+      "notes": "Project Gutenberg catalog explicitly marks this exact ebook Public domain in the USA.",
+      "territory": "United States",
+      "catalog_status": "Public domain in the USA"
+    }
+  ],
+  "special_cases": [
+    {
+      "id": "JAE-PETER-001",
+      "rule": "US-only release unless separately cleared elsewhere; UK publications/performances are subject to the special GOSH statutory royalty right."
+    },
+    {
+      "id": "JAE-EIGHTY-001",
+      "rule": "Lock only ebook #103, the George M. Towle English translation."
+    },
+    {
+      "id": "JAE-LEAGUES-001",
+      "rule": "Lock only ebook #164. Do not substitute Frederick Paul Walter translation ebook #2488, which Project Gutenberg marks copyrighted."
+    }
+  ],
+  "publication_enabled": false,
+  "payment_enabled": false,
+  "next_gate": "canonical_source_lock_and_structure_profile"
+}
