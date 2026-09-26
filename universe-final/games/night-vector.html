@@ -1,6 +1,6 @@
 <!doctype html><html><head><meta charset="utf-8">
 <meta name="viewport" content="width=device-width,initial-scale=1,maximum-scale=1,user-scalable=no">
-<title>NIGHT VECTOR — JakeAI Arcade</title>
+<title>NIGHT VECTOR — JakeAI Arcade</title><script defer src="/assets/traffic.js"></script>
 <style>
 *{box-sizing:border-box}html,body{margin:0;height:100%;overflow:hidden;background:#040207;color:white;font-family:system-ui}
 #app{height:100dvh;max-width:760px;margin:auto;display:grid;grid-template-rows:58px 1fr;background:radial-gradient(circle at 50% 0,#25113e,#040207 58%)}
@@ -11,7 +11,7 @@ h1{margin:0;font-size:20px;letter-spacing:.16em;text-shadow:0 0 15px #8b5cf6}sma
 canvas{width:100%;height:100%;display:block;touch-action:none;background:#05070c}
 #hud{position:absolute;z-index:4;left:7px;right:7px;top:7px;display:flex;justify-content:space-between;font:800 9px monospace}
 #hud span{background:#030209c8;border:1px solid #ffffff20;border-radius:20px;padding:5px 7px}
-#weap{position:absolute;z-index:4;left:8px;top:39px;background:#030209c8;border:1px solid #ffffff20;border-radius:8px;padding:5px 7px;font:800 9px monospace}
+#weap{position:absolute;z-index:4;left:8px;top:39px;background:#030209c8;border:1px solid #ffffff20;border-radius:8px;padding:5px 7px;font:800 9px monospace}#objective{position:absolute;z-index:4;left:50%;top:66px;transform:translateX(-50%);max-width:72%;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;background:#030209d9;border:1px solid #26f7ff55;border-radius:999px;padding:5px 9px;color:#bdfaff;font:900 9px monospace;letter-spacing:.08em}
 #armorWrap{position:absolute;z-index:4;left:8px;right:8px;bottom:142px;display:flex;gap:6px;align-items:center;font:800 9px monospace}
 #armorBar{height:7px;flex:1;background:#150a20;border:1px solid #50336b;border-radius:9px;overflow:hidden}
 #armor{display:block;height:100%;width:100%;background:linear-gradient(90deg,#ff477e,#ffcc4d,#72ff9e)}
@@ -28,34 +28,34 @@ button{border:1px solid #4b3466;border-radius:14px;background:#130b1ded;color:#f
 #ov.hide{display:none}.title{font-size:clamp(42px,11vw,78px);font-weight:1000;line-height:.84;letter-spacing:.05em;text-shadow:0 0 18px #8b5cf6,0 0 52px #8b5cf6}
 .sub{margin:11px 0;color:#26f7ff;font:900 10px system-ui;letter-spacing:.22em}.copy{max-width:500px;color:#d9d1e4;font-size:12px;line-height:1.48}
 .go{display:inline-block;margin-top:16px;border:1px solid #26f7ff;color:#26f7ff;padding:9px 13px;border-radius:8px;font-weight:900}
-#banner{position:absolute;z-index:8;top:64px;left:50%;transform:translateX(-50%);opacity:0;background:#05020deb;border:1px solid #715092;border-radius:8px;padding:8px 11px;font:900 10px monospace;transition:.2s;white-space:nowrap}
+#banner{position:absolute;z-index:8;top:94px;left:50%;transform:translateX(-50%);opacity:0;background:#05020deb;border:1px solid #715092;border-radius:8px;padding:8px 11px;font:900 10px monospace;transition:.2s;white-space:nowrap}
 #banner.show{opacity:1}
 .exit{position:fixed;z-index:20;right:10px;top:64px;padding:7px 10px;border:1px solid #26f7ff66;border-radius:999px;background:#040207cc;color:#bdf7ff;text-decoration:none;font:800 9px monospace;letter-spacing:.12em;backdrop-filter:blur(6px)}</style></head><body><a class="exit" href="../rooms/arcade.html">← ARCADE</a><div id="app">
-<header><h1>NIGHT VECTOR<small>JAKEAI STAND-UP ARCADE</small></h1><div class="tag">PROTOTYPE 05</div></header>
+<header><h1>NIGHT VECTOR<small>JAKEAI STAND-UP ARCADE</small></h1><div class="tag">ARCADE BUILD 1.0</div></header>
 <div id="stage"><canvas id="c" width="700" height="1000"></canvas>
 <div id="hud"><span>SCORE <b id="score">000000</b></span><span id="mode">ROAD</span><span>SPD <b id="spd">50</b></span></div>
 <div id="weap">M <b id="ms">3</b> · OIL <b id="oil">3</b> · MINE <b id="mine">2</b> · GUN <b id="gunlvl">I</b></div>
-<div id="banner"></div>
+<div id="objective">OUTRUN INTERCEPTORS</div><div id="banner"></div>
 <div id="armorWrap">ARMOR<div id="armorBar"><i id="armor"></i></div></div>
 <div id="controls">
  <div id="joystick"><div id="knob"></div><div id="joyLabel">STEER · ACCEL · BRAKE</div></div>
  <div class="weapons"><button data-k="gun">GUN</button><button data-k="missile">MISSILE</button><button data-k="rear">REAR<br><small>AUTO</small></button></div>
 </div>
 <div id="ov"><div><div class="title">NIGHT<br>VECTOR</div><div class="sub">CHASE • REFIT • TRANSFORM • ESCAPE</div>
-<div class="copy">Catch the VECTOR ARMORY semi, line up with its open rear ramp, and drive into the trailer to receive a weapon package. The analog stick handles steering, acceleration and braking; gun, missile and rear defense stay on the right.</div>
+<div class="copy">Four-stage extraction. Use the analog stick to steer, accelerate and brake. When the VECTOR ARMORY semi appears, catch it, line up with the glowing cyan rear ramp and hold your line inside the trailer until the refit completes. Weapons stay on the right.</div>
 <div class="go">TAP / ENTER TO START</div></div></div></div></div>
 <script>
 (()=>{
 const C=document.querySelector('#c'),x=C.getContext('2d'),W=C.width,H=C.height,ov=document.querySelector('#ov');
-const U={score:q('#score'),mode:q('#mode'),spd:q('#spd'),ms:q('#ms'),oil:q('#oil'),mine:q('#mine'),gun:q('#gunlvl'),armor:q('#armor'),banner:q('#banner')};
+const U={score:q('#score'),mode:q('#mode'),spd:q('#spd'),ms:q('#ms'),oil:q('#oil'),mine:q('#mine'),gun:q('#gunlvl'),armor:q('#armor'),banner:q('#banner'),objective:q('#objective')};
 function q(s){return document.querySelector(s)}
 let K={},joyX=0,joyY=0,run=false,last=0,t=0,score=0,scroll=0,spawn=0,rearSpawn=2.5,phase=0,clock=0,supportMade=false;
 let foes=[],shots=[],rockets=[],slicks=[],mines=[],fx=[],supports=[],waves=[],buoys=[];
 const P={x:350,y:770,w:44,h:86,vx:0,speed:.5,armor:100,missiles:3,oil:3,mines:2,gun:1,cd:0,rcd:0,ocd:0,bcd:0,inv:0,mode:'ROAD'};
 let center=350;
 const rnd=(a,b)=>a+Math.random()*(b-a),clamp=(v,a,b)=>Math.max(a,Math.min(b,v));
-function reset(){foes=[];shots=[];rockets=[];slicks=[];mines=[];fx=[];supports=[];waves=[];buoys=[];score=scroll=t=spawn=0;rearSpawn=2.5;phase=0;clock=0;supportMade=false;Object.assign(P,{x:350,y:770,vx:0,speed:.5,armor:100,missiles:3,oil:3,mines:2,gun:1,cd:0,rcd:0,ocd:0,bcd:0,inv:0,mode:'ROAD'})}
-function start(){reset();run=true;ov.classList.add('hide');last=performance.now();requestAnimationFrame(loop)}
+function reset(){foes=[];shots=[];rockets=[];slicks=[];mines=[];fx=[];supports=[];waves=[];buoys=[];score=scroll=t=spawn=0;rearSpawn=2.5;phase=0;clock=0;supportMade=false;Object.assign(P,{x:350,y:770,vx:0,speed:.5,armor:100,missiles:3,oil:3,mines:2,gun:1,cd:0,rcd:0,ocd:0,bcd:0,inv:0,mode:'ROAD'});ov.querySelector('.title').innerHTML='NIGHT<br>VECTOR';ov.querySelector('.sub').textContent='CHASE • REFIT • TRANSFORM • ESCAPE';ov.querySelector('.go').textContent='TAP / ENTER TO START';U.objective.textContent='OUTRUN INTERCEPTORS'}
+function start(){reset();setPhase(0);run=true;ov.classList.add('hide');window.JakeAITraffic?.track('game_start',{path:'/universe-final/games/night-vector.html'});last=performance.now();requestAnimationFrame(loop)}
 ov.onpointerdown=start;addEventListener('keydown',e=>{K[e.code]=1;if(e.code==='Enter'&&!run)start();if(['Space','ArrowLeft','ArrowRight','ArrowUp','ArrowDown'].includes(e.code))e.preventDefault()});addEventListener('keyup',e=>K[e.code]=0);
 for(const b of document.querySelectorAll('button')){let m={gun:'Space',missile:'KeyX',rear:'KeyZ'}[b.dataset.k];b.addEventListener('pointerdown',e=>{K[m]=1;e.preventDefault()});['pointerup','pointercancel','pointerleave'].forEach(v=>b.addEventListener(v,e=>{K[m]=0;e.preventDefault()}))}
 const joy=q('#joystick'),knob=q('#knob');let joyPointer=null;
@@ -96,6 +96,7 @@ function support(h){
  // open rear + ramp
  x.fillStyle='#0b0710';x.fillRect(-48,105,96,28);
  x.fillStyle='#d8b14d';x.fillRect(-55,132,110,11);
+ if(!h.docked){x.strokeStyle='#26f7ff';x.lineWidth=3;for(const yy of [151,163,175]){x.beginPath();x.moveTo(-34,yy);x.lineTo(0,yy+10);x.lineTo(34,yy);x.stroke()}}
  x.strokeStyle='#ffcc4d';x.lineWidth=3;
  x.beginPath();x.moveTo(-55,143);x.lineTo(-72,169);x.moveTo(55,143);x.lineTo(72,169);x.stroke();
  // trailer wheels
@@ -126,12 +127,12 @@ function rearWeapon(){
  }
 }
 function hurt(n){if(P.inv>0)return;P.armor-=n;P.inv=.6;boom(P.x,P.y,20);if(P.armor<=0)gameover()}
-function gameover(){run=false;ov.classList.remove('hide');ov.querySelector('.copy').innerHTML=`RUN ENDED — SCORE <b>${Math.floor(score)}</b><br><br>Tap to redeploy the VECTOR-9.`;ov.querySelector('.go').textContent='RESTART'}
-function victory(){run=false;score+=2500;ov.classList.remove('hide');ov.querySelector('.copy').innerHTML=`MISSION COMPLETE — VECTOR-9 EXTRACTED<br><br>SCORE <b>${Math.floor(score)}</b><br><br>The highway, armory intercept, bridge breach and marine escape are clear.`;ov.querySelector('.go').textContent='RUN AGAIN'}
+function gameover(){run=false;window.JakeAITraffic?.track('game_end',{path:'/universe-final/games/night-vector.html'});ov.classList.remove('hide');ov.querySelector('.title').innerHTML='RUN<br>ENDED';ov.querySelector('.sub').textContent='VECTOR-9 LOST';ov.querySelector('.copy').innerHTML=`SCORE <b>${Math.floor(score)}</b><br><br>Tap to redeploy the VECTOR-9.`;ov.querySelector('.go').textContent='RESTART'}
+function victory(){run=false;score+=2500;window.JakeAITraffic?.track('game_complete',{path:'/universe-final/games/night-vector.html'});ov.classList.remove('hide');ov.querySelector('.title').innerHTML='VECTOR<br>EXTRACTED';ov.querySelector('.sub').textContent='MISSION COMPLETE';ov.querySelector('.copy').innerHTML=`FINAL SCORE <b>${Math.floor(score)}</b><br><br>The highway, armory intercept, bridge breach and marine escape are clear.`;ov.querySelector('.go').textContent='RUN AGAIN'}
 function hit(a,b){return Math.abs(a.x-b.x)<(a.w+b.w)*.44&&Math.abs(a.y-b.y)<(a.h+b.h)*.44}
-function setPhase(n){phase=n;clock=0;if(n===0){P.mode='ROAD';say('HIGHWAY SECTOR')}if(n===1){say('VECTOR ARMORY SEMI AHEAD — CATCH & BOARD');supportMade=false}if(n===2)say('BROKEN BRIDGE — MARINE GATE AHEAD');if(n===3){P.mode='WATER';say('MARINE VECTOR DEPLOYED')}}
+function setPhase(n){phase=n;clock=0;if(n===0){P.mode='ROAD';U.objective.textContent='OUTRUN INTERCEPTORS';say('HIGHWAY SECTOR')}if(n===1){U.objective.textContent='CATCH SEMI · ENTER CYAN REAR RAMP';say('VECTOR ARMORY SEMI AHEAD — CATCH & BOARD');supportMade=false}if(n===2){U.objective.textContent='BREACH THE BROKEN BRIDGE';say('BROKEN BRIDGE — MARINE GATE AHEAD')}if(n===3){P.mode='WATER';U.objective.textContent='SURVIVE TO MARINE EXTRACTION';say('MARINE VECTOR DEPLOYED')}}
 function update(dt){
-t+=dt;clock+=dt;P.cd-=dt;P.rcd-=dt;P.ocd-=dt;P.bcd-=dt;P.inv-=dt;if(clock>12){if(phase===3){victory();return}else setPhase(phase+1);}
+t+=dt;clock+=dt;P.cd-=dt;P.rcd-=dt;P.ocd-=dt;P.bcd-=dt;P.inv-=dt;if(phase===0&&clock>14)setPhase(1);else if(phase===1){const arm=supports.find(h=>!h.dead);if(arm&&arm.docked&&clock-(arm.dockedAt||clock)>1.8)setPhase(2);else if(clock>30){say('ARMORY MISSED — EXTRACTION CONTINUES');setPhase(2)}}else if(phase===2&&clock>15)setPhase(3);else if(phase===3&&clock>18){victory();return}
 let steer=clamp(((K.ArrowRight||K.KeyD?1:0)-(K.ArrowLeft||K.KeyA?1:0))+joyX,-1,1);
 let accel=clamp(((K.ArrowUp||K.KeyW?1:0)-(K.ArrowDown||K.KeyS?1:0))-joyY,-1,1);P.speed=clamp(P.speed+accel*dt*.55,.12,1);
 let targetY=870-P.speed*430;P.y+=(targetY-P.y)*dt*3.4;
@@ -143,13 +144,15 @@ spawn-=dt;if(spawn<=0){spawnFront();spawn=rnd(.65,1.15)}
 rearSpawn-=dt;if(rearSpawn<=0&&P.speed<.8){spawnRear();rearSpawn=rnd(2.5,4.2)}
 if(phase===1&&!supportMade&&clock>1.4){supports.push({x:center,y:300,w:136,h:300,vy:.33,docked:false,dock:0});supportMade=true}
 for(const h of supports){
- h.y+=(P.speed-.60)*dt*270;
- const aligned=Math.abs(P.x-h.x)<43;
- const inside=P.y>h.y+45 && P.y<h.y+145;
+ h.x+=(center-h.x)*dt*2.5;
+ h.y=clamp(h.y+(P.speed-.68)*dt*245,150,515);
+ const rearY=h.y+145;
+ const aligned=Math.abs(P.x-h.x)<52;
+ const inside=Math.abs(P.y-rearY)<58;
  if(!h.docked && aligned && inside){
    h.dock=(h.dock||0)+dt;
    if(h.dock>.45){
-     h.docked=true;
+     h.docked=true;h.dockedAt=clock;
      P.gun=Math.min(3,P.gun+1);
      P.missiles=Math.min(8,P.missiles+2);
      P.oil=Math.min(8,P.oil+2);
@@ -166,8 +169,11 @@ for(const h of supports){
  } else if(!h.docked){
    h.dock=Math.max(0,(h.dock||0)-dt*2);
  }
- if(!h.docked && P.y>h.y+150 && P.y<h.y+230 && Math.abs(P.x-h.x)<105){
-   U.banner.textContent='DRIVE INTO OPEN TRAILER';
+ if(!h.docked && Math.abs(P.y-rearY)<210){
+   if(!aligned)U.banner.textContent='LINE UP WITH CYAN RAMP';
+   else if(P.y>rearY+58)U.banner.textContent='ACCELERATE INTO TRAILER';
+   else if(P.y<rearY-58)U.banner.textContent='EASE OFF — TRAILER BEHIND';
+   else U.banner.textContent='HOLD LINE — ENTERING ARMORY';
    U.banner.classList.add('show');
  }
  if(h.y<-220||h.y>H+220)h.dead=1
