@@ -1,7 +1,7 @@
 {
   "schema_version": "1.0",
   "factory_id": "JAI-BOOK-FACTORY-001",
-  "generated_at": "2026-09-26",
+  "generated_at": "2026-09-24",
   "territory": "United States",
   "policy": {
     "fail_closed": true,
@@ -35,19 +35,6 @@
       ],
       "release_requirement": "No full-text or paid edition may release unless the canonical source is locked and all production text reconstructs exactly to the canonical bytes.",
       "narration_requirement": "Narration input must be drawn directly from the immutable canonical text; no rewritten narration script."
-    },
-    "narration": {
-      "primary_voice": "JakeAI Founder Narrator",
-      "source": "private local founder voice reference",
-      "external_voice_platforms": false,
-      "narration_input": "immutable canonical source only",
-      "public_release_requires_audio_qa": true
-    },
-    "commerce": {
-      "provider": "Stripe",
-      "mode": "one_time_payment_link",
-      "default_price_usd": "1.99",
-      "payment_link_publication": "only after rights, source, text, audio and final release gates pass"
     }
   },
   "jobs": [
@@ -68,13 +55,7 @@
         "comparison": "exact_bytes",
         "normalization": "none"
       },
-      "content_mode": "marketing_preview_no_full_book_text",
-      "narration": {
-        "engine": "JakeAI Founder Narrator",
-        "voice": "Founder voice reference",
-        "ownership": "local_private",
-        "rewrite_allowed": false
-      }
+      "content_mode": "marketing_preview_no_full_book_text"
     },
     {
       "id": "JAE-SH-001",
@@ -92,12 +73,6 @@
         "status": "pending",
         "comparison": "exact_bytes",
         "normalization": "none"
-      },
-      "narration": {
-        "engine": "JakeAI Founder Narrator",
-        "voice": "Founder voice reference",
-        "ownership": "local_private",
-        "rewrite_allowed": false
       }
     },
     {
@@ -116,12 +91,6 @@
         "status": "pending",
         "comparison": "exact_bytes",
         "normalization": "none"
-      },
-      "narration": {
-        "engine": "JakeAI Founder Narrator",
-        "voice": "Founder voice reference",
-        "ownership": "local_private",
-        "rewrite_allowed": false
       }
     },
     {
@@ -140,12 +109,6 @@
         "status": "pending",
         "comparison": "exact_bytes",
         "normalization": "none"
-      },
-      "narration": {
-        "engine": "JakeAI Founder Narrator",
-        "voice": "Founder voice reference",
-        "ownership": "local_private",
-        "rewrite_allowed": false
       }
     },
     {
@@ -164,12 +127,6 @@
         "status": "pending",
         "comparison": "exact_bytes",
         "normalization": "none"
-      },
-      "narration": {
-        "engine": "JakeAI Founder Narrator",
-        "voice": "Founder voice reference",
-        "ownership": "local_private",
-        "rewrite_allowed": false
       }
     },
     {
@@ -189,12 +146,6 @@
         "status": "pending",
         "comparison": "exact_bytes",
         "normalization": "none"
-      },
-      "narration": {
-        "engine": "JakeAI Founder Narrator",
-        "voice": "Founder voice reference",
-        "ownership": "local_private",
-        "rewrite_allowed": false
       }
     },
     {
@@ -214,12 +165,6 @@
         "status": "pending",
         "comparison": "exact_bytes",
         "normalization": "none"
-      },
-      "narration": {
-        "engine": "JakeAI Founder Narrator",
-        "voice": "Founder voice reference",
-        "ownership": "local_private",
-        "rewrite_allowed": false
       }
     },
     {
@@ -239,12 +184,6 @@
         "status": "pending",
         "comparison": "exact_bytes",
         "normalization": "none"
-      },
-      "narration": {
-        "engine": "JakeAI Founder Narrator",
-        "voice": "Founder voice reference",
-        "ownership": "local_private",
-        "rewrite_allowed": false
       }
     },
     {
@@ -264,12 +203,6 @@
         "status": "pending",
         "comparison": "exact_bytes",
         "normalization": "none"
-      },
-      "narration": {
-        "engine": "JakeAI Founder Narrator",
-        "voice": "Founder voice reference",
-        "ownership": "local_private",
-        "rewrite_allowed": false
       }
     },
     {
@@ -289,388 +222,277 @@
         "status": "pending",
         "comparison": "exact_bytes",
         "normalization": "none"
-      },
-      "narration": {
-        "engine": "JakeAI Founder Narrator",
-        "voice": "Founder voice reference",
-        "ownership": "local_private",
-        "rewrite_allowed": false
       }
     },
     {
       "id": "JAE-WARW-001",
       "title": "The War of the Worlds",
       "author": "H. G. Wells",
-      "stage": "rights_verified",
-      "rights": "green",
-      "source_type": "Project Gutenberg text",
-      "source_id": "36",
-      "source_url": "https://www.gutenberg.org/ebooks/36",
-      "source_rights_statement": "Public domain in the USA",
+      "stage": "candidate",
+      "rights": "pending",
+      "source_type": null,
+      "source_id": null,
+      "source_url": null,
+      "source_rights_statement": null,
       "release": "not_published",
       "paid_release": false,
       "text_lock": {
         "status": "pending",
         "comparison": "exact_bytes",
         "normalization": "none"
-      },
-      "narration": {
-        "engine": "JakeAI Founder Narrator",
-        "voice": "Founder voice reference",
-        "ownership": "local_private",
-        "rewrite_allowed": false
-      },
-      "source_asset_policy": "Text-only source; do not import third-party illustrations, introductions, annotations, translations, recordings, or supplemental material without separate clearance."
+      }
     },
     {
       "id": "JAE-INVIS-001",
       "title": "The Invisible Man",
       "author": "H. G. Wells",
-      "stage": "rights_verified",
-      "rights": "green",
-      "source_type": "Project Gutenberg text",
-      "source_id": "5230",
-      "source_url": "https://www.gutenberg.org/ebooks/5230",
-      "source_rights_statement": "Public domain in the USA",
+      "stage": "candidate",
+      "rights": "pending",
+      "source_type": null,
+      "source_id": null,
+      "source_url": null,
+      "source_rights_statement": null,
       "release": "not_published",
       "paid_release": false,
       "text_lock": {
         "status": "pending",
         "comparison": "exact_bytes",
         "normalization": "none"
-      },
-      "narration": {
-        "engine": "JakeAI Founder Narrator",
-        "voice": "Founder voice reference",
-        "ownership": "local_private",
-        "rewrite_allowed": false
-      },
-      "source_asset_policy": "Text-only source; do not import third-party illustrations, introductions, annotations, translations, recordings, or supplemental material without separate clearance."
+      }
     },
     {
       "id": "JAE-OZ-001",
       "title": "The Wonderful Wizard of Oz",
       "author": "L. Frank Baum",
-      "stage": "rights_verified",
-      "rights": "green",
-      "source_type": "Project Gutenberg text",
-      "source_id": "55",
-      "source_url": "https://www.gutenberg.org/ebooks/55",
-      "source_rights_statement": "Public domain in the USA",
+      "stage": "candidate",
+      "rights": "pending",
+      "source_type": null,
+      "source_id": null,
+      "source_url": null,
+      "source_rights_statement": null,
       "release": "not_published",
       "paid_release": false,
       "text_lock": {
         "status": "pending",
         "comparison": "exact_bytes",
         "normalization": "none"
-      },
-      "narration": {
-        "engine": "JakeAI Founder Narrator",
-        "voice": "Founder voice reference",
-        "ownership": "local_private",
-        "rewrite_allowed": false
-      },
-      "source_asset_policy": "Text-only source; do not import third-party illustrations, introductions, annotations, translations, recordings, or supplemental material without separate clearance."
+      }
     },
     {
       "id": "JAE-WIND-001",
       "title": "The Wind in the Willows",
       "author": "Kenneth Grahame",
-      "stage": "rights_verified",
-      "rights": "green",
-      "source_type": "Project Gutenberg text",
-      "source_id": "27805",
-      "source_url": "https://www.gutenberg.org/ebooks/27805",
-      "source_rights_statement": "Public domain in the USA",
+      "stage": "candidate",
+      "rights": "pending",
+      "source_type": null,
+      "source_id": null,
+      "source_url": null,
+      "source_rights_statement": null,
       "release": "not_published",
       "paid_release": false,
       "text_lock": {
         "status": "pending",
         "comparison": "exact_bytes",
         "normalization": "none"
-      },
-      "narration": {
-        "engine": "JakeAI Founder Narrator",
-        "voice": "Founder voice reference",
-        "ownership": "local_private",
-        "rewrite_allowed": false
-      },
-      "source_asset_policy": "Text-only source; do not import third-party illustrations, introductions, annotations, translations, recordings, or supplemental material without separate clearance."
+      }
     },
     {
       "id": "JAE-SECRET-001",
       "title": "The Secret Garden",
       "author": "Frances Hodgson Burnett",
-      "stage": "rights_verified",
-      "rights": "green",
-      "source_type": "Project Gutenberg text",
-      "source_id": "113",
-      "source_url": "https://www.gutenberg.org/ebooks/113",
-      "source_rights_statement": "Public domain in the USA",
+      "stage": "candidate",
+      "rights": "pending",
+      "source_type": null,
+      "source_id": null,
+      "source_url": null,
+      "source_rights_statement": null,
       "release": "not_published",
       "paid_release": false,
       "text_lock": {
         "status": "pending",
         "comparison": "exact_bytes",
         "normalization": "none"
-      },
-      "narration": {
-        "engine": "JakeAI Founder Narrator",
-        "voice": "Founder voice reference",
-        "ownership": "local_private",
-        "rewrite_allowed": false
-      },
-      "source_asset_policy": "Text-only source; do not import third-party illustrations, introductions, annotations, translations, recordings, or supplemental material without separate clearance."
+      }
     },
     {
       "id": "JAE-PETER-001",
       "title": "Peter Pan",
       "author": "J. M. Barrie",
-      "stage": "rights_verified",
-      "rights": "green",
-      "source_type": "Project Gutenberg text",
-      "source_id": "16",
-      "source_url": "https://www.gutenberg.org/ebooks/16",
-      "source_rights_statement": "Public domain in the USA",
+      "stage": "candidate",
+      "rights": "pending",
+      "source_type": null,
+      "source_id": null,
+      "source_url": null,
+      "source_rights_statement": null,
       "release": "not_published",
       "paid_release": false,
       "text_lock": {
         "status": "pending",
         "comparison": "exact_bytes",
         "normalization": "none"
-      },
-      "narration": {
-        "engine": "JakeAI Founder Narrator",
-        "voice": "Founder voice reference",
-        "ownership": "local_private",
-        "rewrite_allowed": false
-      },
-      "source_asset_policy": "Text-only source; do not import third-party illustrations, introductions, annotations, translations, recordings, or supplemental material without separate clearance."
+      }
     },
     {
       "id": "JAE-CALL-001",
       "title": "The Call of the Wild",
       "author": "Jack London",
-      "stage": "rights_verified",
-      "rights": "green",
-      "source_type": "Project Gutenberg text",
-      "source_id": "215",
-      "source_url": "https://www.gutenberg.org/ebooks/215",
-      "source_rights_statement": "Public domain in the USA",
+      "stage": "candidate",
+      "rights": "pending",
+      "source_type": null,
+      "source_id": null,
+      "source_url": null,
+      "source_rights_statement": null,
       "release": "not_published",
       "paid_release": false,
       "text_lock": {
         "status": "pending",
         "comparison": "exact_bytes",
         "normalization": "none"
-      },
-      "narration": {
-        "engine": "JakeAI Founder Narrator",
-        "voice": "Founder voice reference",
-        "ownership": "local_private",
-        "rewrite_allowed": false
-      },
-      "source_asset_policy": "Text-only source; do not import third-party illustrations, introductions, annotations, translations, recordings, or supplemental material without separate clearance."
+      }
     },
     {
       "id": "JAE-JUNGLE-001",
       "title": "The Jungle Book",
       "author": "Rudyard Kipling",
-      "stage": "rights_verified",
-      "rights": "green",
-      "source_type": "Project Gutenberg text",
-      "source_id": "236",
-      "source_url": "https://www.gutenberg.org/ebooks/236",
-      "source_rights_statement": "Public domain in the USA",
+      "stage": "candidate",
+      "rights": "pending",
+      "source_type": null,
+      "source_id": null,
+      "source_url": null,
+      "source_rights_statement": null,
       "release": "not_published",
       "paid_release": false,
       "text_lock": {
         "status": "pending",
         "comparison": "exact_bytes",
         "normalization": "none"
-      },
-      "narration": {
-        "engine": "JakeAI Founder Narrator",
-        "voice": "Founder voice reference",
-        "ownership": "local_private",
-        "rewrite_allowed": false
-      },
-      "source_asset_policy": "Text-only source; do not import third-party illustrations, introductions, annotations, translations, recordings, or supplemental material without separate clearance."
+      }
     },
     {
       "id": "JAE-HOUND-001",
       "title": "The Hound of the Baskervilles",
       "author": "Arthur Conan Doyle",
-      "stage": "rights_verified",
-      "rights": "green",
-      "source_type": "Project Gutenberg text",
-      "source_id": "2852",
-      "source_url": "https://www.gutenberg.org/ebooks/2852",
-      "source_rights_statement": "Public domain in the USA",
+      "stage": "candidate",
+      "rights": "pending",
+      "source_type": null,
+      "source_id": null,
+      "source_url": null,
+      "source_rights_statement": null,
       "release": "not_published",
       "paid_release": false,
       "text_lock": {
         "status": "pending",
         "comparison": "exact_bytes",
         "normalization": "none"
-      },
-      "narration": {
-        "engine": "JakeAI Founder Narrator",
-        "voice": "Founder voice reference",
-        "ownership": "local_private",
-        "rewrite_allowed": false
-      },
-      "source_asset_policy": "Text-only source; do not import third-party illustrations, introductions, annotations, translations, recordings, or supplemental material without separate clearance."
+      }
     },
     {
       "id": "JAE-EIGHTY-001",
       "title": "Around the World in Eighty Days",
       "author": "Jules Verne",
-      "stage": "rights_verified",
-      "rights": "green",
-      "source_type": "Project Gutenberg text",
-      "source_id": "103",
-      "source_url": "https://www.gutenberg.org/ebooks/103",
-      "source_rights_statement": "Public domain in the USA",
+      "stage": "candidate",
+      "rights": "pending",
+      "source_type": null,
+      "source_id": null,
+      "source_url": null,
+      "source_rights_statement": null,
       "release": "not_published",
       "paid_release": false,
       "text_lock": {
         "status": "pending",
         "comparison": "exact_bytes",
         "normalization": "none"
-      },
-      "narration": {
-        "engine": "JakeAI Founder Narrator",
-        "voice": "Founder voice reference",
-        "ownership": "local_private",
-        "rewrite_allowed": false
-      },
-      "source_asset_policy": "Text-only source; do not import third-party illustrations, introductions, annotations, translations, recordings, or supplemental material without separate clearance."
+      }
     },
     {
       "id": "JAE-LEAGUES-001",
       "title": "Twenty Thousand Leagues under the Sea",
       "author": "Jules Verne",
-      "stage": "rights_verified",
-      "rights": "green",
-      "source_type": "Project Gutenberg text",
-      "source_id": "164",
-      "source_url": "https://www.gutenberg.org/ebooks/164",
-      "source_rights_statement": "Public domain in the USA",
+      "stage": "candidate",
+      "rights": "pending",
+      "source_type": null,
+      "source_id": null,
+      "source_url": null,
+      "source_rights_statement": null,
       "release": "not_published",
       "paid_release": false,
       "text_lock": {
         "status": "pending",
         "comparison": "exact_bytes",
         "normalization": "none"
-      },
-      "narration": {
-        "engine": "JakeAI Founder Narrator",
-        "voice": "Founder voice reference",
-        "ownership": "local_private",
-        "rewrite_allowed": false
-      },
-      "source_asset_policy": "Text-only source; do not import third-party illustrations, introductions, annotations, translations, recordings, or supplemental material without separate clearance."
+      }
     },
     {
       "id": "JAE-CAROL-001",
       "title": "A Christmas Carol",
       "author": "Charles Dickens",
-      "stage": "rights_verified",
-      "rights": "green",
-      "source_type": "Project Gutenberg text",
-      "source_id": "46",
-      "source_url": "https://www.gutenberg.org/ebooks/46",
-      "source_rights_statement": "Public domain in the USA",
+      "stage": "candidate",
+      "rights": "pending",
+      "source_type": null,
+      "source_id": null,
+      "source_url": null,
+      "source_rights_statement": null,
       "release": "not_published",
       "paid_release": false,
       "text_lock": {
         "status": "pending",
         "comparison": "exact_bytes",
         "normalization": "none"
-      },
-      "narration": {
-        "engine": "JakeAI Founder Narrator",
-        "voice": "Founder voice reference",
-        "ownership": "local_private",
-        "rewrite_allowed": false
-      },
-      "source_asset_policy": "Text-only source; do not import third-party illustrations, introductions, annotations, translations, recordings, or supplemental material without separate clearance."
+      }
     },
     {
       "id": "JAE-SLEEPY-001",
       "title": "The Legend of Sleepy Hollow",
       "author": "Washington Irving",
-      "stage": "rights_verified",
-      "rights": "green",
-      "source_type": "Project Gutenberg text",
-      "source_id": "41",
-      "source_url": "https://www.gutenberg.org/ebooks/41",
-      "source_rights_statement": "Public domain in the USA",
+      "stage": "candidate",
+      "rights": "pending",
+      "source_type": null,
+      "source_id": null,
+      "source_url": null,
+      "source_rights_statement": null,
       "release": "not_published",
       "paid_release": false,
       "text_lock": {
         "status": "pending",
         "comparison": "exact_bytes",
         "normalization": "none"
-      },
-      "narration": {
-        "engine": "JakeAI Founder Narrator",
-        "voice": "Founder voice reference",
-        "ownership": "local_private",
-        "rewrite_allowed": false
-      },
-      "source_asset_policy": "Text-only source; do not import third-party illustrations, introductions, annotations, translations, recordings, or supplemental material without separate clearance."
+      }
     },
     {
       "id": "JAE-LITTLE-001",
       "title": "Little Women",
       "author": "Louisa May Alcott",
-      "stage": "rights_verified",
-      "rights": "green",
-      "source_type": "Project Gutenberg text",
-      "source_id": "514",
-      "source_url": "https://www.gutenberg.org/ebooks/514",
-      "source_rights_statement": "Public domain in the USA",
+      "stage": "candidate",
+      "rights": "pending",
+      "source_type": null,
+      "source_id": null,
+      "source_url": null,
+      "source_rights_statement": null,
       "release": "not_published",
       "paid_release": false,
       "text_lock": {
         "status": "pending",
         "comparison": "exact_bytes",
         "normalization": "none"
-      },
-      "narration": {
-        "engine": "JakeAI Founder Narrator",
-        "voice": "Founder voice reference",
-        "ownership": "local_private",
-        "rewrite_allowed": false
-      },
-      "source_asset_policy": "Text-only source; do not import third-party illustrations, introductions, annotations, translations, recordings, or supplemental material without separate clearance."
+      }
     },
     {
       "id": "JAE-ANNE-001",
       "title": "Anne of Green Gables",
       "author": "L. M. Montgomery",
-      "stage": "rights_verified",
-      "rights": "green",
-      "source_type": "Project Gutenberg text",
-      "source_id": "45",
-      "source_url": "https://www.gutenberg.org/ebooks/45",
-      "source_rights_statement": "Public domain in the USA",
+      "stage": "candidate",
+      "rights": "pending",
+      "source_type": null,
+      "source_id": null,
+      "source_url": null,
+      "source_rights_statement": null,
       "release": "not_published",
       "paid_release": false,
       "text_lock": {
         "status": "pending",
         "comparison": "exact_bytes",
         "normalization": "none"
-      },
-      "narration": {
-        "engine": "JakeAI Founder Narrator",
-        "voice": "Founder voice reference",
-        "ownership": "local_private",
-        "rewrite_allowed": false
-      },
-      "source_asset_policy": "Text-only source; do not import third-party illustrations, introductions, annotations, translations, recordings, or supplemental material without separate clearance."
+      }
     }
   ]
 }
