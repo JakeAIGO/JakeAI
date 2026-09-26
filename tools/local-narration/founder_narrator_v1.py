@@ -18,6 +18,8 @@ import hashlib
 import html
 import json
 import re
+import shutil
+import subprocess
 import time
 import zipfile
 from pathlib import Path
@@ -248,8 +250,24 @@ def main():
         state["sections"].append(sec)
         state_path.write_text(json.dumps(state, indent=2), encoding="utf-8")
 
+    chapter_masters=[chapters_dir / f"section-{i:03d}.wav" for i in range(len(state["sections"]))]
+    chapter_masters=[p for p in chapter_masters if p.exists() and p.stat().st_size>1024]
+    master_path=out / "FounderNarration_Master.wav"
+    master_meta=concat_wavs(chapter_masters, master_path, 450) if chapter_masters else None
+    web_path=out / "FounderNarration_WEB.mp3"
+    ffmpeg=shutil.which("ffmpeg")
+    web_meta=None
+    if ffmpeg and master_meta:
+        try:
+            subprocess.run([ffmpeg,"-y","-hide_banner","-loglevel","error","-i",str(master_path),"-codec:a","libmp3lame","-b:a","128k",str(web_path)],check=True)
+            web_meta={"path":str(web_path),"bytes":web_path.stat().st_size,"sha256":sha256(web_path.read_bytes())}
+        except Exception as exc:
+            web_meta={"status":"ffmpeg_failed","error":str(exc)}
+
     state["completed_at"] = time.time()
     state["generated_sections"] = len(state["sections"])
+    state["book_master"] = master_meta
+    state["web_mp3"] = web_meta
     state["release_status"] = (
         "PRIVATE_AUDIO_QA_REQUIRED"
         if runtime.watermarked
@@ -261,6 +279,8 @@ def main():
     print("\nFOUNDER NARRATION PASS COMPLETE")
     print(f"Sections: {len(state['sections'])}")
     print(f"Manifest: {state_path}")
+    print(f"Master: {master_path}")
+    if web_path.exists(): print(f"Web MP3: {web_path}")
     print(f"Status: {state['release_status']}")
     print("No public release has occurred.")
 
