@@ -1,0 +1,120 @@
+<!doctype html><html><head><meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1,maximum-scale=1,user-scalable=no">
+<title>GRAVITY SIX — JakeAI Arcade</title><script defer src="/assets/traffic.js"></script>
+<style>
+*{box-sizing:border-box}html,body{margin:0;height:100%;overflow:hidden;background:#05030a;color:#fff;font-family:system-ui}
+#app{height:100dvh;max-width:760px;margin:auto;display:grid;grid-template-rows:58px 1fr;background:radial-gradient(circle at 50% 0,#25113d,#050208 60%)}
+header{padding:7px 12px;border-bottom:1px solid #36214f;background:#090510;display:flex;justify-content:space-between;align-items:center}
+h1{margin:0;font-size:20px;letter-spacing:.16em;text-shadow:0 0 15px #8b5cf6}small{display:block;font-size:8px;color:#aaa0ba;letter-spacing:.25em;margin-top:3px}
+.tag{font:800 9px monospace;border:1px solid #ffcc4d;color:#ffcc4d;border-radius:20px;padding:5px 8px;box-shadow:0 0 14px #ffcc4d22}
+#stage{position:relative;min-height:0;overflow:hidden;border:2px solid #34204b;border-radius:13px 13px 0 0}
+canvas{width:100%;height:100%;display:block;touch-action:none;background:#05070c}
+#hud{position:absolute;z-index:4;left:7px;right:7px;top:7px;display:flex;justify-content:space-between;font:800 9px monospace}
+#hud span{background:#030209c8;border:1px solid #ffffff20;border-radius:20px;padding:5px 7px}
+#zoneName{position:absolute;z-index:4;left:50%;top:41px;transform:translateX(-50%);font:900 9px monospace;letter-spacing:.18em;color:#26f7ff;text-shadow:0 2px 4px #000}#objective{position:absolute;z-index:4;left:50%;top:68px;transform:translateX(-50%);max-width:78%;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;background:#030209d9;border:1px solid #72ff9e55;border-radius:999px;padding:5px 9px;color:#caffda;font:900 8px monospace;letter-spacing:.08em}
+#progressWrap{position:absolute;z-index:4;left:14%;right:14%;top:58px;height:5px;border:1px solid #ffffff2b;border-radius:8px;background:#06030bd6;overflow:hidden}#progress{display:block;height:100%;width:0;background:linear-gradient(90deg,#8b5cf6,#26f7ff,#72ff9e)}
+#combo{position:absolute;z-index:4;right:9px;top:39px;font:950 9px monospace;color:#ffcc4d;text-shadow:0 0 9px #ffcc4d66}
+#controls{position:absolute;z-index:6;left:7px;right:7px;bottom:7px;height:108px;display:grid;grid-template-columns:.9fr 1.55fr;gap:7px}
+.drive,.guns{display:grid;gap:5px}.drive{grid-template-columns:1fr 1fr}.guns{grid-template-columns:1fr 1fr 1fr}
+button{border:1px solid #4b3466;border-radius:13px;background:linear-gradient(#1b1028e8,#0d0815ee);color:#fff;font-weight:950;font-size:10px;touch-action:none;box-shadow:inset 0 0 14px #0008,0 3px 12px #0008}button:active{transform:translateY(1px);filter:brightness(1.3)}
+[data-k=brake]{border-color:#777}[data-k=boost]{border-color:#26f7ff}[data-k=jump]{border-color:#72ff9e}[data-k=fire]{border-color:#ff477e}[data-k=up]{border-color:#ffcc4d}
+#ov{position:absolute;z-index:10;inset:0;display:grid;place-items:center;text-align:center;padding:24px;background:radial-gradient(circle,#281540ec,#020104fc)}
+#ov.hide{display:none}.title{font-size:clamp(42px,11vw,78px);font-weight:1000;line-height:.84;letter-spacing:.05em;text-shadow:0 0 18px #8b5cf6,0 0 52px #8b5cf6}
+.sub{margin:11px 0;color:#26f7ff;font:900 10px system-ui;letter-spacing:.22em}.copy{max-width:500px;color:#d9d1e4;font-size:12px;line-height:1.48}
+.go{display:inline-block;margin-top:16px;border:1px solid #26f7ff;color:#26f7ff;padding:9px 13px;border-radius:8px;font-weight:900}
+#banner{position:absolute;z-index:8;top:96px;left:50%;transform:translateX(-50%);opacity:0;background:#05020deb;border:1px solid #715092;border-radius:8px;padding:8px 11px;font:900 10px monospace;transition:.2s;white-space:nowrap}
+#banner.show{opacity:1}
+#flash{position:absolute;z-index:7;inset:0;pointer-events:none;opacity:0;background:#fff;mix-blend-mode:screen;transition:opacity .08s}
+@media(max-width:520px){#controls{height:116px}.drive{grid-template-columns:1fr 1fr}.guns{grid-template-columns:1.08fr 1fr 1fr}button{font-size:9px}#hud{font-size:8px}#progressWrap{left:11%;right:11%}}
+.exit{position:fixed;z-index:20;right:10px;top:64px;padding:7px 10px;border:1px solid #26f7ff66;border-radius:999px;background:#05030acc;color:#bdf7ff;text-decoration:none;font:800 9px monospace;letter-spacing:.12em;backdrop-filter:blur(6px)}</style></head><body><a class="exit" href="/arcade/console-corner/?ejected=1">⏏ EJECT</a><div id="app">
+<header><h1>GRAVITY SIX<small>JAKEAI CARTRIDGE SYSTEM</small></h1><div class="tag">CARTRIDGE 03 · BUILD 1.0</div></header>
+<div id="stage"><canvas id="c" width="900" height="900"></canvas>
+<div id="hud"><span>SCORE <b id="score">000000</b></span><span>ZONE <b id="zone">01</b>/05</span><span>HULL <b id="hull">100</b> · BOOST <b id="boost">100</b></span></div>
+<div id="zoneName">LUNAR FRONTIER</div><div id="objective">SURVIVE · LEARN THE BUGGY</div><div id="combo">CHAIN x1</div><div id="progressWrap"><i id="progress"></i></div><div id="banner"></div><div id="flash"></div>
+<div id="controls"><div class="drive"><button data-k="brake">BRAKE</button><button data-k="boost">BOOST</button></div>
+<div class="guns"><button data-k="jump">JUMP</button><button data-k="fire">FORWARD</button><button data-k="up">UP GUN</button></div></div>
+<div id="ov"><div><div class="title">MOON<br>BUGGY</div><div class="sub">DRIVE • JUMP • BLAST • SURVIVE</div>
+<div class="copy">GRAVITY SIX deploys a six-wheel combat rover across five escalating lunar sectors. BRAKE and BOOST control pace; JUMP clears craters; FORWARD handles ground threats; UP GUN handles drones. Collect survey cores to repair the buggy and recharge boost. Clear CRATER RUN to finish the cartridge.</div>
+<div class="go">TAP / ENTER TO START MISSION</div></div></div></div></div>
+<script>
+(()=>{
+const C=document.querySelector('#c'),x=C.getContext('2d'),W=C.width,H=C.height,ov=document.querySelector('#ov');
+const U={score:q('#score'),zone:q('#zone'),hull:q('#hull'),boost:q('#boost'),zoneName:q('#zoneName'),objective:q('#objective'),banner:q('#banner'),combo:q('#combo'),progress:q('#progress'),flash:q('#flash')};function q(s){return document.querySelector(s)}
+let K={},run=false,last=0,t=0,scroll=0,score=0,zone=1,terrain=[],haz=[],drones=[],turrets=[],shots=[],upshots=[],cores=[],fx=[],spawn=0,airT=0,turretT=4,coreT=5;
+let distance=0,combo=1,comboTimer=0,maxCombo=1,kills=0,coresN=0,bestAir=0,shake=0,flashT=0,wasBoosting=false,musicT=0,musicStep=0,AC=null,soundOn=true;
+const zoneLength=2800,missionLength=zoneLength*5;
+const P={x:190,y:640,vy:0,on:true,hull:100,cd:0,ucd:0,speed:1,boost:100,inv:0,air:0,wheel:0};
+const rnd=(a,b)=>a+Math.random()*(b-a),clamp=(v,a,b)=>Math.max(a,Math.min(b,v));
+const zones=['LUNAR FRONTIER','VIOLET RIDGE','GLASS BASIN','DARKSIDE RELAY','CRATER RUN'];
+const objectives=['SURVIVE · LEARN THE BUGGY','SPIRES AHEAD · USE JUMP + FORWARD','AIR PATROLS HEAVY · USE UP GUN','RELAY DEFENSES · BREAK TURRETS','FINAL RUN · KEEP HULL ALIVE'];
+function reset(){terrain=[];for(let i=0;i<56;i++)terrain.push({y:695+rnd(-24,24)});haz=[];drones=[];turrets=[];shots=[];upshots=[];cores=[];fx=[];scroll=score=t=spawn=airT=distance=0;turretT=4;coreT=5;zone=1;combo=1;comboTimer=0;maxCombo=1;kills=coresN=0;bestAir=shake=flashT=0;wasBoosting=false;musicT=0;musicStep=0;Object.assign(P,{x:190,y:640,vy:0,on:true,hull:100,cd:0,ucd:0,speed:1,boost:100,inv:0,air:0,wheel:0});U.flash.style.opacity=0;U.objective.textContent=objectives[0];ov.querySelector('.title').innerHTML='MOON<br>BUGGY';ov.querySelector('.sub').textContent='DRIVE • JUMP • BLAST • SURVIVE';ov.querySelector('.go').textContent='TAP / ENTER TO START MISSION'}
+function start(){reset();initAudio();run=true;ov.classList.add('hide');window.JakeAITraffic?.track('game_start',{path:'/arcade/console-corner/gravity-six.html'});say('SECTOR 1 — LUNAR FRONTIER');sfx('start');last=performance.now();requestAnimationFrame(loop)}
+ov.onpointerdown=start;addEventListener('keydown',e=>{K[e.code]=1;if(e.code==='Enter'&&!run)start();if(['Space','ArrowDown','ArrowUp'].includes(e.code))e.preventDefault()});addEventListener('keyup',e=>K[e.code]=0);
+for(const b of document.querySelectorAll('button')){let m={brake:'ArrowDown',boost:'ArrowUp',jump:'Space',fire:'KeyX',up:'KeyC'}[b.dataset.k];b.addEventListener('pointerdown',e=>{K[m]=1;e.preventDefault()});['pointerup','pointercancel','pointerleave'].forEach(v=>b.addEventListener(v,e=>{K[m]=0;e.preventDefault()}))}
+function say(s){U.banner.textContent=s;U.banner.classList.add('show');clearTimeout(say._t);say._t=setTimeout(()=>U.banner.classList.remove('show'),1400)}
+function initAudio(){try{if(!AC)AC=new (window.AudioContext||window.webkitAudioContext)();if(AC.state==='suspended')AC.resume()}catch(e){soundOn=false}}
+function tone(freq,dur=.06,type='square',gain=.025,slide=0){if(!AC||!soundOn)return;let o=AC.createOscillator(),g=AC.createGain(),n=AC.currentTime;o.type=type;o.frequency.setValueAtTime(freq,n);if(slide)o.frequency.linearRampToValueAtTime(Math.max(30,freq+slide),n+dur);g.gain.setValueAtTime(gain,n);g.gain.exponentialRampToValueAtTime(.0001,n+dur);o.connect(g).connect(AC.destination);o.start(n);o.stop(n+dur)}
+function sfx(k){if(k==='fire')tone(260,.035,'square',.012,90);else if(k==='up')tone(420,.05,'square',.014,130);else if(k==='jump')tone(150,.11,'sawtooth',.022,260);else if(k==='hit'){tone(85,.16,'sawtooth',.035,-35);tone(52,.2,'square',.02,-12)}else if(k==='core'){tone(620,.07,'sine',.025,180);setTimeout(()=>tone(880,.09,'sine',.02,120),55)}else if(k==='checkpoint'){tone(330,.08,'square',.02,120);setTimeout(()=>tone(520,.12,'square',.022,160),80)}else if(k==='boost')tone(95,.18,'sawtooth',.014,150);else if(k==='start'){tone(220,.08,'square',.02,220);setTimeout(()=>tone(440,.12,'square',.018,220),80)}else if(k==='kill')tone(185,.045,'square',.01,120);else if(k==='victory'){[392,523,659,784].forEach((f,i)=>setTimeout(()=>tone(f,.22,'square',.025,70),i*120))}}
+function music(dt){if(!AC||!soundOn||!run)return;musicT-=dt;if(musicT<=0){musicT=.31;let seq=[110,0,147,0,165,0,147,196,0,147,0,220,0,165,147,0],f=seq[musicStep++%seq.length];if(f)tone(f,.07,'triangle',.006,0)}}
+function award(base,chain=true){if(chain){combo=comboTimer>0?Math.min(5,combo+1):1;comboTimer=2.35;maxCombo=Math.max(maxCombo,combo)}score+=Math.round(base*combo)}
+function pulse(color='#fff',amount=1){flashT=Math.max(flashT,.09*amount);U.flash.style.background=color;U.flash.style.opacity=.18*amount;shake=Math.max(shake,3.5*amount)}
+function gy(px){let world=px+scroll,idx=Math.floor(world/80)%terrain.length,j=(idx+1)%terrain.length,a=(world%80)/80;return terrain[idx].y*(1-a)+terrain[j].y*a}
+function boom(px,py,n=14,c=0){for(let i=0;i<n;i++)fx.push({x:px,y:py,vx:rnd(-4,4),vy:rnd(-5,2),life:rnd(.25,.75),s:rnd(2,5),c})}
+function jump(){if(P.on){P.vy=-790;P.on=false;P.air=0;sfx('jump')}}
+function fire(){if(P.cd>0)return;shots.push({x:P.x+46,y:P.y-24});P.cd=.145;sfx('fire')}
+function fireUp(){if(P.ucd>0)return;upshots.push({x:P.x+10,y:P.y-48});P.ucd=.19;sfx('up')}
+function hurt(n){if(P.inv>0)return;P.hull-=n;P.inv=.7;combo=1;comboTimer=0;boom(P.x,P.y,18,1);pulse('#ff477e',1.25);sfx('hit');if(P.hull<=0)gameover()}
+function gameover(){run=false;window.JakeAITraffic?.track('game_end',{path:'/universe-final/games/gravity-six.html'});ov.classList.remove('hide');ov.querySelector('.title').innerHTML='MISSION<br>LOST';ov.querySelector('.sub').textContent='BUGGY SIGNAL TERMINATED';ov.querySelector('.copy').innerHTML=`SCORE <b>${Math.floor(score)}</b> · KILLS <b>${kills}</b> · CORES <b>${coresN}</b> · MAX CHAIN <b>x${maxCombo}</b><br><br>Tap to redeploy GRAVITY SIX.`;ov.querySelector('.go').textContent='RESTART MISSION'}
+function victory(){if(!run)return;run=false;window.JakeAITraffic?.track('game_complete',{path:'/universe-final/games/gravity-six.html'});sfx('victory');pulse('#72ff9e',1.6);ov.classList.remove('hide');ov.querySelector('.title').innerHTML='MISSION<br>COMPLETE';ov.querySelector('.sub').textContent='CRATER RUN CLEARED';ov.querySelector('.copy').innerHTML=`FINAL SCORE <b>${Math.floor(score)}</b><br>KILLS <b>${kills}</b> · CORES <b>${coresN}</b> · BEST AIR <b>${bestAir.toFixed(2)}s</b> · MAX CHAIN <b>x${maxCombo}</b><br><br>The lunar run is complete.`;ov.querySelector('.go').textContent='RUN AGAIN'}
+function update(dt){
+t+=dt;P.cd-=dt;P.ucd-=dt;P.inv-=dt;comboTimer-=dt;shake=Math.max(0,shake-dt*18);flashT=Math.max(0,flashT-dt);if(flashT<=0)U.flash.style.opacity=0;if(comboTimer<=0)combo=1;music(dt);if(K.Space)jump();if(K.KeyX)fire();if(K.KeyC)fireUp();
+let boosting=K.ArrowUp&&P.boost>0;if(boosting&&!wasBoosting)sfx('boost');wasBoosting=boosting;if(boosting){P.speed+=dt*.75;P.boost-=dt*20}else P.boost=Math.min(100,P.boost+dt*7);
+if(K.ArrowDown)P.speed-=dt*.8;else if(!boosting)P.speed+=dt*.12;P.speed=clamp(P.speed,.58,1.65);
+let step=dt*305*P.speed;scroll+=step;distance+=step;score+=dt*74*P.speed;P.wheel+=dt*P.speed*9;
+let oldZone=zone;zone=Math.min(5,1+Math.floor(distance/zoneLength));if(zone!==oldZone){P.hull=Math.min(100,P.hull+18);P.boost=100;award(400,false);U.objective.textContent=objectives[zone-1];say('SECTOR '+zone+' — '+zones[zone-1]+' · SYSTEMS RECHARGED');sfx('checkpoint');pulse('#26f7ff',.8)}
+if(distance>=missionLength){award(1500,false);victory();return}
+let g=gy(P.x)-44;P.vy+=1720*dt;P.y+=P.vy*dt;if(!P.on)P.air+=dt;
+if(P.y>=g){if(!P.on&&P.air>.52){bestAir=Math.max(bestAir,P.air);let bonus=Math.floor(P.air*260);award(bonus,true);say('AIRTIME '+P.air.toFixed(1)+'s · CHAIN x'+combo)}P.y=g;P.vy=0;P.on=true}else P.on=false;
+spawn-=dt;if(spawn<=0){let r=Math.random(),type;const mix=[[.52,.90],[.38,.70],[.30,.78],[.28,.62],[.44,.68]][zone-1];type=r<mix[0]?'crater':r<mix[1]?'rock':'spire';haz.push({x:W+90,type,r:type==='crater'?rnd(28,42):type==='spire'?rnd(23,30):rnd(18,29)});spawn=rnd(.72,1.38)/(P.speed*(1+(zone-1)*.08))}
+airT-=dt;if(airT<=0){const bomberChance=[.12,.22,.30,.38,.46][zone-1];drones.push({x:W+90,y:rnd(135,430),vx:rnd(90,150)+(zone-1)*8,type:Math.random()<bomberChance?'bomber':'scout',phase:rnd(0,6.28)});airT=rnd(1.15,2.25)/(1+(zone-1)*.08)}
+turretT-=dt;if(turretT<=0){turrets.push({x:W+90,hp:2+(zone>=4?1:0)+(zone===5?1:0),cd:rnd(.9,1.9)});turretT=rnd(4.3,6.8)/(1+(zone-1)*.08)}
+coreT-=dt;if(coreT<=0){cores.push({x:W+90,y:rnd(420,585),spin:0});coreT=rnd(5,8)}
+for(const h of haz){h.x-=dt*305*P.speed;let y=gy(h.x);if(h.x<-100)h.dead=1;if(Math.abs(h.x-P.x)<h.r+25&&Math.abs((y-15)-P.y)<68){if(P.on||h.type!=='crater')hurt(h.type==='crater'?26:20);h.dead=1}}
+for(const d of drones){d.x-=dt*(d.vx+185*P.speed);d.y+=Math.sin(t*2+d.phase)*dt*18;if(d.x<-100)d.dead=1;if(Math.hypot(d.x-P.x,d.y-P.y)<42){hurt(d.type==='bolt'?12:d.type==='bomber'?22:17);d.dead=1}}
+for(const tr of turrets){tr.x-=dt*305*P.speed;tr.cd-=dt;let y=gy(tr.x);if(tr.cd<=0&&tr.x>250&&tr.x<820){drones.push({x:tr.x,y:y-62,vx:160,type:'bolt',phase:0});tr.cd=2.5}if(tr.x<-100)tr.dead=1}
+for(const s of shots){s.x+=dt*690;for(const h of haz){let y=gy(h.x);if(!h.dead&&h.type!=='crater'&&Math.hypot(s.x-h.x,s.y-(y-h.r))<h.r+15){h.dead=s.dead=1;kills++;award(170,true);sfx('kill');boom(h.x,y,14)}}for(const tr of turrets){let y=gy(tr.x);if(!tr.dead&&Math.hypot(s.x-tr.x,s.y-(y-30))<35){tr.hp--;s.dead=1;if(tr.hp<=0){tr.dead=1;kills++;award(320,true);sfx('kill');pulse('#ffcc4d',.45);boom(tr.x,y-25,18,1)}}}}
+for(const s of upshots){s.y-=dt*710;for(const d of drones)if(!d.dead&&Math.hypot(s.x-d.x,s.y-d.y)<29){d.dead=s.dead=1;kills++;award(d.type==='bolt'?120:d.type==='bomber'?300:220,true);sfx('kill');boom(d.x,d.y,15,1)}}
+for(const c of cores){c.x-=dt*305*P.speed;c.spin+=dt*4;if(Math.hypot(c.x-P.x,c.y-P.y)<42){c.dead=1;coresN++;award(500,true);P.boost=Math.min(100,P.boost+30);P.hull=Math.min(100,P.hull+5);say('SURVEY CORE · CHAIN x'+combo);sfx('core');pulse('#72ff9e',.55);boom(c.x,c.y,12,2)}}
+for(const f of fx){f.x+=f.vx*60*dt;f.y+=f.vy*60*dt;f.vy+=dt*5;f.life-=dt}
+for(const a of [haz,drones,turrets,shots,upshots,cores,fx])for(let i=a.length-1;i>=0;i--)if(a[i].dead||a[i].life<=0||a[i].x>W+200||a[i].x<-180||a[i].y<-180)a.splice(i,1);
+U.score.textContent=String(Math.floor(score)).padStart(6,'0');U.zone.textContent=String(zone).padStart(2,'0');U.hull.textContent=Math.max(0,Math.floor(P.hull));U.boost.textContent=Math.floor(P.boost);U.zoneName.textContent=zones[zone-1];U.combo.textContent='CHAIN x'+combo;U.progress.style.width=clamp(distance/missionLength*100,0,100)+'%'
+}
+function buggy(){
+x.save();x.translate(P.x,P.y);
+let bob=P.on?Math.sin(P.wheel)*2:0;x.translate(0,bob);
+x.fillStyle='#dfe6ed';x.beginPath();x.roundRect(-40,-31,78,30,5);x.fill();x.fillStyle='#8b5cf6';x.beginPath();x.roundRect(-8,-51,37,21,4);x.fill();
+x.fillStyle='#26f7ff';x.fillRect(20,-47,10,6);x.strokeStyle='#ffcc4d';x.lineWidth=3;x.beginPath();x.moveTo(29,-34);x.lineTo(53,-47);x.stroke();x.strokeStyle='#d6c9ef';x.lineWidth=2;x.beginPath();x.moveTo(-27,-2);x.lineTo(-27,7);x.moveTo(0,-2);x.lineTo(0,7);x.moveTo(27,-2);x.lineTo(27,7);x.stroke();x.strokeStyle='#8b5cf6';x.beginPath();x.moveTo(-30,-30);x.lineTo(-38,-55);x.stroke();x.fillStyle='#26f7ff';x.beginPath();x.arc(-38,-57,3,0,Math.PI*2);x.fill();
+for(const wx of [-27,0,27]){x.fillStyle='#14111b';x.beginPath();x.arc(wx,7,14,0,Math.PI*2);x.fill();x.strokeStyle='#ab98c8';x.lineWidth=4;x.stroke();x.strokeStyle='#57466d';x.lineWidth=2;x.beginPath();x.moveTo(wx-8,0);x.lineTo(wx+8,14);x.moveTo(wx+8,0);x.lineTo(wx-8,14);x.stroke()}
+x.restore()
+}
+function draw(){
+x.clearRect(0,0,W,H);x.save();if(shake>0)x.translate(rnd(-shake,shake),rnd(-shake,shake));
+let zi=(zone-1)%5,sky=['#050716','#10071c','#07111b','#050611','#140716'][zi],ground=['#66506f','#75536d','#5d6376','#42404d','#7b5060'][zi];
+let bg=x.createLinearGradient(0,0,0,H);bg.addColorStop(0,sky);bg.addColorStop(.72,'#1b1029');bg.addColorStop(1,'#26132f');x.fillStyle=bg;x.fillRect(0,0,W,H);
+x.fillStyle='#fff';for(let i=0;i<90;i++){let sx=(i*151-scroll*.07)%W;if(sx<0)sx+=W;x.globalAlpha=.2+(i%5)*.12;x.fillRect(sx,(i*73)%520,1+(i%4===0),1)}x.globalAlpha=1;
+x.fillStyle='#6fa7d833';x.beginPath();x.arc(735,125,72,0,Math.PI*2);x.fill();x.strokeStyle='#b6dfff55';x.lineWidth=3;x.stroke();
+x.fillStyle='#23163a';x.beginPath();x.moveTo(0,590);for(let i=0;i<=W;i+=80)x.lineTo(i,520+Math.sin((i+scroll*.11)*.01)*45);x.lineTo(W,H);x.lineTo(0,H);x.fill();
+x.fillStyle='#372345';x.beginPath();x.moveTo(0,650);for(let i=0;i<=W;i+=60)x.lineTo(i,590+Math.sin((i+scroll*.24)*.013)*32);x.lineTo(W,H);x.lineTo(0,H);x.fill();
+x.fillStyle=ground;x.beginPath();x.moveTo(0,H);for(let px=0;px<=W;px+=18)x.lineTo(px,gy(px));x.lineTo(W,H);x.closePath();x.fill();x.strokeStyle='#8b5cf6';x.lineWidth=3;x.beginPath();for(let px=0;px<=W;px+=18){let y=gy(px);px?x.lineTo(px,y):x.moveTo(px,y)}x.stroke();
+for(const h of haz){let y=gy(h.x);if(h.type==='crater'){x.fillStyle='#130b1b';x.beginPath();x.ellipse(h.x,y+12,h.r,13,0,0,Math.PI*2);x.fill();x.strokeStyle='#9b6fb3';x.stroke()}else{x.fillStyle=h.type==='spire'?'#b08db6':'#938098';x.beginPath();if(h.type==='spire'){x.moveTo(h.x-h.r,y);x.lineTo(h.x,y-h.r*2.3);x.lineTo(h.x+h.r,y);x.closePath()}else x.arc(h.x,y-h.r/2,h.r,0,Math.PI*2);x.fill()}}
+for(const tr of turrets){let y=gy(tr.x);x.fillStyle='#39434b';x.fillRect(tr.x-20,y-42,40,42);x.fillStyle='#ff477e';x.fillRect(tr.x-5,y-55,10,18);x.fillRect(tr.x+4,y-51,22,5)}
+for(const d of drones){if(d.type==='bolt'){x.fillStyle='#ffcc4d';x.fillRect(d.x-10,d.y-3,20,6);x.fillStyle='#fff';x.fillRect(d.x-12,d.y-1,5,2);continue}x.fillStyle=d.type==='bomber'?'#ff8c4d':'#ff477e';x.beginPath();x.ellipse(d.x,d.y,25,d.type==='bomber'?13:10,0,0,Math.PI*2);x.fill();x.fillStyle='#ffcc4d';x.fillRect(d.x-4,d.y-3,8,6)}
+for(const c of cores){x.save();x.translate(c.x,c.y);x.rotate(c.spin);x.strokeStyle='#26f7ff';x.lineWidth=3;x.strokeRect(-12,-12,24,24);x.fillStyle='#72ff9e';x.fillRect(-5,-5,10,10);x.restore()}
+x.fillStyle='#fff';for(const s of shots)x.fillRect(s.x,s.y,17,4);x.fillStyle='#ffcc4d';for(const s of upshots)x.fillRect(s.x,s.y,4,17);
+if(K.ArrowUp&&P.boost>0){for(let i=0;i<4;i++){x.fillStyle=i%2?'#26f7ff88':'#8b5cf688';x.beginPath();x.arc(P.x-45-rnd(0,40),P.y-17+rnd(-6,6),rnd(2,5),0,Math.PI*2);x.fill()}}if(P.inv<=0||Math.floor(P.inv*15)%2===0)buggy();
+if(P.on&&P.speed>.9){for(let i=0;i<3;i++){x.fillStyle='#cbb5d055';x.beginPath();x.arc(P.x-45-rnd(0,30),P.y+18+rnd(-4,8),rnd(3,8),0,Math.PI*2);x.fill()}}
+for(const f of fx){x.globalAlpha=Math.max(0,f.life*1.7);x.fillStyle=f.c===2?'#72ff9e':f.c===1?'#ff477e':'#ffcc4d';x.fillRect(f.x,f.y,f.s,f.s)}x.globalAlpha=1;x.restore()
+}
+function loop(n){if(!run)return;let dt=Math.min(.033,(n-last)/1000||.016);last=n;update(dt);draw();requestAnimationFrame(loop)}draw()
+})();
+</script></body></html>
