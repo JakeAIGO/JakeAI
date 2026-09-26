@@ -272,9 +272,33 @@ body.homeGatewayOnly main>section.world:not(#home){display:flex!important}
 body.homeGatewayOnly section.stage#home{display:none!important}
 body.homeGatewayOnly main>section.approvedHome:not(#home){display:block!important}
 @media(max-width:760px){
- .approvedHome{width:100%;overflow:hidden}
- /* Give the Universe more first-screen real estate without cropping any of the artwork. */
- .approvedHomeVisual{display:block;width:100%;height:72vw;max-height:none;object-fit:fill}
+ .approvedHome{
+   width:100%;
+   overflow:hidden;
+   padding-bottom:16vw;
+   background:
+     radial-gradient(circle at 20% 28%,rgba(41,111,176,.18),transparent 24%),
+     radial-gradient(circle at 76% 20%,rgba(141,52,212,.16),transparent 26%),
+     linear-gradient(180deg,#020508 0%,#030811 62%,#020508 100%);
+ }
+ /* Preserve the approved artwork exactly; extend the hero with a matching cosmic apron instead of stretching it. */
+ .approvedHome::after{
+   content:"";
+   position:absolute;
+   left:0;right:0;bottom:0;
+   height:16vw;
+   pointer-events:none;
+   background:
+     radial-gradient(circle at 8% 38%,rgba(82,221,255,.34) 0 1px,transparent 1.6px),
+     radial-gradient(circle at 24% 72%,rgba(255,255,255,.26) 0 1px,transparent 1.4px),
+     radial-gradient(circle at 46% 30%,rgba(119,106,255,.34) 0 1px,transparent 1.5px),
+     radial-gradient(circle at 67% 64%,rgba(255,255,255,.23) 0 1px,transparent 1.4px),
+     radial-gradient(circle at 86% 34%,rgba(215,80,255,.28) 0 1px,transparent 1.5px),
+     linear-gradient(180deg,rgba(3,8,17,.15),rgba(2,5,8,.96));
+   background-size:auto,auto,auto,auto,auto,auto;
+   border-bottom:1px solid rgba(87,217,255,.12);
+ }
+ .approvedHomeVisual{display:block;width:100%;height:auto;max-height:none}
  .approvedHot{border-radius:10px}
 }
 @media(prefers-reduced-motion:reduce){.approvedHot{transition:none}}
