@@ -8,7 +8,7 @@
     "machine_catalog_url": "https://jakeaiofficial.com/catalog.json",
     "workflow_registry_url": "https://jakeaiofficial.com/workflow-registry.json"
   },
-  "generated_at": "2026-09-24",
+  "generated_at": "2026-09-26",
   "audience": [
     "human",
     "ai_agent"
@@ -1035,6 +1035,71 @@
         "territory": "US_ONLY",
         "public_queue": "https://jakeaiofficial.com/book-factory/queue.json",
         "provenance": "repository_public_record"
+      }
+    },
+    {
+      "id": "JAI-HEADSHOT-001",
+      "slug": "casting-headshot-studio",
+      "name": "JakeAI Casting Headshot Studio",
+      "type": "creative_image_workflow",
+      "category": [
+        "Casting & Acting",
+        "Professional Headshots",
+        "Creative Tools"
+      ],
+      "version": "1.0",
+      "lifecycle_status": "production_controlled",
+      "publication_status": "listed_live",
+      "summary": "Controlled AI-assisted casting headshot service that turns 3–8 current customer photos into three polished, natural, casting-friendly headshots with likeness-focused QA and human review.",
+      "problem_signals": [
+        "casting headshot",
+        "actor headshot",
+        "professional headshot",
+        "commercial headshot",
+        "theatrical headshot",
+        "casting profile photo"
+      ],
+      "inputs": [
+        "3–8 recent photos of the customer",
+        "casting goal or preferred look",
+        "optional notes on commercial, theatrical, or character direction"
+      ],
+      "outputs": [
+        "three finished casting headshots",
+        "commercial/theatrical/character variation",
+        "human-reviewed likeness and realism check"
+      ],
+      "human_url": "https://jakeaiofficial.com/casting-headshots.html",
+      "machine_url": "https://jakeaiofficial.com/catalog.json#JAI-HEADSHOT-001",
+      "commerce": {
+        "mode": "stripe_payment_link",
+        "purchasable": true,
+        "currency": "USD",
+        "price": 19.99,
+        "purchase_url": "https://buy.stripe.com/bJe8wQaSD91C8k5gfKaAw0b",
+        "stripe_product_id": "prod_VKZasJGLFyKqqV",
+        "stripe_price_id": "price_1UJuRjJAnSnCHitF6JcdJROY"
+      },
+      "invocation": {
+        "mode": "controlled_human_fulfillment",
+        "endpoint": null,
+        "note": "V1 uses Stripe checkout followed by private photo submission and human-reviewed fulfillment. No public autonomous image-upload or generation endpoint is declared."
+      },
+      "trust": {
+        "human_release_gate": true,
+        "customer_photo_permission_required": true,
+        "public_example_permission_separate": true,
+        "likeness_review_required": true,
+        "ai_assisted_output_disclosed": true,
+        "adult_v1_only": true,
+        "provenance": "real_input_pilot_2026-09-26"
+      },
+      "qa": {
+        "real_input_pilot": true,
+        "multi_angle_generation": true,
+        "commercial_theatrical_variation": true,
+        "identity_drift_rejection": true,
+        "end_to_end_public_upload_automation": false
       }
     }
   ]
