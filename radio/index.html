@@ -80,7 +80,7 @@ footer{margin-top:18px;color:#708797;font-size:11px;display:flex;justify-content
 </div>
 <script>
 const a=document.getElementById('audio'),p=document.getElementById('play'),l=document.getElementById('live'),r=document.getElementById('restart'),b=document.getElementById('bar'),c=document.getElementById('cur'),d=document.getElementById('dur'),t=document.getElementById('track'),ar=document.getElementById('artist'),ps=document.getElementById('playerstate');
-let lm=true,cues=[];const state=(msg,bad=false)=>{ps.textContent=msg;ps.classList.toggle('bad',bad)};
+let lm=true,cues=[];const state=(msg,bad=false)=>{ps.textContent=msg;ps.classList.toggle('bad',bad)};const mediaFault=()=>!!a.error||a.networkState===HTMLMediaElement.NETWORK_NO_SOURCE;const playFail=err=>{console.error('KJAI PLAYBACK ERROR',err);state(mediaFault()?'AUDIO OFFLINE · MEDIA SOURCE NEEDS RESTORE':'PLAYBACK BLOCKED · TAP JOIN LIVE AGAIN',true)};
 const f=s=>{if(!isFinite(s))return'--:--';s=Math.max(0,Math.floor(s));return String(Math.floor(s/60)).padStart(2,'0')+':'+String(s%60).padStart(2,'0')};
 function sync(){if(!a.duration)return;const x=(Date.now()/1000)%a.duration;if(Math.abs(a.currentTime-x)>2)a.currentTime=x}
 function now(){if(!cues.length)return;const x=a.currentTime||0;let q=cues[0];for(const row of cues){if(x>=row.start_seconds)q=row;else break}t.textContent=q.title||q.label||'KJAI Radio';ar.textContent=q.artist||q.program||'KJAI'}
@@ -114,8 +114,7 @@ async function kjaiPlay(e){
     await a.play();
     state('ON AIR · PLAYING');
   }catch(err){
-    console.error('KJAI PLAYBACK ERROR',err);
-    state('PLAYBACK BLOCKED · TAP JOIN LIVE AGAIN',true);
+    playFail(err);
   }
 }
 
@@ -147,8 +146,7 @@ async function kjaiRestart(e){
     await a.play();
     state('ON AIR · PLAYING');
   }catch(err){
-    console.error('KJAI RESTART ERROR',err);
-    state('PLAYBACK BLOCKED · TAP JOIN LIVE AGAIN',true);
+    playFail(err);
   }
 }
 
