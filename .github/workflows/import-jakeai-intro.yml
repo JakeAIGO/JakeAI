@@ -1,0 +1,70 @@
+name: Import JakeAI intro assets
+
+on:
+  push:
+    branches: [main]
+    paths:
+      - '.github/workflows/import-jakeai-intro.yml'
+
+permissions:
+  contents: write
+
+jobs:
+  import-intro:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Check out JakeAI
+        uses: actions/checkout@v4
+        with:
+          ref: main
+
+      - name: Download approved intro assets
+        shell: bash
+        run: |
+          set -euo pipefail
+          mkdir -p assets
+          curl --fail --location --retry 3             'https://cdn.creativeclaw.co/u/7a5f511f/videos/81916bfc-dab1-458f-b0ca-35b8d3e9a61f.mp4'             --output assets/JakeAI_Watch_Intro_Final.mp4
+          curl --fail --location --retry 3             'https://cdn.creativeclaw.co/u/7a5f511f/images/a0ae10da-fd36-41e9-8a22-e0189deac0d7.jpg'             --output assets/JakeAI_Watch_Intro_Poster.jpg
+
+      - name: Verify exact approved files
+        shell: bash
+        run: |
+          set -euo pipefail
+          echo '339546aa55e4c198bf8dc806e209d35e8c3b0c4709601dbf5dcaf15a3b5f6285  assets/JakeAI_Watch_Intro_Final.mp4' | sha256sum -c -
+          echo '3758a54e4e22a3caa61915b530613a8fe3cacc9e0473eca514f06d4c17db3339  assets/JakeAI_Watch_Intro_Poster.jpg' | sha256sum -c -
+
+      - name: Switch homepage player to first-party assets
+        shell: python
+        run: |
+          from pathlib import Path
+          p = Path("index.html")
+          s = p.read_text(encoding="utf-8")
+          s = s.replace(
+              "https://cdn.creativeclaw.co/u/7a5f511f/videos/81916bfc-dab1-458f-b0ca-35b8d3e9a61f.mp4",
+              "/assets/JakeAI_Watch_Intro_Final.mp4",
+          )
+          s = s.replace(
+              "https://cdn.creativeclaw.co/u/7a5f511f/images/a0ae10da-fd36-41e9-8a22-e0189deac0d7.jpg",
+              "/assets/JakeAI_Watch_Intro_Poster.jpg",
+          )
+          p.write_text(s, encoding="utf-8")
+
+      - name: Confirm Creative Claw is no longer referenced
+        shell: bash
+        run: |
+          set -euo pipefail
+          ! grep -R "cdn.creativeclaw.co/u/7a5f511f" index.html assets/
+
+      - name: Commit first-party intro assets
+        shell: bash
+        run: |
+          set -euo pipefail
+          git config user.name "JakeAI Automation"
+          git config user.email "actions@users.noreply.github.com"
+          git add index.html assets/JakeAI_Watch_Intro_Final.mp4 assets/JakeAI_Watch_Intro_Poster.jpg
+          if git diff --cached --quiet; then
+            echo "Intro assets already first-party."
+            exit 0
+          fi
+          git commit -m "Host JakeAI intro assets first-party"
+          git push origin HEAD:main
