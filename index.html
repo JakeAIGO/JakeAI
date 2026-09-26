@@ -274,7 +274,7 @@ body.homeGatewayOnly main>section.approvedHome:not(#home){display:block!importan
 @media(max-width:760px){
  .approvedHome{width:100%;overflow:hidden}
  /* Give the Universe more first-screen real estate without cropping any of the artwork. */
- .approvedHomeVisual{width:100%;aspect-ratio:1.58/1;object-fit:fill}
+ .approvedHomeVisual{display:block;width:100%;height:72vw;max-height:none;object-fit:fill}
  .approvedHot{border-radius:10px}
 }
 @media(prefers-reduced-motion:reduce){.approvedHot{transition:none}}
