@@ -30,12 +30,20 @@ button{border:1px solid #4b3466;border-radius:14px;background:#130b1ded;color:#f
 .go{display:inline-block;margin-top:16px;border:1px solid #26f7ff;color:#26f7ff;padding:9px 13px;border-radius:8px;font-weight:900}
 #banner{position:absolute;z-index:8;top:94px;left:50%;transform:translateX(-50%);opacity:0;background:#05020deb;border:1px solid #715092;border-radius:8px;padding:8px 11px;font:900 10px monospace;transition:.2s;white-space:nowrap}
 #banner.show{opacity:1}
+#refitMoment{position:absolute;z-index:12;inset:0;display:grid;place-items:center;pointer-events:none;opacity:0;transform:scale(.96);transition:opacity .16s,transform .16s;background:radial-gradient(circle at 50% 52%,#26f7ff28,transparent 34%),linear-gradient(#02040aa8,#02040ad8)}
+#refitMoment.show{opacity:1;transform:scale(1)}
+#refitMoment .panel{border:1px solid #26f7ffaa;border-radius:18px;background:#050912e8;padding:18px 22px;text-align:center;box-shadow:0 0 45px #26f7ff55,0 0 110px #8b5cf633;min-width:min(88%,430px)}
+#refitMoment .kicker{font:900 10px monospace;letter-spacing:.18em;color:#ffcc4d}
+#refitMoment .name{font-size:clamp(34px,9vw,58px);font-weight:1000;line-height:.9;margin:7px 0;color:#eafcff;text-shadow:0 0 20px #26f7ff}
+#refitMoment .spec{font:900 10px monospace;letter-spacing:.09em;color:#9ef5ff;line-height:1.7}
+#soundTag{position:absolute;z-index:4;right:9px;top:67px;font:800 8px monospace;color:#8defff;background:#030209c8;border:1px solid #26f7ff33;border-radius:999px;padding:4px 7px}
 .exit{position:fixed;z-index:20;right:10px;top:64px;padding:7px 10px;border:1px solid #26f7ff66;border-radius:999px;background:#040207cc;color:#bdf7ff;text-decoration:none;font:800 9px monospace;letter-spacing:.12em;backdrop-filter:blur(6px)}</style></head><body><a class="exit" href="../rooms/arcade.html">← ARCADE</a><div id="app">
-<header><h1>NIGHT VECTOR<small>JAKEAI STAND-UP ARCADE</small></h1><div class="tag">ARCADE BUILD 1.0</div></header>
+<header><h1>NIGHT VECTOR<small>JAKEAI STAND-UP ARCADE</small></h1><div class="tag">ARCADE BUILD 1.1</div></header>
 <div id="stage"><canvas id="c" width="700" height="1000"></canvas>
 <div id="hud"><span>SCORE <b id="score">000000</b></span><span id="mode">ROAD</span><span>SPD <b id="spd">50</b></span></div>
 <div id="weap">M <b id="ms">3</b> · OIL <b id="oil">3</b> · MINE <b id="mine">2</b> · GUN <b id="gunlvl">I</b> · MODULE <b id="module">—</b></div>
-<div id="objective">OUTRUN INTERCEPTORS</div><div id="banner"></div>
+<div id="objective">OUTRUN INTERCEPTORS</div><div id="banner"></div><div id="soundTag">♪ NIGHT PULSE</div>
+<div id="refitMoment"><div class="panel"><div class="kicker">VECTOR ARMORY // REFIT COMPLETE</div><div class="name">TRIARC<br>CANNON</div><div class="spec">GUN III · RAPID FIRE · +4 MISSILES<br>REAR DEFENSE RESUPPLIED · ARMOR 100%</div></div></div>
 <div id="armorWrap">ARMOR<div id="armorBar"><i id="armor"></i></div></div>
 <div id="controls">
  <div id="joystick"><div id="knob"></div><div id="joyLabel">STEER · ACCEL · BRAKE</div></div>
@@ -47,18 +55,48 @@ button{border:1px solid #4b3466;border-radius:14px;background:#130b1ded;color:#f
 <script>
 (()=>{
 const C=document.querySelector('#c'),x=C.getContext('2d'),W=C.width,H=C.height,ov=document.querySelector('#ov');
-const U={score:q('#score'),mode:q('#mode'),spd:q('#spd'),ms:q('#ms'),oil:q('#oil'),mine:q('#mine'),gun:q('#gunlvl'),module:q('#module'),armor:q('#armor'),banner:q('#banner'),objective:q('#objective')};
+const U={score:q('#score'),mode:q('#mode'),spd:q('#spd'),ms:q('#ms'),oil:q('#oil'),mine:q('#mine'),gun:q('#gunlvl'),module:q('#module'),armor:q('#armor'),banner:q('#banner'),objective:q('#objective'),refit:q('#refitMoment'),gunBtn:q('[data-k=gun]')};
 function q(s){return document.querySelector(s)}
-let K={},joyX=0,joyY=0,run=false,last=0,t=0,score=0,scroll=0,spawn=0,rearSpawn=2.5,phase=0,clock=0,supportMade=false,AC=null,musicT=0,musicStep=0,soundOn=true;
+let K={},joyX=0,joyY=0,run=false,last=0,t=0,score=0,scroll=0,spawn=0,rearSpawn=2.5,phase=0,clock=0,supportMade=false,AC=null,musicT=0,musicStep=0,beat=0,soundOn=true,refitOverlayT=0;
 let foes=[],shots=[],rockets=[],slicks=[],mines=[],fx=[],supports=[],waves=[],buoys=[];
 const P={x:350,y:770,w:44,h:86,vx:0,speed:.5,armor:100,missiles:3,oil:3,mines:2,gun:1,module:'—',cd:0,rcd:0,ocd:0,bcd:0,inv:0,mode:'ROAD'};
 let center=350;
 const rnd=(a,b)=>a+Math.random()*(b-a),clamp=(v,a,b)=>Math.max(a,Math.min(b,v));
-function reset(){foes=[];shots=[];rockets=[];slicks=[];mines=[];fx=[];supports=[];waves=[];buoys=[];score=scroll=t=spawn=0;rearSpawn=2.5;phase=0;clock=0;supportMade=false;musicT=0;musicStep=0;Object.assign(P,{x:350,y:770,vx:0,speed:.5,armor:100,missiles:3,oil:3,mines:2,gun:1,module:'—',cd:0,rcd:0,ocd:0,bcd:0,inv:0,mode:'ROAD'});ov.querySelector('.title').innerHTML='NIGHT<br>VECTOR';ov.querySelector('.sub').textContent='CHASE • REFIT • TRANSFORM • ESCAPE';ov.querySelector('.go').textContent='TAP / ENTER TO START';U.objective.textContent='OUTRUN INTERCEPTORS'}
+function reset(){foes=[];shots=[];rockets=[];slicks=[];mines=[];fx=[];supports=[];waves=[];buoys=[];score=scroll=t=spawn=0;rearSpawn=2.5;phase=0;clock=0;supportMade=false;musicT=0;musicStep=0;beat=0;refitOverlayT=0;Object.assign(P,{x:350,y:770,vx:0,speed:.5,armor:100,missiles:3,oil:3,mines:2,gun:1,module:'—',cd:0,rcd:0,ocd:0,bcd:0,inv:0,mode:'ROAD'});U.refit.classList.remove('show');U.gunBtn.innerHTML='GUN';ov.querySelector('.title').innerHTML='NIGHT<br>VECTOR';ov.querySelector('.sub').textContent='CHASE • REFIT • TRANSFORM • ESCAPE';ov.querySelector('.go').textContent='TAP / ENTER TO START';U.objective.textContent='OUTRUN INTERCEPTORS'}
 function initAudio(){try{if(!AC)AC=new (window.AudioContext||window.webkitAudioContext)();if(AC.state==='suspended')AC.resume()}catch(e){soundOn=false}}
-function tone(freq,dur=.07,type='square',gain=.018,slide=0){if(!AC||!soundOn)return;const o=AC.createOscillator(),g=AC.createGain(),n=AC.currentTime;o.type=type;o.frequency.setValueAtTime(freq,n);if(slide)o.frequency.linearRampToValueAtTime(Math.max(35,freq+slide),n+dur);g.gain.setValueAtTime(gain,n);g.gain.exponentialRampToValueAtTime(.0001,n+dur);o.connect(g).connect(AC.destination);o.start(n);o.stop(n+dur)}
-function sfx(k){if(k==='gun')tone(150,.035,'square',.011,70);else if(k==='missile')tone(95,.16,'sawtooth',.02,180);else if(k==='refit'){[330,440,660,880].forEach((f,i)=>setTimeout(()=>tone(f,.16,'square',.021,70),i*70))}else if(k==='hit')tone(70,.16,'sawtooth',.025,-25);else if(k==='start'){tone(110,.08,'square',.015,110);setTimeout(()=>tone(220,.1,'square',.014,110),80)}}
-function music(dt){if(!AC||!soundOn||!run)return;musicT-=dt;if(musicT>0)return;musicT=.16;const roots=[82.41,92.5,98,110],root=roots[Math.min(phase,3)],seq=[0,0,7,0,12,7,3,0,0,7,10,7,3,0,12,7],n=seq[musicStep%seq.length],step=musicStep++;if(step%2===0)tone(root*Math.pow(2,n/12),.075,'sawtooth',.006,-8);if(step%4===0)tone(root/2,.11,'square',.009,-10);if(step%8===6)tone(root*4,.035,'triangle',.004,120)}
+function tone(freq,dur=.07,type='square',gain=.018,slide=0,delay=0){if(!AC||!soundOn)return;const o=AC.createOscillator(),g=AC.createGain(),n=AC.currentTime+delay;o.type=type;o.frequency.setValueAtTime(freq,n);if(slide)o.frequency.linearRampToValueAtTime(Math.max(35,freq+slide),n+dur);g.gain.setValueAtTime(gain,n);g.gain.exponentialRampToValueAtTime(.0001,n+dur);o.connect(g).connect(AC.destination);o.start(n);o.stop(n+dur)}
+function noise(dur=.035,gain=.012,delay=0){if(!AC||!soundOn)return;const len=Math.max(1,Math.floor(AC.sampleRate*dur)),buf=AC.createBuffer(1,len,AC.sampleRate),data=buf.getChannelData(0);for(let i=0;i<len;i++)data[i]=(Math.random()*2-1)*(1-i/len);const src=AC.createBufferSource(),g=AC.createGain(),n=AC.currentTime+delay;src.buffer=buf;g.gain.setValueAtTime(gain,n);g.gain.exponentialRampToValueAtTime(.0001,n+dur);src.connect(g).connect(AC.destination);src.start(n)}
+function sfx(k){
+ if(k==='gun'){tone(P.module==='TRIARC'?205:150,.035,'square',.011,90);if(P.module==='TRIARC')tone(330,.028,'square',.005,80,.014)}
+ else if(k==='missile')tone(95,.16,'sawtooth',.02,180);
+ else if(k==='refit'){[330,440,660,880,1100].forEach((f,i)=>tone(f,.18,'sawtooth',.022,90,i*.07));noise(.16,.025,.12)}
+ else if(k==='hit'){tone(70,.16,'sawtooth',.025,-25);noise(.07,.018)}
+ else if(k==='start'){tone(110,.08,'square',.015,110);tone(220,.1,'square',.014,110,.08)}
+}
+function music(dt){
+ if(!AC||!soundOn||!run)return;
+ musicT-=dt;if(musicT>0)return;
+ const stepDur=phase===3?.145:.135;musicT=stepDur;
+ const roots=[82.41,92.50,98.00,110.00],root=roots[Math.min(phase,3)],step=musicStep++,s=step%16;
+ const seqs=[
+  [0,0,7,0,12,7,3,0,0,7,10,7,3,0,12,7],
+  [0,7,12,7,3,10,12,15,0,7,14,10,3,7,12,17],
+  [0,0,3,7,0,10,7,3,0,12,10,7,3,0,7,10],
+  [0,7,10,14,7,12,15,10,0,7,12,14,10,7,3,7]
+ ],seq=seqs[Math.min(phase,3)],note=seq[s];
+ // bass pulse
+ if(s%2===0)tone(root*Math.pow(2,(s%8===6?7:0)/12),stepDur*.82,'sawtooth',.008,-10);
+ // arpeggiator / chase motor
+ tone(root*2*Math.pow(2,note/12),stepDur*.42,phase===1?'square':'triangle',phase===1?.0065:.0048,phase===2?-18:10);
+ // kick + hats
+ if(s%4===0){tone(48,.08,'sine',.026,-18);noise(.025,.007)}
+ if(s%2===1)noise(.018,phase===3?.006:.004);
+ // phase accents
+ if(phase===1&&[3,7,11,15].includes(s))tone(root*4*Math.pow(2,[7,12,10,15][[3,7,11,15].indexOf(s)]/12),.055,'square',.005,80);
+ if(phase===2&&s===8)tone(root/2,.22,'sawtooth',.012,-28);
+ if(phase===3&&[5,13].includes(s))tone(root*3,.12,'sine',.005,40);
+ beat++;
+}
 function start(){reset();initAudio();setPhase(0);run=true;ov.classList.add('hide');sfx('start');window.JakeAITraffic?.track('game_start',{path:'/universe-final/games/night-vector.html'});last=performance.now();requestAnimationFrame(loop)}
 ov.onpointerdown=start;addEventListener('keydown',e=>{K[e.code]=1;if(e.code==='Enter'&&!run)start();if(['Space','ArrowLeft','ArrowRight','ArrowUp','ArrowDown'].includes(e.code))e.preventDefault()});addEventListener('keyup',e=>K[e.code]=0);
 for(const b of document.querySelectorAll('button')){let m={gun:'Space',missile:'KeyX',rear:'KeyZ'}[b.dataset.k];b.addEventListener('pointerdown',e=>{K[m]=1;e.preventDefault()});['pointerup','pointercancel','pointerleave'].forEach(v=>b.addEventListener(v,e=>{K[m]=0;e.preventDefault()}))}
@@ -84,9 +122,11 @@ function car(o,enemy=true){
  if(!enemy){
    x.fillStyle='#8b5cf6';x.fillRect(-3,-o.h*.12,6,o.h*.42);
    if(o.module==='TRIARC'){
-     x.save();x.shadowBlur=13;x.shadowColor='#26f7ff';
-     x.fillStyle='#071923';rr(-21,-o.h*.47,10,31,3);rr(-5,-o.h*.51,10,35,3);rr(11,-o.h*.47,10,31,3);
-     x.fillStyle='#26f7ff';x.fillRect(-19,-o.h*.50,6,8);x.fillRect(-3,-o.h*.54,6,8);x.fillRect(13,-o.h*.50,6,8);
+     x.save();x.shadowBlur=18;x.shadowColor='#26f7ff';
+     x.fillStyle='#0b1d2a';rr(-28,-o.h*.42,13,39,4);rr(-6,-o.h*.50,12,46,4);rr(15,-o.h*.42,13,39,4);
+     x.fillStyle='#26f7ff';x.fillRect(-25,-o.h*.51,7,15);x.fillRect(-3,-o.h*.59,7,18);x.fillRect(18,-o.h*.51,7,15);
+     x.strokeStyle='#ffcc4d';x.lineWidth=3;x.beginPath();x.moveTo(-o.w*.52,-3);x.lineTo(-o.w*.72,10);x.moveTo(o.w*.52,-3);x.lineTo(o.w*.72,10);x.stroke();
+     x.fillStyle='#8b5cf6';x.fillRect(-o.w*.66,7,11,18);x.fillRect(o.w*.55,7,11,18);
      x.restore();
    }
  }
@@ -161,7 +201,7 @@ function victory(){run=false;score+=2500;window.JakeAITraffic?.track('game_compl
 function hit(a,b){return Math.abs(a.x-b.x)<(a.w+b.w)*.44&&Math.abs(a.y-b.y)<(a.h+b.h)*.44}
 function setPhase(n){phase=n;clock=0;if(n===0){P.mode='ROAD';U.objective.textContent='OUTRUN INTERCEPTORS';say('HIGHWAY SECTOR')}if(n===1){U.objective.textContent='BOARD ARMORY · CLAIM TRIARC CANNON';say('VECTOR ARMORY — TRIARC MODULE ABOARD');supportMade=false}if(n===2){supports.forEach(h=>h.dead=1);U.objective.textContent='BREACH THE BROKEN BRIDGE';say('BROKEN BRIDGE — MARINE GATE AHEAD')}if(n===3){P.mode='WATER';U.objective.textContent='SURVIVE TO MARINE EXTRACTION';say('MARINE VECTOR DEPLOYED')}}
 function update(dt){
-t+=dt;clock+=dt;P.cd-=dt;P.rcd-=dt;P.ocd-=dt;P.bcd-=dt;P.inv-=dt;music(dt);if(phase===0&&clock>14)setPhase(1);else if(phase===1){const arm=supports.find(h=>!h.dead);if(arm&&arm.docked&&clock-(arm.dockedAt||clock)>1.8)setPhase(2);else if(clock>30){say('ARMORY MISSED — EXTRACTION CONTINUES');setPhase(2)}}else if(phase===2&&clock>15)setPhase(3);else if(phase===3&&clock>18){victory();return}
+t+=dt;clock+=dt;P.cd-=dt;P.rcd-=dt;P.ocd-=dt;P.bcd-=dt;P.inv-=dt;if(refitOverlayT>0){refitOverlayT-=dt;if(refitOverlayT<=0)U.refit.classList.remove('show')}music(dt);if(phase===0&&clock>14)setPhase(1);else if(phase===1){const arm=supports.find(h=>!h.dead);if(arm&&arm.docked&&clock-(arm.dockedAt||clock)>1.8)setPhase(2);else if(clock>30){say('ARMORY MISSED — EXTRACTION CONTINUES');setPhase(2)}}else if(phase===2&&clock>15)setPhase(3);else if(phase===3&&clock>18){victory();return}
 let steer=clamp(((K.ArrowRight||K.KeyD?1:0)-(K.ArrowLeft||K.KeyA?1:0))+joyX,-1,1);
 let accel=clamp(((K.ArrowUp||K.KeyW?1:0)-(K.ArrowDown||K.KeyS?1:0))-joyY,-1,1);P.speed=clamp(P.speed+accel*dt*.55,.12,1);
 let targetY=870-P.speed*430;P.y+=(targetY-P.y)*dt*3.4;
@@ -190,8 +230,10 @@ for(const h of supports){
      P.armor=100;
      score+=1500;
      U.objective.textContent='TRIARC CANNON ONLINE · EXIT ARMORY';
+     U.gunBtn.innerHTML='TRIARC<br><small>GUN III</small>';
      say('TRIARC CANNON INSTALLED · FULL RESUPPLY');
-     sfx('refit');boom(P.x,P.y,34);
+     U.refit.classList.add('show');refitOverlayT=1.45;
+     sfx('refit');boom(P.x,P.y,46);
    } else if(h.dock>.08){
      U.banner.textContent='HOLD LINE — REFIT '+Math.floor(h.dock/.45*100)+'%';
      U.banner.classList.add('show');
@@ -253,12 +295,13 @@ for(const s of supports){
 for(const s of slicks){x.fillStyle=s.water?'#ff7c2f99':'#09080bcc';x.beginPath();x.ellipse(s.x,s.y,34,16,0,0,Math.PI*2);x.fill();if(s.water){x.fillStyle='#ffd04d88';x.beginPath();x.ellipse(s.x,s.y,18,7,0,0,Math.PI*2);x.fill()}}
 for(const m of mines){x.strokeStyle='#ff7a4d';x.lineWidth=3;x.beginPath();x.arc(m.x,m.y,11+Math.sin(m.pulse*8)*2,0,Math.PI*2);x.stroke()}
 for(const e of foes)e.water?boat(e,true):car(e,true);
-x.fillStyle='#fff';for(const b of shots)x.fillRect(b.x-2,b.y-11,4,17);for(const r of rockets){x.fillStyle='#ffcc4d';x.fillRect(r.x-4,r.y-12,8,22)}
+for(const b of shots){x.save();x.fillStyle=P.module==='TRIARC'?'#7ff7ff':'#fff';if(P.module==='TRIARC'){x.shadowBlur=12;x.shadowColor='#26f7ff';x.fillRect(b.x-3,b.y-15,6,23)}else x.fillRect(b.x-2,b.y-11,4,17);x.restore()}for(const r of rockets){x.fillStyle='#ffcc4d';x.fillRect(r.x-4,r.y-12,8,22)}
 if(P.inv<=0||Math.floor(P.inv*15)%2===0)(water?boat(P,false):car(P,false));
 if(water){x.strokeStyle='#e8ffff77';x.lineWidth=3;x.beginPath();x.moveTo(P.x-18,P.y+46);x.lineTo(P.x-34,P.y+85);x.moveTo(P.x+18,P.y+46);x.lineTo(P.x+34,P.y+85);x.stroke()}
 for(const f of fx){x.globalAlpha=Math.max(0,f.life*1.7);x.fillStyle=Math.random()<.5?'#ffcc4d':'#ff477e';x.fillRect(f.x,f.y,f.s,f.s)}x.globalAlpha=1
-if(P.module==='TRIARC'&&phase>=2){
- x.save();x.globalAlpha=.16+.08*Math.sin(t*6);x.strokeStyle='#26f7ff';x.lineWidth=2;x.beginPath();x.arc(P.x,P.y,38+Math.sin(t*5)*3,0,Math.PI*2);x.stroke();x.restore();
+if(P.module==='TRIARC'){
+ x.save();x.globalAlpha=.18+.10*Math.sin(t*6);x.strokeStyle='#26f7ff';x.lineWidth=2;x.beginPath();x.arc(P.x,P.y,44+Math.sin(t*5)*4,0,Math.PI*2);x.stroke();
+ x.globalAlpha=.28;x.strokeStyle='#ffcc4d';x.beginPath();x.moveTo(P.x-33,P.y+42);x.lineTo(P.x-48,P.y+68);x.moveTo(P.x+33,P.y+42);x.lineTo(P.x+48,P.y+68);x.stroke();x.restore();
  }
 }
 function loop(n){if(!run)return;let dt=Math.min(.033,(n-last)/1000||.016);last=n;update(dt);draw();requestAnimationFrame(loop)}draw()
