@@ -45,7 +45,7 @@
   .primary:active{transform:translateY(1px)}
   .how{margin-top:14px;font-size:12px;color:#8293a7}
   #toast{position:absolute;left:50%;top:24%;transform:translate(-50%,-50%);z-index:4;background:#07101bdc;border:1px solid #6ae2ff88;border-radius:11px;padding:10px 14px;font-weight:900;letter-spacing:.08em;text-align:center;opacity:0;transition:opacity .18s;pointer-events:none;text-shadow:0 2px 4px #000}
-  #bossbar{display:none;align-self:center;background:#090e16dd;border:1px solid #672e38;border-radius:12px;padding:7px 10px;width:min(84%,430px);text-align:center}
+  #bossbar{display:none;align-self:center;background:#090e16dd;border:1px solid #672e38;border-radius:12px;padding:7px 10px;width:min(84%,430px);text-align:center;box-shadow:0 0 24px #ff5e681a}
   #bossbar .bar{width:100%;height:9px;margin-top:5px}
   #bossbar .bar>i{background:#ff5e68}
   #stats{display:flex;justify-content:center;gap:18px;margin:18px 0;color:#cbd7e5;font-size:13px}
@@ -194,7 +194,7 @@
     (hostile?ebullets:bullets).push({x:s.x+Math.cos(a)*22,y:s.y+Math.sin(a)*22,vx:Math.cos(a)*speed,vy:Math.sin(a)*speed,r:hostile?5:4,life:2.2,damage,trail:[]});
     if(!hostile){player.angle=a;addParticle(s.x+Math.cos(a)*27,s.y+Math.sin(a)*27,2,'#d9fbff',55);sfx.shot()}
   }
-  function autoTarget(){let best=null,bd=9999;for(const e of enemies){const d=dist(player,e);if(d<bd&&d<390){bd=d;best=e}}if(boss&&dist(player,boss)<500){best=boss}return best}
+  function autoTarget(){let best=null,bd=9999;for(const e of enemies){const d=dist(player,e);if(d<bd&&d<390){bd=d;best=e}}if(boss&&dist(player,boss)<640){best=boss}return best}
   function grenade(){ if(state!=='play'||player.grenades<1)return; player.grenades--;burst(player.x,player.y-30,'grenade');
     for(const e of enemies){const d=dist(player,e);if(d<170)e.hp-=105*(1-d/220)} if(boss&&dist(player,boss)<210)boss.hp-=95; syncUI(); }
   function dash(){if(state!=='play'||player.dashCd>0)return;player.dashCd=1.2;player.dashT=.18;player.invuln=.25;shake=4;sfx.dash();addParticle(player.x,player.y,10,'#70e8ff',110);}
@@ -226,7 +226,7 @@
     if(progress>1050&&progress<1120&&!pickups.some(p=>p.type==='core'&&p.story)){pickups.push({x:W*.28,y:cameraY+300,type:'core',r:12,spin:0,story:true})}
     if(progress>2250&&progress<2330&&!pickups.some(p=>p.type==='core'&&p.story)){pickups.push({x:W*.72,y:cameraY+350,type:'core',r:12,spin:0,story:true})}
     if(progress>3500&&progress<3570&&!pickups.some(p=>p.type==='core'&&p.story)){pickups.push({x:W*.52,y:cameraY+260,type:'core',r:12,spin:0,story:true})}
-    if(progress>4100&&!boss){boss={x:W/2,y:cameraY+160,r:48,hp:900,maxHp:900,shot:1,phase:0,speed:55};ui.objective.textContent='Destroy the Foundry Walker';ui.boss.style.display='block';showToast('BOSS SIGNAL DETECTED');sfx.boss()}
+    if(progress>4100&&!boss){boss={x:W/2,y:cameraY+220,r:48,hp:900,maxHp:900,shot:1.15,phase:0,speed:55};ui.objective.textContent='Destroy the Foundry Walker';ui.boss.style.display='block';showToast('BOSS SIGNAL DETECTED · CLOSE TO LOCK RANGE');sfx.boss()}
 
     for(const e of enemies){
       e.shot-=dt;e.touch-=dt;const a=Math.atan2(player.y-e.y,player.x-e.x),d=dist(e,player);e.x+=Math.cos(a)*e.speed*dt*(d<110?.25:1);e.y+=Math.sin(a)*e.speed*dt*(d<110?.25:1);
@@ -234,9 +234,21 @@
       if(d<e.r+player.r+4&&e.touch<=0){hurt(e.kind==='heavy'?24:12);e.touch=.8}
     }
     if(boss){
-      boss.shot-=dt;boss.phase+=dt;boss.x=W/2+Math.sin(boss.phase*.75)*230;boss.y=cameraY+170+Math.sin(boss.phase*1.4)*24;
-      if(boss.shot<=0){for(let i=-2;i<=2;i++){const a=Math.atan2(player.y-boss.y,player.x-boss.x)+i*.15;ebullets.push({x:boss.x,y:boss.y,vx:Math.cos(a)*300,vy:Math.sin(a)*300,r:7,life:3,damage:14})}boss.shot=.9}
-      if(dist(boss,player)<boss.r+player.r)hurt(30);
+      boss.shot-=dt;boss.phase+=dt;
+      const hpRatio=clamp(boss.hp/boss.maxHp,0,1);
+      const sweepRate=hpRatio>.66?.34:hpRatio>.33?.43:.52;
+      const sweepAmp=hpRatio>.66?145:hpRatio>.33?170:195;
+      boss.x=W/2+Math.sin(boss.phase*sweepRate)*sweepAmp;
+      boss.y=cameraY+220+Math.sin(boss.phase*.82)*16;
+      if(boss.shot<=0){
+        const spread=hpRatio>.66?1:hpRatio>.33?2:2;
+        for(let i=-spread;i<=spread;i++){
+          const a=Math.atan2(player.y-boss.y,player.x-boss.x)+i*.14;
+          ebullets.push({x:boss.x,y:boss.y,vx:Math.cos(a)*(hpRatio>.33?270:295),vy:Math.sin(a)*(hpRatio>.33?270:295),r:7,life:3,damage:hpRatio>.33?12:14})
+        }
+        boss.shot=hpRatio>.66?1.22:hpRatio>.33?1.02:.88;
+      }
+      if(dist(boss,player)<boss.r+player.r)hurt(26);
       if(boss.hp<=0){player.score+=2500;burst(boss.x,boss.y,'boss');boss=null;ui.boss.style.display='none';showToast('PORTAL SECURED');setTimeout(()=>{if(state==='play')end(true)},1100)}
     }
     // bullets
