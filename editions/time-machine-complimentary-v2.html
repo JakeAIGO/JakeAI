@@ -28,8 +28,8 @@
 <div class="gift">$0.00 · NO CHECKOUT · NO SALE ATTRIBUTION</div>
 <p class="lead">This copy is here to be experienced, not purchased. Chapter I below is the actual book text used by the JakeAI narration build.</p>
 <div class="player" id="listen">
- <div class="playrow"><button class="play" id="play">▶</button><div><b>PLAY CHAPTER I · INTRODUCTION</b><div class="wave"></div></div><span class="badge">ACTUAL BOOK</span></div>
- <div class="controls"><label>Voice <select id="voiceSelect"><option>Loading voices…</option></select></label><label>Speed <input id="rate" type="range" min=".75" max="1.15" step=".05" value=".92"></label><span class="status" id="status">Loading Chapter I…</span></div>
+ <div class="playrow"><button class="play" id="play" disabled style="opacity:.45;cursor:not-allowed">▶</button><div><b>CHAPTER I · FOUNDER VOICE</b><div class="wave"></div></div><span class="badge">JAKEAI NARRATION</span></div>
+ <div class="controls"><span class="status" id="status">Founder-voice master is rendering locally. This review link will use that mastered narration — not device text-to-speech.</span></div>
 </div>
 </div>
 </section>
@@ -38,17 +38,11 @@
 </main>
 <footer>Underlying H. G. Wells text: public domain in the USA. JakeAI presentation and software © JakeAI. Complimentary review copy · not a sale.</footer>
 <script>
-const play=document.getElementById("play"),voiceSelect=document.getElementById("voiceSelect"),rate=document.getElementById("rate"),status=document.getElementById("status"),chapter=document.getElementById("chapter");
-let text="",parts=[],at=0,playing=false,stopping=false;
-function escapeHtml(s){return s.replace(/[&<>"']/g,function(ch){return {"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;","'":"&#39;"}[ch]})}
-function voices(){const all=speechSynthesis.getVoices(),english=all.filter(v=>/^en/i.test(v.lang)),use=(english.length?english:all).sort((a,b)=>(/en-GB/i.test(b.lang)?1:0)-(/en-GB/i.test(a.lang)?1:0));voiceSelect.innerHTML="";use.forEach(v=>{const o=document.createElement("option");o.value=v.name;o.textContent=v.name+" · "+v.lang;voiceSelect.appendChild(o)});if(!use.length)voiceSelect.innerHTML="<option>System default</option>"}
-function chunks(s){const paras=s.trim().split(/\n\s*\n/).filter(Boolean),out=[];paras.forEach(p=>{if(p.length<620){out.push(p);return}let cur="";(p.match(/[^.!?]+[.!?]+|[^.!?]+$/g)||[p]).forEach(sentence=>{if((cur+" "+sentence).trim().length>620&&cur){out.push(cur.trim());cur=sentence}else cur=(cur+" "+sentence).trim()});if(cur)out.push(cur.trim())});return out}
-function render(s){const body=s.replace(/^CHAPTER I\s*\nINTRODUCTION\s*\n*/i,"").trim();chapter.innerHTML=body.split(/\n\s*\n/).map(p=>"<p>"+escapeHtml(p)+"</p>").join("")}
-async function load(){try{const r=await fetch("/editions/assets/time-machine-chapter01.txt",{cache:"no-store"});if(!r.ok)throw 0;text=await r.text();parts=chunks(text);render(text);status.textContent="Chapter I ready · tap ▶ to listen."}catch(e){status.textContent="Chapter failed to load. Refresh the page."}}
-function stop(msg){speechSynthesis.cancel();playing=false;stopping=false;play.textContent="▶";status.textContent=msg||"Stopped."}
-function next(){if(stopping){stop();return}if(at>=parts.length){at=0;stop("Chapter I complete.");return}const u=new SpeechSynthesisUtterance(parts[at]),v=speechSynthesis.getVoices().find(x=>x.name===voiceSelect.value);if(v)u.voice=v;u.rate=parseFloat(rate.value);u.pitch=.93;u.onstart=()=>{playing=true;play.textContent="■";status.textContent="Playing Chapter I · "+(at+1)+" / "+parts.length};u.onend=()=>{if(stopping){stop();return}at++;next()};u.onerror=()=>stop("Playback stopped.");speechSynthesis.speak(u)}
-play.onclick=async()=>{if(playing){stopping=true;stop("Stopped. Tap ▶ to resume from this section.");return}if(!text)await load();if(!parts.length)return;stopping=false;next()};
-voices();if("onvoiceschanged" in speechSynthesis)speechSynthesis.onvoiceschanged=voices;load();
-try{window.JakeAITraffic?.track("complimentary_book_listen",{path:"/editions/time-machine-complimentary.html"})}catch(e){}
+fetch("/editions/assets/time-machine-chapter01.txt",{cache:"no-store"}).then(r=>r.text()).then(text=>{
+ const body=text.replace(/^CHAPTER I\s*\nINTRODUCTION\s*\n*/i,"").trim();
+ const esc=s=>s.replace(/[&<>"']/g,ch=>({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;","'":"&#39;"}[ch]));
+ document.getElementById("chapter").innerHTML=body.split(/\n\s*\n/).map(p=>"<p>"+esc(p)+"</p>").join("");
+}).catch(()=>{document.getElementById("chapter").innerHTML="<p>Chapter I text is temporarily unavailable.</p>"});
+try{window.JakeAITraffic?.track("complimentary_book_view",{path:"/editions/time-machine-complimentary-v2.html"})}catch(e){}
 </script>
 </body></html>
