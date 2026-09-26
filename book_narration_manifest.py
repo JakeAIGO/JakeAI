@@ -1,9 +1,7 @@
 """JakeAI Book Factory narration manifest and audio QA plan.
 
 No audio is generated here. This module converts immutable canonical source bytes
-into an exact, contiguous sequence of TTS input chunks. Every chunk stores source
-byte offsets and a SHA-256. Joining the chunks MUST recreate the canonical source
-exactly before any paid narrator adapter is allowed to run.
+into an exact, contiguous sequence of TTS input chunks. Every chunk stores source byte offsets and a SHA-256. Joining the chunks MUST recreate the canonical source exactly before the JakeAI local Founder Narrator is allowed to run.
 """
 from __future__ import annotations
 
@@ -17,23 +15,20 @@ from pathlib import Path
 
 from book_source_lock import list_locks
 
-MAX_CHARS_PER_CHUNK = 4500
-MODEL = "speech/elevenlabs-v3"
-OUTPUT_FORMAT = "mp3_44100_128"
-APPLY_TEXT_NORMALIZATION = "off"
+MAX_CHARS_PER_CHUNK = 850
+MODEL = "jakeai-local-founder-narrator-v1"
+OUTPUT_FORMAT = "wav_pcm_master_plus_web_mp3"
+APPLY_TEXT_NORMALIZATION = "none_exact_source"
 
-VOICE_PLAN = {
-    "JAE-TTM-001":{"voice_id":None,"profile":"Classic British","status":"audition_required"},
-    "JAE-SH-001":{"voice_id":None,"profile":"Classic British Detective","status":"audition_required"},
-    "JAE-DRAC-001":{"voice_id":None,"profile":"Gothic British","status":"audition_required"},
-    "JAE-TI-001":{"voice_id":None,"profile":"British Adventure","status":"audition_required"},
-    "JAE-FRANK-001":{"voice_id":None,"profile":"Literary British","status":"audition_required"},
-    "JAE-ALICE-001":{"voice_id":"ZF6FPAbjXT4488VcRRnw","profile":"Storybook British — Amelia audition","status":"candidate"},
-    "JAE-MOBY-001":{"voice_id":"YkHbp3e8G9cEwq8igiKg","profile":"Literary American — Foley audition","status":"candidate"},
-    "JAE-PRIDE-001":{"voice_id":"ZF6FPAbjXT4488VcRRnw","profile":"Regency British — Amelia audition","status":"candidate"},
-    "JAE-JANE-001":{"voice_id":"ZF6FPAbjXT4488VcRRnw","profile":"Literary British Intimate — Amelia audition","status":"candidate"},
-    "JAE-DORIAN-001":{"voice_id":None,"profile":"Literary British Aesthetic","status":"audition_required"},
+FOUNDER_PLAN = {
+    "voice_id": "local-private-founder-reference",
+    "profile": "JakeAI Founder Narrator",
+    "delivery": "Virginia/Southern conversational calm storyteller; normal pace; moderately expressive; title-specific direction only",
+    "status": "approved_local_primary",
+    "external_voice_platform": False,
+    "reference_public": False,
 }
+VOICE_PLAN = {}
 
 def _now():
     return datetime.now(timezone.utc).isoformat()
@@ -125,7 +120,7 @@ def build_manifest(job_id:str)->dict:
     if not exact:
         raise ValueError("narration manifest does not exactly reassemble canonical source")
 
-    plan=VOICE_PLAN.get(job_id,{"voice_id":None,"profile":"Original house narrator","status":"audition_required"})
+    plan=dict(VOICE_PLAN.get(job_id,FOUNDER_PLAN))
     total_chars=len(source.decode("utf-8"))
     c=_conn()
     c.execute("""INSERT OR REPLACE INTO book_narration_manifests
@@ -135,7 +130,7 @@ def build_manifest(job_id:str)->dict:
       VALUES (?,?,?,?,?,?,?,?,?,?,?,?,?,?)""",(
         job_id,lock["canonical_sha256"],len(source),total_chars,len(chunks),json.dumps(chunks,separators=(",",":")),
         1,MODEL,OUTPUT_FORMAT,APPLY_TEXT_NORMALIZATION,json.dumps(plan,separators=(",",":")),
-        "blocked_no_spend_authorization_or_credits","script_manifest_verified",_now()
+        "queued_local_founder_render","script_manifest_verified",_now()
     ))
     c.commit()
     row=c.execute("SELECT * FROM book_narration_manifests WHERE job_id=?",(job_id,)).fetchone()
@@ -187,7 +182,7 @@ def public_manifest(row):
         "normalization":"Provider text normalization must remain OFF.",
         "coverage":"Every canonical source byte belongs to exactly one narration chunk.",
         "rewrite":"Forbidden.",
-        "spend_gate":"Professional media generation cannot start until its cost/spend gate is explicitly cleared.",
+        "render_gate":"Narration renders locally with the private founder voice reference; no third-party voice platform is part of the production path.",
         "audio_qa":"After generation: verify artifact exists, duration/nonzero audio, chunk order, chunk count, source hash linkage, and optional ASR spot-checks. ASR is advisory; exact TTS input bytes are authoritative."
       }
     }
