@@ -258,6 +258,7 @@ body.homeGatewayOnly main>section.world:not(#home){display:flex!important}
 /* Approved KJAI homepage visual — production presentation layer.
    The previous homepage remains intact in the DOM for rollback and existing scripts. */
 .approvedHome{position:relative;width:100%;max-width:1672px;margin:0 auto;background:#020508;line-height:0}
+.approvedHomePicture{display:block;line-height:0}
 .approvedHomeVisual{display:block;width:100%;height:auto}
 .approvedHot{position:absolute;z-index:12;display:block;border-radius:18px;outline:0;background:transparent}
 .approvedHot:hover,.approvedHot:focus-visible{box-shadow:inset 0 0 0 3px rgba(95,235,255,.78),0 0 42px rgba(78,220,255,.28);background:rgba(74,222,255,.035)}
@@ -272,34 +273,17 @@ body.homeGatewayOnly main>section.world:not(#home){display:flex!important}
 body.homeGatewayOnly section.stage#home{display:none!important}
 body.homeGatewayOnly main>section.approvedHome:not(#home){display:block!important}
 @media(max-width:760px){
- .approvedHome{
-   width:100%;
-   overflow:hidden;
-   padding-bottom:16vw;
-   background:
-     radial-gradient(circle at 20% 28%,rgba(41,111,176,.18),transparent 24%),
-     radial-gradient(circle at 76% 20%,rgba(141,52,212,.16),transparent 26%),
-     linear-gradient(180deg,#020508 0%,#030811 62%,#020508 100%);
- }
- /* Preserve the approved artwork exactly; extend the hero with a matching cosmic apron instead of stretching it. */
- .approvedHome::after{
-   content:"";
-   position:absolute;
-   left:0;right:0;bottom:0;
-   height:16vw;
-   pointer-events:none;
-   background:
-     radial-gradient(circle at 8% 38%,rgba(82,221,255,.34) 0 1px,transparent 1.6px),
-     radial-gradient(circle at 24% 72%,rgba(255,255,255,.26) 0 1px,transparent 1.4px),
-     radial-gradient(circle at 46% 30%,rgba(119,106,255,.34) 0 1px,transparent 1.5px),
-     radial-gradient(circle at 67% 64%,rgba(255,255,255,.23) 0 1px,transparent 1.4px),
-     radial-gradient(circle at 86% 34%,rgba(215,80,255,.28) 0 1px,transparent 1.5px),
-     linear-gradient(180deg,rgba(3,8,17,.15),rgba(2,5,8,.96));
-   background-size:auto,auto,auto,auto,auto,auto;
-   border-bottom:1px solid rgba(87,217,255,.12);
- }
+ .approvedHome{width:100%;overflow:hidden;background:#020508}
  .approvedHomeVisual{display:block;width:100%;height:auto;max-height:none}
  .approvedHot{border-radius:10px}
+ /* Mobile hotspot map for the approved portrait hero asset. */
+ .approvedHot.livepill{left:83.8%;top:1.2%;width:13.6%;height:4.2%}
+ .approvedHot.explore{left:3.8%;top:41.1%;width:25.7%;height:5.3%}
+ .approvedHot.intro{left:31.1%;top:41.1%;width:20.7%;height:5.3%}
+ .approvedHot.radio{left:1.5%;top:57.3%;width:97%;height:15.7%}
+ .approvedHot.arcade{left:3.1%;top:75.0%;width:29.5%;height:22.3%}
+ .approvedHot.foundry{left:35.1%;top:75.0%;width:29.8%;height:22.3%}
+ .approvedHot.commission{left:67.4%;top:75.0%;width:29.4%;height:22.3%}
 }
 @media(prefers-reduced-motion:reduce){.approvedHot{transition:none}}
 
@@ -333,7 +317,7 @@ body.homeGatewayOnly main>section.approvedHome:not(#home){display:block!importan
 }
 
 </style><script defer src="/assets/traffic.js"></script></head><body class="homeGatewayOnly"><main><section class="approvedHome" aria-label="JakeAI Universe with KJAI Radio live">
-<img class="approvedHomeVisual" src="/assets/kjai-home-approved.png" alt="JakeAI Universe homepage featuring KJAI Radio live, Arcade, Foundry and Commission Bay">
+<picture class="approvedHomePicture"><source media="(max-width:760px)" srcset="/assets/kjai-home-mobile-approved.webp"><img class="approvedHomeVisual" src="/assets/kjai-home-approved.png" alt="JakeAI Universe homepage featuring KJAI Radio live, Arcade, Foundry and Commission Bay"></picture>
 <a class="approvedHot livepill" href="/radio/" aria-label="Listen to KJAI Radio live"></a>
 <a class="approvedHot radio" href="/radio/" aria-label="Open KJAI Radio"></a>
 <a class="approvedHot arcade" href="/arcade/" aria-label="Open JakeAI Arcade"></a>
