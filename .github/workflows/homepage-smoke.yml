@@ -1,0 +1,156 @@
+name: Homepage smoke test
+
+on:
+  pull_request:
+    branches: [main]
+    paths:
+      - 'index.html'
+      - 'assets/**'
+      - '.github/workflows/homepage-smoke.yml'
+  workflow_dispatch:
+
+jobs:
+  homepage-smoke:
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    steps:
+      - name: Check out candidate
+        uses: actions/checkout@v4
+
+      - name: Validate homepage image files
+        shell: bash
+        run: |
+          set -euo pipefail
+          python3 -m pip install --quiet pillow beautifulsoup4
+          python3 - <<'PY'
+          from pathlib import Path
+          from bs4 import BeautifulSoup
+          from PIL import Image
+
+          root = Path('.')
+          html = Path('index.html').read_text(encoding='utf-8')
+          soup = BeautifulSoup(html, 'html.parser')
+
+          candidates = set()
+          for tag in soup.find_all(['img','source']):
+              for attr in ('src','srcset'):
+                  raw = tag.get(attr)
+                  if not raw:
+                      continue
+                  for entry in raw.split(','):
+                      value = entry.strip().split()[0]
+                      if value.startswith('/assets/'):
+                          candidates.add(value.lstrip('/'))
+
+          missing = []
+          broken = []
+          for rel in sorted(candidates):
+              p = root / rel
+              if not p.exists():
+                  missing.append(rel)
+                  continue
+              if p.suffix.lower() in {'.png','.jpg','.jpeg','.webp'}:
+                  try:
+                      with Image.open(p) as im:
+                          im.verify()
+                  except Exception as exc:
+                      broken.append(f"{rel}: {exc}")
+
+          if missing or broken:
+              print('Missing:', missing)
+              print('Broken:', broken)
+              raise SystemExit(1)
+
+          print(f'Validated {len(candidates)} local homepage assets.')
+          PY
+
+      - name: Start static server
+        shell: bash
+        run: |
+          python3 -m http.server 4173 >/tmp/jakeai-http.log 2>&1 &
+          echo $! > /tmp/jakeai-http.pid
+          sleep 2
+          curl --fail http://127.0.0.1:4173/ >/dev/null
+
+      - name: Install Playwright
+        shell: bash
+        run: |
+          npm init -y >/dev/null 2>&1
+          npm install --silent playwright@1.55.0
+          npx playwright install --with-deps chromium >/dev/null
+
+      - name: Render mobile and desktop
+        shell: bash
+        run: |
+          mkdir -p homepage-smoke
+          node <<'JS'
+          const { chromium } = require('playwright');
+
+          (async () => {
+            const browser = await chromium.launch({headless:true});
+            for (const viewport of [
+              {name:'mobile-390', width:390, height:844},
+              {name:'mobile-412', width:412, height:915},
+              {name:'desktop-1440', width:1440, height:1000}
+            ]) {
+              const page = await browser.newPage({viewport:{width:viewport.width,height:viewport.height}});
+              await page.goto('http://127.0.0.1:4173/', {waitUntil:'networkidle'});
+
+              const result = await page.evaluate(() => {
+                const brokenImages = [...document.images]
+                  .filter(img => !img.complete || img.naturalWidth === 0)
+                  .map(img => img.getAttribute('src') || '(no src)');
+
+                const required = {
+                  hero: !!document.querySelector('.approvedHomeVisual'),
+                  intro: !!document.querySelector('.js-watch-intro'),
+                  radio: !!document.querySelector('.approvedHot.radio'),
+                  arcade: !!document.querySelector('.approvedHot.arcade'),
+                  foundry: !!document.querySelector('.approvedHot.foundry'),
+                  commission: !!document.querySelector('.approvedHot.commission')
+                };
+
+                return {
+                  brokenImages,
+                  required,
+                  overflow: document.documentElement.scrollWidth - window.innerWidth
+                };
+              });
+
+              if (result.brokenImages.length) {
+                throw new Error(viewport.name + ' broken images: ' + result.brokenImages.join(', '));
+              }
+              for (const [key, present] of Object.entries(result.required)) {
+                if (!present) throw new Error(viewport.name + ' missing required homepage control: ' + key);
+              }
+              if (result.overflow > 2) {
+                throw new Error(viewport.name + ' horizontal overflow: ' + result.overflow + 'px');
+              }
+
+              if (viewport.name.startsWith('mobile')) {
+                await page.locator('.js-watch-intro').click();
+                const open = await page.locator('#jakeaiIntroModal.open').count();
+                if (!open) throw new Error(viewport.name + ' WATCH INTRO did not open modal');
+                await page.keyboard.press('Escape');
+              }
+
+              await page.screenshot({
+                path:'homepage-smoke/' + viewport.name + '.png',
+                fullPage:true
+              });
+              await page.close();
+            }
+            await browser.close();
+          })().catch(err => {
+            console.error(err);
+            process.exit(1);
+          });
+          JS
+
+      - name: Upload visual proof
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: homepage-smoke-screenshots
+          path: homepage-smoke/
+          if-no-files-found: warn
