@@ -1,7 +1,7 @@
 {
   "schema_version": "1.0",
   "factory_id": "JAI-BOOK-FACTORY-001",
-  "generated_at": "2026-09-24",
+  "generated_at": "2026-09-25",
   "territory": "United States",
   "policy": {
     "fail_closed": true,
@@ -35,6 +35,12 @@
       ],
       "release_requirement": "No full-text or paid edition may release unless the canonical source is locked and all production text reconstructs exactly to the canonical bytes.",
       "narration_requirement": "Narration input must be drawn directly from the immutable canonical text; no rewritten narration script."
+    },
+    "rights_evidence": {
+      "territory": "United States",
+      "legal_baseline": "U.S. Copyright Office Circular 15A: works published in the United States before January 1, 1931 are in the public domain.",
+      "source_policy": "Use only exact source ebooks whose current Project Gutenberg catalog/embedded license marks the work unrestricted/public-domain in the USA. Strip Project Gutenberg trademark/license wrapper before commercial JakeAI edition production.",
+      "international_release": "blocked_pending_country_specific_clearance"
     }
   },
   "jobs": [
@@ -228,270 +234,390 @@
       "id": "JAE-WARW-001",
       "title": "The War of the Worlds",
       "author": "H. G. Wells",
-      "stage": "candidate",
-      "rights": "pending",
-      "source_type": null,
-      "source_id": null,
-      "source_url": null,
-      "source_rights_statement": null,
+      "stage": "rights_verified",
+      "rights": "green",
+      "source_type": "Project Gutenberg text",
+      "source_id": "36",
+      "source_url": "https://www.gutenberg.org/ebooks/36",
+      "source_rights_statement": "Public domain in the USA",
       "release": "not_published",
       "paid_release": false,
       "text_lock": {
         "status": "pending",
         "comparison": "exact_bytes",
         "normalization": "none"
+      },
+      "source_asset_policy": "Text-only source. Strip the Project Gutenberg wrapper/trademark/license before canonical lock; do not import third-party illustrations, introductions, annotations, alternate translations, recordings, or supplemental material without separate clearance.",
+      "rights_evidence": {
+        "verified_on": "2026-09-25",
+        "territory": "United States",
+        "source_catalog_status": "Public domain in the USA",
+        "source_url": "https://www.gutenberg.org/ebooks/36",
+        "note": "Project Gutenberg catalog explicitly marks this exact ebook Public domain in the USA."
       }
     },
     {
       "id": "JAE-INVIS-001",
       "title": "The Invisible Man",
       "author": "H. G. Wells",
-      "stage": "candidate",
-      "rights": "pending",
-      "source_type": null,
-      "source_id": null,
-      "source_url": null,
-      "source_rights_statement": null,
+      "stage": "rights_verified",
+      "rights": "green",
+      "source_type": "Project Gutenberg text",
+      "source_id": "5230",
+      "source_url": "https://www.gutenberg.org/ebooks/5230",
+      "source_rights_statement": "Public domain in the USA",
       "release": "not_published",
       "paid_release": false,
       "text_lock": {
         "status": "pending",
         "comparison": "exact_bytes",
         "normalization": "none"
+      },
+      "source_asset_policy": "Text-only source. Strip the Project Gutenberg wrapper/trademark/license before canonical lock; do not import third-party illustrations, introductions, annotations, alternate translations, recordings, or supplemental material without separate clearance.",
+      "rights_evidence": {
+        "verified_on": "2026-09-25",
+        "territory": "United States",
+        "source_catalog_status": "Public domain in the USA",
+        "source_url": "https://www.gutenberg.org/ebooks/5230",
+        "note": "Project Gutenberg catalog explicitly marks this exact ebook Public domain in the USA."
       }
     },
     {
       "id": "JAE-OZ-001",
       "title": "The Wonderful Wizard of Oz",
       "author": "L. Frank Baum",
-      "stage": "candidate",
-      "rights": "pending",
-      "source_type": null,
-      "source_id": null,
-      "source_url": null,
-      "source_rights_statement": null,
+      "stage": "rights_verified",
+      "rights": "green",
+      "source_type": "Project Gutenberg text",
+      "source_id": "55",
+      "source_url": "https://www.gutenberg.org/ebooks/55",
+      "source_rights_statement": "Public domain in the USA",
       "release": "not_published",
       "paid_release": false,
       "text_lock": {
         "status": "pending",
         "comparison": "exact_bytes",
         "normalization": "none"
+      },
+      "source_asset_policy": "Text-only source. Strip the Project Gutenberg wrapper/trademark/license before canonical lock; do not import third-party illustrations, introductions, annotations, alternate translations, recordings, or supplemental material without separate clearance.",
+      "rights_evidence": {
+        "verified_on": "2026-09-25",
+        "territory": "United States",
+        "source_catalog_status": "Public domain in the USA",
+        "source_url": "https://www.gutenberg.org/ebooks/55",
+        "note": "Project Gutenberg ebook #55 explicitly marked Public domain in the USA. Use text-only source; do not import alternate improved-edition illustrations."
       }
     },
     {
       "id": "JAE-WIND-001",
       "title": "The Wind in the Willows",
       "author": "Kenneth Grahame",
-      "stage": "candidate",
-      "rights": "pending",
-      "source_type": null,
-      "source_id": null,
-      "source_url": null,
-      "source_rights_statement": null,
+      "stage": "rights_verified",
+      "rights": "green",
+      "source_type": "Project Gutenberg text",
+      "source_id": "27805",
+      "source_url": "https://www.gutenberg.org/ebooks/27805",
+      "source_rights_statement": "Public domain in the USA",
       "release": "not_published",
       "paid_release": false,
       "text_lock": {
         "status": "pending",
         "comparison": "exact_bytes",
         "normalization": "none"
+      },
+      "source_asset_policy": "Text-only source. Strip the Project Gutenberg wrapper/trademark/license before canonical lock; do not import third-party illustrations, introductions, annotations, alternate translations, recordings, or supplemental material without separate clearance.",
+      "rights_evidence": {
+        "verified_on": "2026-09-25",
+        "territory": "United States",
+        "source_catalog_status": "Public domain in the USA",
+        "source_url": "https://www.gutenberg.org/ebooks/27805",
+        "note": "Project Gutenberg catalog explicitly marks this exact ebook Public domain in the USA. Use text-only source; do not import illustrator assets."
       }
     },
     {
       "id": "JAE-SECRET-001",
       "title": "The Secret Garden",
       "author": "Frances Hodgson Burnett",
-      "stage": "candidate",
-      "rights": "pending",
-      "source_type": null,
-      "source_id": null,
-      "source_url": null,
-      "source_rights_statement": null,
+      "stage": "rights_verified",
+      "rights": "green",
+      "source_type": "Project Gutenberg text",
+      "source_id": "113",
+      "source_url": "https://www.gutenberg.org/ebooks/113",
+      "source_rights_statement": "Public domain in the USA",
       "release": "not_published",
       "paid_release": false,
       "text_lock": {
         "status": "pending",
         "comparison": "exact_bytes",
         "normalization": "none"
+      },
+      "source_asset_policy": "Text-only source. Strip the Project Gutenberg wrapper/trademark/license before canonical lock; do not import third-party illustrations, introductions, annotations, alternate translations, recordings, or supplemental material without separate clearance.",
+      "rights_evidence": {
+        "verified_on": "2026-09-25",
+        "territory": "United States",
+        "source_catalog_status": "Public domain in the USA",
+        "source_url": "https://www.gutenberg.org/ebooks/113",
+        "note": "Project Gutenberg catalog explicitly marks this exact ebook Public domain in the USA."
       }
     },
     {
       "id": "JAE-PETER-001",
       "title": "Peter Pan",
       "author": "J. M. Barrie",
-      "stage": "candidate",
-      "rights": "pending",
-      "source_type": null,
-      "source_id": null,
-      "source_url": null,
-      "source_rights_statement": null,
+      "stage": "rights_verified",
+      "rights": "green",
+      "source_type": "Project Gutenberg text",
+      "source_id": "16",
+      "source_url": "https://www.gutenberg.org/ebooks/16",
+      "source_rights_statement": "Public domain in the USA",
       "release": "not_published",
       "paid_release": false,
       "text_lock": {
         "status": "pending",
         "comparison": "exact_bytes",
         "normalization": "none"
+      },
+      "source_asset_policy": "Text-only source. Strip the Project Gutenberg wrapper/trademark/license before canonical lock; do not import third-party illustrations, introductions, annotations, alternate translations, recordings, or supplemental material without separate clearance.",
+      "rights_evidence": {
+        "verified_on": "2026-09-25",
+        "territory": "United States",
+        "source_catalog_status": "Public domain in the USA",
+        "source_url": "https://www.gutenberg.org/ebooks/16",
+        "note": "Project Gutenberg catalog explicitly marks this exact ebook Public domain in the USA. Territory remains United States only; Peter Pan has a special perpetual UK statutory royalty right for publications/performances."
       }
     },
     {
       "id": "JAE-CALL-001",
       "title": "The Call of the Wild",
       "author": "Jack London",
-      "stage": "candidate",
-      "rights": "pending",
-      "source_type": null,
-      "source_id": null,
-      "source_url": null,
-      "source_rights_statement": null,
+      "stage": "rights_verified",
+      "rights": "green",
+      "source_type": "Project Gutenberg text",
+      "source_id": "215",
+      "source_url": "https://www.gutenberg.org/ebooks/215",
+      "source_rights_statement": "Public domain in the USA",
       "release": "not_published",
       "paid_release": false,
       "text_lock": {
         "status": "pending",
         "comparison": "exact_bytes",
         "normalization": "none"
+      },
+      "source_asset_policy": "Text-only source. Strip the Project Gutenberg wrapper/trademark/license before canonical lock; do not import third-party illustrations, introductions, annotations, alternate translations, recordings, or supplemental material without separate clearance.",
+      "rights_evidence": {
+        "verified_on": "2026-09-25",
+        "territory": "United States",
+        "source_catalog_status": "Public domain in the USA",
+        "source_url": "https://www.gutenberg.org/ebooks/215",
+        "note": "Project Gutenberg catalog explicitly marks this exact ebook Public domain in the USA."
       }
     },
     {
       "id": "JAE-JUNGLE-001",
       "title": "The Jungle Book",
       "author": "Rudyard Kipling",
-      "stage": "candidate",
-      "rights": "pending",
-      "source_type": null,
-      "source_id": null,
-      "source_url": null,
-      "source_rights_statement": null,
+      "stage": "rights_verified",
+      "rights": "green",
+      "source_type": "Project Gutenberg text",
+      "source_id": "236",
+      "source_url": "https://www.gutenberg.org/ebooks/236",
+      "source_rights_statement": "Public domain in the USA",
       "release": "not_published",
       "paid_release": false,
       "text_lock": {
         "status": "pending",
         "comparison": "exact_bytes",
         "normalization": "none"
+      },
+      "source_asset_policy": "Text-only source. Strip the Project Gutenberg wrapper/trademark/license before canonical lock; do not import third-party illustrations, introductions, annotations, alternate translations, recordings, or supplemental material without separate clearance.",
+      "rights_evidence": {
+        "verified_on": "2026-09-25",
+        "territory": "United States",
+        "source_catalog_status": "Public domain in the USA",
+        "source_url": "https://www.gutenberg.org/ebooks/236",
+        "note": "Project Gutenberg catalog explicitly marks this exact ebook Public domain in the USA."
       }
     },
     {
       "id": "JAE-HOUND-001",
       "title": "The Hound of the Baskervilles",
       "author": "Arthur Conan Doyle",
-      "stage": "candidate",
-      "rights": "pending",
-      "source_type": null,
-      "source_id": null,
-      "source_url": null,
-      "source_rights_statement": null,
+      "stage": "rights_verified",
+      "rights": "green",
+      "source_type": "Project Gutenberg text",
+      "source_id": "2852",
+      "source_url": "https://www.gutenberg.org/ebooks/2852",
+      "source_rights_statement": "Public domain in the USA",
       "release": "not_published",
       "paid_release": false,
       "text_lock": {
         "status": "pending",
         "comparison": "exact_bytes",
         "normalization": "none"
+      },
+      "source_asset_policy": "Text-only source. Strip the Project Gutenberg wrapper/trademark/license before canonical lock; do not import third-party illustrations, introductions, annotations, alternate translations, recordings, or supplemental material without separate clearance.",
+      "rights_evidence": {
+        "verified_on": "2026-09-25",
+        "territory": "United States",
+        "source_catalog_status": "Public domain in the USA",
+        "source_url": "https://www.gutenberg.org/ebooks/2852",
+        "note": "Project Gutenberg catalog explicitly marks this exact ebook Public domain in the USA."
       }
     },
     {
       "id": "JAE-EIGHTY-001",
       "title": "Around the World in Eighty Days",
       "author": "Jules Verne",
-      "stage": "candidate",
-      "rights": "pending",
-      "source_type": null,
-      "source_id": null,
-      "source_url": null,
-      "source_rights_statement": null,
+      "stage": "rights_verified",
+      "rights": "green",
+      "source_type": "Project Gutenberg text",
+      "source_id": "103",
+      "source_url": "https://www.gutenberg.org/ebooks/103",
+      "source_rights_statement": "Public domain in the USA",
       "release": "not_published",
       "paid_release": false,
       "text_lock": {
         "status": "pending",
         "comparison": "exact_bytes",
         "normalization": "none"
+      },
+      "source_asset_policy": "Text-only source. Strip the Project Gutenberg wrapper/trademark/license before canonical lock; do not import third-party illustrations, introductions, annotations, alternate translations, recordings, or supplemental material without separate clearance.",
+      "rights_evidence": {
+        "verified_on": "2026-09-25",
+        "territory": "United States",
+        "source_catalog_status": "Public domain in the USA",
+        "source_url": "https://www.gutenberg.org/ebooks/103",
+        "note": "Project Gutenberg catalog explicitly marks this exact English ebook Public domain in the USA; translator listed as George M. Towle."
       }
     },
     {
       "id": "JAE-LEAGUES-001",
       "title": "Twenty Thousand Leagues under the Sea",
       "author": "Jules Verne",
-      "stage": "candidate",
-      "rights": "pending",
-      "source_type": null,
-      "source_id": null,
-      "source_url": null,
-      "source_rights_statement": null,
+      "stage": "rights_verified",
+      "rights": "green",
+      "source_type": "Project Gutenberg text",
+      "source_id": "164",
+      "source_url": "https://www.gutenberg.org/ebooks/164",
+      "source_rights_statement": "Public domain in the USA",
       "release": "not_published",
       "paid_release": false,
       "text_lock": {
         "status": "pending",
         "comparison": "exact_bytes",
         "normalization": "none"
+      },
+      "source_asset_policy": "Text-only source. Strip the Project Gutenberg wrapper/trademark/license before canonical lock; do not import third-party illustrations, introductions, annotations, alternate translations, recordings, or supplemental material without separate clearance.",
+      "rights_evidence": {
+        "verified_on": "2026-09-25",
+        "territory": "United States",
+        "source_catalog_status": "Public domain in the USA",
+        "source_url": "https://www.gutenberg.org/ebooks/164",
+        "note": "Project Gutenberg catalog explicitly marks this exact English ebook Public domain in the USA. Translator is not named in current catalog metadata; use only ebook #164 text and do not substitute copyrighted Frederick Paul Walter translation ebook #2488."
       }
     },
     {
       "id": "JAE-CAROL-001",
       "title": "A Christmas Carol",
       "author": "Charles Dickens",
-      "stage": "candidate",
-      "rights": "pending",
-      "source_type": null,
-      "source_id": null,
-      "source_url": null,
-      "source_rights_statement": null,
+      "stage": "rights_verified",
+      "rights": "green",
+      "source_type": "Project Gutenberg text",
+      "source_id": "46",
+      "source_url": "https://www.gutenberg.org/ebooks/46",
+      "source_rights_statement": "Public domain in the USA",
       "release": "not_published",
       "paid_release": false,
       "text_lock": {
         "status": "pending",
         "comparison": "exact_bytes",
         "normalization": "none"
+      },
+      "source_asset_policy": "Text-only source. Strip the Project Gutenberg wrapper/trademark/license before canonical lock; do not import third-party illustrations, introductions, annotations, alternate translations, recordings, or supplemental material without separate clearance.",
+      "rights_evidence": {
+        "verified_on": "2026-09-25",
+        "territory": "United States",
+        "source_catalog_status": "Public domain in the USA",
+        "source_url": "https://www.gutenberg.org/ebooks/46",
+        "note": "Project Gutenberg ebook #46 explicitly marked Public domain in the USA. Use text-only source; exclude illustration assets and other alternate editions."
       }
     },
     {
       "id": "JAE-SLEEPY-001",
       "title": "The Legend of Sleepy Hollow",
       "author": "Washington Irving",
-      "stage": "candidate",
-      "rights": "pending",
-      "source_type": null,
-      "source_id": null,
-      "source_url": null,
-      "source_rights_statement": null,
+      "stage": "rights_verified",
+      "rights": "green",
+      "source_type": "Project Gutenberg text",
+      "source_id": "41",
+      "source_url": "https://www.gutenberg.org/ebooks/41",
+      "source_rights_statement": "Public domain in the USA",
       "release": "not_published",
       "paid_release": false,
       "text_lock": {
         "status": "pending",
         "comparison": "exact_bytes",
         "normalization": "none"
+      },
+      "source_asset_policy": "Text-only source. Strip the Project Gutenberg wrapper/trademark/license before canonical lock; do not import third-party illustrations, introductions, annotations, alternate translations, recordings, or supplemental material without separate clearance.",
+      "rights_evidence": {
+        "verified_on": "2026-09-25",
+        "territory": "United States",
+        "source_catalog_status": "Public domain in the USA",
+        "source_url": "https://www.gutenberg.org/ebooks/41",
+        "note": "Project Gutenberg catalog explicitly marks this exact ebook Public domain in the USA."
       }
     },
     {
       "id": "JAE-LITTLE-001",
       "title": "Little Women",
       "author": "Louisa May Alcott",
-      "stage": "candidate",
-      "rights": "pending",
-      "source_type": null,
-      "source_id": null,
-      "source_url": null,
-      "source_rights_statement": null,
+      "stage": "rights_verified",
+      "rights": "green",
+      "source_type": "Project Gutenberg text",
+      "source_id": "514",
+      "source_url": "https://www.gutenberg.org/ebooks/514",
+      "source_rights_statement": "Public domain in the USA",
       "release": "not_published",
       "paid_release": false,
       "text_lock": {
         "status": "pending",
         "comparison": "exact_bytes",
         "normalization": "none"
+      },
+      "source_asset_policy": "Text-only source. Strip the Project Gutenberg wrapper/trademark/license before canonical lock; do not import third-party illustrations, introductions, annotations, alternate translations, recordings, or supplemental material without separate clearance.",
+      "rights_evidence": {
+        "verified_on": "2026-09-25",
+        "territory": "United States",
+        "source_catalog_status": "Public domain in the USA",
+        "source_url": "https://www.gutenberg.org/ebooks/514",
+        "note": "Project Gutenberg ebook #514 explicitly marked Public domain in the USA. Use text-only source; do not import alternate illustrated edition #37106."
       }
     },
     {
       "id": "JAE-ANNE-001",
       "title": "Anne of Green Gables",
       "author": "L. M. Montgomery",
-      "stage": "candidate",
-      "rights": "pending",
-      "source_type": null,
-      "source_id": null,
-      "source_url": null,
-      "source_rights_statement": null,
+      "stage": "rights_verified",
+      "rights": "green",
+      "source_type": "Project Gutenberg text",
+      "source_id": "45",
+      "source_url": "https://www.gutenberg.org/ebooks/45",
+      "source_rights_statement": "Public domain in the USA",
       "release": "not_published",
       "paid_release": false,
       "text_lock": {
         "status": "pending",
         "comparison": "exact_bytes",
         "normalization": "none"
+      },
+      "source_asset_policy": "Text-only source. Strip the Project Gutenberg wrapper/trademark/license before canonical lock; do not import third-party illustrations, introductions, annotations, alternate translations, recordings, or supplemental material without separate clearance.",
+      "rights_evidence": {
+        "verified_on": "2026-09-25",
+        "territory": "United States",
+        "source_catalog_status": "Public domain in the USA",
+        "source_url": "https://www.gutenberg.org/ebooks/45",
+        "note": "Project Gutenberg catalog explicitly marks this exact ebook Public domain in the USA."
       }
     }
   ]
