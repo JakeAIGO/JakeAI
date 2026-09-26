@@ -27,7 +27,7 @@ button{border:1px solid #4b3466;border-radius:13px;background:linear-gradient(#1
 #flash{position:absolute;z-index:7;inset:0;pointer-events:none;opacity:0;background:#fff;mix-blend-mode:screen;transition:opacity .08s}
 @media(max-width:520px){#controls{height:116px}.drive{grid-template-columns:1fr 1fr}.guns{grid-template-columns:1.08fr 1fr 1fr}button{font-size:9px}#hud{font-size:8px}#progressWrap{left:11%;right:11%}}
 .exit{position:fixed;z-index:20;right:10px;top:64px;padding:7px 10px;border:1px solid #26f7ff66;border-radius:999px;background:#05030acc;color:#bdf7ff;text-decoration:none;font:800 9px monospace;letter-spacing:.12em;backdrop-filter:blur(6px)}</style></head><body><a class="exit" href="/arcade/console-corner/?ejected=1">⏏ EJECT</a><div id="app">
-<header><h1>GRAVITY SIX<small>JAKEAI CARTRIDGE SYSTEM</small></h1><div class="tag">CARTRIDGE 03 · BUILD 1.0</div></header>
+<header><h1>GRAVITY SIX<small>JAKEAI CARTRIDGE SYSTEM</small></h1><div class="tag">CARTRIDGE 03 · BUILD 1.1</div></header>
 <div id="stage"><canvas id="c" width="900" height="1280"></canvas>
 <div id="hud"><span>SCORE <b id="score">000000</b></span><span>ZONE <b id="zone">01</b>/05</span><span>HULL <b id="hull">100</b> · BOOST <b id="boost">100</b></span></div>
 <div id="zoneName">LUNAR FRONTIER</div><div id="objective">SURVIVE · MASTER THE SIX-WHEEL ROVER</div><div id="combo">CHAIN x1</div><div id="progressWrap"><i id="progress"></i></div><div id="banner"></div><div id="flash"></div>
@@ -45,8 +45,7 @@ function fitCanvas(){
   C.width=W;C.height=H;
   if(run&&terrain.length){const delta=(H-oldH)*.72;for(const p of terrain)p.y+=delta;P.y+=delta}
 }
-addEventListener('resize',()=>{fitCanvas();draw()});
-requestAnimationFrame(()=>{fitCanvas();draw()});
+addEventListener('resize',()=>{fitCanvas();if(terrain.length)draw()});
 const U={score:q('#score'),zone:q('#zone'),hull:q('#hull'),boost:q('#boost'),zoneName:q('#zoneName'),objective:q('#objective'),banner:q('#banner'),combo:q('#combo'),progress:q('#progress'),flash:q('#flash')};function q(s){return document.querySelector(s)}
 let K={},run=false,last=0,t=0,scroll=0,score=0,zone=1,terrain=[],haz=[],drones=[],turrets=[],shots=[],upshots=[],cores=[],fx=[],spawn=0,airT=0,turretT=4,coreT=5;
 let distance=0,combo=1,comboTimer=0,maxCombo=1,kills=0,coresN=0,bestAir=0,shake=0,flashT=0,wasBoosting=false,musicT=0,musicStep=0,AC=null,soundOn=true;
@@ -66,7 +65,12 @@ function sfx(k){if(k==='fire')tone(260,.035,'square',.012,90);else if(k==='up')t
 function music(dt){if(!AC||!soundOn||!run)return;musicT-=dt;if(musicT<=0){musicT=.31;let seq=[110,0,147,0,165,0,147,196,0,147,0,220,0,165,147,0],f=seq[musicStep++%seq.length];if(f)tone(f,.07,'triangle',.006,0)}}
 function award(base,chain=true){if(chain){combo=comboTimer>0?Math.min(5,combo+1):1;comboTimer=2.35;maxCombo=Math.max(maxCombo,combo)}score+=Math.round(base*combo)}
 function pulse(color='#fff',amount=1){flashT=Math.max(flashT,.09*amount);U.flash.style.background=color;U.flash.style.opacity=.18*amount;shake=Math.max(shake,3.5*amount)}
-function gy(px){let world=px+scroll,idx=Math.floor(world/80)%terrain.length,j=(idx+1)%terrain.length,a=(world%80)/80;return terrain[idx].y*(1-a)+terrain[j].y*a}
+function gy(px){
+ if(!terrain.length)return H*.68;
+ let world=Math.max(0,px+scroll),idx=Math.floor(world/80)%terrain.length,j=(idx+1)%terrain.length,a=(world%80)/80;
+ const a0=terrain[idx]?.y??H*.68,b0=terrain[j]?.y??a0;
+ return a0*(1-a)+b0*a
+}
 function boom(px,py,n=14,c=0){for(let i=0;i<n;i++)fx.push({x:px,y:py,vx:rnd(-4,4),vy:rnd(-5,2),life:rnd(.25,.75),s:rnd(2,5),c})}
 function jump(){if(P.on){P.vy=-790;P.on=false;P.air=0;sfx('jump')}}
 function fire(){if(P.cd>0)return;shots.push({x:P.x+46,y:P.y-24});P.cd=.145;sfx('fire')}
@@ -79,7 +83,7 @@ t+=dt;P.cd-=dt;P.ucd-=dt;P.inv-=dt;comboTimer-=dt;shake=Math.max(0,shake-dt*18);
 let boosting=K.ArrowUp&&P.boost>0;if(boosting&&!wasBoosting)sfx('boost');wasBoosting=boosting;if(boosting){P.speed+=dt*.75;P.boost-=dt*20}else P.boost=Math.min(100,P.boost+dt*7);
 if(K.ArrowDown)P.speed-=dt*.8;else if(!boosting)P.speed+=dt*.12;P.speed=clamp(P.speed,.58,1.65);
 let step=dt*305*P.speed;scroll+=step;distance+=step;score+=dt*74*P.speed;P.wheel+=dt*P.speed*9;
-let oldZone=zone;zone=Math.min(5,1+Math.floor(distance/zoneLength));if(zone!==oldZone){P.hull=Math.min(100,P.hull+18);P.boost=100;award(400,false);U.objective.textContent=objectives[zone-1];say('SECTOR '+zone+' — '+zones[zone-1]+' · SYSTEMS RECHARGED');sfx('checkpoint');pulse('#26f7ff',.8)}
+let oldZone=zone;zone=clamp(1+Math.floor(distance/zoneLength),1,5);if(zone!==oldZone){P.hull=Math.min(100,P.hull+18);P.boost=100;award(400,false);U.objective.textContent=objectives[zone-1];say('SECTOR '+zone+' — '+zones[zone-1]+' · SYSTEMS RECHARGED');sfx('checkpoint');pulse('#26f7ff',.8)}
 if(distance>=missionLength){award(1500,false);victory();return}
 let g=gy(P.x)-44;P.vy+=1720*dt;P.y+=P.vy*dt;if(!P.on)P.air+=dt;
 if(P.y>=g){if(!P.on&&P.air>.52){bestAir=Math.max(bestAir,P.air);let bonus=Math.floor(P.air*260);award(bonus,true);say('AIRTIME '+P.air.toFixed(1)+'s · CHAIN x'+combo)}P.y=g;P.vy=0;P.on=true}else P.on=false;
@@ -100,19 +104,19 @@ U.score.textContent=String(Math.floor(score)).padStart(6,'0');U.zone.textContent
 function buggy(){
 x.save();x.translate(P.x,P.y);
 let bob=P.on?Math.sin(P.wheel)*2:0;x.translate(0,bob);
-x.fillStyle='#dfe6ed';x.beginPath();x.roundRect(-40,-31,78,30,5);x.fill();x.fillStyle='#8b5cf6';x.beginPath();x.roundRect(-8,-51,37,21,4);x.fill();
-x.fillStyle='#26f7ff';x.fillRect(20,-47,10,6);x.strokeStyle='#ffcc4d';x.lineWidth=3;x.beginPath();x.moveTo(29,-34);x.lineTo(53,-47);x.stroke();x.strokeStyle='#d6c9ef';x.lineWidth=2;x.beginPath();x.moveTo(-27,-2);x.lineTo(-27,7);x.moveTo(0,-2);x.lineTo(0,7);x.moveTo(27,-2);x.lineTo(27,7);x.stroke();x.strokeStyle='#8b5cf6';x.beginPath();x.moveTo(-30,-30);x.lineTo(-38,-55);x.stroke();x.fillStyle='#26f7ff';x.beginPath();x.arc(-38,-57,3,0,Math.PI*2);x.fill();
-for(const wx of [-27,0,27]){x.fillStyle='#14111b';x.beginPath();x.arc(wx,7,14,0,Math.PI*2);x.fill();x.strokeStyle='#ab98c8';x.lineWidth=4;x.stroke();x.strokeStyle='#57466d';x.lineWidth=2;x.beginPath();x.moveTo(wx-8,0);x.lineTo(wx+8,14);x.moveTo(wx+8,0);x.lineTo(wx-8,14);x.stroke()}
+x.shadowBlur=18;x.shadowColor='#26f7ff';x.fillStyle='#f4f8ff';x.beginPath();x.roundRect(-52,-39,102,38,7);x.fill();x.shadowBlur=0;x.fillStyle='#8b5cf6';x.beginPath();x.roundRect(-10,-65,48,27,5);x.fill();
+x.fillStyle='#26f7ff';x.fillRect(24,-59,13,8);x.strokeStyle='#ffcc4d';x.lineWidth=4;x.beginPath();x.moveTo(35,-42);x.lineTo(68,-59);x.stroke();x.strokeStyle='#d6c9ef';x.lineWidth=2;x.beginPath();x.moveTo(-27,-2);x.lineTo(-27,7);x.moveTo(0,-2);x.lineTo(0,7);x.moveTo(27,-2);x.lineTo(27,7);x.stroke();x.strokeStyle='#8b5cf6';x.beginPath();x.moveTo(-30,-30);x.lineTo(-38,-55);x.stroke();x.fillStyle='#26f7ff';x.beginPath();x.arc(-38,-57,3,0,Math.PI*2);x.fill();
+for(const wx of [-36,0,36]){x.fillStyle='#14111b';x.beginPath();x.arc(wx,9,18,0,Math.PI*2);x.fill();x.strokeStyle='#ab98c8';x.lineWidth=5;x.stroke();x.strokeStyle='#57466d';x.lineWidth=2;x.beginPath();x.moveTo(wx-8,0);x.lineTo(wx+8,14);x.moveTo(wx+8,0);x.lineTo(wx-8,14);x.stroke()}
 x.restore()
 }
 function draw(){
 x.clearRect(0,0,W,H);x.save();if(shake>0)x.translate(rnd(-shake,shake),rnd(-shake,shake));
-let zi=(zone-1)%5,sky=['#050716','#10071c','#07111b','#050611','#140716'][zi],ground=['#66506f','#75536d','#5d6376','#42404d','#7b5060'][zi];
+let zi=clamp(zone-1,0,4),sky=['#050716','#10071c','#07111b','#050611','#140716'][zi],ground=['#66506f','#75536d','#5d6376','#42404d','#7b5060'][zi];
 let bg=x.createLinearGradient(0,0,0,H);bg.addColorStop(0,sky);bg.addColorStop(.72,'#1b1029');bg.addColorStop(1,'#26132f');x.fillStyle=bg;x.fillRect(0,0,W,H);
 x.fillStyle='#fff';for(let i=0;i<90;i++){let sx=(i*151-scroll*.07)%W;if(sx<0)sx+=W;x.globalAlpha=.2+(i%5)*.12;x.fillRect(sx,(i*73)%520,1+(i%4===0),1)}x.globalAlpha=1;
 x.fillStyle='#6fa7d833';x.beginPath();x.arc(W*.82,H*.12,Math.min(84,H*.065),0,Math.PI*2);x.fill();x.strokeStyle='#b6dfff55';x.lineWidth=3;x.stroke();
-x.fillStyle='#23163a';x.beginPath();x.moveTo(0,H*.60);for(let i=0;i<=W;i+=80)x.lineTo(i,H*.55+Math.sin((i+scroll*.11)*.01)*45);x.lineTo(W,H);x.lineTo(0,H);x.fill();
-x.fillStyle='#372345';x.beginPath();x.moveTo(0,H*.67);for(let i=0;i<=W;i+=60)x.lineTo(i,H*.62+Math.sin((i+scroll*.24)*.013)*32);x.lineTo(W,H);x.lineTo(0,H);x.fill();
+x.fillStyle='#23163a';x.beginPath();x.moveTo(0,H*.54);for(let i=0;i<=W;i+=80)x.lineTo(i,H*.50+Math.sin((i+scroll*.11)*.01)*45);x.lineTo(W,H);x.lineTo(0,H);x.fill();
+x.fillStyle='#372345';x.beginPath();x.moveTo(0,H*.61);for(let i=0;i<=W;i+=60)x.lineTo(i,H*.57+Math.sin((i+scroll*.24)*.013)*32);x.lineTo(W,H);x.lineTo(0,H);x.fill();
 x.fillStyle=ground;x.beginPath();x.moveTo(0,H);for(let px=0;px<=W;px+=18)x.lineTo(px,gy(px));x.lineTo(W,H);x.closePath();x.fill();x.strokeStyle='#8b5cf6';x.lineWidth=3;x.beginPath();for(let px=0;px<=W;px+=18){let y=gy(px);px?x.lineTo(px,y):x.moveTo(px,y)}x.stroke();
 for(const h of haz){let y=gy(h.x);if(h.type==='crater'){x.fillStyle='#130b1b';x.beginPath();x.ellipse(h.x,y+12,h.r,13,0,0,Math.PI*2);x.fill();x.strokeStyle='#9b6fb3';x.stroke()}else{x.fillStyle=h.type==='spire'?'#b08db6':'#938098';x.beginPath();if(h.type==='spire'){x.moveTo(h.x-h.r,y);x.lineTo(h.x,y-h.r*2.3);x.lineTo(h.x+h.r,y);x.closePath()}else x.arc(h.x,y-h.r/2,h.r,0,Math.PI*2);x.fill()}}
 for(const tr of turrets){let y=gy(tr.x);x.fillStyle='#39434b';x.fillRect(tr.x-20,y-42,40,42);x.fillStyle='#ff477e';x.fillRect(tr.x-5,y-55,10,18);x.fillRect(tr.x+4,y-51,22,5)}
@@ -123,6 +127,16 @@ if(K.ArrowUp&&P.boost>0){for(let i=0;i<4;i++){x.fillStyle=i%2?'#26f7ff88':'#8b5c
 if(P.on&&P.speed>.9){for(let i=0;i<3;i++){x.fillStyle='#cbb5d055';x.beginPath();x.arc(P.x-45-rnd(0,30),P.y+18+rnd(-4,8),rnd(3,8),0,Math.PI*2);x.fill()}}
 for(const f of fx){x.globalAlpha=Math.max(0,f.life*1.7);x.fillStyle=f.c===2?'#72ff9e':f.c===1?'#ff477e':'#ffcc4d';x.fillRect(f.x,f.y,f.s,f.s)}x.globalAlpha=1;x.restore()
 }
-function loop(n){if(!run)return;let dt=Math.min(.033,(n-last)/1000||.016);last=n;update(dt);draw();requestAnimationFrame(loop)}draw()
+function loop(n){
+ if(!run)return;
+ let dt=Math.min(.033,(n-last)/1000||.016);last=n;
+ try{update(dt);draw()}catch(err){
+   console.error('GRAVITY SIX render failure',err);run=false;U.banner.textContent='RENDER RECOVERY · TAP TO RESTART';U.banner.classList.add('show');
+ }
+ if(run)requestAnimationFrame(loop)
+}
+fitCanvas();
+terrain=[];for(let i=0;i<56;i++)terrain.push({y:H*.68+rnd(-18,18)});
+P.x=W*.21;P.y=gy(P.x)-44;zone=1;draw()
 })();
 </script></body></html>
