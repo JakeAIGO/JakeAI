@@ -1,0 +1,74 @@
+﻿{
+    "station":  "KJAI",
+    "rotation":  "Broadcasts 002 + 003 + KJAI Special",
+    "generated_at":  "2026-09-25T20:03:22",
+    "duration_seconds":  2470.294,
+    "cues":  [
+                 {
+                     "start_seconds":  0,
+                     "title":  "KJAI Broadcast 002",
+                     "artist":  "KJAI / JakeAI",
+                     "program":  "Broadcast 002"
+                 },
+                 {
+                     "start_seconds":  1134.888,
+                     "title":  "Broadcast 003 - The Night Shift Has Opinions",
+                     "artist":  "KJAI / JakeAI",
+                     "program":  "Broadcast 003"
+                 },
+                 {
+                     "start_seconds":  1135.575,
+                     "title":  "The GPS Has Trust Issues",
+                     "artist":  "Harlan Static",
+                     "program":  "Broadcast 003"
+                 },
+                 {
+                     "start_seconds":  1321.339,
+                     "title":  "After Hours Department",
+                     "artist":  "Velvet Relay",
+                     "program":  "Broadcast 003"
+                 },
+                 {
+                     "start_seconds":  1512.375,
+                     "title":  "Temporary Permanent Fix",
+                     "artist":  "Blacktop Saints",
+                     "program":  "Broadcast 003"
+                 },
+                 {
+                     "start_seconds":  1697.628,
+                     "title":  "Sunrise Was Not Approved",
+                     "artist":  "Neon Mercy",
+                     "program":  "Broadcast 003"
+                 },
+                 {
+                     "start_seconds":  1878.49,
+                     "title":  "Human Resources Is Offline",
+                     "artist":  "UNIT-404",
+                     "program":  "Broadcast 003"
+                 },
+                 {
+                     "start_seconds":  2048.862,
+                     "title":  "Streetlights Don\u0027t Ask Questions",
+                     "artist":  "Glass Orchard",
+                     "program":  "Broadcast 003"
+                 },
+                 {
+                     "start_seconds":  2243.962,
+                     "title":  "KJAI Special - Thanks for the Static",
+                     "artist":  "KJAI DJ",
+                     "program":  "KJAI Special"
+                 },
+                 {
+                     "start_seconds":  2256.944,
+                     "title":  "Thanks for the Static",
+                     "artist":  "KJAI / JakeAI",
+                     "program":  "KJAI Special"
+                 },
+                 {
+                     "start_seconds":  2462.494,
+                     "title":  "KJAI DJ",
+                     "artist":  "JakeAI",
+                     "program":  "KJAI Special"
+                 }
+             ]
+}
